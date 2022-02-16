@@ -44,11 +44,16 @@ called indirectly through dynamic libraries that expose a C ABI.
 
 The directory layout for the engine is:
 
-  - engine/ ; application & entry point
+  - engine/
+    - application/source.cpp ; application & entry point
   - libraries/ ; static libraries to provide minimal engine support
+    - plugin/include/pulzoad-plugin/plugin.hpp
+    - plugin/src/pulzoad-plugin/plugin.cpp
+    - plugin/CMakeLists.txt
+    - ...
   - interop/ ;
-    - include/pulzoad ; all interop ABIs should be located under Pulzoad
-    - src/ - interop to the static libraries
+    - plugin/include/pulzoad-interop-plugin/plugin.h
+    - plugin/src/pulzoad-interop-plugin/plugin.c
 
 A C++ CMakeLists is provided, which can be used to compile the engine. This is
 all you need for a simple 'hello world'. The engine provides some minimal
@@ -72,10 +77,35 @@ So as an example to a simple Zig project,
     - zig implementation
   - build.zig (builds engine, builds application, builds logic)
 
+# Hello World example
+```
+mkdir pulzoad-hello-world
+cd pulzoad-hello-world
+git clone https://github.com/aodq/pulzoad-engine
+<editor> CMakeLists.txt # see below
+mkdir application/
+<editor> application/source.cpp # see below
+```
+
+CMakeLists.txt
+```
+```
+
+application/entry.cpp
+```
+#include <pulzoad/engine.hpp>
+
+void pulaInitialize() {
+  printf("hello world!\n");
+}
+
+void pulaShutdown() {
+}
+```
 
 # dynamic binding
 
-As most interactions between the engine, libraries and components is through
+As many interactions between the engine, libraries and components is through
 indirect pointers loaded by functions like linux's `dlopen`, part of writing
 the bindings is to provide an interface through a struct, namespace, or
 equivalent. There are some exceptions, like some `pule` functions are provided
@@ -88,7 +118,7 @@ namespace pula {
 };
 
 // loaded by
-puleDynamicFnLoad(pula::players, "pulaPlayers");
+pula::players = pulePluginLoadFn("pulaPlayers");
 ```
 
 this will require some level of maintenance between each language.
@@ -104,13 +134,15 @@ struct PulaBindings {
 
 // .. in some other language
 PulaBindings pula;
-puleDynamicFnLoad(pula.initializeBindings, "pulaInitializeBindings");
+pula.initializeBindings = pulePluginLoadFn("pulaInitializeBindings");
 pulaDynamicBindingsLoad(&pula);
 ```
 
-but this would still require manually loading each artefact, tho
-loading 
-
+The thing to note is that most likely *you don't* need to do this for most of
+the libraries you are linking against. This is recommended to be done when
+interfacing from the foundation of your application, to the internal logic
+parts; the functions that you want to be hot-reloaded. Otherwise there is
+no need to manually load & reload these indirect function pointers.
 
 # Error-handling
 
@@ -122,7 +154,7 @@ the bindings to your language can help here as well.
 
 ```
 enum PulaInitializeError {
-  PulaInitializeError_acquiredNoPlayers
+  PulaInitializeError_acquiredNoPlayers = 1,
 };
 PulError pulaInitialize(pulaGameState * const state) {
   // silly example
@@ -175,12 +207,12 @@ struct PuleApplicationInfo {
 void puleRegisterApplication(PuleApplicationInfo const);
 ```
 
-Each parameter must be constant. If you need to modify a parameter, pass a
-pointer. Every type must be explicitly sized. If the size of the parameter is
-larger than a POD, consider using a const-pointer. Pointers and const are both
-type-modifiers, thus they are read from right-to-left (`int const` rather than
-`const int`). Pointers must be spaced out the same as any other named type
-modifier (`int * foo`).
+Each parameter must be constant. If you need to modify a parameter, copy it
+locally in the function. Every type must be explicitly sized. If the size of
+the parameter is larger than a POD, consider using a const-pointer. Pointers
+and const are both type-modifiers, thus they are read from right-to-left (`int
+const` rather than `const int`). Pointers must be spaced out the same as any
+other named type modifier (`int * foo`).
 
 ```
 int32_t puleVersion();
