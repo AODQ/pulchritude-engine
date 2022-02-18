@@ -1,24 +1,24 @@
-add_executable(pulzoad-application)
+add_executable(bulkher-application)
 
 target_sources(
-  pulzoad-application
+  bulkher-application
   PRIVATE
     src/source.cpp
 )
 
-#target_compile_features(pulzoad-application PRIVATE cxx_std_20)
+#target_compile_features(bulkher-application PRIVATE cxx_std_20)
 
 set_target_properties(
-  pulzoad-application
+  bulkher-application
   PROPERTIES
     COMPILE_FLAGS
       "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
 )
 
-target_link_libraries(pulzoad-application pulzoad-plugin)
+target_link_libraries(bulkher-application bulkher-plugin)
 
 install(
-  TARGETS pulzoad-application
+  TARGETS bulkher-application
   RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT core

@@ -1,14 +1,14 @@
-add_library(pulzoad-plugin SHARED)
+add_library(bulkher-plugin SHARED)
 
-target_include_directories(pulzoad-plugin PUBLIC "include/")
+target_include_directories(bulkher-plugin PUBLIC "include/")
 target_sources(
-  pulzoad-plugin
+  bulkher-plugin
   PRIVATE
-    src/pulzoad-plugin/plugin.cpp
+    src/bulkher-plugin/plugin.cpp
 )
 
 set_target_properties(
-  pulzoad-plugin
+  bulkher-plugin
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,15 +16,15 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-#target_link_libraries(pulzoad-plugin)
+#target_link_libraries(bulkher-plugin)
 
 install(
-  TARGETS pulzoad-plugin
+  TARGETS bulkher-plugin
   LIBRARY NAMELINK_SKIP
   LIBRARY
-    DESTINATION lib/
+    DESTINATION bin/plugins/
     COMPONENT plugin
   RUNTIME
-    DESTINATION lib/
+    DESTINATION bin/plugins/
     COMPONENT plugin
 )

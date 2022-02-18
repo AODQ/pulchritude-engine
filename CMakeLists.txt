@@ -1,26 +1,27 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 cmake_policy(VERSION 3.0)
 
-if (PULZOAD_PLATFORM STREQUAL "Win64")
+if (BULKHER_PLATFORM STREQUAL "Win64")
   message("*-- compiling for Windows 64-bit platform")
   include(CMakeModules/win64.cmake)
-elseif (PULZOAD_PLATFORM STREQUAL "Linux")
+elseif (BULKHER_PLATFORM STREQUAL "Linux")
   message("*-- compiling for Linux 64-bit platform")
-elseif (PULZOAD_PLATFORM STREQUAL "macOS")
+elseif (BULKHER_PLATFORM STREQUAL "macOS")
   message("*-- compiling for macOS 64-bit platform")
 else()
   message(WARNING "defaulting to compile for Linux 64-bit platform")
-  set(PULZOAD_PLATFORM "Linux")
+  set(BULKHER_PLATFORM "Linux")
 endif()
 
 # use rpath so we can install .so files locally to lib (such as libstdc++.so.6
-#   etc) to allow pulzoad to be portable across various distros
+#   etc) to allow bulkher to be portable across various distros
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-if(PULZOAD_PLATFORM STREQUAL "Linux")
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
-elseif(PULZOAD_PLATFORM STREQUAL "macOS")
-  set(CMAKE_INSTALL_RPATH "@loader_path/../lib/")
+if(BULKHER_PLATFORM STREQUAL "Linux")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/plugins/:$ORIGIN/")
+elseif(BULKHER_PLATFORM STREQUAL "macOS")
+  set(CMAKE_INSTALL_RPATH "@loader_path/plugins/;@loader_path")
+
 endif()
 
 # silence OpenGL legacy warning
@@ -49,19 +50,19 @@ else()
 endif()
 
 project(
-  pulzoad
+  bulkher-engine
   VERSION 0.0
   LANGUAGES C CXX
-  DESCRIPTION "pulzoad | puzzled engine | github.com/aodq/pulzoad-engine"
+  DESCRIPTION "bulkher engine | github.com/aodq/bulkher-engine"
 )
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (PULZOAD_PLATFORM STREQUAL "Linux" OR PULZOAD_PLATFORM STREQUAL "macOS")
+if (BULKHER_PLATFORM STREQUAL "Linux" OR BULKHER_PLATFORM STREQUAL "macOS")
   set(CMAKE_CXX_FLAGS "-march=x86-64")
-elseif (PULZOAD_PLATFORM STREQUAL "Win64" OR PULZOAD_PLATFORM STREQUAL "Win32")
+elseif (BULKHER_PLATFORM STREQUAL "Win64" OR BULKHER_PLATFORM STREQUAL "Win32")
   set(CMAKE_CXX_FLAGS "-march=x86-64 -gstabs")
 endif()
 

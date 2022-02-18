@@ -1,5 +1,6 @@
-/* pulzoad | puzzled engine | github.com/aodq/pulzoad-engine | aodq.net */
-#include <pulzoad-plugin/plugin.h>
+/* bulkher engine | github.com/aodq/bulkher-engine | aodq.net */
+
+#include <bulkher-plugin/plugin.h>
 
 #include <cstdint>
 #include <cstring>
@@ -31,9 +32,9 @@ struct Plugin {
   std::filesystem::path filepath;
   PluginHandle data = nullptr;
 
-  char const * (*pluginNameFn)();
+  std::string pluginName = "";
 
-  void * loadFunction(char const * label);
+  void * loadFunction(char const * label, bool shouldError);
   void reload();
   void close();
   void open();
@@ -53,18 +54,18 @@ Plugin::~Plugin() {
   this->close();
 }
 
-void * Plugin::loadFunction(char const * label) {
+void * Plugin::loadFunction(char const * label, bool shouldError) {
   void * fn = nullptr;
   #if defined(__unix__) || defined(__APPLE__)
     fn = ::dlsym(this->data, label);
-    if (!fn) {
+    if (!fn && shouldError) {
       printf(
         "Failed to load function '%s' for plugin '%s'\n", label, ::dlerror()
       );
     }
   #elif defined(_WIN32) || defined(_WIN64)
     fn = reinterpret_cast<void *>(::GetProcAddress(this->data, label));
-    if (!fn) {
+    if (!fn && shouldError) {
       printf(
         "Failed to load function '%s' for plugin '%s'\n",
         label, ::GetLastError()
@@ -82,14 +83,11 @@ void Plugin::reload() {
 void Plugin::close() {
   if (!this->data) { return; }
   #if defined(__unix__) || defined(__APPLE__)
-    printf(
-      "closing plugin %p %s\n",
-      this->data, this->filepath.string().c_str()
-    );
+    printf("closing plugin %p %s\n", this->data, this->filepath.c_str());
     if (::dlclose(this->data)) {
       printf(
         "Failed to close plugin '%s': %s\n",
-        this->filepath.string().c_str(),
+        this->filepath.c_str(),
         ::dlerror()
       );
     }
@@ -97,7 +95,7 @@ void Plugin::close() {
     if (::FreeLibrary(this->data)) {
       printf(
         "Failed to load plugin '%s'; %s\n"
-      , this->filepath.string(), ::GetLastError()
+      , this->filepath.c_str(), ::GetLastError()
       );
     }
   #endif
@@ -107,11 +105,10 @@ void Plugin::close() {
 void Plugin::open() {
   #if defined(__unix__) || defined(__APPLE__)
     this->data = ::dlopen(this->filepath.c_str(), RTLD_LAZY | RTLD_LOCAL);
-    printf("opening %p : %s\n", this->data, this->filepath.string().c_str());
     if (!this->data) {
       printf(
         "Failed to load plugin '%s'; %s\n",
-        this->filepath.string().c_str(),
+        this->filepath.c_str(),
         ::dlerror()
       );
     }
@@ -120,16 +117,53 @@ void Plugin::open() {
     if (!this->data) {
       printf(
         "Failed to load plugin '%s'; %s\n"
-      , this->filepath.string().c_str(), ::GetLastError()
+      , this->filepath.c_str(), ::GetLastError()
       );
     }
   #endif
+
+  // grab name
+  {
+    for (
+      char const * pluginNameIt = this->filepath.c_str();
+      pluginNameIt[0] != '\0';
+      ++ pluginNameIt
+    ) {
+      if (
+            (pluginNameIt[0] == '/' || pluginNameIt[0] == '\\')
+         && pluginNameIt[1] == 'l'
+         && pluginNameIt[2] == 'i'
+         && pluginNameIt[3] == 'b'
+      ) {
+        this->pluginName = std::string{pluginNameIt+4};
+        this->pluginName = (
+          this->pluginName.substr(
+            0,
+            this->pluginName.size()-3 // .so
+          )
+        );
+        // don't break at end in cases like 'lib/libplugin-foo.so'
+      }
+    }
+    if (this->pluginName == "") {
+      printf(
+        "failed to get the name of plugin from '%s'\n",
+        this->filepath.c_str()
+      );
+    }
+  }
+
+  printf(
+    "opened '%s' @ %p | path %s\n",
+    this->pluginName.c_str(),
+    this->data, this->filepath.c_str()
+  );
 
   // check if handle already exists in plugins, as each plugin must be unique
   for (auto & plugin : ::plugins) {
     if (&*plugin == this) { continue; }
     if (plugin->data == this->data) {
-      printf("plugin %s already loaded\n", this->filepath.string().c_str());
+      printf("plugin %s already loaded\n", this->filepath.c_str());
       break;
     }
   }
@@ -142,10 +176,7 @@ void loadPluginFromFile(std::filesystem::path path) {
   // check plugin loaded
   if (!pluginEnd->data) {
     ::plugins.pop_back();
-    printf(
-      "shared object file %s could not load correctly\n",
-      path.string().c_str()
-    );
+    printf("shared object file %s could not load correctly\n", path.c_str());
   }
 }
 
@@ -184,15 +215,7 @@ void pulePluginsReload() {
 size_t pulePluginIdFromName(char const * const pluginNameCStr) {
   size_t it = 0;
   for (auto & pluginIt : ::plugins) {
-    if (!pluginIt->pluginNameFn) {
-      pluginIt->pluginNameFn = (
-        reinterpret_cast<char const *(*)()>(
-          pluginIt->loadFunction("pluginLabel")
-        )
-      );
-    }
-
-    if (strcmp(pluginIt->pluginNameFn(), pluginNameCStr) != 0){
+    if (strcmp(pluginIt->pluginName.c_str(), pluginNameCStr) != 0){
       ++ it;
       continue;
     }
@@ -212,7 +235,31 @@ void * pulePluginLoadFn(
   size_t const pluginId,
   char const * const fnCStr
 ) {
-  return ::plugins[pluginId]->loadFunction(fnCStr);
+  return ::plugins[pluginId]->loadFunction(fnCStr, true);
+}
+
+void * puleTryPluginLoadFn(
+  size_t const pluginId,
+  char const * const fnCStr
+) {
+  return ::plugins[pluginId]->loadFunction(fnCStr, false);
+}
+
+void puleIteratePlugins(
+  void (*fn)(PulePluginInfo const, void * const userdata),
+  void * userdata
+) {
+  size_t pluginIt = 0;
+  for (auto const & plugin : ::plugins) {
+    fn(
+      PulePluginInfo {
+        .name = plugin->pluginName.c_str(),
+        .id = pluginIt,
+      },
+      userdata
+    );
+    ++ pluginIt;
+  }
 }
 
 } // extern c

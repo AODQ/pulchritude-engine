@@ -1,6 +1,10 @@
-#include <pulzoad-error/error.h>
+#include <bulkher-error/error.h>
 
-#include <pulzoad-log/log.h>
+#include <bulkher-log/log.h>
+
+char const * pluginLabel() {
+  return "puleError";
+}
 
 uint32_t puleConsumeError(PulError const error) {
   puleLog("ERROR [%zu]: %s", error.description, error.id);

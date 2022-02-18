@@ -47,13 +47,13 @@ The directory layout for the engine is:
   - engine/
     - application/source.cpp ; application & entry point
   - libraries/ ; static libraries to provide minimal engine support
-    - plugin/include/pulzoad-plugin/plugin.hpp
-    - plugin/src/pulzoad-plugin/plugin.cpp
+    - plugin/include/bulkher-plugin/plugin.hpp
+    - plugin/src/bulkher-plugin/plugin.cpp
     - plugin/CMakeLists.txt
     - ...
   - interop/ ;
-    - plugin/include/pulzoad-interop-plugin/plugin.h
-    - plugin/src/pulzoad-interop-plugin/plugin.c
+    - plugin/include/bulkher-interop-plugin/plugin.h
+    - plugin/src/bulkher-interop-plugin/plugin.c
 
 A C++ CMakeLists is provided, which can be used to compile the engine. This is
 all you need for a simple 'hello world'. The engine provides some minimal
@@ -66,7 +66,7 @@ own definitions for the C ABI to ensure other components function correctly.
 So as an example to a simple Zig project,
 
 - game/
-  - pulzoad-engine/
+  - bulkher-engine/
     - engine/
     - libraries/
     - interop/
@@ -78,28 +78,20 @@ So as an example to a simple Zig project,
   - build.zig (builds engine, builds application, builds logic)
 
 # Hello World example
-```
-mkdir pulzoad-hello-world
-cd pulzoad-hello-world
-git clone https://github.com/aodq/pulzoad-engine
-<editor> CMakeLists.txt # see below
-mkdir application/
-<editor> application/source.cpp # see below
-```
 
-CMakeLists.txt
-```
-```
+There is a github gist script that can help you set a project up. Either follow
+the script, typing each command line-by-line (replacing parts which suit you),
+or run the script and let it try to configure for you.
 
 application/entry.cpp
 ```
-#include <pulzoad/engine.hpp>
+#include <bulkher/engine.hpp>
 
-void pulaInitialize() {
+void pulcInitialize() {
   printf("hello world!\n");
 }
 
-void pulaShutdown() {
+void pulcShutdown() {
 }
 ```
 
@@ -113,12 +105,12 @@ statically, mostly to handle dynamic library loading.
 
 ```
 // C++
-namespace pula {
+namespace pulc {
   void (*players)();
 };
 
 // loaded by
-pula::players = pulePluginLoadFn("pulaPlayers");
+pulc::players = pulePluginLoadFn("pulcPlayers");
 ```
 
 this will require some level of maintenance between each language.
@@ -127,15 +119,15 @@ I might consider having these structs be part of the C ABI
 
 ```
 // C ABI
-struct PulaBindings {
+struct PulcBindings {
   void (*initializeBindings)();
   void (*players)();
 };
 
 // .. in some other language
-PulaBindings pula;
-pula.initializeBindings = pulePluginLoadFn("pulaInitializeBindings");
-pulaDynamicBindingsLoad(&pula);
+PulcBindings pulc;
+pulc.initializeBindings = pulePluginLoadFn("pulcInitializeBindings");
+pulcDynamicBindingsLoad(&pulc);
 ```
 
 The thing to note is that most likely *you don't* need to do this for most of
@@ -153,16 +145,16 @@ custom return type, so some sort of middle ground is provided to you. Possibly
 the bindings to your language can help here as well.
 
 ```
-enum PulaInitializeError {
-  PulaInitializeError_acquiredNoPlayers = 1,
+enum PulcInitializeError {
+  PulcInitializeError_acquiredNoPlayers = 1,
 };
-PulError pulaInitialize(pulaGameState * const state) {
+PulError pulcInitialize(PulcGameState * const state) {
   // silly example
-  state->players = pulaAcquirePlayers();
+  state->players = pulcAcquirePlayers();
   if (state->players == 0) {
     return (
       puleRegisterError(
-        PulaInitializeError_acquiredNoPlayers,
+        PulcInitializeError_acquiredNoPlayers,
         "failed to acquire players"
       )
     );
@@ -173,7 +165,7 @@ PulError pulaInitialize(pulaGameState * const state) {
 
 to consume an error is simple
 ```
-PulError error = pulaInitialize();
+PulError error = pulcInitialize();
 if (puleConsumeError(error)) { // checks & logs error
   return;
 }
@@ -188,14 +180,20 @@ all need to follow the same conventions. This extends past style, to things
 like error handling, parameter typing, memory allocation, and more.
 
 Firstly, functions are camelCased and must start with either 'puli' if they
-are from a lIbrary, 'pule' if from the Engine, and 'pulc' if from a component.
+are from a lIbrary, 'pule' if from the Engine, and 'pulc' if from a Component.
+The component part is optional, as if these functions only serve a single
+application, then there's no need to follow the engine naming convention.
+However the convention should be followed when functions the component exposes
+is called 'upstream' to the engine or libraries, such as 'pulcComponentLoad' or
+'pulcComponentUnload'.
+
 **No non-exported/local functions/variables should start with `pul` prefix**.
 
 ```
 void pulePrintHelloWorld();
 ```
 
-Structs are PascalCased, and they follow the same `Pula`/`Puli`/`Pulc`
+Structs are PascalCased, and they follow the same `Pulc`/`Puli`/`Pulc`
 semantics. Structs are heavily encouraged to be used to group function
 parameters together.
 
@@ -256,20 +254,20 @@ Enums introduce a `_` between the enum type and the enum value. They must have
 a `Begin` value if(f) non-zero, and must have an `End` value. They as well
 must have a `MaxEnum` that will specify the size of the enum.
 ```
-enum PulaTeamColor {
-  PulaTeamColor_red,
-  PulaTeamColor_green,
-  PulaTeamColorEnd,
-  PulaTeamColorMaxEnum = puleMaxEnumU32,
+enum PulcTeamColor {
+  PulcTeamColor_red,
+  PulcTeamColor_green,
+  PulcTeamColorEnd,
+  PulcTeamColorMaxEnum = puleMaxEnumU32,
 };
 ```
 
 Parameters and struct members that are arrays end with `s`/`es` suffix.
 ```
-struct PulaTeam {
+struct PulcTeam {
   int32_t * playerIds;
 };
-void pulaTeamLog(PulaTeam const * const teams);
+void pulcTeamLog(PulcTeam const * const teams);
 ```
 
 *It's always* preferrable to pass arrays of items rather than a single item
@@ -277,16 +275,26 @@ when interacting with arrays and dynamic libraries, as is already the
 convention for data-oriented approaches to programming.
 
 ```
-for (size_t it = 0; it < pulaPlayersLength(); ++ it) {
-  PulaPlayer * player = pulaPlayer(it);
+for (size_t it = 0; it < pulcPlayersLength(); ++ it) {
+  PulcPlayer * player = pulcPlayer(it);
 }
 ```
 
 is less performant than
 
 ```
-size_t playerLen = pulaPlayersLength();
-PulaPlayer * players = pulaPlayers();
+size_t playerLen = pulcPlayersLength();
+PulcPlayer * players = pulcPlayers();
+```
+
+Any passed function (such as a callback) should have a userdata parameter, to
+allow user's to pass their own data to the callback. This is done only to make
+the user's life a little easier, if they choose to use it.
+
+```
+void puleSetErrorCallback(
+  void (*fn)(PuleError const error, void * const userdata)
+);
 ```
 
 # Positives / Negatives

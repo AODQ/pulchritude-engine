@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+char const * pluginLabel();
+
 typedef struct {
   char const * description;
   uint32_t id;

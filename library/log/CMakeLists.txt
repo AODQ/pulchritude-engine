@@ -1,14 +1,14 @@
-add_library(pulzoad-log SHARED)
+add_library(bulkher-log SHARED)
 
-target_include_directories(pulzoad-log PUBLIC "include/")
+target_include_directories(bulkher-log PUBLIC "include/")
 target_sources(
-  pulzoad-log
+  bulkher-log
   PRIVATE
-    src/pulzoad-log/log.c
+    src/bulkher-log/log.c
 )
 
 set_target_properties(
-  pulzoad-log
+  bulkher-log
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,10 +16,10 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-#target_link_libraries(pulzoad-log)
+#target_link_libraries(bulkher-log)
 
 install(
-  TARGETS pulzoad-log
+  TARGETS bulkher-log
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

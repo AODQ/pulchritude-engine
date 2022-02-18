@@ -1,14 +1,14 @@
-add_library(pulzoad-error SHARED)
+add_library(bulkher-error SHARED)
 
-target_include_directories(pulzoad-error PUBLIC "include/")
+target_include_directories(bulkher-error PUBLIC "include/")
 target_sources(
-  pulzoad-error
+  bulkher-error
   PRIVATE
-    src/pulzoad-error/error.c
+    src/bulkher-error/error.c
 )
 
 set_target_properties(
-  pulzoad-error
+  bulkher-error
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,10 +16,10 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulzoad-error pulzoad-log)
+target_link_libraries(bulkher-error bulkher-log)
 
 install(
-  TARGETS pulzoad-error
+  TARGETS bulkher-error
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/
