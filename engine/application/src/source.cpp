@@ -31,6 +31,7 @@ namespace {
       *reinterpret_cast<std::vector<size_t> *>(userdata)
     );
     tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
+    ::puleLog("name '%s' plugin type %p", plugin.name, pluginTypeFn);
     if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
       componentPlugins.emplace_back(plugin.id);
     }

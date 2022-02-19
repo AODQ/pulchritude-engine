@@ -35,7 +35,7 @@ struct PulePluginInfo {
 };
 
 void puleIteratePlugins(
-  void (*fn)(PulePluginInfo const, void * const userdata),
+  void (*fn)(struct PulePluginInfo const, void * const userdata),
   void * userdata
 );
 
