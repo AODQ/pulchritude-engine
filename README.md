@@ -65,34 +65,94 @@ own definitions for the C ABI to ensure other components function correctly.
 
 So as an example to a simple Zig project,
 
-- game/
-  - bulkher-engine/
-    - engine/
-    - libraries/
-    - interop/
-  - application/
-    - zig implementation
-    - C bindings
-  - logic/
-    - zig implementation
-  - build.zig (builds engine, builds application, builds logic)
+- project/
+  - build/ ; location to put build files
+  - install/ ; location to install binaries, libraries/plugins, symbols, etc
+  - repo/ ; project source code
+    - build.zig ; build files, like CMakeLists.txt or equivalent
+    - bulkher-engine/ ; clone/fork of the engine
+    - components/ ; plugins that form the primary logic/implementation
+      - core/ ; primary implementation
+        - src/core.zig
+      - ai/ai.lua
+      - bootstrap/main.c
+      - ...
+    - libraries/ ; optional, list of bulkher libraries to use
+      - bulkher-math/
+      - bulkher-assets/
+      - ...
+    - application/ ; optional, if you want to override the default application
+      - source.zig ; entry point
 
 # Hello World example
 
-There is a github gist script that can help you set a project up. Either follow
-the script, typing each command line-by-line (replacing parts which suit you),
-or run the script and let it try to configure for you.
+There is a script that can help you set a project up, located at the examples
+repo https://github.com/aodq/bulkher-examples . The script can also be used
+as reference.
 
-application/entry.cpp
+As well I'll list a simple C++ & CMake example
+
+directories
+- example-project
+  - build
+  - install
+  - repo
+    - CMakeLists.txt
+    - components/core
+      - src/core.cpp
+      - CMakeLists.txt
+
+
+example-project/repo/CMakeLists.txt
+```cmake
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_policy(VERSION 3.0)
+project(
+  example-project
+  VERSION 0.0
+  LANGUAGES CXX
+  DESCRIPTION ""
+)
+
+add_subdirectory(bulkher-engine)
+add_subdirectory(components/core)
 ```
-#include <bulkher/engine.hpp>
 
-void pulcInitialize() {
-  printf("hello world!\n");
+example-project/repo/core/CMakeLists.txt
+```cmake
+add_library(example-project-core SHARED)
+target_include_directories(example-project-core PUBLIC "include/")
+target_sources(example-project-core PRIVATE src/core.cpp)
+set_target_properties(example-project-core POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(example-project-core bulkher-plugin bulkher-log)
+
+install(
+  TARGETS example-project-core
+  LIBRARY NAMELINK_SKIP
+  LIBRARY
+    DESTINATION bin/plugins/
+    COMPONENT plugin
+  RUNTIME
+    DESTINATION bin/plugins/
+    COMPONENT plugin
+)
+```
+
+example-project/repo/core/core.cpp
+```cpp
+#include <bulkher-log/log.h>
+
+extern "C" {
+
+PulePluginType pulcPluginType() {
+  return PulePluginType_component;
 }
 
-void pulcShutdown() {
+void pulcComponentLoad() {
+  puleLog("hello from test application");
 }
+
+} // extern C
 ```
 
 # dynamic binding
