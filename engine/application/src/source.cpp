@@ -1,4 +1,4 @@
-/* bulkher engine | github.com/aodq/bulkher-engine | aodq.net */
+/* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
 
 // whfg pybfr lbhe rlrf naq gura erzrzore
 // gur gubhtugf lbh'ir ybpxrq njnl
@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include <bulkher-plugin/plugin.h>
+#include <pulchritude-plugin/plugin.h>
 
 namespace {
   void (*puleLog)(char const * const formatCStr, ...);
@@ -58,13 +58,13 @@ int32_t main(
 
   printf("loading log\n");
   {
-    size_t const logPluginId = pulePluginIdFromName("bulkher-log");
+    size_t const logPluginId = pulePluginIdFromName("pulchritude-log");
     if (logPluginId == -1ull) { return 1; }
     ::loadFn(::puleLog, logPluginId, "puleLog");
     if (::puleLog == nullptr) { return 1; }
   }
 
-  ::puleLog("hello from %s", "bulkher-logger");
+  ::puleLog("hello from %s", "pulchritude-logger");
 
   std::vector<size_t> componentPluginIds;
   puleIteratePlugins(

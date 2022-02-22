@@ -1,14 +1,14 @@
-add_library(bulkher-window SHARED)
+add_library(pulchritude-window SHARED)
 
-target_include_directories(bulkher-window PUBLIC "include/")
+target_include_directories(pulchritude-window PUBLIC "include/")
 target_sources(
-  bulkher-window
+  pulchritude-window
   PRIVATE
-    src/bulkher-window/window.cpp
+    src/pulchritude-window/window.cpp
 )
 
 set_target_properties(
-  bulkher-window
+  pulchritude-window
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,10 +16,10 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(bulkher-window glfw)
+target_link_libraries(pulchritude-window glfw)
 
 install(
-  TARGETS bulkher-window
+  TARGETS pulchritude-window
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

@@ -1,6 +1,6 @@
-/* bulkher engine | github.com/aodq/bulkher-engine | aodq.net */
+/* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
 
-#include <bulkher-plugin/plugin.h>
+#include <pulchritude-plugin/plugin.h>
 
 #include <cstdint>
 #include <cstring>

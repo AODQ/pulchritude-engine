@@ -1,25 +1,25 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 cmake_policy(VERSION 3.0)
 
-if (BULKHER_PLATFORM STREQUAL "Win64")
+if (PULCHRITUDE_PLATFORM STREQUAL "Win64")
   message("*-- compiling for Windows 64-bit platform")
   include(CMakeModules/win64.cmake)
-elseif (BULKHER_PLATFORM STREQUAL "Linux")
+elseif (PULCHRITUDE_PLATFORM STREQUAL "Linux")
   message("*-- compiling for Linux 64-bit platform")
-elseif (BULKHER_PLATFORM STREQUAL "macOS")
+elseif (PULCHRITUDE_PLATFORM STREQUAL "macOS")
   message("*-- compiling for macOS 64-bit platform")
 else()
   message(WARNING "defaulting to compile for Linux 64-bit platform")
-  set(BULKHER_PLATFORM "Linux")
+  set(PULCHRITUDE_PLATFORM "Linux")
 endif()
 
 # use rpath so we can install .so files locally to lib (such as libstdc++.so.6
-#   etc) to allow bulkher to be portable across various distros
+#   etc) to allow pulchritude to be portable across various distros
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-if(BULKHER_PLATFORM STREQUAL "Linux")
+if(PULCHRITUDE_PLATFORM STREQUAL "Linux")
   set(CMAKE_INSTALL_RPATH "$ORIGIN/plugins/:$ORIGIN/")
-elseif(BULKHER_PLATFORM STREQUAL "macOS")
+elseif(PULCHRITUDE_PLATFORM STREQUAL "macOS")
   set(CMAKE_INSTALL_RPATH "@loader_path/plugins/;@loader_path")
 
 endif()
@@ -50,19 +50,22 @@ else()
 endif()
 
 project(
-  bulkher-engine
+  pulchritude-engine
   VERSION 0.0
   LANGUAGES C CXX
-  DESCRIPTION "bulkher engine | github.com/aodq/bulkher-engine"
+  DESCRIPTION "pulchritude engine | github.com/aodq/pulchritude-engine"
 )
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (BULKHER_PLATFORM STREQUAL "Linux" OR BULKHER_PLATFORM STREQUAL "macOS")
+if (
+     PULCHRITUDE_PLATFORM STREQUAL "Linux"
+  OR PULCHRITUDE_PLATFORM STREQUAL "macOS"
+)
   set(CMAKE_CXX_FLAGS "-march=x86-64")
-elseif (BULKHER_PLATFORM STREQUAL "Win64" OR BULKHER_PLATFORM STREQUAL "Win32")
+elseif (PULCHRITUDE_PLATFORM STREQUAL "Win64" OR PULCHRITUDE_PLATFORM STREQUAL "Win32")
   set(CMAKE_CXX_FLAGS "-march=x86-64 -gstabs")
 endif()
 

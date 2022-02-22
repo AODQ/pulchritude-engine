@@ -1,6 +1,6 @@
-#include <bulkher-error/error.h>
+#include <pulchritude-error/error.h>
 
-#include <bulkher-log/log.h>
+#include <pulchritude-log/log.h>
 
 char const * pluginLabel() {
   return "puleError";

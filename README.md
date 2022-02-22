@@ -47,13 +47,13 @@ The directory layout for the engine is:
   - engine/
     - application/source.cpp ; application & entry point
   - libraries/ ; static libraries to provide minimal engine support
-    - plugin/include/bulkher-plugin/plugin.hpp
-    - plugin/src/bulkher-plugin/plugin.cpp
+    - plugin/include/pulchritude-plugin/plugin.hpp
+    - plugin/src/pulchritude-plugin/plugin.cpp
     - plugin/CMakeLists.txt
     - ...
   - interop/ ;
-    - plugin/include/bulkher-interop-plugin/plugin.h
-    - plugin/src/bulkher-interop-plugin/plugin.c
+    - plugin/include/pulchritude-interop-plugin/plugin.h
+    - plugin/src/pulchritude-interop-plugin/plugin.c
 
 A C++ CMakeLists is provided, which can be used to compile the engine. This is
 all you need for a simple 'hello world'. The engine provides some minimal
@@ -70,16 +70,16 @@ So as an example to a simple Zig project,
   - install/ ; location to install binaries, libraries/plugins, symbols, etc
   - repo/ ; project source code
     - build.zig ; build files, like CMakeLists.txt or equivalent
-    - bulkher-engine/ ; clone/fork of the engine
+    - pulchritude-engine/ ; clone/fork of the engine
     - components/ ; plugins that form the primary logic/implementation
       - core/ ; primary implementation
         - src/core.zig
       - ai/ai.lua
       - bootstrap/main.c
       - ...
-    - libraries/ ; optional, list of bulkher libraries to use
-      - bulkher-math/
-      - bulkher-assets/
+    - libraries/ ; optional, list of pulchritude libraries to use
+      - pulchritude-math/
+      - pulchritude-assets/
       - ...
     - application/ ; optional, if you want to override the default application
       - source.zig ; entry point
@@ -87,7 +87,7 @@ So as an example to a simple Zig project,
 # Hello World example
 
 There is a script that can help you set a project up, located at the examples
-repo https://github.com/aodq/bulkher-examples . The script can also be used
+repo https://github.com/aodq/pulchritude-examples . The script can also be used
 as reference.
 
 As well I'll list a simple C++ & CMake example
@@ -114,7 +114,7 @@ project(
   DESCRIPTION ""
 )
 
-add_subdirectory(bulkher-engine)
+add_subdirectory(pulchritude-engine)
 add_subdirectory(components/core)
 ```
 
@@ -124,7 +124,7 @@ add_library(example-project-core SHARED)
 target_include_directories(example-project-core PUBLIC "include/")
 target_sources(example-project-core PRIVATE src/core.cpp)
 set_target_properties(example-project-core POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(example-project-core bulkher-plugin bulkher-log)
+target_link_libraries(example-project-core pulchritude-plugin pulchritude-log)
 
 install(
   TARGETS example-project-core
@@ -140,7 +140,7 @@ install(
 
 example-project/repo/core/core.cpp
 ```cpp
-#include <bulkher-log/log.h>
+#include <pulchritude-log/log.h>
 
 extern "C" {
 

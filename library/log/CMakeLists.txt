@@ -1,14 +1,14 @@
-add_library(bulkher-log SHARED)
+add_library(pulchritude-log SHARED)
 
-target_include_directories(bulkher-log PUBLIC "include/")
+target_include_directories(pulchritude-log PUBLIC "include/")
 target_sources(
-  bulkher-log
+  pulchritude-log
   PRIVATE
-    src/bulkher-log/log.c
+    src/pulchritude-log/log.c
 )
 
 set_target_properties(
-  bulkher-log
+  pulchritude-log
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,10 +16,10 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-#target_link_libraries(bulkher-log)
+#target_link_libraries(pulchritude-log)
 
 install(
-  TARGETS bulkher-log
+  TARGETS pulchritude-log
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/
