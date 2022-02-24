@@ -20,6 +20,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - shell: bash
+      run: |
+       git config user.name "name"
+       git config user.email "<>"
+       git config push.default "current"
+       ./run
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
