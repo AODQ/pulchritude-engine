@@ -1,10 +1,10 @@
 add_library(pulchritude-log SHARED)
 
-target_include_directories(pulchritude-log PUBLIC "include/")
+target_include_directories(pulchritude-log PUBLIC "../include/")
 target_sources(
   pulchritude-log
   PRIVATE
-    src/pulchritude-log/log.c
+    src/log.c
 )
 
 set_target_properties(

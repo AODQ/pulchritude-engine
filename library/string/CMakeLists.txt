@@ -1,14 +1,14 @@
-add_library(pulchritude-error SHARED)
+add_library(pulchritude-string SHARED)
 
-target_include_directories(pulchritude-error PUBLIC "../include/")
+target_include_directories(pulchritude-string PUBLIC "../include/")
 target_sources(
-  pulchritude-error
+  pulchritude-string
   PRIVATE
-    src/error.c
+    src/string.c
 )
 
 set_target_properties(
-  pulchritude-error
+  pulchritude-string
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,10 +16,10 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulchritude-error pulchritude-log pulchritude-string)
+target_link_libraries(pulchritude-string pulchritude-allocator)
 
 install(
-  TARGETS pulchritude-error
+  TARGETS pulchritude-string
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

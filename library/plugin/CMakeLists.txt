@@ -1,10 +1,10 @@
 add_library(pulchritude-plugin SHARED)
 
-target_include_directories(pulchritude-plugin PUBLIC "include/")
+target_include_directories(pulchritude-plugin PUBLIC "../include/")
 target_sources(
   pulchritude-plugin
   PRIVATE
-    src/pulchritude-plugin/plugin.cpp
+    src/plugin.cpp
 )
 
 set_target_properties(

@@ -1,10 +1,10 @@
 add_library(pulchritude-window SHARED)
 
-target_include_directories(pulchritude-window PUBLIC "include/")
+target_include_directories(pulchritude-window PUBLIC "../include/")
 target_sources(
   pulchritude-window
   PRIVATE
-    src/pulchritude-window/window.cpp
+    src/window.cpp
 )
 
 set_target_properties(

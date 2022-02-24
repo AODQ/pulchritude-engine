@@ -1,6 +1,8 @@
-# Summary
+# Pulchritude
 
-This is a game engine that ties together a lot of libraries and exposes them to
+### summary
+Pulchritude is a [lingua franca](https://en.wikipedia.org/wiki/Lingua_franca)
+type of game engine that ties together a lot of libraries and exposes them to
 the user through a unified C ABI. The engine is written in C++ with an exposing
 C ABI to allow as many libraries to be imported as possible. The application
 software for the game can be written in any desired language; the bulk of the
@@ -11,6 +13,7 @@ dynamic libraries that expose a C ABI.
 
 What this might end up looking like is:
 
+```txt
                        ┌────────────┐
                ┌───────│Engine (C++)│◄────────────────────┐
                │       │Application │                     │
@@ -29,9 +32,10 @@ What this might end up looking like is:
                │         ▼                   │
                │  ┌────────────────┐         │
                │  │Gameplay Logic  │◄────────┘
-               └► │  (Nim, D, Haxe)│◄┐
+               └► │  (lua, D, Haxe)│◄┐
                   └────────────────┘ │
                                   └──┘
+```
 
 The engine would be the application entry point, and every other bit will exist
 as either a static library, for math, networking, physics, gui, parsing,
@@ -40,25 +44,49 @@ For clarity on wording, the static libraries will be known as library, and the
 dynamic libraries as components. To clarify, most static libraries will be
 called indirectly through dynamic libraries that expose a C ABI.
 
-# Usage
+Every plugin should be replaceable with others that expose the same C ABI, it's
+even a simple manner to replace the engine plugins; each plugin has a
+corresponding CMake variable that will disable the build+install of that
+plugin. This allows for even the most central part of the engine, such as the
+logger or default memory allocator, to be replaced. In other words, the only
+irreplacable part of Pulchritude is the cohesive interfaces between plugins.
+
+---
+
+### usage
 
 The directory layout for the engine is:
 
   - engine/
     - application/source.cpp ; application & entry point
-  - libraries/ ; static libraries to provide minimal engine support
-    - plugin/include/pulchritude-plugin/plugin.hpp
-    - plugin/src/pulchritude-plugin/plugin.cpp
-    - plugin/CMakeLists.txt
-    - ...
-  - interop/ ;
-    - plugin/include/pulchritude-interop-plugin/plugin.h
+  - library/ ; static libraries to provide minimal engine support
+    - include ; directory for all include files for the ABI (add this
+                to include path for your builder)
+      - pulchritude-plugin/plugin.h, pulchritude-log/log.h, etc
+    - log/ ; each plugin
+      - CMakeLists.txt
+      - src/plugin.c
+  - third-party/ ; optional, location of external libraries
     - plugin/src/pulchritude-interop-plugin/plugin.c
+
+When compiled, the application will install to bin/, and each each plugin will
+install to bin/plugins
 
 A C++ CMakeLists is provided, which can be used to compile the engine. This is
 all you need for a simple 'hello world'. The engine provides some minimal
-libraries, which can be disabled if wanted;
+libraries, which can be disabled if wanted (you'd have to provide your own
+replacement);
+
+  - allocator
+  - asset-font
+  - asset-image
+  - gfx
+  - json
   - logging
+  - math
+  - plugin
+  - string
+  - window
 
 Note that if you disable an engine-level library, you will have to provide your
 own definitions for the C ABI to ensure other components function correctly.
@@ -81,10 +109,13 @@ So as an example to a simple Zig project,
       - pulchritude-math/
       - pulchritude-assets/
       - ...
+    - third-party/ ; optional, location of external libraries
     - application/ ; optional, if you want to override the default application
       - source.zig ; entry point
 
-# Hello World example
+---
+
+#### hello world example
 
 There is a script that can help you set a project up, located at the examples
 repo https://github.com/aodq/pulchritude-examples . The script can also be used
@@ -102,8 +133,9 @@ directories
       - src/core.cpp
       - CMakeLists.txt
 
+----
 
-example-project/repo/CMakeLists.txt
+- example-project/repo/CMakeLists.txt
 ```cmake
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 cmake_policy(VERSION 3.0)
@@ -118,7 +150,7 @@ add_subdirectory(pulchritude-engine)
 add_subdirectory(components/core)
 ```
 
-example-project/repo/core/CMakeLists.txt
+- example-project/repo/core/CMakeLists.txt
 ```cmake
 add_library(example-project-core SHARED)
 target_include_directories(example-project-core PUBLIC "include/")
@@ -138,7 +170,7 @@ install(
 )
 ```
 
-example-project/repo/core/core.cpp
+- example-project/repo/core/core.cpp
 ```cpp
 #include <pulchritude-log/log.h>
 
@@ -155,7 +187,9 @@ void pulcComponentLoad() {
 } // extern C
 ```
 
-# dynamic binding
+---
+
+### dynamic binding
 
 As many interactions between the engine, libraries and components is through
 indirect pointers loaded by functions like linux's `dlopen`, part of writing
@@ -163,7 +197,7 @@ the bindings is to provide an interface through a struct, namespace, or
 equivalent. There are some exceptions, like some `pule` functions are provided
 statically, mostly to handle dynamic library loading.
 
-```
+```cpp
 // C++
 namespace pulc {
   void (*players)();
@@ -177,12 +211,12 @@ this will require some level of maintenance between each language.
 
 I might consider having these structs be part of the C ABI
 
-```
+```c
 // C ABI
-struct PulcBindings {
+typedef struct {
   void (*initializeBindings)();
   void (*players)();
-};
+} PulcBindings;
 
 // .. in some other language
 PulcBindings pulc;
@@ -196,42 +230,88 @@ interfacing from the foundation of your application, to the internal logic
 parts; the functions that you want to be hot-reloaded. Otherwise there is
 no need to manually load & reload these indirect function pointers.
 
-# Error-handling
+---
+
+### writing bindings
+
+Writing bindings for scripts and compiled languages will most likely take
+similar approaches. At some point there will be a script that will take the C
+headers and translate them to JSON, and with that file you can automatically
+generate bindings to your preferred language. This will require a conversion
+script for each scripting/programming language. Of course some languages can
+already generate bindings from C headers so this might be an unnecessary step.
+
+Another approach is to writing the bindings manually; the maintenance for this
+might not be worthwhile compared to just writing a JSON generator. Another issue
+is that calling C functions directly from your language might not fit into that
+language's workflow. Thus there ought to be a hand-crafted layer on top of the
+bindings that transforms the functions to something more comfortable, for
+example:
+
+```c
+PuleString puleString(
+  PuleAllocator const, char const * const, PuleError * const
+);
+// allocator is simply puleAllocatorDefault
+PuleString puleStringDefault(char const * const, PuleError * const);
+```
+
+in a different, pseudo - language might be handled as
+```
+Errorable(PuleString) puleString(
+  char const * const format, PuleAllocator alloc = default
+) {
+  PuleError e;
+  str = puleString(alloc, format, &e);
+  if (e != PuleError_none) {
+    return e;
+  }
+  return str;
+}
+```
+
+### error handling
 
 Error handling from C-ABIs is a bit of a mess. Preferrably we'd want to have
 the error returned along with the value, and some sort of pattern matching to
-address the error. This is tedious for us as each function would need its own
-custom return type, so some sort of middle ground is provided to you. Possibly
-the bindings to your language can help here as well.
+address the error. Given the C-ABI, instead the error will be apart of the
+parameters. The idea is that the bindings to your language will help here as
+well.
 
-```
-enum PulcInitializeError {
+```c
+typedef enum {
   PulcInitializeError_acquiredNoPlayers = 1,
-};
-PulError pulcInitialize(PulcGameState * const state) {
+} PulcInitializeError;
+PulcGameState pulcInitialize() {
   // silly example
   state->players = pulcAcquirePlayers();
   if (state->players == 0) {
-    return (
-      puleRegisterError(
-        PulcInitializeError_acquiredNoPlayers,
-        "failed to acquire players"
-      )
+    pulePushError(
+      PulcInitializeError_acquiredNoPlayers,
+      puleString("failed to acquire players")
     );
+    return PulcGameState {};
   }
   return state;
 }
 ```
 
 to consume an error is simple
-```
-PulError error = pulcInitialize();
-if (puleConsumeError(error)) { // checks & logs error
-  return;
+```c
+// maybe(?) best to put it in thread local storage, if language supports this,
+static thread_local PuleError error;
+
+PulcGameState gameState = pulcInitialize(&error);
+switch (puleErrorConsume(&error)) { // checks & logs error
+  default: break;
+  case PulcInitializeError_acquiredNoPlayers:
+    exit(-1);
 }
 ```
 
-# Style
+---
+
+### style
 
 I don't think code-style is much important to follow, I usually only tend to
 care to emphasize verticallity in code rather than long unbreaking horizontal
@@ -239,30 +319,65 @@ lines. However, since all components need to interact through a C ABI, they
 all need to follow the same conventions. This extends past style, to things
 like error handling, parameter typing, memory allocation, and more.
 
+This is extremely important in the headers so that simple automated binding
+generators can be build, including `scripts/json-binding-generator.py` which
+generates json bindings for this script. Outside of the header/exported C-ABI
+symbols, style isn't relevant.
+
 Firstly, functions are camelCased and must start with either 'puli' if they
 are from a lIbrary, 'pule' if from the Engine, and 'pulc' if from a Component.
 The component part is optional, as if these functions only serve a single
 application, then there's no need to follow the engine naming convention.
 However the convention should be followed when functions the component exposes
-is called 'upstream' to the engine or libraries, such as 'pulcComponentLoad' or
-'pulcComponentUnload'.
+is called 'upstream' to the engine or libraries, such as 'pulcComponentLoad',
+'pulcComponentUnload', 'pulcPluginType', and more.
 
 **No non-exported/local functions/variables should start with `pul` prefix**.
 
+```c
+PULE_exportFn void pulePrintHelloWorld();
 ```
-void pulePrintHelloWorld();
+
+As shown above, every exported function must have `PULE_exportFn`, as while
+there needs to be a specific signature on Windows builds, this also helps
+bindings know when to start parsing a function.
+
+When naming things, try to categorize things linearly, similar to namespacing.
+The names should be more specific as they are read left-right. For example, the
+source of the symbol (application/engine/library :: pulc/pule/puli), the
+associated library/namespace, and so on:
+
+```c
+PULE_exportFn void pulcPlayerCreate();
+PULE_exportFn void pulcPlayerInventory();
+PULE_exportFn void pulcNetPlayerSync();
 ```
 
 Structs are PascalCased, and they follow the same `Pulc`/`Puli`/`Pulc`
 semantics. Structs are heavily encouraged to be used to group function
 parameters together.
 
-```
-struct PuleApplicationInfo {
+```c
+typedef struct {
   char const * label;
-  uint32_t majorVersion, minorVersion, hotfixVersion = 0;
-};
-void puleRegisterApplication(PuleApplicationInfo const);
+  uint32_t majorVersion;
+  uint32_t minorVersion;
+  uint32_t hotfixVersion;
+} PuleApplicationInfo;
+PULE_exportFn void puleRegisterApplication(PuleApplicationInfo const);
+```
+
+each member of a struct must be seperate, that is, `int32_t x, y, z` is not
+allowed. This just makes parsing the syntax in scripts simpler. As well, if
+you intend to have some sort of default value, then it would be useful for this
+to be put in generated bindings for languages that support field initializers.
+This is done with empty macro `puleFieldInitialize` which can give a useful
+hint.
+
+```c
+typedef struct {
+  uint32_t defaultWeapon puleFieldInitialize(0);
+} PulcPlayer;
 ```
 
 Each parameter must be constant. If you need to modify a parameter, copy it
@@ -272,14 +387,14 @@ and const are both type-modifiers, thus they are read from right-to-left (`int
 const` rather than `const int`). Pointers must be spaced out the same as any
 other named type modifier (`int * foo`).
 
-```
+```c
 int32_t puleVersion();
-void puleIncrementValue(int * const value);
+PULE_exportFn void puleIncrementValue(int * const value);
 
-struct PulcGameState {
+typedef struct {
   // ... lots of variables
-};
-void pulcGameStateLog(PulcGameState const * const state);
+} PulcGameState;
+PULE_exportFn void pulcGameStateLog(PulcGameState const * const state);
 ```
 
 There is no 'get' or 'set', instead it's preferred to simply return a value, a
@@ -287,25 +402,17 @@ pointer-to-a-const, or a pointer-to-a-non-const. There may be exceptions to
 this, like if you need additional functionality besides just get/set (like
 ref-counts or something).
 
-```
-struct PulcEntityPlayer {
+```c
+typedef struct {
   ...
-};
-PulcEntityPlayer * pulcPlayerFromId(int32_t const id);
-```
-
-If a function can error, then only the error may be returned. Any mutable ref
-values must be the first set of parameters, and variables marked as 'out'
-(value written) or `inout` (value read and written).
-
-```
-PuleError pulcPlayerFromId(PulcEntityPlayer * const playerOut);
+} PulcEntityPlayer;
+PULE_exportFn PulcEntityPlayer * pulcPlayerFromId(int32_t const id);
 ```
 
 Consts follow the same `pule/a/c` convention. Macros start with `PULE/A/C_`, but
 the rest is camel-case. Provide both a constant and macro if reasonable.
 
-```
+```c
 #define PULE_maxEnumU32 0x7FFFFFFF
 const int32_t puleMaxEnumU32 = PULE_maxEnumU32;
 ```
@@ -313,28 +420,28 @@ const int32_t puleMaxEnumU32 = PULE_maxEnumU32;
 Enums introduce a `_` between the enum type and the enum value. They must have
 a `Begin` value if(f) non-zero, and must have an `End` value. They as well
 must have a `MaxEnum` that will specify the size of the enum.
-```
-enum PulcTeamColor {
+```c
+typedef enum {
   PulcTeamColor_red,
   PulcTeamColor_green,
   PulcTeamColorEnd,
   PulcTeamColorMaxEnum = puleMaxEnumU32,
-};
+} PulcTeamColor;
 ```
 
 Parameters and struct members that are arrays end with `s`/`es` suffix.
-```
-struct PulcTeam {
+```c
+typedef struct {
   int32_t * playerIds;
-};
-void pulcTeamLog(PulcTeam const * const teams);
+} PulcTeam;
+PULE_exportFn void pulcTeamLog(PulcTeam const * const teams);
 ```
 
 *It's always* preferrable to pass arrays of items rather than a single item
 when interacting with arrays and dynamic libraries, as is already the
 convention for data-oriented approaches to programming.
 
-```
+```c
 for (size_t it = 0; it < pulcPlayersLength(); ++ it) {
   PulcPlayer * player = pulcPlayer(it);
 }
@@ -342,7 +449,7 @@ for (size_t it = 0; it < pulcPlayersLength(); ++ it) {
 
 is less performant than
 
-```
+```c
 size_t playerLen = pulcPlayersLength();
 PulcPlayer * players = pulcPlayers();
 ```
@@ -351,42 +458,55 @@ Any passed function (such as a callback) should have a userdata parameter, to
 allow user's to pass their own data to the callback. This is done only to make
 the user's life a little easier, if they choose to use it.
 
+```c
+void (*n)(PuliIntersectionInfo, void * const userdata)
+PULE_exportFn puliIntersectionCallback();
 ```
-void puleSetErrorCallback(
-  void (*fn)(PuleError const error, void * const userdata)
-);
+
+If a parameter is nullable (it can either point to a valid value, or be null),
+  the name should end with 'Nullable'.
+
+```c
+PULE_exportFn void pulcSetUserData(void * const userDataNullable);
 ```
 
-# Positives / Negatives
+---
 
-Every component could theoretically be hot-reloadable, though most likely the
-'gameplay logic' will be hot-reloaded to allow fast prototyping development.
-This allows for fast game development.
+### contribution
 
-While you could also add a scripting engine to this workflow, what we have here
-might be preferrable as exposing a C ABI is simple, there is improved
-compile-time safety and error-handling, multiple languages can be used, and of
-course, performance will be a bit faster. That said, there could still be some
-uses for adding a scripting engine, and one would only have to expose the
-existing C ABI to that language to make use of it.
+There are a few methods to contribute;
 
-Another core benefit of splitting it up like this is to hopefully improve
-compile times, as the prototyping hot-reload compilations should be blazingly
-fast without having to rely on entire headers introduced by engines and
-libraries, which in the case of C++ can bloat otherwise simple object files.
+#####  - finding and/or fixing bugs
 
-Additionally, by having everything interface to a C ABI, every component can
-interopate at the same level, allowing for multiple modules to interact and
-depend on each other.
+I recommend to create new issues for every bug you encounter, especially
+crashes. If an issue for an existing bug or crash already exists, feel free to
+bump it, post relevant information, and of course fix it.
 
-A major downside to this approach is that bindings will potentially have to
-be rewritten for each language used, depending on the quality of it's FFI. Some
-languages can import C headers without requiring to manually write bindings,
-and many tools exist to generate bindings, so hopefully this won't be an issue
-in general workflow.
+#####  - writing documentation
 
-One other downside to this approach is that each language used might come with
-its own runtime overhead, so the languages used should be minimized, and if
-possibly stripping out unnecessary runtimes that could bloat the resulting
-binaries.
+This can be done as a PR
 
+#####  - suggesting and/or adding functionality to the engine
+
+Even if you don't plan to implement the feature yourself, an issue here will be
+appreciated. If an issue already exists, feel free to bump, post relevant
+information, and of course submit a PR.
+
+#####  - writing your own binding front-ends / writing replacements to existing libraries
+
+Although this can be done it's own repository, and would not change the engine
+at a fundamental level, I would recommend creating an issue to document its'
+existence. 
+
+
+#####  - creating new libraries, or extending existing libraries
+If you plan to write a new library, or extend the functionality of an existing
+library (in a way that modifies the exposing C ABI), I humbly request you
+create an issue and propose the modifications to be made to the exposing C ABI.
+We should strive to unify the ABI to be consistenty pulchritude.
+
+  ---
+
+
+---
+###### *when tomorrow comes you'll wish you had today*
