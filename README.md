@@ -5,8 +5,8 @@ Pulchritude is a [lingua franca](https://en.wikipedia.org/wiki/Lingua_franca)
 type of game engine that ties together a lot of libraries and exposes them to
 the user through a unified C ABI. The engine is written in C++ with an exposing
 C ABI to allow as many libraries to be imported as possible. The application
-software for the game can be written in any desired language; the bulk of the
-game exists as a collection of dynamic libraries that can each expose more
+software for the game can be written in any desired language; the bulk of an
+application exists as a collection of dynamic libraries that can each expose more
 functions and rely on each other, allowing for multiple languages to be used in
 a simple and sane manner. The engine can be extended easily by adding new
 dynamic libraries that expose a C ABI.
@@ -25,9 +25,9 @@ What this might end up looking like is:
                │         ▼     └─────────────┬─────────┘  │
                │   ┌──────────┐              ▼            │
                │   │Core Game │        ┌──────────────┐   │
-               │   │Foundation│◄───────│Exposing C ABI│───┘
-               │   │(Zig, C)  │◄┐      └──────────────┘
-               │   └──────────┘ │            │
+               │   │Foundation│◄───────│Pulchritude's │───┘
+               │   │(Zig, C)  │◄┐      │Exposing C ABI│
+               │   └──────────┘ │      └──────────────┘
                │         │   └──┘            │
                │         ▼                   │
                │  ┌────────────────┐         │
