@@ -12,8 +12,8 @@ typedef enum {
   PuleWindowVsyncMode_none,
   PuleWindowVsyncMode_single,
   PuleWindowVsyncMode_triple,
-  PuleWindowVsyncModeEnd,
-  PuleWindowVsyncModeMaxEnum = 0x7FFFFFFF,
+  PuleWindowVsyncMode_End,
+  PuleWindowVsyncMode_MaxEnum = 0x7FFFFFFF,
 } PuleWindowVsyncMode;
 
 typedef enum {
@@ -33,12 +33,13 @@ typedef struct {
 } PuleWindow;
 
 PULE_exportFn PuleWindow puleWindowCreate(
-  PuleWindowCreateInfo const info, PuleError const *
+  PuleWindowCreateInfo const info, PuleError * const error
 );
 PULE_exportFn void puleWindowDestroy(
-  PuleWindow * const window
+  PuleWindow const window
 );
 
+PULE_exportFn void puleWindowPollEvents(PuleWindow const window);
 PULE_exportFn void puleWindowSwapFramebuffer(PuleWindow const window);
 
 #ifdef __cplusplus

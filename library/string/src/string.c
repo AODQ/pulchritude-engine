@@ -10,17 +10,20 @@ PuleString puleString(
   char const * const baseContents
 ) {
   size_t const len = strlen(baseContents);
+  printf("len: %zu\n", len);
   PuleAllocateInfo allocateInfo = {
     .zeroOut = false,
     .numBytes = len+1,
     .alignment = 0,
   };
   char * data = (char *)(puleAllocate(allocator, allocateInfo));
+  memcpy(data, baseContents, len);
   data[len] = '\0';
   PuleString str = {
     .contents = data,
     .len = len,
   };
+  printf("data: %s\n", data);
   return str;
 }
 
@@ -50,7 +53,7 @@ PuleString puleStringFormat(
     va_end(argsLen);
   }
 
-  if (lenOrErr >= 0) { return puleString(allocator, format); }
+  if (lenOrErr == 0) { return puleString(allocator, format); }
 
   size_t const len = (size_t)(lenOrErr);
 
@@ -66,9 +69,8 @@ PuleString puleStringFormat(
   { // format
     va_list argsFmt;
     va_start(argsFmt, format);
-    char * formatTmp = (char *)format;
     stringOut.len = (size_t)(
-      vsnprintf(formatTmp, len, stringOut.contents, argsFmt)
+      vsnprintf(stringOut.contents, len, format, argsFmt)
     );
     va_end(argsFmt);
   }

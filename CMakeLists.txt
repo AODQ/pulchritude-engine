@@ -78,3 +78,32 @@ endif()
 # adds dependencies in correct order
 add_subdirectory(engine)
 add_subdirectory(library)
+
+# perform binding generation
+execute_process(
+  COMMAND
+    python3
+    "${CMAKE_SOURCE_DIR}/scripts/json-binding-generator.py"
+    "--input"
+    "${CMAKE_SOURCE_DIR}/library/include/"
+    "--output"
+    "${CMAKE_SOURCE_DIR}/bindings/json/bindings.json"
+  RESULT_VARIABLE processFinished
+)
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not generate json bindings")
+endif()
+
+execute_process(
+  COMMAND
+    python3
+    "${CMAKE_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
+    "--input"
+    "${CMAKE_SOURCE_DIR}/bindings/json/bindings.json"
+    "--output"
+    "${CMAKE_SOURCE_DIR}/bindings/zig/pulchritude.zig"
+  RESULT_VARIABLE processFinished
+)
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not generate zig bindings")
+endif()

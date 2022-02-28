@@ -21,7 +21,7 @@ typedef struct {
 
 // consumes error , logging the error appropiately with puleLog, returning the
 //   ID of the error, and deallocating the description
-PULE_exportFn uint32_t puleErrorConsume(PuleError * const);
+PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
 
 // --- general helpers in C/C++
 
@@ -29,7 +29,7 @@ PULE_exportFn uint32_t puleErrorConsume(PuleError * const);
 //   expression as it's description
 #define PULE_errorAssert(X, ErrorId, RetValue, ...) \
   if (!(X)) { \
-    error = { \
+    *error = { \
       .description = puleStringFormatDefault("assertion failed; %s", #X), \
       .id = ErrorId, \
     }; \

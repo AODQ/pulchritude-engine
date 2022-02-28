@@ -42,9 +42,15 @@ typedef struct {
 
 typedef struct {
   void * implementation; // allocation's internal details; can be null
-  void * (*allocate)(void * const impldata, PuleAllocateInfo const info);
-  void * (*reallocate)(void * const impldata, PuleReallocateInfo const info);
-  void (*deallocate)(void * const impldata, void * const allocationNullable);
+  void * (* allocate)(
+    void * const impldata, PuleAllocateInfo const info
+  );
+  void * (* reallocate)(
+    void * const impldata, PuleReallocateInfo const info
+  );
+  void (* deallocate)(
+    void * const impldata, void * const allocationNullable
+  );
 } PuleAllocator;
 
 // the default allocator most likely will be provided by C's stdlib, though

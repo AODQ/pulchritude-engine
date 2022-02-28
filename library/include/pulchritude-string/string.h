@@ -65,7 +65,7 @@ PULE_exportFn PuleString puleStringFormatDefault(
 );
 
 PULE_exportFn PuleStringView puleStringView(PuleString const string);
-PULE_exportFn PuleStringView puleStringViewCStr(char const * const);
+PULE_exportFn PuleStringView puleStringViewCStr(char const * const cstr);
 
 #ifdef __cplusplus
 } // extern c

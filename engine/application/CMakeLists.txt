@@ -15,7 +15,10 @@ set_target_properties(
       "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
 )
 
-target_link_libraries(pulchritude-application pulchritude-plugin)
+target_link_libraries(
+  pulchritude-application
+  pulchritude-plugin pulchritude-log
+)
 
 install(
   TARGETS pulchritude-application

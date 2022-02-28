@@ -45,7 +45,7 @@ PuleWindow puleWindowCreate(
   );
 
   PULE_errorAssert(
-    (windowWidth > 0) ^ (windowHeight > 0),
+    (windowWidth > 0) && (windowHeight > 0),
     PuleErrorWindow_invalidConfiguration,
     {}
   );
@@ -90,9 +90,12 @@ PuleWindow puleWindowCreate(
   return windowOut;
 }
 
-void puleWindowDestroy(PuleWindow * const window) {
-  glfwDestroyWindow(reinterpret_cast<GLFWwindow *>(window->data));
-  window->data = nullptr;
+void puleWindowDestroy(PuleWindow const window) {
+  glfwDestroyWindow(reinterpret_cast<GLFWwindow *>(window.data));
+}
+
+void puleWindowPollEvents([[maybe_unused]] PuleWindow const window) {
+  glfwPollEvents();
 }
 
 void puleWindowSwapFramebuffer(PuleWindow const window) {

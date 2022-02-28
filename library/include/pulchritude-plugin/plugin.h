@@ -11,8 +11,8 @@
 typedef enum {
   PulePluginType_library,
   PulePluginType_component,
-  PulePluginTypeEnd,
-  PulePluginTypeMaxEnum = 0x7FFFFFFF,
+  PulePluginType_End,
+  PulePluginType_MaxEnum = 0x7FFFFFFF,
 } PulePluginType;
 
 typedef struct {
@@ -36,8 +36,8 @@ PULE_exportFn void * puleTryPluginLoadFn(
   char const * const fnCStr
 );
 PULE_exportFn void puleIteratePlugins(
-  void (*fn)(PulePluginInfo const, void * const userdata),
-  void * userdata
+  void (* const fn)(PulePluginInfo const, void * const userdata),
+  void * const userdata
 );
 
 #ifdef __cplusplus

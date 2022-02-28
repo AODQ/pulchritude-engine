@@ -31,7 +31,7 @@ typedef enum {
 // Array views let you view the contents of an array, without modifying the
 //   contents nor modifying it's allocation
 typedef struct {
-  void * const data;
+  void const * data;
   size_t len;
 } PuleArrayView;
 

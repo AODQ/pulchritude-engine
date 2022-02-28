@@ -53,6 +53,16 @@ irreplacable part of Pulchritude is the cohesive interfaces between plugins.
 
 ---
 
+### current considerations
+
+ - Right now bindings are done by converting C header to JSON script and then
+   converting JSON script to desired language. However it might be better to
+   write the headers in JSON script to begin with, and then automatically
+   translate them to C headers; the main benefit to this is that bindings can
+   have additional information attached that wouldn't be present in the C
+   header; such as field initializers. As well new libraries would be forced to
+   be coherent to a standard that can be portable among all languages.
+
 ### usage
 
 The directory layout for the engine is:
@@ -200,7 +210,7 @@ statically, mostly to handle dynamic library loading.
 ```cpp
 // C++
 namespace pulc {
-  void (*players)();
+  void (* const players)();
 };
 
 // loaded by
@@ -214,8 +224,8 @@ I might consider having these structs be part of the C ABI
 ```c
 // C ABI
 typedef struct {
-  void (*initializeBindings)();
-  void (*players)();
+  void (* const initializeBindings)();
+  void (* const players)();
 } PulcBindings;
 
 // .. in some other language
@@ -250,7 +260,7 @@ example:
 
 ```c
 PuleString puleString(
-  PuleAllocator const, char const * const, PuleError * const
+  PuleAllocator const, char const * const, PuleError * const error
 );
 // allocator is simply puleAllocatorDefault
 PuleString puleStringDefault(char const * const, PuleError * const);
@@ -321,8 +331,9 @@ like error handling, parameter typing, memory allocation, and more.
 
 This is extremely important in the headers so that simple automated binding
 generators can be build, including `scripts/json-binding-generator.py` which
-generates json bindings for this script. Outside of the header/exported C-ABI
-symbols, style isn't relevant.
+generates json bindings for this script.
+
+Outside of the header/exported C-ABI symbols, style isn't relevant.
 
 Firstly, functions are camelCased and must start with either 'puli' if they
 are from a lIbrary, 'pule' if from the Engine, and 'pulc' if from a Component.
@@ -385,7 +396,8 @@ locally in the function. Every type must be explicitly sized. If the size of
 the parameter is larger than a POD, consider using a const-pointer. Pointers
 and const are both type-modifiers, thus they are read from right-to-left (`int
 const` rather than `const int`). Pointers must be spaced out the same as any
-other named type modifier (`int * foo`).
+other named type modifier (`int * foo`). Every parameter must have a label,
+even if redundant, to ease binding creation
 
 ```c
 int32_t puleVersion();
@@ -418,14 +430,14 @@ const int32_t puleMaxEnumU32 = PULE_maxEnumU32;
 ```
 
 Enums introduce a `_` between the enum type and the enum value. They must have
-a `Begin` value if(f) non-zero, and must have an `End` value. They as well
-must have a `MaxEnum` that will specify the size of the enum.
+a `_Begin` value if(f) non-zero, and must have an `_End` value. They as well
+must have a `_MaxEnum` that will specify the size of the enum.
 ```c
 typedef enum {
   PulcTeamColor_red,
   PulcTeamColor_green,
-  PulcTeamColorEnd,
-  PulcTeamColorMaxEnum = puleMaxEnumU32,
+  PulcTeamColor_End,
+  PulcTeamColor_MaxEnum = puleMaxEnumU32,
 } PulcTeamColor;
 ```
 

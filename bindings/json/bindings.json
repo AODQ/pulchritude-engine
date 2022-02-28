@@ -1,0 +1,1048 @@
+[
+  {
+    "type": "struct",
+    "label": "PuleString",
+    "fields": [
+      {
+        "label": "contents",
+        "type": [
+          "char",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "len",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleStringView",
+    "fields": [
+      {
+        "label": "contents",
+        "type": [
+          "char",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "len",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleString"
+    ],
+    "label": "puleStringDefault",
+    "parameters": [
+      {
+        "label": "baseContents",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleString"
+    ],
+    "label": "puleString",
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "baseContents",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleStringDeallocate",
+    "parameters": [
+      {
+        "label": "puleStringInout",
+        "type": [
+          "PuleString",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleStringAppend",
+    "parameters": [
+      {
+        "label": "stringInout",
+        "type": [
+          "PuleString",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "append",
+        "type": [
+          "PuleStringView",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleString"
+    ],
+    "label": "puleStringFormat",
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "format",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "...",
+        "type": [],
+        "meta-type": "variadic"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleString"
+    ],
+    "label": "puleStringFormatDefault",
+    "parameters": [
+      {
+        "label": "format",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "...",
+        "type": [],
+        "meta-type": "variadic"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleStringView"
+    ],
+    "label": "puleStringView",
+    "parameters": [
+      {
+        "label": "string",
+        "type": [
+          "PuleString",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleStringView"
+    ],
+    "label": "puleStringViewCStr",
+    "parameters": [
+      {
+        "label": "cstr",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleLog",
+    "parameters": [
+      {
+        "label": "formatCStr",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "...",
+        "type": [],
+        "meta-type": "variadic"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxContext",
+    "fields": [
+      {
+        "label": "window",
+        "type": [
+          "PuleWindow"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "implementation",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxGpuImage",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxGpuFramebuffer",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxGpuBuffer",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxShader",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPass",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxCreate",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxDestroy",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxFrameStart",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxFrameEnd",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxGpuImageCreate",
+    "parameters": [
+      {
+        "label": "width",
+        "type": [
+          "uint32_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "height",
+        "type": [
+          "uint32_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "data",
+        "type": [
+          "void",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleErrorArray",
+    "values": [
+      {
+        "label": "PuleErrorArray_none",
+        "value": 0
+      },
+      {
+        "label": "PuleErrorArray_errorAllocation",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleArrayView",
+    "fields": [
+      {
+        "label": "data",
+        "type": [
+          "void",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "len",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleWindowVsyncMode",
+    "values": [
+      {
+        "label": "PuleWindowVsyncMode_none",
+        "value": 0
+      },
+      {
+        "label": "PuleWindowVsyncMode_single",
+        "value": 1
+      },
+      {
+        "label": "PuleWindowVsyncMode_triple",
+        "value": 2
+      },
+      {
+        "label": "PuleWindowVsyncMode_End",
+        "value": 3
+      },
+      {
+        "label": "PuleWindowVsyncMode_MaxEnum",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleErrorWindow",
+    "values": [
+      {
+        "label": "PuleErrorWindow_windowCreationFailed",
+        "value": 0
+      },
+      {
+        "label": "PuleErrorWindow_invalidConfiguration",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleWindowCreateInfo",
+    "fields": [
+      {
+        "label": "name",
+        "type": [
+          "PuleStringView"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "width",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "height",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "vsyncMode",
+        "type": [
+          "PuleWindowVsyncMode"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleWindow",
+    "fields": [
+      {
+        "label": "data",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleWindow"
+    ],
+    "label": "puleWindowCreate",
+    "parameters": [
+      {
+        "label": "info",
+        "type": [
+          "PuleWindowCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleWindowDestroy",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PuleWindow",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleWindowPollEvents",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PuleWindow",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleWindowSwapFramebuffer",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PuleWindow",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PulePluginType",
+    "values": [
+      {
+        "label": "PulePluginType_library",
+        "value": 0
+      },
+      {
+        "label": "PulePluginType_component",
+        "value": 1
+      },
+      {
+        "label": "PulePluginType_End",
+        "value": 2
+      },
+      {
+        "label": "PulePluginType_MaxEnum",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PulePluginInfo",
+    "fields": [
+      {
+        "label": "name",
+        "type": [
+          "char",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "id",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePluginsLoad",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePluginsFree",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePluginsReload",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "size_t"
+    ],
+    "label": "pulePluginIdFromName",
+    "parameters": [
+      {
+        "label": "pluginNameCStr",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "pulePluginLoadFn",
+    "parameters": [
+      {
+        "label": "pluginId",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "fnCStr",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleTryPluginLoadFn",
+    "parameters": [
+      {
+        "label": "pluginId",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "fnCStr",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleIteratePlugins",
+    "parameters": [
+      {
+        "label": "fn",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "PulePluginInfo",
+            "const"
+          ],
+          [
+            "void",
+            "*",
+            "const",
+            "userdata"
+          ]
+        ]
+      },
+      {
+        "label": "userdata",
+        "type": [
+          "void",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleError",
+    "fields": [
+      {
+        "label": "description",
+        "type": [
+          "PuleString"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "id",
+        "type": [
+          "uint32_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "uint32_t"
+    ],
+    "label": "puleErrorConsume",
+    "parameters": [
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleAllocateInfo",
+    "fields": [
+      {
+        "label": "zeroOut",
+        "type": [
+          "uint8_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "numBytes",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "alignment",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleReallocateInfo",
+    "fields": [
+      {
+        "label": "allocation",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "numBytes",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "alignment",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleAllocator",
+    "fields": [
+      {
+        "label": "implementation",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "allocate",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void",
+          "*"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "const",
+            "impldata"
+          ],
+          [
+            "PuleAllocateInfo",
+            "const",
+            "info"
+          ]
+        ]
+      },
+      {
+        "label": "reallocate",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void",
+          "*"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "const",
+            "impldata"
+          ],
+          [
+            "PuleReallocateInfo",
+            "const",
+            "info"
+          ]
+        ]
+      },
+      {
+        "label": "deallocate",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "const",
+            "impldata"
+          ],
+          [
+            "void",
+            "*",
+            "const",
+            "allocationNullable"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleAllocator"
+    ],
+    "label": "puleAllocateDefault",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleAllocate",
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "allocateInfo",
+        "type": [
+          "PuleAllocateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleReallocate",
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "reallocateInfo",
+        "type": [
+          "PuleReallocateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleDeallocate",
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "allocationNullable",
+        "type": [
+          "void",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  }
+]

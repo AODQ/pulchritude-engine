@@ -15,11 +15,11 @@ typedef struct {
   uint64_t id;
 } PuleGfxGpuImage;
 
-typedef enum {
-} PuleGfxImageByteFormat;
+/* typedef enum { */
+/* } PuleGfxImageByteFormat; */
 
-typedef enum {
-} PuleGfxImageChannel;
+/* typedef enum { */
+/* } PuleGfxImageChannel; */
 
 typedef struct {
   uint64_t id;
@@ -37,7 +37,6 @@ typedef struct {
   uint64_t id;
 } PuleGfxPass;
 
-
 PULE_exportFn void puleGfxCreate();
 PULE_exportFn void puleGfxDestroy();
 
@@ -45,11 +44,11 @@ PULE_exportFn void puleGfxFrameStart();
 PULE_exportFn void puleGfxFrameEnd();
 
 PULE_exportFn void puleGfxGpuImageCreate(
-  uint32_t width,
-  uint32_t height,
-  PuleGfxImageByteFormat,
-  PuleGfxImageChannel,
-  void const * data
+  uint32_t const width,
+  uint32_t const height,
+  /* PuleGfxImageByteFormat const byteFormat, */
+  /* PuleGfxImageChannel const imageChannel, */
+  void const * const data
 );
 
 #ifdef __cplusplus
