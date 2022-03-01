@@ -1,4 +1,4 @@
-/* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
+#include <pulchritude-log/log.h>
 
 #include <pulchritude-plugin/plugin.h>
 
@@ -59,15 +59,15 @@ void * Plugin::loadFunction(char const * label, bool shouldError) {
   #if defined(__unix__) || defined(__APPLE__)
     fn = ::dlsym(this->data, label);
     if (!fn && shouldError) {
-      printf(
-        "Failed to load function '%s' for plugin '%s'\n", label, ::dlerror()
+      puleLogError(
+        "failed to load function '%s' for plugin '%s'", label, ::dlerror()
       );
     }
   #elif defined(_WIN32) || defined(_WIN64)
     fn = reinterpret_cast<void *>(::GetProcAddress(this->data, label));
     if (!fn && shouldError) {
-      printf(
-        "Failed to load function '%s' for plugin '%s'\n",
+      puleLogError(
+        "failed to load function '%s' for plugin '%s'",
         label, ::GetLastError()
       );
     }
@@ -83,18 +83,18 @@ void Plugin::reload() {
 void Plugin::close() {
   if (!this->data) { return; }
   #if defined(__unix__) || defined(__APPLE__)
-    printf("closing plugin %p %s\n", this->data, this->filepath.c_str());
+    puleLogDebug("closing plugin %p %s", this->data, this->filepath.c_str());
     if (::dlclose(this->data)) {
-      printf(
-        "Failed to close plugin '%s': %s\n",
+      puleLogError(
+        "failed to close plugin '%s': %s",
         this->filepath.c_str(),
         ::dlerror()
       );
     }
   #elif defined(_WIN32) || defined(_WIN64)
     if (::FreeLibrary(this->data)) {
-      printf(
-        "Failed to load plugin '%s'; %s\n"
+      puleLogError(
+        "failed to load plugin '%s'; %s"
       , this->filepath.c_str(), ::GetLastError()
       );
     }
@@ -106,8 +106,8 @@ void Plugin::open() {
   #if defined(__unix__) || defined(__APPLE__)
     this->data = ::dlopen(this->filepath.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (!this->data) {
-      printf(
-        "Failed to load plugin '%s'; %s\n",
+      puleLogError(
+        "failed to load plugin '%s'; %s",
         this->filepath.c_str(),
         ::dlerror()
       );
@@ -115,8 +115,8 @@ void Plugin::open() {
   #elif defined(_WIN32) || defined(_WIN64)
     this->data = ::LoadLibraryW(this->filepath.c_str());
     if (!this->data) {
-      printf(
-        "Failed to load plugin '%s'; %s\n"
+      puleLogError(
+        "failed to load plugin '%s'; %s"
       , this->filepath.c_str(), ::GetLastError()
       );
     }
@@ -146,15 +146,15 @@ void Plugin::open() {
       }
     }
     if (this->pluginName == "") {
-      printf(
-        "failed to get the name of plugin from '%s'\n",
+      puleLogError(
+        "failed to get the name of plugin from '%s'",
         this->filepath.c_str()
       );
     }
   }
 
-  printf(
-    "opened '%s' @ %p | path %s\n",
+  puleLogDebug(
+    "opened '%s' @ %p | path %s",
     this->pluginName.c_str(),
     this->data, this->filepath.c_str()
   );
@@ -163,7 +163,7 @@ void Plugin::open() {
   for (auto & plugin : ::plugins) {
     if (&*plugin == this) { continue; }
     if (plugin->data == this->data) {
-      printf("plugin %s already loaded\n", this->filepath.c_str());
+      puleLogDebug("plugin %s already loaded", this->filepath.c_str());
       break;
     }
   }
@@ -176,7 +176,10 @@ void loadPluginFromFile(std::filesystem::path path) {
   // check plugin loaded
   if (!pluginEnd->data) {
     ::plugins.pop_back();
-    printf("shared object file %s could not load correctly\n", path.c_str());
+    puleLogError(
+      "shared object file %s could not load correctly",
+      path.c_str()
+    );
   }
 }
 

@@ -36,12 +36,20 @@ pub extern fn puleStringView(
 pub extern fn puleStringViewCStr(
   cstr: [*c] const u8,
 ) callconv(.C) PuleStringView;
+pub extern fn puleLogDebugEnabled() callconv(.C) [*c] bool;
 pub extern fn puleLog(
   formatCStr: [*c] const u8,
   ...
 ) callconv(.C) void;
+pub extern fn puleLogDebug(
+  formatCStr: [*c] const u8,
+  ...
+) callconv(.C) void;
+pub extern fn puleLogError(
+  formatCStr: [*c] const u8,
+  ...
+) callconv(.C) void;
 pub const PuleGfxContext = extern struct {
-  window: PuleWindow,
   implementation: * anyopaque,
 };
 pub const PuleGfxGpuImage = extern struct {
@@ -94,6 +102,9 @@ pub const PuleWindowCreateInfo = extern struct {
 pub const PuleWindow = extern struct {
   data: * anyopaque,
 };
+pub extern fn puleWindowInitialize(
+  err: [*c] PuleError,
+) callconv(.C) void;
 pub extern fn puleWindowCreate(
   info: PuleWindowCreateInfo,
   err: [*c] PuleError,

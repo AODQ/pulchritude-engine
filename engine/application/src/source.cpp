@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 #include <vector>
 
@@ -33,7 +34,7 @@ namespace {
     tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
     puleLog("name '%s' plugin type %p", plugin.name, pluginTypeFn);
     if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
-      puleLog("plugin registered as component");
+      puleLog("plugin '%s' registered as component", plugin.name);
       componentPlugins.emplace_back(plugin.id);
     }
   }
@@ -48,6 +49,9 @@ int32_t main(
   [[maybe_unused]] int32_t const argumentLength,
   [[maybe_unused]] char const * const * const arguments
 ) {
+  if (argumentLength >= 2 && strcmp(arguments[1], "debug") == 0) {
+    *puleLogDebugEnabled() = true;
+  }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   //              _____  _____   ___  ______  _____  _   _ ______              *
@@ -59,7 +63,7 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-  puleLog("hello. loading plugins now\n");
+  puleLog("hello. loading plugins now");
   pulePluginsLoad();
 
   std::vector<size_t> componentPluginIds;
@@ -81,11 +85,10 @@ int32_t main(
     }
 
     // check if they have an update function
-    puleLog("loading component");
     void (*componentUpdateFn)() = nullptr;
     ::tryLoadFn(componentUpdateFn, componentPluginId, "pulcComponentUpdate");
-    puleLog("loading component: %p", componentUpdateFn);
     if (componentUpdateFn) {
+      puleLog("plugin has component update");
       updateableComponents.emplace_back(componentUpdateFn);
     }
   }

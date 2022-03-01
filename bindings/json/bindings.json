@@ -234,6 +234,15 @@
   {
     "type": "function",
     "return-type": [
+      "bool",
+      "*"
+    ],
+    "label": "puleLogDebugEnabled",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
       "void"
     ],
     "label": "puleLog",
@@ -256,16 +265,57 @@
     ]
   },
   {
-    "type": "struct",
-    "label": "PuleGfxContext",
-    "fields": [
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleLogDebug",
+    "parameters": [
       {
-        "label": "window",
+        "label": "formatCStr",
         "type": [
-          "PuleWindow"
+          "char",
+          "const",
+          "*",
+          "const"
         ],
         "meta-type": "standard"
       },
+      {
+        "label": "...",
+        "type": [],
+        "meta-type": "variadic"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleLogError",
+    "parameters": [
+      {
+        "label": "formatCStr",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "...",
+        "type": [],
+        "meta-type": "variadic"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxContext",
+    "fields": [
       {
         "label": "implementation",
         "type": [
@@ -527,6 +577,24 @@
         "type": [
           "void",
           "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleWindowInitialize",
+    "parameters": [
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
         ],
         "meta-type": "standard"
       }

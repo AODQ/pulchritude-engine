@@ -32,6 +32,7 @@ typedef struct {
   void * data;
 } PuleWindow;
 
+PULE_exportFn void puleWindowInitialize(PuleError * const error);
 PULE_exportFn PuleWindow puleWindowCreate(
   PuleWindowCreateInfo const info, PuleError * const error
 );

@@ -7,7 +7,6 @@ extern "C" {
 #endif
 
 typedef struct {
-  PuleWindow window;
   void * implementation;
 } PuleGfxContext;
 

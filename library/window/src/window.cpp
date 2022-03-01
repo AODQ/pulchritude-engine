@@ -1,16 +1,20 @@
 #include <pulchritude-window/window.h>
 
 #include <pulchritude-error/error.h>
+#include <pulchritude-log/log.h>
 
 #include <GLFW/glfw3.h>
 
 extern "C" {
 
+void puleWindowInitialize(PuleError * const error) {
+  PULE_errorAssert(glfwInit(), PuleErrorWindow_windowCreationFailed, );
+}
+
 PuleWindow puleWindowCreate(
   PuleWindowCreateInfo const info,
   PuleError * const error
 ) {
-  PULE_errorAssert(glfwInit(), PuleErrorWindow_windowCreationFailed, {});
 
   // TODO glfwSetErrorCallback
 
@@ -57,23 +61,19 @@ PuleWindow puleWindowCreate(
     );
   }
 
-  GLFWwindow * glfwWindow = (
+  puleLogDebug("creating window '%s'", info.name.contents);
+
+  GLFWwindow * window = (
     glfwCreateWindow(
-      windowWidth, windowHeight, info.name.contents, nullptr, nullptr
+      windowWidth, windowHeight, "easf", nullptr, nullptr
     )
   );
 
-  PULE_errorAssert(glfwWindow, PuleErrorWindow_windowCreationFailed, {});
+  PULE_errorAssert(window, PuleErrorWindow_windowCreationFailed, {});
 
   PuleWindow windowOut;
-  windowOut.data = reinterpret_cast<void *>(glfwWindow);
-  glfwMakeContextCurrent(glfwWindow);
-
-  /* PULE_errorAssert( */
-  /*   gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)), */
-  /*   PuleErrorWindow_windowCreationFailed, */
-  /*   nullptr */
-  /* ); */
+  windowOut.data = reinterpret_cast<void *>(window);
+  glfwMakeContextCurrent(window);
 
   switch (info.vsyncMode) {
     case PuleWindowVsyncMode_triple:
@@ -99,7 +99,10 @@ void puleWindowPollEvents([[maybe_unused]] PuleWindow const window) {
 }
 
 void puleWindowSwapFramebuffer(PuleWindow const window) {
-  glfwSwapBuffers(reinterpret_cast<GLFWwindow *>(window.data));
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(window.data);
+  //glClear(GL_COLOR_BUFFER_BIT);
+  glfwMakeContextCurrent(glfwWindow);
+  glfwSwapBuffers(glfwWindow);
 }
 
 } // extern C

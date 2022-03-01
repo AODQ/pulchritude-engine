@@ -16,7 +16,7 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulchritude-window glfw)
+target_link_libraries(pulchritude-window glfw pulchritude-error)
 
 install(
   TARGETS pulchritude-window

@@ -16,7 +16,7 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-#target_link_libraries(pulchritude-plugin)
+target_link_libraries(pulchritude-plugin pulchritude-log)
 
 install(
   TARGETS pulchritude-plugin
