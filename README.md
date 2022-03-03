@@ -63,6 +63,12 @@ irreplacable part of Pulchritude is the cohesive interfaces between plugins.
    header; such as field initializers. As well new libraries would be forced to
    be coherent to a standard that can be portable among all languages.
 
+ - headers should have `package` such as `pulchritude-gfx/package.h`
+
+ - do not use any C++ STL in the library; basically don't want to impose the
+   STL onto applications. This isn't really a priority because there are
+   libraries that depend on the C++ STL already anyway
+
 ### usage
 
 The directory layout for the engine is:
@@ -74,6 +80,7 @@ The directory layout for the engine is:
                 to include path for your builder)
       - pulchritude-plugin/plugin.h, pulchritude-log/log.h, etc
     - log/ ; each plugin
+      - include/ ; private includes
       - CMakeLists.txt
       - src/plugin.c
   - third-party/ ; optional, location of external libraries

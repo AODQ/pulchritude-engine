@@ -49,6 +49,87 @@ pub extern fn puleLogError(
   formatCStr: [*c] const u8,
   ...
 ) callconv(.C) void;
+pub const PuleGfxAction = enum(u32) {
+  bindPipeline = 0,
+  dispatchRender = 1,
+  dispatchRenderElements = 2,
+  clearFramebufferColor = 3,
+  clearFramebufferDepth = 4,
+  pushConstants = 5,
+};
+pub const PuleGfxActionBindPipeline = extern struct {
+  action: PuleGfxAction,
+  pipeline: PuleGfxPipeline,
+};
+pub const PuleGfxDrawPrimitive = enum(u32) {
+  triangle = 0,
+  triangleStrip = 1,
+  point = 2,
+  line = 3,
+};
+pub const PuleGfxActionDispatchRender = extern struct {
+  action: PuleGfxAction,
+  drawPrimitive: PuleGfxDrawPrimitive,
+  vertexOffset: usize,
+  numVertices: usize,
+};
+pub const PuleGfxActionClearFramebufferColor = extern struct {
+  action: PuleGfxAction,
+  red: f32,
+  green: f32,
+  blue: f32,
+  alpha: f32,
+};
+pub const PuleGfxActionClearFramebufferDepth = extern struct {
+  action: PuleGfxAction,
+  depth: f32,
+};
+pub const PuleGfxCommand = extern union {
+  bindPipeline: PuleGfxActionBindPipeline,
+  dispatchRender: PuleGfxActionDispatchRender,
+  clearFramebufferColor: PuleGfxActionClearFramebufferColor,
+  clearFramebufferDepth: PuleGfxActionClearFramebufferDepth,
+};
+pub const PuleGfxCommandList = extern struct {
+  id: usize,
+};
+pub const PuleGfxCommandListRecorder = extern struct {
+  id: usize,
+};
+pub extern fn puleGfxCommandListCreate() callconv(.C) PuleGfxCommandList;
+pub extern fn puleGfxCommandListDestroy(
+  commandList: PuleGfxCommandList,
+) callconv(.C) void;
+pub extern fn puleGfxCommandListRecorder(
+  commandList: PuleGfxCommandList,
+) callconv(.C) PuleGfxCommandListRecorder;
+pub extern fn puleGfxCommandListRecorderFinish(
+  commandListRecorder: PuleGfxCommandListRecorder,
+) callconv(.C) void;
+pub extern fn puleGfxCommandListAppendAction(
+  commandListRecorder: PuleGfxCommandListRecorder,
+  action: PuleGfxCommand,
+) callconv(.C) void;
+pub extern fn puleGfxCommandListSubmit(
+  commandList: PuleGfxCommandList,
+) callconv(.C) void;
+pub const PuleGfxShaderModule = extern struct {
+  id: u64,
+};
+pub extern fn puleGfxShaderModuleCreate(
+  vertexShaderSource: [*c] const u8,
+  fragmentShaderSource: [*c] const u8,
+  err: [*c] PuleError,
+) callconv(.C) PuleGfxShaderModule;
+pub extern fn puleGfxShaderModuleDestroy(
+  shaderModule: PuleGfxShaderModule,
+) callconv(.C) void;
+pub const PuleErrorGfx = enum(u32) {
+  none = 0,
+  creationFailed = 1,
+  shaderModuleCompilationFailed = 2,
+  invalidDescriptorSet = 3,
+};
 pub const PuleGfxContext = extern struct {
   implementation: * anyopaque,
 };
@@ -61,14 +142,68 @@ pub const PuleGfxGpuFramebuffer = extern struct {
 pub const PuleGfxGpuBuffer = extern struct {
   id: u64,
 };
-pub const PuleGfxShader = extern struct {
+pub const PuleGfxGpuBufferUsage = enum(u32) {
+  bufferAttribute = 0,
+  bufferElement = 1,
+  bufferUniform = 2,
+  bufferStorage = 3,
+  bufferAccelerationStructure = 4,
+  bufferIndirect = 5,
+};
+pub const PuleGfxGpuBufferVisibility = enum(u32) {
+  deviceOnly = 0,
+  hostVisible = 1,
+  hostWritable = 2,
+};
+pub extern fn puleGfxGpuBufferCreate(
+  nullableInitialData: * anyopaque,
+  byteLength: usize,
+  usage: PuleGfxGpuBufferUsage,
+  visibility: PuleGfxGpuBufferVisibility,
+) callconv(.C) PuleGfxGpuBuffer;
+pub extern fn puleGfxGpuBufferDestroy(
+  buffer: PuleGfxGpuBuffer,
+) callconv(.C) void;
+pub const PuleGfxDescriptorType = enum(u32) {
+  sampler = 0,
+  uniformBuffer = 1,
+  storageBuffer = 2,
+};
+pub const PuleGfxAttributeDataType = enum(u32) {
+  float = 0,
+};
+pub const PuleGfxPipelineDescriptorAttributeBinding = extern struct {
+  buffer: PuleGfxGpuBuffer,
+  numComponents: usize,
+  dataType: PuleGfxAttributeDataType,
+  normalizeFixedDataTypeToNormalizedFloating: bool,
+  stridePerElement: usize,
+  offsetIntoBuffer: usize,
+};
+pub const PuleGfxPipelineDescriptorSetLayout = extern struct {
+  bufferUniformBindings: [16] PuleGfxGpuBuffer,
+  bufferAttributeBindings: [16] PuleGfxPipelineDescriptorAttributeBinding,
+  bufferElementBinding: PuleGfxGpuBuffer,
+};
+pub extern fn puleGfxPipelineDescriptorSetLayout() callconv(.C) PuleGfxPipelineDescriptorSetLayout;
+pub const PuleGfxPipelineLayout = extern struct {
   id: u64,
 };
-pub const PuleGfxPass = extern struct {
-  id: u64,
+pub extern fn puleGfxPipelineLayoutCreate(
+  descriptorSetLayout: [*c] const PuleGfxPipelineDescriptorSetLayout,
+  err: [*c] PuleError,
+) callconv(.C) PuleGfxPipelineLayout;
+pub extern fn puleGfxPipelineLayoutDestroy(
+  pipelineLayout: PuleGfxPipelineLayout,
+) callconv(.C) void;
+pub const PuleGfxPipeline = extern struct {
+  shaderModule: PuleGfxShaderModule,
+  layout: PuleGfxPipelineLayout,
 };
-pub extern fn puleGfxCreate() callconv(.C) void;
-pub extern fn puleGfxDestroy() callconv(.C) void;
+pub extern fn puleGfxInitialize(
+  err: [*c] PuleError,
+) callconv(.C) void;
+pub extern fn puleGfxShutdown() callconv(.C) void;
 pub extern fn puleGfxFrameStart() callconv(.C) void;
 pub extern fn puleGfxFrameEnd() callconv(.C) void;
 pub extern fn puleGfxGpuImageCreate(
@@ -80,9 +215,35 @@ pub const PuleErrorArray = enum(u32) {
   none = 0,
   errorAllocation = 1,
 };
+pub const PuleArray = extern struct {
+  content: * anyopaque,
+  elementByteLength: usize,
+  elementAlignmentByteLength: usize,
+  elementCount: usize,
+  allocator: PuleAllocator,
+};
+pub const PuleArrayCreateInfo = extern struct {
+  elementByteLength: usize,
+  elementAlignmentByteLength: usize,
+  allocator: PuleAllocator,
+};
+pub extern fn puleArray(
+  info: PuleArrayCreateInfo,
+) callconv(.C) PuleArray;
+pub extern fn puleArrayDestroy(
+  array: PuleArray,
+) callconv(.C) void;
+pub extern fn puleArrayAppend(
+  array: [*c] PuleArray,
+) callconv(.C) * anyopaque;
+pub extern fn puleArrayElementAt(
+  array: PuleArray,
+  idx: usize,
+) callconv(.C) * anyopaque;
 pub const PuleArrayView = extern struct {
   data: * const anyopaque,
-  len: usize,
+  elementStride: usize,
+  elementCount: usize,
 };
 pub const PuleWindowVsyncMode = enum(u32) {
   none = 0,
@@ -90,8 +251,9 @@ pub const PuleWindowVsyncMode = enum(u32) {
   triple = 2,
 };
 pub const PuleErrorWindow = enum(u32) {
-  windowCreationFailed = 0,
-  invalidConfiguration = 1,
+  none = 0,
+  windowCreationFailed = 1,
+  invalidConfiguration = 2,
 };
 pub const PuleWindowCreateInfo = extern struct {
   name: PuleStringView,
@@ -105,6 +267,7 @@ pub const PuleWindow = extern struct {
 pub extern fn puleWindowInitialize(
   err: [*c] PuleError,
 ) callconv(.C) void;
+pub extern fn puleWindowShutdown() callconv(.C) void;
 pub extern fn puleWindowCreate(
   info: PuleWindowCreateInfo,
   err: [*c] PuleError,
@@ -112,6 +275,7 @@ pub extern fn puleWindowCreate(
 pub extern fn puleWindowDestroy(
   window: PuleWindow,
 ) callconv(.C) void;
+pub extern fn puleWindowGetProcessAddress() callconv(.C) * anyopaque;
 pub extern fn puleWindowPollEvents(
   window: PuleWindow,
 ) callconv(.C) void;

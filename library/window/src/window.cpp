@@ -11,6 +11,10 @@ void puleWindowInitialize(PuleError * const error) {
   PULE_errorAssert(glfwInit(), PuleErrorWindow_windowCreationFailed, );
 }
 
+void puleWindowShutdown() {
+  glfwTerminate();
+}
+
 PuleWindow puleWindowCreate(
   PuleWindowCreateInfo const info,
   PuleError * const error
@@ -65,7 +69,7 @@ PuleWindow puleWindowCreate(
 
   GLFWwindow * window = (
     glfwCreateWindow(
-      windowWidth, windowHeight, "easf", nullptr, nullptr
+      windowWidth, windowHeight, "platformer example", nullptr, nullptr
     )
   );
 
@@ -100,9 +104,11 @@ void puleWindowPollEvents([[maybe_unused]] PuleWindow const window) {
 
 void puleWindowSwapFramebuffer(PuleWindow const window) {
   auto const glfwWindow = reinterpret_cast<GLFWwindow *>(window.data);
-  //glClear(GL_COLOR_BUFFER_BIT);
-  glfwMakeContextCurrent(glfwWindow);
   glfwSwapBuffers(glfwWindow);
+}
+
+void * puleWindowGetProcessAddress() {
+  return reinterpret_cast<void *>(&glfwGetProcAddress);
 }
 
 } // extern C

@@ -176,7 +176,11 @@ def exportJsonFromFile(contents):
         "label": label,
         "values": enums,
       }]
-    elif (strCmp(contents[it:], "typedef struct")):
+    elif (
+      strCmp(contents[it:], "typedef struct")
+      or strCmp(contents[it:], "typedef union")
+    ):
+      isStructNotUnion = strCmp(contents[it:], "typedef struct");
       fields = []
       while (contents[it] != "{"):
         it += 1
@@ -220,7 +224,7 @@ def exportJsonFromFile(contents):
         it += 1
 
       exportedSymbols += [{
-        "type": "struct",
+        "type": "struct" if isStructNotUnion else "union",
         "label": label,
         "fields": fields,
       }]
@@ -245,20 +249,24 @@ for subdir, dirs, files in os.walk(inputArgs["input"]):
 
 # transform function pointers in structs & functions
 for objkey, obj in enumerate(exportJson):
-  if (obj["type"] != "struct" and obj["type"] != "function"):
+  if (
+    obj["type"] != "struct"
+    and obj["type"] != "union"
+    and obj["type"] != "function"
+  ):
     continue
-  isStruct = obj["type"] == "struct"
+  isStructOrUnion = obj["type"] == "struct" or obj["type"] == "union"
 
-  fieldsOrPameter = "fields" if isStruct else "parameters"
+  fieldsOrPameter = "fields" if isStructOrUnion else "parameters"
 
   for fieldkey, field in enumerate(obj[fieldsOrPameter]):
-    if (isStruct and field["label"][-1][-1] != ")"):
+    if (isStructOrUnion and field["label"][-1][-1] != ")"):
       continue
-    if (not isStruct and field["label"] != "fn-ptr"):
+    if (not isStructOrUnion and field["label"] != "fn-ptr"):
       continue
 
     ptr = ' '.join(field["type"])
-    if (isStruct):
+    if (isStructOrUnion):
       ptr += field["label"]
 
     retType = []
@@ -289,7 +297,7 @@ for objkey, obj in enumerate(exportJson):
     shouldBeConst = ""
     while (ptr[it].isspace()):
       it += 1
-    if (not isStruct or ptr[it:it+4] == "const"):
+    if (not isStructOrUnion or ptr[it:it+4] == "const"):
       while (not ptr[it].isspace()):
         shouldBeConst += ptr[it]
         it += 1
@@ -329,6 +337,34 @@ for objkey, obj in enumerate(exportJson):
       "return-type": retType,
       "parameters": params,
     }
+
+# move field/parameter array from label to type
+for objkey, obj in enumerate(exportJson):
+  if (
+    obj["type"] != "struct"
+    and obj["type"] != "union"
+    and obj["type"] != "function"
+  ):
+    continue
+  isStructOrUnion = obj["type"] == "struct" or obj["type"] == "union"
+
+  fieldsOrPameter = "fields" if isStructOrUnion else "parameters"
+
+  for fieldkey, field in enumerate(obj[fieldsOrPameter]):
+    if (field["label"][-1] != "]"):
+      continue
+    it = 0;
+    for zit, character in enumerate(field["label"]):
+      if (character == "["):
+        it = zit
+        break
+    assert(it > 0)
+    exportJson[objkey][fieldsOrPameter][fieldkey]["type"] = (
+      field["type"] + [field["label"][it:]]
+    )
+    exportJson[objkey][fieldsOrPameter][fieldkey]["label"] = (
+      field["label"][:it]
+    )
 
 fileWrite = open(inputArgs["output"], "w")
 fileWrite.write(json.dumps(exportJson, indent=2))

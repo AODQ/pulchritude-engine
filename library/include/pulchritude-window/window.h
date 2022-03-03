@@ -17,6 +17,7 @@ typedef enum {
 } PuleWindowVsyncMode;
 
 typedef enum {
+  PuleErrorwindow_none,
   PuleErrorWindow_windowCreationFailed,
   PuleErrorWindow_invalidConfiguration,
 } PuleErrorWindow;
@@ -33,12 +34,13 @@ typedef struct {
 } PuleWindow;
 
 PULE_exportFn void puleWindowInitialize(PuleError * const error);
+PULE_exportFn void puleWindowShutdown();
 PULE_exportFn PuleWindow puleWindowCreate(
   PuleWindowCreateInfo const info, PuleError * const error
 );
-PULE_exportFn void puleWindowDestroy(
-  PuleWindow const window
-);
+PULE_exportFn void puleWindowDestroy(PuleWindow const window);
+
+PULE_exportFn void * puleWindowGetProcessAddress();
 
 PULE_exportFn void puleWindowPollEvents(PuleWindow const window);
 PULE_exportFn void puleWindowSwapFramebuffer(PuleWindow const window);

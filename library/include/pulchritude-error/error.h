@@ -2,11 +2,6 @@
 
 #include <pulchritude-core/core.h>
 
-#ifdef __cplusplus
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 #include <pulchritude-string/string.h>
 
@@ -24,6 +19,13 @@ typedef struct {
 PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
 
 // --- general helpers in C/C++
+
+// errors out with message, storing the error ID to error as well
+#define PULE_error(ErrorId, message, ...) \
+  *error = { \
+    .description = puleStringFormatDefault(message), \
+    .id = ErrorId, \
+  };
 
 // asserts an expression, which on failure will return the error with the
 //   expression as it's description

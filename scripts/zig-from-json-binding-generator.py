@@ -28,7 +28,7 @@ def keywordRename(token):
     return keywordTranslator[token]
   return token
 
-def extractType(typeArray, isReturnOrStructFieldType, symbolLabel):
+def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabel):
   string = ""
 
   typeTranslator = {
@@ -41,12 +41,12 @@ def extractType(typeArray, isReturnOrStructFieldType, symbolLabel):
   }
 
   # zig demands all function parameters are constant
-  if (not isReturnOrStructFieldType and typeArray[-1] != "const"):
+  if (not isReturnOrStructUnionFieldType and typeArray[-1] != "const"):
     print(
       f"WARNING: the last const of type {typeArray} from {symbolLabel} "
       "is not constant :/"
     )
-  elif (not isReturnOrStructFieldType):
+  elif (not isReturnOrStructUnionFieldType):
     typeArray = typeArray[0:-1]
 
   # reverse order for zig (int const *) -> ([*c] const int)
@@ -76,13 +76,13 @@ def extractType(typeArray, isReturnOrStructFieldType, symbolLabel):
     string += " "
   return string[0:-1]
 
-def extractField(symbol, isStruct):
+def extractField(symbol, isStructOrUnion):
   string = ""
   if (symbol["meta-type"] == "fn-ptr"):
     pass
   elif (symbol["meta-type"] == "standard"):
     string += "  " + keywordRename(param["label"]) + ": "
-    string += extractType(param["type"], isStruct, label)
+    string += extractType(param["type"], isStructOrUnion, label)
     string += ",\n"
   elif (symbol["meta-type"] == "variadic"):
     string += "  ...\n"
@@ -98,7 +98,7 @@ for symbol in inputJson:
     returnType = (extractType(symbol["return-type"], True, label))
     parameters = ""
     for param in symbol["parameters"]:
-      parameters += extractField(param, isStruct=False)
+      parameters += extractField(param, isStructOrUnion=False)
 
     # fn()\n vs fn(\nparam\n)\n
     if (parameters != ""):
@@ -134,13 +134,13 @@ for symbol in inputJson:
     )
 
   # pub const label = struct { fields... };
-  if (symbol["type"] == "struct"):
+  if (symbol["type"] == "struct" or symbol["type"] == "union"):
     label = symbol["label"]
     fields = ""
     for param in symbol["fields"]:
-      fields += extractField(param, isStruct=True)
+      fields += extractField(param, isStructOrUnion=True)
     outFile.write(
-      f"pub const {label} = extern struct {{\n{fields}}};\n"
+      f"pub const {label} = extern {symbol['type']} {{\n{fields}}};\n"
     )
 
 outFile.close()

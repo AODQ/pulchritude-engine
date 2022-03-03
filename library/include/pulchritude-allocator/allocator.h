@@ -2,14 +2,6 @@
 
 #include <pulchritude-core/core.h>
 
-#ifdef __cplusplus
-#include <cstddef>
-#include <cstdint>
-#else
-#include <stddef.h>
-#include <stdint.h>
-#endif
-
 // allows allocators to be passed between plugins
 // This probably shouldn't be used in isolation, but in conjunction with
 //   other plugins. For example, if you pass dynamically allocated memory

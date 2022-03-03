@@ -2,14 +2,6 @@
 
 #include <pulchritude-core/core.h>
 
-#ifdef __cplusplus
-#include <cstddef>
-#include <cstdint>
-#else
-#include <stddef.h>
-#include <stdint.h>
-#endif
-
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-log/log.h>
 
