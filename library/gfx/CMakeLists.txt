@@ -13,7 +13,6 @@ target_sources(
     src/gfx.cpp
     src/commands.cpp
     src/shader-module.cpp
-    src/util.cpp
 )
 
 set_target_properties(

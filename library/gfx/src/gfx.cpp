@@ -3,7 +3,6 @@
 #include <pulchritude-error/error.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-window/window.h>
-#include <util.hpp>
 
 #include <cstring>
 
@@ -14,6 +13,28 @@
 
 extern "C" {
 
+static void GLAPIENTRY errorMessageCallback(
+  [[maybe_unused]] GLenum source,
+  GLenum type,
+  [[maybe_unused]] GLenum id,
+  GLenum severity,
+  [[maybe_unused]] GLsizei length,
+  GLchar const * message,
+  [[maybe_unused]] void const * userdata
+) {
+  switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+      puleLogError("OpenGL error [0x%x]: %s", type, message);
+    break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+    case GL_DEBUG_SEVERITY_LOW:
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+    default:
+      puleLogDebug("OpenGL message [0x%x]: %s", type, message);
+    break;
+  }
+}
+
 void puleGfxInitialize(PuleError * const error) {
   PULE_errorAssert(
     gladLoadGLLoader(
@@ -21,6 +42,9 @@ void puleGfxInitialize(PuleError * const error) {
     ),
     PuleErrorGfx_creationFailed,
   );
+
+  glEnable(GL_DEBUG_OUTPUT);
+  glDebugMessageCallback(errorMessageCallback, nullptr);
 }
 
 void puleGfxShutdown() {
@@ -50,20 +74,21 @@ namespace {
     }
   }
 
-  GLenum bufferVisibilityToGl(PuleGfxGpuBufferVisibility const usage) {
-    switch (usage) {
-      default:
-        puleLogError("visibility is invalid with renderer: %d", usage);
-        return 0;
-      break;
-      case PuleGfxGpuBufferVisibility_hostVisible:
-      case PuleGfxGpuBufferVisibility_deviceOnly:
-        return GL_STATIC_DRAW;
-      break;
-      case PuleGfxGpuBufferVisibility_hostWritable:
-        return GL_DYNAMIC_DRAW;
-      break;
+  GLbitfield bufferVisibilityToGl(PuleGfxGpuBufferVisibilityFlag const usage) {
+    if (usage & PuleGfxGpuBufferVisibilityFlag_deviceOnly) {
+      if (usage != PuleGfxGpuBufferVisibilityFlag_deviceOnly) {
+        puleLogError("incompatible buffer visibility: %d", usage);
+      }
+      return 0;
     }
+    GLbitfield field = 0;
+    if (usage & PuleGfxGpuBufferVisibilityFlag_hostVisible) {
+      field |= GL_MAP_READ_BIT;
+    }
+    if (usage & PuleGfxGpuBufferVisibilityFlag_hostWritable) {
+      field |= GL_MAP_WRITE_BIT;
+    }
+    return field;
   }
 
   GLenum attributeDataTypeToGl(
@@ -87,22 +112,15 @@ namespace {
 PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   void * const nullableInitialData,
   size_t const byteLength,
-  PuleGfxGpuBufferUsage const usage,
-  PuleGfxGpuBufferVisibility const visibility
+  [[maybe_unused]] PuleGfxGpuBufferUsage const usage,
+  PuleGfxGpuBufferVisibilityFlag const visibility
 ) {
   GLuint buffer;
-  glGenBuffers(1, &buffer);
+  glCreateBuffers(1, &buffer);
   puleLogDebug("buffer: %u", buffer);
-  GLenum const bufferUsage = bufferUsageToGl(usage);
-  glBindBuffer(bufferUsage, buffer);
-  UTIL_processGlErrors();
-  glBufferData(
-    bufferUsage,
-    byteLength,
-    nullableInitialData,
-    bufferVisibilityToGl(visibility)
+  glNamedBufferStorage(
+    buffer, byteLength, nullableInitialData, bufferVisibilityToGl(visibility)
   );
-  UTIL_processGlErrors();
 
   return { static_cast<uint64_t>(buffer) };
 }
@@ -136,9 +154,7 @@ PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
   PuleError * const error
 ) {
   GLuint attributeDescriptorHandle;
-  glGenVertexArrays(1, &attributeDescriptorHandle);
-
-  glBindVertexArray(attributeDescriptorHandle);
+  glCreateVertexArrays(1, &attributeDescriptorHandle);
 
   // buffer attribute bindings
   for (size_t it = 0; it < 16; ++ it) {
@@ -164,32 +180,29 @@ PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
       PuleErrorGfx_invalidDescriptorSet,
       {}
     );
-    glBindBuffer(GL_ARRAY_BUFFER, descriptorAttributeBinding.buffer.id);
-    UTIL_processGlErrors();
-    glEnableVertexAttribArray(it);
-    UTIL_processGlErrors();
-    glVertexAttribPointer(
+
+    glVertexArrayVertexBuffer(
+      attributeDescriptorHandle,
+      it,
+      descriptorAttributeBinding.buffer.id,
+      descriptorAttributeBinding.offsetIntoBuffer,
+      descriptorAttributeBinding.stridePerElement
+    );
+    glEnableVertexArrayAttrib(attributeDescriptorHandle, it);
+    glVertexArrayAttribFormat(
+      attributeDescriptorHandle,
       it,
       descriptorAttributeBinding.numComponents,
       attributeDataType,
       descriptorAttributeBinding.normalizeFixedDataTypeToNormalizedFloating,
-      descriptorAttributeBinding.stridePerElement,
-      reinterpret_cast<void *>(
-        descriptorAttributeBinding.offsetIntoBuffer
-      )
+      0
+      //descriptorAttributeBinding.stridePerElement
     );
-    UTIL_processGlErrors();
+    glVertexArrayAttribBinding(attributeDescriptorHandle, it, it);
   }
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  UTIL_processGlErrors();
 
   // TODO element binding
 
-  glBindVertexArray(0);
-
-  for (size_t it = 0; it < 16; ++ it) {
-    glDisableVertexAttribArray(it);
-  }
   return { attributeDescriptorHandle };
 }
 

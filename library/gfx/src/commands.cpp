@@ -1,7 +1,5 @@
 #include <pulchritude-gfx/commands.h>
 
-#include <util.hpp>
-
 #include <glad/glad.h>
 
 #include <vector>
@@ -92,16 +90,13 @@ extern "C" {
           );
           glClearColor(action.red, action.green, action.blue, action.alpha);
           glClear(GL_COLOR_BUFFER_BIT);
-          UTIL_processGlErrors();
         } break;
         case PuleGfxAction_bindPipeline: {
           auto const action = (
             *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
           );
           glUseProgram(static_cast<GLuint>(action.pipeline.shaderModule.id));
-          UTIL_processGlErrors();
           glBindVertexArray(static_cast<GLuint>(action.pipeline.layout.id));
-          UTIL_processGlErrors();
           usedProgram = true;
           usedVertexArray = true;
         } break;
@@ -114,13 +109,11 @@ extern "C" {
             action.vertexOffset,
             action.numVertices
           );
-          UTIL_processGlErrors();
         } break;
       }
     }
 
     if (usedProgram) { glUseProgram(0); }
     if (usedVertexArray) { glBindVertexArray(0); }
-    UTIL_processGlErrors();
   }
 }

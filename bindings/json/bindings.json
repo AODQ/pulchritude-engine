@@ -815,19 +815,19 @@
   },
   {
     "type": "enum",
-    "label": "PuleGfxGpuBufferVisibility",
+    "label": "PuleGfxGpuBufferVisibilityFlag",
     "values": [
       {
-        "label": "PuleGfxGpuBufferVisibility_deviceOnly",
-        "value": 0
-      },
-      {
-        "label": "PuleGfxGpuBufferVisibility_hostVisible",
+        "label": "PuleGfxGpuBufferVisibilityFlag_deviceOnly",
         "value": 1
       },
       {
-        "label": "PuleGfxGpuBufferVisibility_hostWritable",
+        "label": "PuleGfxGpuBufferVisibilityFlag_hostVisible",
         "value": 2
+      },
+      {
+        "label": "PuleGfxGpuBufferVisibilityFlag_hostWritable",
+        "value": 4
       }
     ]
   },
@@ -866,7 +866,7 @@
       {
         "label": "visibility",
         "type": [
-          "PuleGfxGpuBufferVisibility",
+          "PuleGfxGpuBufferVisibilityFlag",
           "const"
         ],
         "meta-type": "standard"
@@ -1082,6 +1082,27 @@
     ]
   },
   {
+    "type": "struct",
+    "label": "PuleGfxPushConstant",
+    "fields": [
+      {
+        "label": "index",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "data",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
     "type": "function",
     "return-type": [
       "void"
@@ -1153,6 +1174,101 @@
           "const",
           "*",
           "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleFloat2",
+    "fields": [
+      {
+        "label": "x",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "y",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleFloat3",
+    "fields": [
+      {
+        "label": "x",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "y",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "z",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleFloat4",
+    "fields": [
+      {
+        "label": "x",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "y",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "z",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "w",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleFloat4x4",
+    "fields": [
+      {
+        "label": "elements",
+        "type": [
+          "float",
+          "[16]"
         ],
         "meta-type": "standard"
       }

@@ -489,6 +489,39 @@ If a parameter is nullable (it can either point to a valid value, or be null),
 PULE_exportFn void pulcSetUserData(void * const userDataNullable);
 ```
 
+### rendering
+
+Right now the renderer focuses on a 2D renderer, but it should be performant
+  enough to use on 3D renderers as well. Currently it targets OpenGL3.3, with
+  as 'modern' as a feature-set as that allows, but the API is framed in a way
+  that it can be used in other graphics APIs like Vulkan, Metal, DX12, and of
+  course can be upgraded to GL4.6.
+
+Of course not everyone using pulchritude engine is expected to be a graphics
+  programmer, and so the 'lower level' approach pulchritude takes to rendering
+  can seem a bit steep at first. If you are writing a 3D renderer, this is just
+  part of the experience for now, however, for 2D renderers, there is a higher
+  level 2D renderer library that will do a lot of 2D work on your behalf.
+
+To do most work consists of two phases. Either creating/uploading data to be
+  used, or submitting commands to the GPU. The command submission is not
+  immediate-mode like OpenGL is. Instead commands are recorded and then can be
+  submitted to the GPU to be processed. This allows multi-threaded work to be a
+  bit easier, as well caters to more modern graphics apis. This also has the
+  benefit that users have to think of an appropiate workflow to their
+  rendering, which should hopefully push to have larger draw calls that are
+  batched together.
+
+OpenGL 'uniforms' for all intents don't exist, instead consider push constants
+  or uniform buffers. Push constants are great if the uniform data varies
+  between each draw call, and not per-frame, and uniform buffers are great for
+  when uniform data varies per-frame, and not per draw call. Try to work your
+  renderer to not rely on requiring variation between each draw-call and
+  per-frame, but if not possible then you will simply have to rerecord command
+  buffers on-the-fly. The overhead for this might seem silly, for OpenGL, but
+  the overhead is completely negligible compared to submitting too many draw
+  calls.
+
 ---
 
 ### contribution

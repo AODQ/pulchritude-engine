@@ -150,16 +150,16 @@ pub const PuleGfxGpuBufferUsage = enum(u32) {
   bufferAccelerationStructure = 4,
   bufferIndirect = 5,
 };
-pub const PuleGfxGpuBufferVisibility = enum(u32) {
-  deviceOnly = 0,
-  hostVisible = 1,
-  hostWritable = 2,
+pub const PuleGfxGpuBufferVisibilityFlag = enum(u32) {
+  deviceOnly = 1,
+  hostVisible = 2,
+  hostWritable = 4,
 };
 pub extern fn puleGfxGpuBufferCreate(
   nullableInitialData: * anyopaque,
   byteLength: usize,
   usage: PuleGfxGpuBufferUsage,
-  visibility: PuleGfxGpuBufferVisibility,
+  visibility: PuleGfxGpuBufferVisibilityFlag,
 ) callconv(.C) PuleGfxGpuBuffer;
 pub extern fn puleGfxGpuBufferDestroy(
   buffer: PuleGfxGpuBuffer,
@@ -200,6 +200,10 @@ pub const PuleGfxPipeline = extern struct {
   shaderModule: PuleGfxShaderModule,
   layout: PuleGfxPipelineLayout,
 };
+pub const PuleGfxPushConstant = extern struct {
+  index: usize,
+  data: * anyopaque,
+};
 pub extern fn puleGfxInitialize(
   err: [*c] PuleError,
 ) callconv(.C) void;
@@ -211,6 +215,24 @@ pub extern fn puleGfxGpuImageCreate(
   height: u32,
   data: * const anyopaque,
 ) callconv(.C) void;
+pub const PuleFloat2 = extern struct {
+  x: f32,
+  y: f32,
+};
+pub const PuleFloat3 = extern struct {
+  x: f32,
+  y: f32,
+  z: f32,
+};
+pub const PuleFloat4 = extern struct {
+  x: f32,
+  y: f32,
+  z: f32,
+  w: f32,
+};
+pub const PuleFloat4x4 = extern struct {
+  elements: [16] f32,
+};
 pub const PuleErrorArray = enum(u32) {
   none = 0,
   errorAllocation = 1,

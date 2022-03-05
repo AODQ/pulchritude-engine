@@ -2,7 +2,6 @@
 
 #include <pulchritude-gfx/gfx.h>
 #include <pulchritude-log/log.h>
-#include <util.hpp>
 
 #include <glad/glad.h>
 
@@ -50,7 +49,6 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
       PuleErrorGfx_shaderModuleCompilationFailed,
       "failed to compile vertex shader",
     );
-    UTIL_processGlErrors();
     return {0};
   }
   // defer glDeleteShader(vertexShaderHandle)
@@ -61,7 +59,6 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
       "failed to compile fragment shader"
     );
     glDeleteShader(vertexShaderHandle);
-    UTIL_processGlErrors();
     return {0};
   }
   // defer glDeleteShader(fragmentShaderHandle)

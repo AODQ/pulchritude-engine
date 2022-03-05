@@ -3,16 +3,16 @@
 // These bindings are implementable in all platforms/renderers (OpenGL, GLES,
 //   Vulkan, DX9, Metal, etc)
 //
-// Although right now only OpenGL3.3 renderer exists. If the renderer gets
-//   upgraded to for efficient 3D rendering, it should first move to modern
-//   OpenGL4.6 (DSA, indirect calls, etc), and then afterwards Vulkan.
+// Right now only OpenGL4.6 renderer exists. In the future, an OpenGL 3.0
+//   renderer will also exist (to target more machines). At some point if this
+//   library does well a vulkan backend will also be written.
 //
-// As well the intent for 3D games that require more hardware capability is to
-//   'extend' the gfx to support more features, though this is the one
-//   exception where there might be incompatilibies between libraries. It's
-//   best to try to avoid this, of course. For example, enums could be extended,
-//   new functions can be added, and most resources are just 'id' so that the
-//   underlying implementation can change.
+// The intent for 3D games that require more hardware capability is to 'extend'
+//   the gfx to support more features, though this is the one exception where
+//   there might be incompatilibies between libraries. It's best to try to
+//   avoid this, of course. For example, enums could be extended, new functions
+//   can be added, and most resources are just 'id' so that the underlying
+//   implementation can change.
 
 #include <pulchritude-gfx/shader-module.h>
 
@@ -61,8 +61,7 @@ typedef struct {
 } PuleGfxGpuBuffer;
 
 // this should be a bitfield in the future (this only tells us what the buffer
-//   may be bound to for use in the future); GL3.3 doesn't support this so it's
-//   okay for now
+//   may be bound to for use in the future);
 typedef enum {
   PuleGfxGpuBufferUsage_bufferAttribute,
   PuleGfxGpuBufferUsage_bufferElement,
@@ -73,16 +72,16 @@ typedef enum {
 } PuleGfxGpuBufferUsage;
 
 typedef enum {
-  PuleGfxGpuBufferVisibility_deviceOnly,
-  PuleGfxGpuBufferVisibility_hostVisible,
-  PuleGfxGpuBufferVisibility_hostWritable,
-} PuleGfxGpuBufferVisibility;
+  PuleGfxGpuBufferVisibilityFlag_deviceOnly = 0x1, // incompatible with rest
+  PuleGfxGpuBufferVisibilityFlag_hostVisible = 0x2,
+  PuleGfxGpuBufferVisibilityFlag_hostWritable = 0x4,
+} PuleGfxGpuBufferVisibilityFlag;
 
 PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   void * const nullableInitialData,
   size_t const byteLength, // must be >0
   PuleGfxGpuBufferUsage const usage,
-  PuleGfxGpuBufferVisibility const visibility
+  PuleGfxGpuBufferVisibilityFlag const visibility
 );
 PULE_exportFn void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer);
 
@@ -105,6 +104,10 @@ typedef struct {
   size_t offsetIntoBuffer;
 } PuleGfxPipelineDescriptorAttributeBinding;
 
+// here are some known & fixable limitations with the current model:
+//   - can't reference the same buffer in separate elements
+//   - can't reference relative offset strides (related to above)
+//   - of course, maximum 16 attributes (I think this is fine though)
 typedef struct {
   PuleGfxGpuBuffer bufferUniformBindings[16];
   PuleGfxPipelineDescriptorAttributeBinding bufferAttributeBindings[16];
