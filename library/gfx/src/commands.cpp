@@ -13,8 +13,8 @@ namespace {
   struct CommandList {
     std::vector<PuleGfxCommand> actions;
   };
-  std::unordered_map<size_t, CommandList> commandLists;
-  size_t commandListsIt = 0;
+  std::unordered_map<uint64_t, CommandList> commandLists;
+  uint64_t commandListsIt = 0;
 
   GLenum drawPrimitiveToGl(PuleGfxDrawPrimitive drawPrimitive) {
     switch (drawPrimitive) {

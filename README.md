@@ -448,6 +448,19 @@ typedef enum {
 } PulcTeamColor;
 ```
 
+The 'value' label of an enum can not start with an integer, for example,
+`PuleGfxImageTarget_2D` is not valid. This is so that binding generators can do
+`PuleGfxImageTarget.2D` for languages that support typed enums, and most
+languages cannot have the first character of a variable label be numeric. Instead in these cases use `i2D`
+
+```
+typedef enum {
+  PulcArrayDimension_i1D,
+  PulcArrayDimension_i2D,
+  PulcArrayDimension_i3D,
+} PulcArrayDimension;
+```
+
 Parameters and struct members that are arrays end with `s`/`es` suffix.
 ```c
 typedef struct {

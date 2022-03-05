@@ -203,6 +203,9 @@ PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
 
   // TODO element binding
 
+  // TODO right now I just return the attribute descriptor, but I need to also
+  // store texture information, uniform bindings, etc
+
   return { attributeDescriptorHandle };
 }
 

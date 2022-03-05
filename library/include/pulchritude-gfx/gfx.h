@@ -14,6 +14,7 @@
 //   can be added, and most resources are just 'id' so that the underlying
 //   implementation can change.
 
+#include <pulchritude-gfx/image.h>
 #include <pulchritude-gfx/shader-module.h>
 
 #include <pulchritude-core/core.h>
@@ -42,15 +43,6 @@ typedef struct {
   void * implementation;
 } PuleGfxContext;
 
-typedef struct {
-  uint64_t id;
-} PuleGfxGpuImage;
-
-/* typedef enum { */
-/* } PuleGfxImageByteFormat; */
-
-/* typedef enum { */
-/* } PuleGfxImageChannel; */
 
 typedef struct {
   uint64_t id;
@@ -100,7 +92,7 @@ typedef struct {
   size_t numComponents;
   PuleGfxAttributeDataType dataType;
   bool normalizeFixedDataTypeToNormalizedFloating;
-  size_t stridePerElement; // zero implies strictly packed
+  size_t stridePerElement; // zero implies same element; does not pack for you
   size_t offsetIntoBuffer;
 } PuleGfxPipelineDescriptorAttributeBinding;
 
@@ -111,6 +103,8 @@ typedef struct {
 typedef struct {
   PuleGfxGpuBuffer bufferUniformBindings[16];
   PuleGfxPipelineDescriptorAttributeBinding bufferAttributeBindings[16];
+  PuleGfxGpuImage textures[8];
+  // TODO I guess pair with an optional sampler?
   PuleGfxGpuBuffer bufferElementBinding;
 } PuleGfxPipelineDescriptorSetLayout;
 
@@ -144,14 +138,6 @@ PULE_exportFn void puleGfxShutdown();
 
 PULE_exportFn void puleGfxFrameStart();
 PULE_exportFn void puleGfxFrameEnd();
-
-PULE_exportFn void puleGfxGpuImageCreate(
-  uint32_t const width,
-  uint32_t const height,
-  /* PuleGfxImageByteFormat const byteFormat, */
-  /* PuleGfxImageChannel const imageChannel, */
-  void const * const data
-);
 
 #ifdef __cplusplus
 } // extern C
