@@ -1,7 +1,8 @@
 #pragma once
 
-#include <pulchritude-gfx/shader-module.h>
 #include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gfx/pipeline.h>
+#include <pulchritude-gfx/shader-module.h>
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
@@ -24,7 +25,6 @@ typedef enum {
   PuleGfxAction_dispatchRenderElements,
   PuleGfxAction_clearFramebufferColor,
   PuleGfxAction_clearFramebufferDepth,
-  PuleGfxAction_pushConstants,
 } PuleGfxAction;
 
 typedef struct {
@@ -89,7 +89,8 @@ PULE_exportFn void puleGfxCommandListAppendAction(
 );
 
 PULE_exportFn void puleGfxCommandListSubmit(
-  PuleGfxCommandList const commandList
+  PuleGfxCommandList const commandList,
+  PuleError * const error
 );
 
 #ifdef __cplusplus

@@ -10,9 +10,12 @@ target_sources(
   PRIVATE
     src/glad/glad.c
 
-    src/gfx.cpp
     src/commands.cpp
+    src/gfx.cpp
+    src/image.cpp
+    src/pipeline.cpp
     src/shader-module.cpp
+    src/util.cpp
 )
 
 set_target_properties(

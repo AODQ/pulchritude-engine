@@ -14,9 +14,6 @@
 //   can be added, and most resources are just 'id' so that the underlying
 //   implementation can change.
 
-#include <pulchritude-gfx/image.h>
-#include <pulchritude-gfx/shader-module.h>
-
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
 
@@ -37,6 +34,7 @@ typedef enum {
   PuleErrorGfx_creationFailed,
   PuleErrorGfx_shaderModuleCompilationFailed,
   PuleErrorGfx_invalidDescriptorSet,
+  PuleErrorGfx_invalidCommandList,
 } PuleErrorGfx;
 
 typedef struct {
@@ -76,62 +74,6 @@ PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   PuleGfxGpuBufferVisibilityFlag const visibility
 );
 PULE_exportFn void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer);
-
-typedef enum {
-  PuleGfxDescriptorType_sampler,
-  PuleGfxDescriptorType_uniformBuffer,
-  PuleGfxDescriptorType_storageBuffer, // not supported
-} PuleGfxDescriptorType;
-
-typedef enum {
-  PuleGfxAttributeDataType_float,
-} PuleGfxAttributeDataType;
-
-typedef struct {
-  PuleGfxGpuBuffer buffer;
-  size_t numComponents;
-  PuleGfxAttributeDataType dataType;
-  bool normalizeFixedDataTypeToNormalizedFloating;
-  size_t stridePerElement; // zero implies same element; does not pack for you
-  size_t offsetIntoBuffer;
-} PuleGfxPipelineDescriptorAttributeBinding;
-
-// here are some known & fixable limitations with the current model:
-//   - can't reference the same buffer in separate elements
-//   - can't reference relative offset strides (related to above)
-//   - of course, maximum 16 attributes (I think this is fine though)
-typedef struct {
-  PuleGfxGpuBuffer bufferUniformBindings[16];
-  PuleGfxPipelineDescriptorAttributeBinding bufferAttributeBindings[16];
-  PuleGfxGpuImage textures[8];
-  // TODO I guess pair with an optional sampler?
-  PuleGfxGpuBuffer bufferElementBinding;
-} PuleGfxPipelineDescriptorSetLayout;
-
-PULE_exportFn PuleGfxPipelineDescriptorSetLayout
-  puleGfxPipelineDescriptorSetLayout();
-
-typedef struct {
-  uint64_t id;
-} PuleGfxPipelineLayout;
-
-PULE_exportFn PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
-  PuleGfxPipelineDescriptorSetLayout const * const descriptorSetLayout,
-  PuleError * const error
-);
-PULE_exportFn void puleGfxPipelineLayoutDestroy(
-  PuleGfxPipelineLayout const pipelineLayout
-);
-
-typedef struct {
-  PuleGfxShaderModule shaderModule;
-  PuleGfxPipelineLayout layout;
-} PuleGfxPipeline;
-
-typedef struct {
-  size_t index;
-  void * data;
-} PuleGfxPushConstant;
 
 PULE_exportFn void puleGfxInitialize(PuleError * const error);
 PULE_exportFn void puleGfxShutdown();

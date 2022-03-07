@@ -335,10 +335,6 @@
       {
         "label": "PuleGfxAction_clearFramebufferDepth",
         "value": 4
-      },
-      {
-        "label": "PuleGfxAction_pushConstants",
-        "value": 5
       }
     ]
   },
@@ -637,6 +633,235 @@
           "const"
         ],
         "meta-type": "standard"
+      },
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxDescriptorType",
+    "values": [
+      {
+        "label": "PuleGfxDescriptorType_sampler",
+        "value": 0
+      },
+      {
+        "label": "PuleGfxDescriptorType_uniformBuffer",
+        "value": 1
+      },
+      {
+        "label": "PuleGfxDescriptorType_storageBuffer",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxAttributeDataType",
+    "values": [
+      {
+        "label": "PuleGfxAttributeDataType_float",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPipelineAttributeDescriptorBinding",
+    "fields": [
+      {
+        "label": "buffer",
+        "type": [
+          "PuleGfxGpuBuffer"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "numComponents",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "dataType",
+        "type": [
+          "PuleGfxAttributeDataType"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "normalizeFixedDataTypeToNormalizedFloating",
+        "type": [
+          "bool"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "stridePerElement",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "offsetIntoBuffer",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPipelineDescriptorSetLayout",
+    "fields": [
+      {
+        "label": "bufferUniformBindings",
+        "type": [
+          "PuleGfxGpuBuffer",
+          "[16]"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "bufferAttributeBindings",
+        "type": [
+          "PuleGfxPipelineAttributeDescriptorBinding",
+          "[16]"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "textureBindings",
+        "type": [
+          "PuleGfxGpuImage",
+          "[8]"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "bufferElementBinding",
+        "type": [
+          "PuleGfxGpuBuffer"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxPipelineDescriptorSetLayout"
+    ],
+    "label": "puleGfxPipelineDescriptorSetLayout",
+    "parameters": []
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPipelineLayout",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxPipelineLayout"
+    ],
+    "label": "puleGfxPipelineLayoutCreate",
+    "parameters": [
+      {
+        "label": "descriptorSetLayout",
+        "type": [
+          "PuleGfxPipelineDescriptorSetLayout",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxPipelineLayoutDestroy",
+    "parameters": [
+      {
+        "label": "pipelineLayout",
+        "type": [
+          "PuleGfxPipelineLayout",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPipeline",
+    "fields": [
+      {
+        "label": "shaderModule",
+        "type": [
+          "PuleGfxShaderModule"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "layout",
+        "type": [
+          "PuleGfxPipelineLayout"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPushConstant",
+    "fields": [
+      {
+        "label": "index",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "data",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
       }
     ]
   },
@@ -727,6 +952,10 @@
       {
         "label": "PuleErrorGfx_invalidDescriptorSet",
         "value": 3
+      },
+      {
+        "label": "PuleErrorGfx_invalidCommandList",
+        "value": 4
       }
     ]
   },
@@ -739,19 +968,6 @@
         "type": [
           "void",
           "*"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxGpuImage",
-    "fields": [
-      {
-        "label": "id",
-        "type": [
-          "uint64_t"
         ],
         "meta-type": "standard"
       }
@@ -891,218 +1107,6 @@
     ]
   },
   {
-    "type": "enum",
-    "label": "PuleGfxDescriptorType",
-    "values": [
-      {
-        "label": "PuleGfxDescriptorType_sampler",
-        "value": 0
-      },
-      {
-        "label": "PuleGfxDescriptorType_uniformBuffer",
-        "value": 1
-      },
-      {
-        "label": "PuleGfxDescriptorType_storageBuffer",
-        "value": 2
-      }
-    ]
-  },
-  {
-    "type": "enum",
-    "label": "PuleGfxAttributeDataType",
-    "values": [
-      {
-        "label": "PuleGfxAttributeDataType_float",
-        "value": 0
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxPipelineDescriptorAttributeBinding",
-    "fields": [
-      {
-        "label": "buffer",
-        "type": [
-          "PuleGfxGpuBuffer"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "numComponents",
-        "type": [
-          "size_t"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "dataType",
-        "type": [
-          "PuleGfxAttributeDataType"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "normalizeFixedDataTypeToNormalizedFloating",
-        "type": [
-          "bool"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "stridePerElement",
-        "type": [
-          "size_t"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "offsetIntoBuffer",
-        "type": [
-          "size_t"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxPipelineDescriptorSetLayout",
-    "fields": [
-      {
-        "label": "bufferUniformBindings",
-        "type": [
-          "PuleGfxGpuBuffer",
-          "[16]"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "bufferAttributeBindings",
-        "type": [
-          "PuleGfxPipelineDescriptorAttributeBinding",
-          "[16]"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "bufferElementBinding",
-        "type": [
-          "PuleGfxGpuBuffer"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "PuleGfxPipelineDescriptorSetLayout"
-    ],
-    "label": "puleGfxPipelineDescriptorSetLayout",
-    "parameters": []
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxPipelineLayout",
-    "fields": [
-      {
-        "label": "id",
-        "type": [
-          "uint64_t"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "PuleGfxPipelineLayout"
-    ],
-    "label": "puleGfxPipelineLayoutCreate",
-    "parameters": [
-      {
-        "label": "descriptorSetLayout",
-        "type": [
-          "PuleGfxPipelineDescriptorSetLayout",
-          "const",
-          "*",
-          "const"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "error",
-        "type": [
-          "PuleError",
-          "*",
-          "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "void"
-    ],
-    "label": "puleGfxPipelineLayoutDestroy",
-    "parameters": [
-      {
-        "label": "pipelineLayout",
-        "type": [
-          "PuleGfxPipelineLayout",
-          "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxPipeline",
-    "fields": [
-      {
-        "label": "shaderModule",
-        "type": [
-          "PuleGfxShaderModule"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "layout",
-        "type": [
-          "PuleGfxPipelineLayout"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxPushConstant",
-    "fields": [
-      {
-        "label": "index",
-        "type": [
-          "size_t"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "data",
-        "type": [
-          "void",
-          "*"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
     "type": "function",
     "return-type": [
       "void"
@@ -1145,34 +1149,221 @@
     "parameters": []
   },
   {
+    "type": "enum",
+    "label": "PuleGfxImageMagnification",
+    "values": [
+      {
+        "label": "PuleGfxImageMagnification_nearest",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxImageWrap",
+    "values": [
+      {
+        "label": "PuleGfxImageWrap_clampToEdge",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxSampler",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxSamplerCreateInfo",
+    "fields": [
+      {
+        "label": "minify",
+        "type": [
+          "PuleGfxImageMagnification"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "magnify",
+        "type": [
+          "PuleGfxImageMagnification"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "wrapU",
+        "type": [
+          "PuleGfxImageWrap"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "wrapV",
+        "type": [
+          "PuleGfxImageWrap"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxSampler"
+    ],
+    "label": "puleGfxSamplerCreate",
+    "parameters": [
+      {
+        "label": "createInfo",
+        "type": [
+          "PuleGfxSamplerCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
     "type": "function",
     "return-type": [
       "void"
     ],
-    "label": "puleGfxGpuImageCreate",
+    "label": "puleGfxSamplerDestroy",
     "parameters": [
+      {
+        "label": "sampler",
+        "type": [
+          "PuleGfxSampler",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxGpuImage",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxImageByteFormat",
+    "values": [
+      {
+        "label": "PuleGfxImageByteFormat_rgba8U",
+        "value": 0
+      },
+      {
+        "label": "PuleGfxImageByteFormat_rgb8U",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxImageTarget",
+    "values": [
+      {
+        "label": "PuleGfxImageTarget_i2D",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxImageCreateInfo",
+    "fields": [
       {
         "label": "width",
         "type": [
-          "uint32_t",
-          "const"
+          "uint32_t"
         ],
         "meta-type": "standard"
       },
       {
         "label": "height",
         "type": [
-          "uint32_t",
-          "const"
+          "uint32_t"
         ],
         "meta-type": "standard"
       },
       {
-        "label": "data",
+        "label": "target",
+        "type": [
+          "PuleGfxImageTarget"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteFormat",
+        "type": [
+          "PuleGfxImageByteFormat"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "sampler",
+        "type": [
+          "PuleGfxSampler"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "nullableInitialData",
         "type": [
           "void",
           "const",
-          "*",
+          "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxGpuImage"
+    ],
+    "label": "puleGfxGpuImageCreate",
+    "parameters": [
+      {
+        "label": "imageCreateInfo",
+        "type": [
+          "PuleGfxImageCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxGpuImageDestroy",
+    "parameters": [
+      {
+        "label": "image",
+        "type": [
+          "PuleGfxGpuImage",
           "const"
         ],
         "meta-type": "standard"
@@ -1615,6 +1806,23 @@
       "void"
     ],
     "label": "puleWindowDestroy",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PuleWindow",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "puleWindowShouldExit",
     "parameters": [
       {
         "label": "window",

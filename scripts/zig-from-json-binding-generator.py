@@ -92,7 +92,7 @@ def extractField(symbol, isStructOrUnion):
 
 outFile = open(inputArgs["output"], 'w')
 for symbol in inputJson:
-  # extern fn label(params...) callconv(.C) returntype;
+  # extern fn label(params...) callconv(.C) returntype
   if (symbol["type"] == "function"):
     label = symbol["label"]
     returnType = (extractType(symbol["return-type"], True, label))
@@ -108,7 +108,7 @@ for symbol in inputJson:
       f"pub extern fn {label}({parameters}) callconv(.C) {returnType};\n"
     )
 
-  # pub const label = enum(Type) { values... };
+  # pub const label = enum(Type) { values... }
   if (symbol["type"] == "enum"):
     label = symbol["label"]
     enumType = "u32"
@@ -133,7 +133,7 @@ for symbol in inputJson:
       f"pub const {label} = enum({enumType}) {{\n{values}}};\n"
     )
 
-  # pub const label = struct { fields... };
+  # pub const label = struct { fields... }
   if (symbol["type"] == "struct" or symbol["type"] == "union"):
     label = symbol["label"]
     fields = ""

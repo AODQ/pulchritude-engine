@@ -242,7 +242,6 @@ for subdir, dirs, files in os.walk(inputArgs["input"]):
     if (filename == "core.h"):
       continue
 
-    print(f"checking {filename}")
     file = open(subdir + "/" + filename)
     exportJson += exportJsonFromFile(file.read())
     file.close()
@@ -365,6 +364,60 @@ for objkey, obj in enumerate(exportJson):
     exportJson[objkey][fieldsOrPameter][fieldkey]["label"] = (
       field["label"][:it]
     )
+
+# interesting, now before I stamp these papers, make sure this information is
+#   correct
+for symbol in exportJson:
+  def symAssertStr(member, label):
+    if (label not in member or member[label] == ""):
+      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+
+  def symAssertStr(member, label):
+    if (label not in member or member[label] == ""):
+      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+
+  def symAssertArray(member, label, minLen):
+    if (label not in member or len(member[label]) < minLen):
+      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+
+  def symAssertEnum(member, label):
+    if (label not in member or member[label] < 0):
+      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+
+  if (symbol["type"] == "function"):
+    symAssertStr(symbol, "return-type")
+    symAssertStr(symbol, "label")
+    symAssertArray(symbol, "parameters", 0)
+    for parameter in symbol["parameters"]:
+      # skip function pointer stuff for now
+      if (parameter["meta-type"] == "fn-ptr"):
+        continue
+
+      symAssertStr(parameter, "label")
+      symAssertStr(parameter, "meta-type")
+      symAssertArray(parameter, "type", 0 if parameter["label"] == "..." else 1)
+      for ptype in parameter["type"]:
+        if (ptype == ""):
+          print(f"---- invalid empty type in '{parameter}' [{symbol['label']}]")
+  if (symbol["type"] == "enum"):
+    symAssertStr(symbol, "label")
+    symAssertArray(symbol, "values", 0)
+    for value in symbol["values"]:
+      symAssertEnum(value, "value")
+      symAssertStr(value, "label")
+  if (symbol["type"] == "struct"):
+    symAssertStr(symbol, "label")
+    symAssertArray(symbol, "fields", 0)
+    for field in symbol["fields"]:
+      symAssertStr(field, "label")
+      symAssertStr(field, "meta-type")
+      # skip function pointer stuff for now
+      if (field["meta-type"] == "fn-ptr"):
+        continue
+      symAssertArray(field, "type", 1)
+      for ptype in field["type"]:
+        if (ptype == ""):
+          print(f"---- invalid empty type in '{field}' [{symbol['label']}]")
 
 fileWrite = open(inputArgs["output"], "w")
 fileWrite.write(json.dumps(exportJson, indent=2))

@@ -1,15 +1,24 @@
 #include <pulchritude-gfx/gfx.h>
 
+#include <util.hpp>
+
 #include <pulchritude-error/error.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-window/window.h>
 
 #include <cstring>
+#include <functional>
+#include <string>
+#include <unordered_set>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <glad/glad.h>
 #pragma GCC diagnostic pop
+
+namespace {
+  std::unordered_set<std::string> loggedErrorMessages;
+}
 
 extern "C" {
 
@@ -22,6 +31,10 @@ static void GLAPIENTRY errorMessageCallback(
   GLchar const * message,
   [[maybe_unused]] void const * userdata
 ) {
+  auto const messageStr = std::string(message);
+  if (loggedErrorMessages.find(messageStr) == loggedErrorMessages.end()) {
+    return;
+  }
   switch (severity) {
     case GL_DEBUG_SEVERITY_HIGH:
       puleLogError("OpenGL error [0x%x]: %s", type, message);
@@ -33,6 +46,7 @@ static void GLAPIENTRY errorMessageCallback(
       puleLogDebug("OpenGL message [0x%x]: %s", type, message);
     break;
   }
+  loggedErrorMessages.emplace(messageStr);
 }
 
 void puleGfxInitialize(PuleError * const error) {
@@ -90,23 +104,6 @@ namespace {
     }
     return field;
   }
-
-  GLenum attributeDataTypeToGl(
-    PuleGfxAttributeDataType const dataType,
-    PuleError * const error
-  ) {
-    switch (dataType) {
-      default:
-        PULE_error(
-          PuleErrorGfx_invalidDescriptorSet,
-          "invalid datatype %d", dataType
-        );
-        return 0;
-      break;
-      case PuleGfxAttributeDataType_float:
-        return GL_FLOAT;
-    }
-  }
 }
 
 PuleGfxGpuBuffer puleGfxGpuBufferCreate(
@@ -129,90 +126,5 @@ void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer) {
   GLuint const bufferHandle = static_cast<GLuint>(buffer.id);
   glDeleteBuffers(1, &bufferHandle);
 }
-
-//------------------------------------------------------------------------------
-//-- DESCRIPTOR LAYOUT ---------------------------------------------------------
-//------------------------------------------------------------------------------
-
-PuleGfxPipelineDescriptorSetLayout puleGfxPipelineDescriptorSetLayout() {
-  PuleGfxPipelineDescriptorSetLayout descriptorSetLayout;
-  memset(
-    descriptorSetLayout.bufferUniformBindings,
-    0,
-    sizeof(decltype(descriptorSetLayout.bufferUniformBindings[0])) * 16
-  );
-  memset(
-    descriptorSetLayout.bufferAttributeBindings,
-    0,
-    sizeof(decltype(descriptorSetLayout.bufferAttributeBindings[0])) * 16
-  );
-  return descriptorSetLayout;
-}
-
-PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
-  PuleGfxPipelineDescriptorSetLayout const * const descriptorSetLayout,
-  PuleError * const error
-) {
-  GLuint attributeDescriptorHandle;
-  glCreateVertexArrays(1, &attributeDescriptorHandle);
-
-  // buffer attribute bindings
-  for (size_t it = 0; it < 16; ++ it) {
-    PuleGfxPipelineDescriptorAttributeBinding const &
-      descriptorAttributeBinding = (
-        descriptorSetLayout->bufferAttributeBindings[it]
-      )
-    ;
-    if (descriptorAttributeBinding.buffer.id == 0) {
-      continue;
-    }
-    PULE_errorAssert(
-      descriptorAttributeBinding.numComponents != 0,
-      PuleErrorGfx_invalidDescriptorSet,
-      {}
-    );
-    GLenum const attributeDataType = (
-      attributeDataTypeToGl(descriptorAttributeBinding.dataType, error)
-    );
-    if (error->id > 0) { return {}; }
-    PULE_errorAssert(
-      attributeDataType != 0,
-      PuleErrorGfx_invalidDescriptorSet,
-      {}
-    );
-
-    glVertexArrayVertexBuffer(
-      attributeDescriptorHandle,
-      it,
-      descriptorAttributeBinding.buffer.id,
-      descriptorAttributeBinding.offsetIntoBuffer,
-      descriptorAttributeBinding.stridePerElement
-    );
-    glEnableVertexArrayAttrib(attributeDescriptorHandle, it);
-    glVertexArrayAttribFormat(
-      attributeDescriptorHandle,
-      it,
-      descriptorAttributeBinding.numComponents,
-      attributeDataType,
-      descriptorAttributeBinding.normalizeFixedDataTypeToNormalizedFloating,
-      0
-      //descriptorAttributeBinding.stridePerElement
-    );
-    glVertexArrayAttribBinding(attributeDescriptorHandle, it, it);
-  }
-
-  // TODO element binding
-
-  // TODO right now I just return the attribute descriptor, but I need to also
-  // store texture information, uniform bindings, etc
-
-  return { attributeDescriptorHandle };
-}
-
-void puleGfxPipelineLayoutDestroy(PuleGfxPipelineLayout const pipelineLayout) {
-  GLuint handle = static_cast<GLuint>(pipelineLayout.id);
-  glDeleteVertexArrays(1, &handle);
-}
-
 
 } // extern C

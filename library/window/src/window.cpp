@@ -98,6 +98,10 @@ void puleWindowDestroy(PuleWindow const window) {
   glfwDestroyWindow(reinterpret_cast<GLFWwindow *>(window.data));
 }
 
+bool puleWindowShouldExit(PuleWindow const window) {
+  return glfwWindowShouldClose(reinterpret_cast<GLFWwindow *>(window.data));
+}
+
 void puleWindowPollEvents([[maybe_unused]] PuleWindow const window) {
   glfwPollEvents();
 }

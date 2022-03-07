@@ -55,7 +55,6 @@ pub const PuleGfxAction = enum(u32) {
   dispatchRenderElements = 2,
   clearFramebufferColor = 3,
   clearFramebufferDepth = 4,
-  pushConstants = 5,
 };
 pub const PuleGfxActionBindPipeline = extern struct {
   action: PuleGfxAction,
@@ -112,7 +111,49 @@ pub extern fn puleGfxCommandListAppendAction(
 ) callconv(.C) void;
 pub extern fn puleGfxCommandListSubmit(
   commandList: PuleGfxCommandList,
+  err: [*c] PuleError,
 ) callconv(.C) void;
+pub const PuleGfxDescriptorType = enum(u32) {
+  sampler = 0,
+  uniformBuffer = 1,
+  storageBuffer = 2,
+};
+pub const PuleGfxAttributeDataType = enum(u32) {
+  float = 0,
+};
+pub const PuleGfxPipelineAttributeDescriptorBinding = extern struct {
+  buffer: PuleGfxGpuBuffer,
+  numComponents: usize,
+  dataType: PuleGfxAttributeDataType,
+  normalizeFixedDataTypeToNormalizedFloating: bool,
+  stridePerElement: usize,
+  offsetIntoBuffer: usize,
+};
+pub const PuleGfxPipelineDescriptorSetLayout = extern struct {
+  bufferUniformBindings: [16] PuleGfxGpuBuffer,
+  bufferAttributeBindings: [16] PuleGfxPipelineAttributeDescriptorBinding,
+  textureBindings: [8] PuleGfxGpuImage,
+  bufferElementBinding: PuleGfxGpuBuffer,
+};
+pub extern fn puleGfxPipelineDescriptorSetLayout() callconv(.C) PuleGfxPipelineDescriptorSetLayout;
+pub const PuleGfxPipelineLayout = extern struct {
+  id: u64,
+};
+pub extern fn puleGfxPipelineLayoutCreate(
+  descriptorSetLayout: [*c] const PuleGfxPipelineDescriptorSetLayout,
+  err: [*c] PuleError,
+) callconv(.C) PuleGfxPipelineLayout;
+pub extern fn puleGfxPipelineLayoutDestroy(
+  pipelineLayout: PuleGfxPipelineLayout,
+) callconv(.C) void;
+pub const PuleGfxPipeline = extern struct {
+  shaderModule: PuleGfxShaderModule,
+  layout: PuleGfxPipelineLayout,
+};
+pub const PuleGfxPushConstant = extern struct {
+  index: usize,
+  data: * anyopaque,
+};
 pub const PuleGfxShaderModule = extern struct {
   id: u64,
 };
@@ -129,12 +170,10 @@ pub const PuleErrorGfx = enum(u32) {
   creationFailed = 1,
   shaderModuleCompilationFailed = 2,
   invalidDescriptorSet = 3,
+  invalidCommandList = 4,
 };
 pub const PuleGfxContext = extern struct {
   implementation: * anyopaque,
-};
-pub const PuleGfxGpuImage = extern struct {
-  id: u64,
 };
 pub const PuleGfxGpuFramebuffer = extern struct {
   id: u64,
@@ -164,56 +203,56 @@ pub extern fn puleGfxGpuBufferCreate(
 pub extern fn puleGfxGpuBufferDestroy(
   buffer: PuleGfxGpuBuffer,
 ) callconv(.C) void;
-pub const PuleGfxDescriptorType = enum(u32) {
-  sampler = 0,
-  uniformBuffer = 1,
-  storageBuffer = 2,
-};
-pub const PuleGfxAttributeDataType = enum(u32) {
-  float = 0,
-};
-pub const PuleGfxPipelineDescriptorAttributeBinding = extern struct {
-  buffer: PuleGfxGpuBuffer,
-  numComponents: usize,
-  dataType: PuleGfxAttributeDataType,
-  normalizeFixedDataTypeToNormalizedFloating: bool,
-  stridePerElement: usize,
-  offsetIntoBuffer: usize,
-};
-pub const PuleGfxPipelineDescriptorSetLayout = extern struct {
-  bufferUniformBindings: [16] PuleGfxGpuBuffer,
-  bufferAttributeBindings: [16] PuleGfxPipelineDescriptorAttributeBinding,
-  bufferElementBinding: PuleGfxGpuBuffer,
-};
-pub extern fn puleGfxPipelineDescriptorSetLayout() callconv(.C) PuleGfxPipelineDescriptorSetLayout;
-pub const PuleGfxPipelineLayout = extern struct {
-  id: u64,
-};
-pub extern fn puleGfxPipelineLayoutCreate(
-  descriptorSetLayout: [*c] const PuleGfxPipelineDescriptorSetLayout,
-  err: [*c] PuleError,
-) callconv(.C) PuleGfxPipelineLayout;
-pub extern fn puleGfxPipelineLayoutDestroy(
-  pipelineLayout: PuleGfxPipelineLayout,
-) callconv(.C) void;
-pub const PuleGfxPipeline = extern struct {
-  shaderModule: PuleGfxShaderModule,
-  layout: PuleGfxPipelineLayout,
-};
-pub const PuleGfxPushConstant = extern struct {
-  index: usize,
-  data: * anyopaque,
-};
 pub extern fn puleGfxInitialize(
   err: [*c] PuleError,
 ) callconv(.C) void;
 pub extern fn puleGfxShutdown() callconv(.C) void;
 pub extern fn puleGfxFrameStart() callconv(.C) void;
 pub extern fn puleGfxFrameEnd() callconv(.C) void;
-pub extern fn puleGfxGpuImageCreate(
+pub const PuleGfxImageMagnification = enum(u32) {
+  nearest = 0,
+};
+pub const PuleGfxImageWrap = enum(u32) {
+  clampToEdge = 0,
+};
+pub const PuleGfxSampler = extern struct {
+  id: u64,
+};
+pub const PuleGfxSamplerCreateInfo = extern struct {
+  minify: PuleGfxImageMagnification,
+  magnify: PuleGfxImageMagnification,
+  wrapU: PuleGfxImageWrap,
+  wrapV: PuleGfxImageWrap,
+};
+pub extern fn puleGfxSamplerCreate(
+  createInfo: PuleGfxSamplerCreateInfo,
+) callconv(.C) PuleGfxSampler;
+pub extern fn puleGfxSamplerDestroy(
+  sampler: PuleGfxSampler,
+) callconv(.C) void;
+pub const PuleGfxGpuImage = extern struct {
+  id: u64,
+};
+pub const PuleGfxImageByteFormat = enum(u32) {
+  rgba8U = 0,
+  rgb8U = 1,
+};
+pub const PuleGfxImageTarget = enum(u32) {
+  i2D = 0,
+};
+pub const PuleGfxImageCreateInfo = extern struct {
   width: u32,
   height: u32,
-  data: * const anyopaque,
+  target: PuleGfxImageTarget,
+  byteFormat: PuleGfxImageByteFormat,
+  sampler: PuleGfxSampler,
+  nullableInitialData: * const anyopaque,
+};
+pub extern fn puleGfxGpuImageCreate(
+  imageCreateInfo: PuleGfxImageCreateInfo,
+) callconv(.C) PuleGfxGpuImage;
+pub extern fn puleGfxGpuImageDestroy(
+  image: PuleGfxGpuImage,
 ) callconv(.C) void;
 pub const PuleFloat2 = extern struct {
   x: f32,
@@ -297,6 +336,9 @@ pub extern fn puleWindowCreate(
 pub extern fn puleWindowDestroy(
   window: PuleWindow,
 ) callconv(.C) void;
+pub extern fn puleWindowShouldExit(
+  window: PuleWindow,
+) callconv(.C) bool;
 pub extern fn puleWindowGetProcessAddress() callconv(.C) * anyopaque;
 pub extern fn puleWindowPollEvents(
   window: PuleWindow,

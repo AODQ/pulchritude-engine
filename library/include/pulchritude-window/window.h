@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-string/string.h>
@@ -39,6 +41,8 @@ PULE_exportFn PuleWindow puleWindowCreate(
   PuleWindowCreateInfo const info, PuleError * const error
 );
 PULE_exportFn void puleWindowDestroy(PuleWindow const window);
+
+PULE_exportFn bool puleWindowShouldExit(PuleWindow const window);
 
 PULE_exportFn void * puleWindowGetProcessAddress();
 
