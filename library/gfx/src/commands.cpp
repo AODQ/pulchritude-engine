@@ -4,8 +4,9 @@
 
 #include <glad/glad.h>
 
-#include <vector>
+#include <cstring>
 #include <unordered_map>
+#include <vector>
 
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
@@ -13,7 +14,10 @@
 
 namespace {
   struct CommandList {
+    PuleAllocator allocator;
+    // TODO use allocator instead of vector lol
     std::vector<PuleGfxCommand> actions;
+    std::vector<uint8_t> constantData;
   };
   std::unordered_map<uint64_t, CommandList> commandLists;
   uint64_t commandListsIt = 0;
@@ -38,11 +42,18 @@ namespace {
 
 extern "C" {
 
-PuleGfxCommandList puleGfxCommandListCreate() {
+PuleGfxCommandList puleGfxCommandListCreate(PuleAllocator const allocator) {
   PuleGfxCommandList commandList = {
     .id = commandListsIt,
   };
-  ::commandLists.emplace(commandList.id, ::CommandList{});
+  ::commandLists.emplace(
+    commandList.id,
+    ::CommandList{
+      .allocator = allocator,
+      .actions = {},
+      .constantData = {},
+    }
+  );
   commandListsIt += 1;
   return commandList;
 }
@@ -66,7 +77,34 @@ void puleGfxCommandListAppendAction(
   PuleGfxCommandListRecorder const commandListRecorder,
   PuleGfxCommand const command
 ) {
-  ::commandLists.at(commandListRecorder.id).actions.emplace_back(command);
+  auto & commandList = ::commandLists.at(commandListRecorder.id);
+  switch (command.action) {
+    default:
+      commandList.actions.emplace_back(command);
+    break;
+    case PuleGfxAction_pushConstants: {
+      // allocate push constants into command list's constant data
+      size_t const prevConstantDataLength = commandList.constantData.size();
+      commandList.constantData.resize(
+        commandList.constantData.size()
+        + sizeof(PuleGfxConstant) * command.pushConstants.constantsLength
+      );
+      memcpy(
+        commandList.constantData.data() + prevConstantDataLength,
+        command.pushConstants.constants,
+        sizeof(PuleGfxConstant) * command.pushConstants.constantsLength
+      );
+
+      // assign push constants to command
+      PuleGfxCommand copyCmd = command;
+      copyCmd.pushConstants.constants = (
+        reinterpret_cast<PuleGfxConstant *>(
+          commandList.constantData.data() + prevConstantDataLength
+        )
+      );
+      commandList.actions.emplace_back(copyCmd);
+    } break;
+  }
 }
 
 void puleGfxCommandListSubmit(
@@ -94,8 +132,53 @@ void puleGfxCommandListSubmit(
             &command
           )
         );
-        glClearColor(action.red, action.green, action.blue, action.alpha);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearNamedFramebufferfv(
+          static_cast<GLuint>(action.framebuffer.id),
+          GL_COLOR, 0,
+          &action.color.x
+        );
+      } break;
+      case PuleGfxAction_pushConstants: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionPushConstants const *>(
+            &command
+          )
+        );
+
+        for (size_t it = 0; it < action.constantsLength; ++ it) {
+          PuleGfxConstant const & constant = action.constants[it];
+          auto dataAsF32 = reinterpret_cast<float const *>(&constant.value);
+          auto dataAsI32 = reinterpret_cast<int32_t const *>(&constant.value);
+          switch (constant.typeTag) {
+            case PuleGfxConstantTypeTag_f32:
+              glUniform1fv(constant.bindingSlot, 1, dataAsF32);
+            break;
+            case PuleGfxConstantTypeTag_f32v2:
+              glUniform2fv(constant.bindingSlot, 1, dataAsF32);
+            break;
+            case PuleGfxConstantTypeTag_f32v3:
+              glUniform3fv(constant.bindingSlot, 1, dataAsF32);
+            break;
+            case PuleGfxConstantTypeTag_f32v4:
+              glUniform4fv(constant.bindingSlot, 1, dataAsF32);
+            break;
+            case PuleGfxConstantTypeTag_i32:
+              glUniform1iv(constant.bindingSlot, 1, dataAsI32);
+            break;
+            case PuleGfxConstantTypeTag_i32v2:
+              glUniform2iv(constant.bindingSlot, 1, dataAsI32);
+            break;
+            case PuleGfxConstantTypeTag_i32v3:
+              glUniform3iv(constant.bindingSlot, 1, dataAsI32);
+            break;
+            case PuleGfxConstantTypeTag_i32v4:
+              glUniform4iv(constant.bindingSlot, 1, dataAsI32);
+            break;
+            case PuleGfxConstantTypeTag_f32m44:
+              glUniformMatrix4fv(constant.bindingSlot, 1, GL_FALSE, dataAsF32);
+            break;
+          }
+        }
       } break;
       case PuleGfxAction_bindPipeline: {
         auto const action = (
@@ -104,6 +187,13 @@ void puleGfxCommandListSubmit(
         util::PipelineLayout const & pipelineLayout = (
           *util::pipelineLayout(action.pipeline.layout.id)
         );
+        puleLogDebug("binding framebuffer: %d", 
+          static_cast<GLuint>(action.pipeline.framebuffer.id)
+        );
+        glBindFramebuffer(
+          GL_FRAMEBUFFER,
+          static_cast<GLuint>(action.pipeline.framebuffer.id)
+        );
         glUseProgram(static_cast<GLuint>(action.pipeline.shaderModule.id));
         glBindVertexArray(static_cast<GLuint>(pipelineLayout.descriptor));
         for (size_t it = 0; it < pipelineLayout.texturesLength; ++ it) {
@@ -111,6 +201,16 @@ void puleGfxCommandListSubmit(
             pipelineLayout.textures[it]
           );
           glBindTextureUnit(binding.bindingSlot, binding.imageHandle);
+        }
+        for (size_t it = 0; it < pipelineLayout.storagesLength; ++ it) {
+          util::DescriptorSetStorageBinding const & binding = (
+            pipelineLayout.storages[it]
+          );
+          glBindBufferBase(
+            GL_SHADER_STORAGE_BUFFER,
+            binding.bindingSlot,
+            binding.storageHandle
+          );
         }
         usedProgram = true;
         usedVertexArray = true;

@@ -37,6 +37,11 @@ PuleGfxPipelineDescriptorSetLayout puleGfxPipelineDescriptorSetLayout() {
     sizeof(decltype(descriptorSetLayout.bufferUniformBindings[0])) * 16
   );
   memset(
+    &descriptorSetLayout.bufferStorageBindings[0],
+    0,
+    sizeof(decltype(descriptorSetLayout.bufferStorageBindings[0])) * 16
+  );
+  memset(
     &descriptorSetLayout.bufferAttributeBindings[0],
     0,
     sizeof(decltype(descriptorSetLayout.bufferAttributeBindings[0])) * 16
@@ -130,6 +135,24 @@ PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
       }
     );
     ++ pipelineLayout.texturesLength;
+  }
+
+  // collapse storage buffers into array
+  pipelineLayout.storagesLength = 0;
+  for (size_t it = 0; it < 16; ++ it) {
+    PuleGfxGpuBuffer const buffer = (
+      descriptorSetLayout->bufferStorageBindings[it]
+    );
+    if (buffer.id == 0) {
+      continue;
+    }
+    pipelineLayout.storages[pipelineLayout.storagesLength] = (
+      util::DescriptorSetStorageBinding {
+        .storageHandle = static_cast<uint32_t>(buffer.id),
+        .bindingSlot = static_cast<uint32_t>(it),
+      }
+    );
+    ++ pipelineLayout.storagesLength;
   }
 
   return { util::createPipelineLayout(pipelineLayout) };

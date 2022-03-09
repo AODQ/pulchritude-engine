@@ -5,9 +5,17 @@ namespace util {
     uint32_t imageHandle;
     uint32_t bindingSlot;
   };
+  struct DescriptorSetStorageBinding {
+    uint32_t storageHandle;
+    uint32_t bindingSlot;
+  };
   struct PipelineLayout {
     DescriptorSetImageBinding textures[8];
     size_t texturesLength;
+
+    DescriptorSetStorageBinding storages[16];
+    size_t storagesLength;
+
     uint32_t descriptor;
   };
 

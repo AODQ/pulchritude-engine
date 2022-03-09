@@ -57,11 +57,21 @@ void puleGfxInitialize(PuleError * const error) {
     PuleErrorGfx_creationFailed,
   );
 
+  glEnable(GL_SCISSOR_TEST);
   glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(errorMessageCallback, nullptr);
+
+  glDisable(GL_BLEND);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_MULTISAMPLE);
+  glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+  glDisable(GL_SAMPLE_ALPHA_TO_ONE);
+  glDisable(GL_SAMPLE_COVERAGE);
 }
 
 void puleGfxShutdown() {
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -69,6 +79,7 @@ void puleGfxShutdown() {
 //------------------------------------------------------------------------------
 
 namespace {
+  [[maybe_unused]]
   GLenum bufferUsageToGl(PuleGfxGpuBufferUsage const usage) {
     switch (usage) {
       default:
@@ -97,14 +108,32 @@ namespace {
     }
     GLbitfield field = 0;
     if (usage & PuleGfxGpuBufferVisibilityFlag_hostVisible) {
-      field |= GL_MAP_READ_BIT;
+      field |= GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT;
     }
     if (usage & PuleGfxGpuBufferVisibilityFlag_hostWritable) {
-      field |= GL_MAP_WRITE_BIT;
+      field |= GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
+    }
+    return field;
+  }
+
+  GLbitfield bufferMapAccessToGl(PuleGfxGpuBufferMapAccess const access) {
+    GLbitfield field = 0;
+    if (access & PuleGfxGpuBufferMapAccess_hostVisible) {
+      field |= (
+        GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+      );
+    }
+    if (access & PuleGfxGpuBufferMapAccess_hostWritable) {
+      field |= (
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+        | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+      );
     }
     return field;
   }
 }
+
+extern "C" {
 
 PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   void * const nullableInitialData,
@@ -125,6 +154,31 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
 void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer) {
   GLuint const bufferHandle = static_cast<GLuint>(buffer.id);
   glDeleteBuffers(1, &bufferHandle);
+}
+
+void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
+  return (
+    glMapNamedBufferRange(
+      static_cast<GLuint>(range.buffer.id),
+      range.byteOffset,
+      range.byteLength,
+      bufferMapAccessToGl(range.access)
+    )
+  );
+}
+
+void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer) {
+  glUnmapNamedBuffer(static_cast<GLuint>(buffer.id));
+}
+
+void puleGfxGpuBufferMappedFlush(
+  PuleGfxGpuBufferMappedFlushRange const range
+) {
+  glFlushMappedBufferRange(
+    static_cast<GLuint>(range.buffer.id),
+    range.byteOffset,
+    range.byteLength
+  );
 }
 
 } // extern C

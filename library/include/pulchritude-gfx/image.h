@@ -67,6 +67,56 @@ PULE_exportFn void puleGfxGpuImageDestroy(
   PuleGfxGpuImage const image
 );
 
+typedef struct {
+  uint64_t id;
+} PuleGfxFramebuffer;
+
+typedef enum {
+  PuleGfxFramebufferAttachment_color0,
+  PuleGfxFramebufferAttachment_color1,
+  PuleGfxFramebufferAttachment_color3,
+  PuleGfxFramebufferAttachment_color4,
+  PuleGfxFramebufferAttachment_depth,
+  PuleGfxFramebufferAttachment_stencil,
+  PuleGfxFramebufferAttachment_depthStencil,
+  PuleGfxFramebufferAttachment_End,
+} PuleGfxFramebufferAttachment;
+
+typedef enum {
+  renderStorage,
+  imageStorage,
+} PuleGfxFramebufferType;
+
+typedef struct {
+  uint64_t id;
+} PuleGfxRenderStorage;
+
+typedef struct {
+  PuleGfxGpuImage image;
+  uint32_t mipmapLevel; // default 0
+} PuleGfxFramebufferImageAttachment;
+
+typedef union {
+  PuleGfxFramebufferImageAttachment images[PuleGfxFramebufferAttachment_End];
+  PuleGfxRenderStorage renderStorages[PuleGfxFramebufferAttachment_End];
+} PuleGfxFramebufferAttachments;
+
+typedef struct {
+  PuleGfxFramebufferAttachments attachment;
+  PuleGfxFramebufferType attachmentType;
+} PuleGfxFramebufferCreateInfo;
+
+PULE_exportFn PuleGfxFramebufferCreateInfo puleGfxFramebufferCreateInfo();
+
+PULE_exportFn PuleGfxFramebuffer puleGfxFramebufferCreate(
+  PuleGfxFramebufferCreateInfo const framebufferCreateInfo,
+  PuleError * const error
+);
+PULE_exportFn void puleGfxFramebufferDestroy(
+  PuleGfxFramebuffer const framebuffer
+);
+PULE_exportFn PuleGfxFramebuffer puleGfxFramebufferWindow();
+
 #ifdef __cplusplus
 } // C
 #endif

@@ -321,20 +321,24 @@
         "value": 0
       },
       {
-        "label": "PuleGfxAction_dispatchRender",
+        "label": "PuleGfxAction_pushConstants",
         "value": 1
       },
       {
-        "label": "PuleGfxAction_dispatchRenderElements",
+        "label": "PuleGfxAction_dispatchRender",
         "value": 2
       },
       {
-        "label": "PuleGfxAction_clearFramebufferColor",
+        "label": "PuleGfxAction_dispatchRenderElements",
         "value": 3
       },
       {
-        "label": "PuleGfxAction_clearFramebufferDepth",
+        "label": "PuleGfxAction_clearFramebufferColor",
         "value": 4
+      },
+      {
+        "label": "PuleGfxAction_clearFramebufferDepth",
+        "value": 5
       }
     ]
   },
@@ -426,30 +430,16 @@
         "meta-type": "standard"
       },
       {
-        "label": "red",
+        "label": "framebuffer",
         "type": [
-          "float"
+          "PuleGfxFramebuffer"
         ],
         "meta-type": "standard"
       },
       {
-        "label": "green",
+        "label": "color",
         "type": [
-          "float"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "blue",
-        "type": [
-          "float"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "alpha",
-        "type": [
-          "float"
+          "PuleF32v4"
         ],
         "meta-type": "standard"
       }
@@ -467,6 +457,13 @@
         "meta-type": "standard"
       },
       {
+        "label": "framebuffer",
+        "type": [
+          "PuleGfxFramebuffer"
+        ],
+        "meta-type": "standard"
+      },
+      {
         "label": "depth",
         "type": [
           "float"
@@ -477,12 +474,193 @@
   },
   {
     "type": "union",
+    "label": "PuleGfxConstantValue",
+    "fields": [
+      {
+        "label": "constantF32",
+        "type": [
+          "float"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantF32v2",
+        "type": [
+          "PuleF32v2"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantF32v3",
+        "type": [
+          "PuleF32v3"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantF32v4",
+        "type": [
+          "PuleF32v4"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantI32",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantI32v2",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantI32v3",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantI32v4",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantF32m44",
+        "type": [
+          "PuleF32m44"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxConstantTypeTag",
+    "values": [
+      {
+        "label": "PuleGfxConstantTypeTag_f32",
+        "value": 0
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_f32v2",
+        "value": 1
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_f32v3",
+        "value": 2
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_f32v4",
+        "value": 3
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_i32",
+        "value": 4
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_i32v2",
+        "value": 5
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_i32v3",
+        "value": 6
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_i32v4",
+        "value": 7
+      },
+      {
+        "label": "PuleGfxConstantTypeTag_f32m44",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxConstant",
+    "fields": [
+      {
+        "label": "value",
+        "type": [
+          "PuleGfxConstantValue"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "typeTag",
+        "type": [
+          "PuleGfxConstantTypeTag"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "bindingSlot",
+        "type": [
+          "uint32_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxActionPushConstants",
+    "fields": [
+      {
+        "label": "action",
+        "type": [
+          "PuleGfxAction"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constants",
+        "type": [
+          "PuleGfxConstant",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "constantsLength",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "union",
     "label": "PuleGfxCommand",
     "fields": [
+      {
+        "label": "action",
+        "type": [
+          "PuleGfxAction"
+        ],
+        "meta-type": "standard"
+      },
       {
         "label": "bindPipeline",
         "type": [
           "PuleGfxActionBindPipeline"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "pushConstants",
+        "type": [
+          "PuleGfxActionPushConstants"
         ],
         "meta-type": "standard"
       },
@@ -516,7 +694,7 @@
       {
         "label": "id",
         "type": [
-          "size_t"
+          "uint64_t"
         ],
         "meta-type": "standard"
       }
@@ -529,7 +707,7 @@
       {
         "label": "id",
         "type": [
-          "size_t"
+          "uint64_t"
         ],
         "meta-type": "standard"
       }
@@ -541,7 +719,16 @@
       "PuleGfxCommandList"
     ],
     "label": "puleGfxCommandListCreate",
-    "parameters": []
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
   },
   {
     "type": "function",
@@ -734,6 +921,14 @@
         "meta-type": "standard"
       },
       {
+        "label": "bufferStorageBindings",
+        "type": [
+          "PuleGfxGpuBuffer",
+          "[16]"
+        ],
+        "meta-type": "standard"
+      },
+      {
         "label": "bufferAttributeBindings",
         "type": [
           "PuleGfxPipelineAttributeDescriptorBinding",
@@ -832,6 +1027,13 @@
         "label": "shaderModule",
         "type": [
           "PuleGfxShaderModule"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "framebuffer",
+        "type": [
+          "PuleGfxFramebuffer"
         ],
         "meta-type": "standard"
       },
@@ -956,6 +1158,10 @@
       {
         "label": "PuleErrorGfx_invalidCommandList",
         "value": 4
+      },
+      {
+        "label": "PuleErrorGfx_invalidFramebuffer",
+        "value": 5
       }
     ]
   },
@@ -968,19 +1174,6 @@
         "type": [
           "void",
           "*"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "PuleGfxGpuFramebuffer",
-    "fields": [
-      {
-        "label": "id",
-        "type": [
-          "uint64_t"
         ],
         "meta-type": "standard"
       }
@@ -1095,6 +1288,133 @@
       "void"
     ],
     "label": "puleGfxGpuBufferDestroy",
+    "parameters": [
+      {
+        "label": "buffer",
+        "type": [
+          "PuleGfxGpuBuffer",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxGpuBufferMapAccess",
+    "values": [
+      {
+        "label": "PuleGfxGpuBufferMapAccess_hostVisible",
+        "value": 1
+      },
+      {
+        "label": "PuleGfxGpuBufferMapAccess_hostWritable",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxGpuBufferMapRange",
+    "fields": [
+      {
+        "label": "buffer",
+        "type": [
+          "PuleGfxGpuBuffer"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "access",
+        "type": [
+          "PuleGfxGpuBufferMapAccess"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteOffset",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteLength",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxGpuBufferMappedFlushRange",
+    "fields": [
+      {
+        "label": "buffer",
+        "type": [
+          "PuleGfxGpuBuffer"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteOffset",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteLength",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleGfxGpuBufferMap",
+    "parameters": [
+      {
+        "label": "range",
+        "type": [
+          "PuleGfxGpuBufferMapRange",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxGpuBufferMappedFlush",
+    "parameters": [
+      {
+        "label": "range",
+        "type": [
+          "PuleGfxGpuBufferMappedFlushRange",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxGpuBufferUnmap",
     "parameters": [
       {
         "label": "buffer",
@@ -1372,7 +1692,206 @@
   },
   {
     "type": "struct",
-    "label": "PuleFloat2",
+    "label": "PuleGfxFramebuffer",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxFramebufferAttachment",
+    "values": [
+      {
+        "label": "PuleGfxFramebufferAttachment_color0",
+        "value": 0
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_color1",
+        "value": 1
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_color3",
+        "value": 2
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_color4",
+        "value": 3
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_depth",
+        "value": 4
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_stencil",
+        "value": 5
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_depthStencil",
+        "value": 6
+      },
+      {
+        "label": "PuleGfxFramebufferAttachment_End",
+        "value": 7
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxFramebufferType",
+    "values": [
+      {
+        "label": "renderStorage",
+        "value": 0
+      },
+      {
+        "label": "imageStorage",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxRenderStorage",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxFramebufferImageAttachment",
+    "fields": [
+      {
+        "label": "image",
+        "type": [
+          "PuleGfxGpuImage"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "mipmapLevel",
+        "type": [
+          "uint32_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "union",
+    "label": "PuleGfxFramebufferAttachments",
+    "fields": [
+      {
+        "label": "images",
+        "type": [
+          "PuleGfxFramebufferImageAttachment",
+          "[PuleGfxFramebufferAttachment_End]"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "renderStorages",
+        "type": [
+          "PuleGfxRenderStorage",
+          "[PuleGfxFramebufferAttachment_End]"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxFramebufferCreateInfo",
+    "fields": [
+      {
+        "label": "attachment",
+        "type": [
+          "PuleGfxFramebufferAttachments"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "attachmentType",
+        "type": [
+          "PuleGfxFramebufferType"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxFramebufferCreateInfo"
+    ],
+    "label": "puleGfxFramebufferCreateInfo",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxFramebuffer"
+    ],
+    "label": "puleGfxFramebufferCreate",
+    "parameters": [
+      {
+        "label": "framebufferCreateInfo",
+        "type": [
+          "PuleGfxFramebufferCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxFramebufferDestroy",
+    "parameters": [
+      {
+        "label": "framebuffer",
+        "type": [
+          "PuleGfxFramebuffer",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxFramebuffer"
+    ],
+    "label": "puleGfxFramebufferWindow",
+    "parameters": []
+  },
+  {
+    "type": "struct",
+    "label": "PuleF32v2",
     "fields": [
       {
         "label": "x",
@@ -1392,7 +1911,7 @@
   },
   {
     "type": "struct",
-    "label": "PuleFloat3",
+    "label": "PuleF32v3",
     "fields": [
       {
         "label": "x",
@@ -1419,7 +1938,7 @@
   },
   {
     "type": "struct",
-    "label": "PuleFloat4",
+    "label": "PuleF32v4",
     "fields": [
       {
         "label": "x",
@@ -1453,13 +1972,475 @@
   },
   {
     "type": "struct",
-    "label": "PuleFloat4x4",
+    "label": "PuleI32v2",
+    "fields": [
+      {
+        "label": "x",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "y",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleI32v3",
+    "fields": [
+      {
+        "label": "x",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "y",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "z",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleI32v4",
+    "fields": [
+      {
+        "label": "x",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "y",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "z",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "w",
+        "type": [
+          "int32_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v2"
+    ],
+    "label": "pulef32v2",
+    "parameters": [
+      {
+        "label": "identity",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v2Ptr",
+    "parameters": [
+      {
+        "label": "values",
+        "type": [
+          "float",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3",
+    "parameters": [
+      {
+        "label": "identity",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Ptr",
+    "parameters": [
+      {
+        "label": "values",
+        "type": [
+          "float",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Add",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Sub",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Neg",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Mul",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Div",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "float"
+    ],
+    "label": "pulef32v3Dot",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "float"
+    ],
+    "label": "pulef32v3Length",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Normalize",
+    "parameters": [
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v3"
+    ],
+    "label": "pulef32v3Cross",
+    "parameters": [
+      {
+        "label": "a",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "b",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32v4"
+    ],
+    "label": "pulef32v4",
+    "parameters": [
+      {
+        "label": "identity",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleF32m44",
     "fields": [
       {
         "label": "elements",
         "type": [
           "float",
           "[16]"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32m44"
+    ],
+    "label": "puleF32m44",
+    "parameters": [
+      {
+        "label": "identity",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32m44"
+    ],
+    "label": "puleProjectionPerspective",
+    "parameters": [
+      {
+        "label": "fieldOfViewRadians",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "aspectRatio",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "near",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "far",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32m44"
+    ],
+    "label": "puleViewLookAt",
+    "parameters": [
+      {
+        "label": "origin",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "center",
+        "type": [
+          "PuleF32v3",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "up",
+        "type": [
+          "PuleF32v3",
+          "const"
         ],
         "meta-type": "standard"
       }
@@ -1915,7 +2896,7 @@
       {
         "label": "id",
         "type": [
-          "size_t"
+          "uint64_t"
         ],
         "meta-type": "standard"
       }

@@ -4,6 +4,7 @@
 
 #include <glad/glad.h>
 
+#include <cstring>
 #include <unordered_map>
 
 namespace { // sampler
@@ -49,7 +50,7 @@ namespace { // sampler
     );
     glTextureParameteri(
       textureHandle,
-      GL_TEXTURE_WRAP_S,
+      GL_TEXTURE_WRAP_T,
       imageWrapToGl(samplerInfo.wrapV)
     );
   }
@@ -161,6 +162,89 @@ PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
 void puleGfxGpuImageDestroy(PuleGfxGpuImage const image) {
   GLuint handle = static_cast<GLuint>(image.id);
   glDeleteTextures(1, &handle);
+}
+
+} // C
+
+// ------------------------------------------------------------------------------
+// -- FRAMEBUFFER ---------------------------------------------------------------
+// ------------------------------------------------------------------------------
+
+namespace {
+  GLuint framebufferAttachmenToGl(PuleGfxFramebufferAttachment attachment) {
+    switch (attachment) {
+      default:
+        puleLogError("unknown attachment: %d", attachment);
+      [[fallthrough]];
+      case PuleGfxFramebufferAttachment_color0:
+        return GL_COLOR_ATTACHMENT0;
+      case PuleGfxFramebufferAttachment_color1:
+        return GL_COLOR_ATTACHMENT1;
+      case PuleGfxFramebufferAttachment_color3:
+        return GL_COLOR_ATTACHMENT2;
+      case PuleGfxFramebufferAttachment_color4:
+        return GL_COLOR_ATTACHMENT3;
+      case PuleGfxFramebufferAttachment_depth:
+        return GL_DEPTH_ATTACHMENT;
+      case PuleGfxFramebufferAttachment_stencil:
+        return GL_STENCIL_ATTACHMENT;
+      case PuleGfxFramebufferAttachment_depthStencil:
+        return GL_DEPTH_STENCIL_ATTACHMENT;
+    }
+  }
+} // namespace
+
+extern "C" {
+PuleGfxFramebufferCreateInfo puleGfxFramebufferCreateInfo() {
+  PuleGfxFramebufferCreateInfo info;
+  memset(
+    &info.attachment,
+    0,
+    sizeof(PuleGfxFramebufferAttachments)
+  );
+  return info;
+}
+
+PuleGfxFramebuffer puleGfxFramebufferCreate(
+  PuleGfxFramebufferCreateInfo const info,
+  PuleError * const error
+) {
+  GLuint framebuffer;
+  glCreateFramebuffers(1, &framebuffer);
+
+  for (size_t it = 0; it < PuleGfxFramebufferAttachment_End; ++ it) {
+    if (info.attachment.images[it].image.id == 0) {
+      continue;
+    }
+
+    glNamedFramebufferTexture(
+      framebuffer,
+      framebufferAttachmenToGl(static_cast<PuleGfxFramebufferAttachment>(it)),
+      info.attachment.images[it].image.id,
+      info.attachment.images[it].mipmapLevel
+    );
+  }
+
+  PULE_errorAssert(
+    (
+      glCheckNamedFramebufferStatus(
+        framebuffer, GL_FRAMEBUFFER
+      ) == GL_FRAMEBUFFER_COMPLETE
+    ),
+    PuleErrorGfx_invalidFramebuffer,
+    {0},
+  )
+
+  return { framebuffer };
+}
+
+void puleGfxFramebufferDestroy(PuleGfxFramebuffer const framebuffer) {
+  auto const glFramebuffer = static_cast<GLuint>(framebuffer.id);
+  glDeleteFramebuffers(1, &glFramebuffer);
+}
+
+PuleGfxFramebuffer puleGfxFramebufferWindow() {
+  return { 0 };
 }
 
 } // C

@@ -35,16 +35,12 @@ typedef enum {
   PuleErrorGfx_shaderModuleCompilationFailed,
   PuleErrorGfx_invalidDescriptorSet,
   PuleErrorGfx_invalidCommandList,
+  PuleErrorGfx_invalidFramebuffer,
 } PuleErrorGfx;
 
 typedef struct {
   void * implementation;
 } PuleGfxContext;
-
-
-typedef struct {
-  uint64_t id;
-} PuleGfxGpuFramebuffer;
 
 typedef struct {
   uint64_t id;
@@ -74,6 +70,30 @@ PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   PuleGfxGpuBufferVisibilityFlag const visibility
 );
 PULE_exportFn void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer);
+
+typedef enum {
+  PuleGfxGpuBufferMapAccess_hostVisible = 0x1,
+  PuleGfxGpuBufferMapAccess_hostWritable = 0x2,
+} PuleGfxGpuBufferMapAccess;
+
+typedef struct {
+  PuleGfxGpuBuffer buffer;
+  PuleGfxGpuBufferMapAccess access;
+  size_t byteOffset;
+  size_t byteLength;
+} PuleGfxGpuBufferMapRange;
+
+typedef struct {
+  PuleGfxGpuBuffer buffer;
+  size_t byteOffset;
+  size_t byteLength;
+} PuleGfxGpuBufferMappedFlushRange;
+
+PULE_exportFn void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range);
+PULE_exportFn void puleGfxGpuBufferMappedFlush(
+  PuleGfxGpuBufferMappedFlushRange const range
+);
+PULE_exportFn void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer);
 
 PULE_exportFn void puleGfxInitialize(PuleError * const error);
 PULE_exportFn void puleGfxShutdown();

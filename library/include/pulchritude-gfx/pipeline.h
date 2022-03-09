@@ -33,6 +33,7 @@ typedef struct {
 //   - of course, maximum 16 attributes (I think this is fine though)
 typedef struct {
   PuleGfxGpuBuffer bufferUniformBindings[16];
+  PuleGfxGpuBuffer bufferStorageBindings[16]; // TODO use range
   PuleGfxPipelineAttributeDescriptorBinding bufferAttributeBindings[16];
   PuleGfxGpuImage textureBindings[8];
   // TODO I guess pair with an optional sampler?
@@ -56,6 +57,7 @@ PULE_exportFn void puleGfxPipelineLayoutDestroy(
 
 typedef struct {
   PuleGfxShaderModule shaderModule;
+  PuleGfxFramebuffer framebuffer;
   PuleGfxPipelineLayout layout;
 } PuleGfxPipeline;
 

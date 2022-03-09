@@ -6,6 +6,7 @@
 import argparse
 import json
 import os
+import re
 
 parser = argparse.ArgumentParser("Parses json to zig")
 parser.add_argument("--output", "-o", default="bindings/zig/pulchritude.zig")
@@ -60,19 +61,28 @@ def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabel):
       len(typeArray) - paramIt > 1
       and param == "*" and typeArray[paramIt+1] == "void"
     ):
-      string += "* anyopaque"
+      string += "?* anyopaque"
       idiotSkip = 1; # skip void
     elif (
       len(typeArray) - paramIt > 2
       and param == "*" and typeArray[paramIt+1] == "const"
       and typeArray[paramIt+2] == "void"
     ):
-      string += "* const anyopaque"
+      string += "?* const anyopaque"
       idiotSkip = 2; # skip const void
     elif (param in typeTranslator):
       string += typeTranslator[param]
     else:
-      string += param
+      # cheeky way to replace SomeEnum_End -> SomeEnum.end
+      # needs to be fixed by actually checking the enum exists
+      string += (
+        re.sub(
+          "([a-z0-9A-Z]+)_End([^a-z0-9A-Z_])",
+          "@enumToInt(\\1.End)\\2",
+          param
+        )
+      );
+
     string += " "
   return string[0:-1]
 
@@ -124,8 +134,8 @@ for symbol in inputJson:
         else:
           print(f"unknown enum value: {value}")
 
-      # zig has max and similar so these aren't necessary
-      if (valueLabel == "MaxEnum" or valueLabel == "End"):
+      # zig doesn't need this C hack
+      if (valueLabel == "MaxEnum"):
         continue
 
       values += f"  {valueLabel} = {value['value']},\n"

@@ -17,36 +17,40 @@
 extern "C" {
 #endif
 
-typedef struct { float x; float y; } PuleFloat2;
-typedef struct { float x; float y; float z; } PuleFloat3;
-typedef struct { float x; float y; float z; float w; } PuleFloat4;
+typedef struct { float x; float y; } PuleF32v2;
+typedef struct { float x; float y; float z; } PuleF32v3;
+typedef struct { float x; float y; float z; float w; } PuleF32v4;
 
-PULE_extern PuleFloat2 puleFloat2(float const identity);
-PULE_extern PuleFloat3 puleFloat2Ptr(float * values);
-//PuleFloat2 puleFloat2Add(puleFloat2 const a, puleFloat2 const b);
-//PuleFloat2 puleFloat2Sub(puleFloat2 const a, puleFloat2 const b);
-//PuleFloat2 puleFloat2Mul(puleFloat2 const a, puleFloat2 const b);
-//PuleFloat2 puleFloat2Div(puleFloat2 const a, puleFloat2 const b);
-//PuleFloat2 puleFloat2Dot(puleFloat2 const a, puleFloat2 const b);
+typedef struct { int32_t x; int32_t y; } PuleI32v2;
+typedef struct { int32_t x; int32_t y; int32_t z; } PuleI32v3;
+typedef struct { int32_t x; int32_t y; int32_t z; int32_t w; } PuleI32v4;
+
+PULE_exportFn PuleF32v2 pulef32v2(float const identity);
+PULE_exportFn PuleF32v3 pulef32v2Ptr(float const * const values);
+//PuleF32v2 pulef32v2Add(pulef32v2 const a, pulef32v2 const b);
+//PuleF32v2 pulef32v2Sub(pulef32v2 const a, pulef32v2 const b);
+//PuleF32v2 pulef32v2Mul(pulef32v2 const a, pulef32v2 const b);
+//PuleF32v2 pulef32v2Div(pulef32v2 const a, pulef32v2 const b);
+//PuleF32v2 pulef32v2Dot(pulef32v2 const a, pulef32v2 const b);
 //
-PULE_extern PuleFloat3 puleFloat3(float const identity);
-PULE_extern PuleFloat3 puleFloat3Ptr(float * values);
-PULE_extern PuleFloat3 puleFloat3Add(PuleFloat3 const a, PuleFloat3 const b);
-PULE_extern PuleFloat3 puleFloat3Sub(PuleFloat3 const a, PuleFloat3 const b);
-PULE_extern PuleFloat3 puleFloat3Neg(PuleFloat3 const a);
-PULE_extern PuleFloat3 puleFloat3Mul(PuleFloat3 const a, PuleFloat3 const b);
-PULE_extern PuleFloat3 puleFloat3Div(PuleFloat3 const a, PuleFloat3 const b);
-PULE_extern float puleFloat3Dot(PuleFloat3 const a, PuleFloat3 const b);
-PULE_extern float puleFloat3Length(PuleFloat3 const a);
-PULE_extern PuleFloat3 puleFloat3Normalize(PuleFloat3 const b);
-PULE_extern PuleFloat3 puleFloat3Cross(PuleFloat3 const a, PuleFloat3 const b);
+PULE_exportFn PuleF32v3 pulef32v3(float const identity);
+PULE_exportFn PuleF32v3 pulef32v3Ptr(float const * const values);
+PULE_exportFn PuleF32v3 pulef32v3Add(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 pulef32v3Sub(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 pulef32v3Neg(PuleF32v3 const a);
+PULE_exportFn PuleF32v3 pulef32v3Mul(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 pulef32v3Div(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn float pulef32v3Dot(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn float pulef32v3Length(PuleF32v3 const a);
+PULE_exportFn PuleF32v3 pulef32v3Normalize(PuleF32v3 const b);
+PULE_exportFn PuleF32v3 pulef32v3Cross(PuleF32v3 const a, PuleF32v3 const b);
 
-PULE_extern PuleFloat4 puleFloat4(float const identity);
-/* PuleFloat4 puleFloat4Add(puleFloat4 const a, puleFloat4 const b); */
-/* PuleFloat4 puleFloat4Sub(puleFloat4 const a, puleFloat4 const b); */
-/* PuleFloat4 puleFloat4Mul(puleFloat4 const a, puleFloat4 const b); */
-/* PuleFloat4 puleFloat4Div(puleFloat4 const a, puleFloat4 const b); */
-/* PuleFloat4 puleFloat4Dot(puleFloat4 const a, puleFloat4 const b); */
+PULE_exportFn PuleF32v4 pulef32v4(float const identity);
+/* PuleF32v4 pulef32v4Add(pulef32v4 const a, pulef32v4 const b); */
+/* PuleF32v4 pulef32v4Sub(pulef32v4 const a, pulef32v4 const b); */
+/* PuleF32v4 pulef32v4Mul(pulef32v4 const a, pulef32v4 const b); */
+/* PuleF32v4 pulef32v4Div(pulef32v4 const a, pulef32v4 const b); */
+/* PuleF32v4 pulef32v4Dot(pulef32v4 const a, pulef32v4 const b); */
 
 // matrices are 'column major', the indices look like
 //
@@ -63,27 +67,11 @@ PULE_extern PuleFloat4 puleFloat4(float const identity);
 
 typedef struct {
   float elements[16];
-} PuleFloat4x4;
+} PuleF32m44;
 
-PULE_extern PuleFloat4x4 puleFloat4x4(float const identity);
-/* PuleFloat4x4 puleFloat4x4Mul( */
-/*   PuleFloat4x4 const * const a, */
-/*   PuleFloat4x4 const * const b */
-/* ); */
-/* PuleFloat4x4 puleFloat4x4Add( */
-/*   PuleFloat4x4 const * const a, */
-/*   PuleFloat4x4 const * const b */
-/* ); */
-/* PuleFloat4x4 puleFloat4x4Sub( */
-/*   PuleFloat4x4 const * const a, */
-/*   PuleFloat4x4 const * const b */
-/* ); */
-/* PuleFloat4x4 puleFloat4x4MulFloat4( */
-/*   PuleFloat4x4 const * const a, PuleFloat4 const * const b */
-/* ); */
-/* PuleFloat4x4 puleFloat4x4Transpose(PuleFloat4x4 const * const); */
+PULE_exportFn PuleF32m44 puleF32m44(float const identity);
 
-PULE_extern PuleFloat4x4 puleFloat4x4ProjectionPerspective(
+PULE_exportFn PuleF32m44 puleProjectionPerspective(
   float const fieldOfViewRadians,
   float const aspectRatio,
   float const near,
@@ -91,12 +79,12 @@ PULE_extern PuleFloat4x4 puleFloat4x4ProjectionPerspective(
 );
 
 // if engine has 3D use, then this should always be the preferred perspective
-//PuleFloat4x4 puleFloat4x4ProjectionPerspectiveReverseZ(
+//PuleF32m44 pulef32v4x4ProjectionPerspectiveReverseZ(
 
-PULE_extern PuleFloat4x4 puleFloat4x4ViewLookAt(
-  PuleFloat3 const origin,
-  PuleFloat3 const center,
-  PuleFloat3 const up
+PULE_exportFn PuleF32m44 puleViewLookAt(
+  PuleF32v3 const origin,
+  PuleF32v3 const center,
+  PuleF32v3 const up
 );
 
 #ifdef __cplusplus

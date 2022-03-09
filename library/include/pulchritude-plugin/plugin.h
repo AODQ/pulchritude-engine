@@ -17,7 +17,7 @@ typedef enum {
 
 typedef struct {
   char const * name;
-  size_t id;
+  uint64_t id;
 } PulePluginInfo;
 
 #ifdef __cplusplus
