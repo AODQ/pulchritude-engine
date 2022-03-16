@@ -186,6 +186,7 @@ def exportJsonFromFile(contents):
         it += 1
       it += 1
 
+      print(f"---------------")
       while (contents[it] != "}"):
         while (contents[it].isspace()):
           it += 1
@@ -207,6 +208,7 @@ def exportJsonFromFile(contents):
             "meta-type": "standard"
           }]
 
+        print(f"field: {field}")
         while (contents[it].isspace()):
           it += 1
         if (contents[it] == ";"):

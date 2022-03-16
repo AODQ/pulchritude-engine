@@ -133,7 +133,4 @@ int32_t main(
   return 0;
 }
 
-// jryy znlor guvf pbhyq or gur raqvat
-// jvgu abguvat yrsg bs lbh
-// n uhaqerq jvfurf pbhyqa'g fnl
-// v qba'g jnag gb
+// jryy znlor guvf pbhyq or gur raqvat jvgu abguvat yrsg bs lbh n uhaqerq jvfurf pbhyqa'g fnl v qba'g jnag gb

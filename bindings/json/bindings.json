@@ -313,6 +313,90 @@
     ]
   },
   {
+    "type": "struct",
+    "label": "PuleNanosecond",
+    "fields": [
+      {
+        "label": "value",
+        "type": [
+          "int64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleMicrosecond",
+    "fields": [
+      {
+        "label": "value",
+        "type": [
+          "int64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleSleepMicrosecond",
+    "parameters": [
+      {
+        "label": "us",
+        "type": [
+          "PuleMicrosecond",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleImguiInitialize",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleImguiShutdown",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleImguiNewFrame",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleImguiRender",
+    "parameters": []
+  },
+  {
     "type": "enum",
     "label": "PuleGfxAction",
     "values": [
@@ -321,23 +405,23 @@
         "value": 0
       },
       {
-        "label": "PuleGfxAction_pushConstants",
+        "label": "PuleGfxAction_clearFramebufferColor",
         "value": 1
       },
       {
-        "label": "PuleGfxAction_dispatchRender",
+        "label": "PuleGfxAction_clearFramebufferDepth",
         "value": 2
       },
       {
-        "label": "PuleGfxAction_dispatchRenderElements",
+        "label": "PuleGfxAction_dispatchRender",
         "value": 3
       },
       {
-        "label": "PuleGfxAction_clearFramebufferColor",
+        "label": "PuleGfxAction_dispatchRenderElements",
         "value": 4
       },
       {
-        "label": "PuleGfxAction_clearFramebufferDepth",
+        "label": "PuleGfxAction_pushConstants",
         "value": 5
       }
     ]
@@ -411,6 +495,72 @@
       },
       {
         "label": "numVertices",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxElementType",
+    "values": [
+      {
+        "label": "PuleGfxElementType_u8",
+        "value": 0
+      },
+      {
+        "label": "PuleGfxElementType_u16",
+        "value": 1
+      },
+      {
+        "label": "PuleGfxElementType_u32",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxActionDispatchRenderElements",
+    "fields": [
+      {
+        "label": "action",
+        "type": [
+          "PuleGfxAction"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "drawPrimitive",
+        "type": [
+          "PuleGfxDrawPrimitive"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "numElements",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "elementType",
+        "type": [
+          "PuleGfxElementType"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "elementOffset",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "baseVertexOffset",
         "type": [
           "size_t"
         ],
@@ -658,9 +808,16 @@
         "meta-type": "standard"
       },
       {
-        "label": "pushConstants",
+        "label": "clearFramebufferColor",
         "type": [
-          "PuleGfxActionPushConstants"
+          "PuleGfxActionClearFramebufferColor"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "clearFramebufferDepth",
+        "type": [
+          "PuleGfxActionClearFramebufferDepth"
         ],
         "meta-type": "standard"
       },
@@ -672,16 +829,16 @@
         "meta-type": "standard"
       },
       {
-        "label": "clearFramebufferColor",
+        "label": "dispatchRenderElements",
         "type": [
-          "PuleGfxActionClearFramebufferColor"
+          "PuleGfxActionDispatchRenderElements"
         ],
         "meta-type": "standard"
       },
       {
-        "label": "clearFramebufferDepth",
+        "label": "pushConstants",
         "type": [
-          "PuleGfxActionClearFramebufferDepth"
+          "PuleGfxActionPushConstants"
         ],
         "meta-type": "standard"
       }
@@ -807,6 +964,35 @@
     ]
   },
   {
+    "type": "struct",
+    "label": "PuleGfxCommandListSubmitInfo",
+    "fields": [
+      {
+        "label": "commandList",
+        "type": [
+          "PuleGfxCommandList"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "fenceTargetStart",
+        "type": [
+          "PuleGfxFence",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "fenceTargetFinish",
+        "type": [
+          "PuleGfxFence",
+          "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
     "type": "function",
     "return-type": [
       "void"
@@ -814,9 +1000,9 @@
     "label": "puleGfxCommandListSubmit",
     "parameters": [
       {
-        "label": "commandList",
+        "label": "info",
         "type": [
-          "PuleGfxCommandList",
+          "PuleGfxCommandListSubmitInfo",
           "const"
         ],
         "meta-type": "standard"
@@ -857,6 +1043,10 @@
       {
         "label": "PuleGfxAttributeDataType_float",
         "value": 0
+      },
+      {
+        "label": "PuleGfxAttributeDataType_unsignedByte",
+        "value": 1
       }
     ]
   },
@@ -963,7 +1153,91 @@
   },
   {
     "type": "struct",
-    "label": "PuleGfxPipelineLayout",
+    "label": "PuleGfxPipelineConfig",
+    "fields": [
+      {
+        "label": "blendEnabled",
+        "type": [
+          "bool"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "scissorTestEnabled",
+        "type": [
+          "bool"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "viewportUl",
+        "type": [
+          "PuleI32v2"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "viewportLr",
+        "type": [
+          "PuleI32v2"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "scissorUl",
+        "type": [
+          "PuleI32v2"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "scissorLr",
+        "type": [
+          "PuleI32v2"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPipelineCreateInfo",
+    "fields": [
+      {
+        "label": "shaderModule",
+        "type": [
+          "PuleGfxShaderModule"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "framebuffer",
+        "type": [
+          "PuleGfxFramebuffer"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "layout",
+        "type": [
+          "PuleGfxPipelineDescriptorSetLayout",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "config",
+        "type": [
+          "PuleGfxPipelineConfig"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxPipeline",
     "fields": [
       {
         "label": "id",
@@ -977,14 +1251,14 @@
   {
     "type": "function",
     "return-type": [
-      "PuleGfxPipelineLayout"
+      "PuleGfxPipeline"
     ],
-    "label": "puleGfxPipelineLayoutCreate",
+    "label": "puleGfxPipelineCreate",
     "parameters": [
       {
-        "label": "descriptorSetLayout",
+        "label": "createInfo",
         "type": [
-          "PuleGfxPipelineDescriptorSetLayout",
+          "PuleGfxPipelineCreateInfo",
           "const",
           "*",
           "const"
@@ -1007,12 +1281,31 @@
     "return-type": [
       "void"
     ],
-    "label": "puleGfxPipelineLayoutDestroy",
+    "label": "puleGfxPipelineUpdate",
     "parameters": [
       {
-        "label": "pipelineLayout",
+        "label": "pipeline",
         "type": [
-          "PuleGfxPipelineLayout",
+          "PuleGfxPipeline",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "updateInfo",
+        "type": [
+          "PuleGfxPipelineCreateInfo",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
           "const"
         ],
         "meta-type": "standard"
@@ -1020,27 +1313,17 @@
     ]
   },
   {
-    "type": "struct",
-    "label": "PuleGfxPipeline",
-    "fields": [
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxPipelineDestroy",
+    "parameters": [
       {
-        "label": "shaderModule",
+        "label": "pipeline",
         "type": [
-          "PuleGfxShaderModule"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "framebuffer",
-        "type": [
-          "PuleGfxFramebuffer"
-        ],
-        "meta-type": "standard"
-      },
-      {
-        "label": "layout",
-        "type": [
-          "PuleGfxPipelineLayout"
+          "PuleGfxPipeline",
+          "const"
         ],
         "meta-type": "standard"
       }
@@ -1162,6 +1445,10 @@
       {
         "label": "PuleErrorGfx_invalidFramebuffer",
         "value": 5
+      },
+      {
+        "label": "PuleErrorGfx_submissionFenceWaitFailed",
+        "value": 6
       }
     ]
   },
@@ -1251,6 +1538,7 @@
         "label": "nullableInitialData",
         "type": [
           "void",
+          "const",
           "*",
           "const"
         ],
@@ -1467,6 +1755,131 @@
     ],
     "label": "puleGfxFrameEnd",
     "parameters": []
+  },
+  {
+    "type": "struct",
+    "label": "PuleGfxFence",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxFenceConditionFlag",
+    "values": [
+      {
+        "label": "PuleGfxFenceConditionFlag_all",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleGfxFence"
+    ],
+    "label": "puleGfxFenceCreate",
+    "parameters": [
+      {
+        "label": "condition",
+        "type": [
+          "PuleGfxFenceConditionFlag",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxFenceDestroy",
+    "parameters": [
+      {
+        "label": "fence",
+        "type": [
+          "PuleGfxFence",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "puleGfxFenceCheckSignal",
+    "parameters": [
+      {
+        "label": "fence",
+        "type": [
+          "PuleGfxFence",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "timeout",
+        "type": [
+          "PuleNanosecond",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleGfxMemoryBarrierFlag",
+    "values": [
+      {
+        "label": "PuleGfxMemoryBarrierFlag_attribute",
+        "value": 1
+      },
+      {
+        "label": "PuleGfxMemoryBarrierFlag_element",
+        "value": 2
+      },
+      {
+        "label": "PuleGfxMemoryBarrierFlag_bufferUpdate",
+        "value": 4
+      },
+      {
+        "label": "PuleGfxMemoryBarrierFlag_all",
+        "value": 7
+      },
+      {
+        "label": "PuleGfxMemoryBarrierFlagEnd",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleGfxMemoryBarrier",
+    "parameters": [
+      {
+        "label": "barrier",
+        "type": [
+          "PuleGfxMemoryBarrierFlag",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
   },
   {
     "type": "enum",
@@ -2377,6 +2790,44 @@
     "return-type": [
       "PuleF32m44"
     ],
+    "label": "puleF32m44Ptr",
+    "parameters": [
+      {
+        "label": "data",
+        "type": [
+          "float",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32m44"
+    ],
+    "label": "puleF32m44PtrTranspose",
+    "parameters": [
+      {
+        "label": "data",
+        "type": [
+          "float",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleF32m44"
+    ],
     "label": "puleProjectionPerspective",
     "parameters": [
       {
@@ -2639,26 +3090,26 @@
   },
   {
     "type": "enum",
-    "label": "PuleWindowVsyncMode",
+    "label": "PulePlatformVsyncMode",
     "values": [
       {
-        "label": "PuleWindowVsyncMode_none",
+        "label": "PulePlatformVsyncMode_none",
         "value": 0
       },
       {
-        "label": "PuleWindowVsyncMode_single",
+        "label": "PulePlatformVsyncMode_single",
         "value": 1
       },
       {
-        "label": "PuleWindowVsyncMode_triple",
+        "label": "PulePlatformVsyncMode_triple",
         "value": 2
       },
       {
-        "label": "PuleWindowVsyncMode_End",
+        "label": "PulePlatformVsyncMode_End",
         "value": 3
       },
       {
-        "label": "PuleWindowVsyncMode_MaxEnum",
+        "label": "PulePlatformVsyncMode_MaxEnum",
         "value": 2147483647
       }
     ]
@@ -2683,7 +3134,7 @@
   },
   {
     "type": "struct",
-    "label": "PuleWindowCreateInfo",
+    "label": "PulePlatformCreateInfo",
     "fields": [
       {
         "label": "name",
@@ -2709,7 +3160,7 @@
       {
         "label": "vsyncMode",
         "type": [
-          "PuleWindowVsyncMode"
+          "PulePlatformVsyncMode"
         ],
         "meta-type": "standard"
       }
@@ -2717,7 +3168,7 @@
   },
   {
     "type": "struct",
-    "label": "PuleWindow",
+    "label": "PulePlatform",
     "fields": [
       {
         "label": "data",
@@ -2734,7 +3185,7 @@
     "return-type": [
       "void"
     ],
-    "label": "puleWindowInitialize",
+    "label": "pulePlatformInitialize",
     "parameters": [
       {
         "label": "error",
@@ -2752,20 +3203,20 @@
     "return-type": [
       "void"
     ],
-    "label": "puleWindowShutdown",
+    "label": "pulePlatformShutdown",
     "parameters": []
   },
   {
     "type": "function",
     "return-type": [
-      "PuleWindow"
+      "PulePlatform"
     ],
-    "label": "puleWindowCreate",
+    "label": "pulePlatformCreate",
     "parameters": [
       {
         "label": "info",
         "type": [
-          "PuleWindowCreateInfo",
+          "PulePlatformCreateInfo",
           "const"
         ],
         "meta-type": "standard"
@@ -2786,12 +3237,12 @@
     "return-type": [
       "void"
     ],
-    "label": "puleWindowDestroy",
+    "label": "pulePlatformDestroy",
     "parameters": [
       {
         "label": "window",
         "type": [
-          "PuleWindow",
+          "PulePlatform",
           "const"
         ],
         "meta-type": "standard"
@@ -2803,12 +3254,12 @@
     "return-type": [
       "bool"
     ],
-    "label": "puleWindowShouldExit",
+    "label": "pulePlatformShouldExit",
     "parameters": [
       {
         "label": "window",
         "type": [
-          "PuleWindow",
+          "PulePlatform",
           "const"
         ],
         "meta-type": "standard"
@@ -2821,7 +3272,7 @@
       "void",
       "*"
     ],
-    "label": "puleWindowGetProcessAddress",
+    "label": "pulePlatformGetProcessAddress",
     "parameters": []
   },
   {
@@ -2829,12 +3280,12 @@
     "return-type": [
       "void"
     ],
-    "label": "puleWindowPollEvents",
+    "label": "pulePlatformPollEvents",
     "parameters": [
       {
         "label": "window",
         "type": [
-          "PuleWindow",
+          "PulePlatform",
           "const"
         ],
         "meta-type": "standard"
@@ -2846,12 +3297,864 @@
     "return-type": [
       "void"
     ],
-    "label": "puleWindowSwapFramebuffer",
+    "label": "pulePlatformSwapFramebuffer",
     "parameters": [
       {
         "label": "window",
         "type": [
-          "PuleWindow",
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleI32v2"
+    ],
+    "label": "pulePlatformWindowSize",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleI32v2"
+    ],
+    "label": "pulePlatformFramebufferSize",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "double"
+    ],
+    "label": "pulePlatformGetTime",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "pulePlatformNull",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "pulePlatformFocused",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePlatformMouseOriginSet",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "origin",
+        "type": [
+          "PuleI32v2",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleI32v2"
+    ],
+    "label": "pulePlatformMouseOrigin",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "pulePlatformCursorEnabled",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePlatformCursorHide",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePlatformCursorShow",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleInputKey",
+    "values": [
+      {
+        "label": "PuleInputKey_tab",
+        "value": 0
+      },
+      {
+        "label": "PuleInputKey_left",
+        "value": 1
+      },
+      {
+        "label": "PuleInputKey_right",
+        "value": 2
+      },
+      {
+        "label": "PuleInputKey_up",
+        "value": 3
+      },
+      {
+        "label": "PuleInputKey_down",
+        "value": 4
+      },
+      {
+        "label": "PuleInputKey_pageUp",
+        "value": 5
+      },
+      {
+        "label": "PuleInputKey_pageDown",
+        "value": 6
+      },
+      {
+        "label": "PuleInputKey_home",
+        "value": 7
+      },
+      {
+        "label": "PuleInputKey_end",
+        "value": 8
+      },
+      {
+        "label": "PuleInputKey_insert",
+        "value": 9
+      },
+      {
+        "label": "PuleInputKey_delete",
+        "value": 10
+      },
+      {
+        "label": "PuleInputKey_backspace",
+        "value": 11
+      },
+      {
+        "label": "PuleInputKey_space",
+        "value": 12
+      },
+      {
+        "label": "PuleInputKey_enter",
+        "value": 13
+      },
+      {
+        "label": "PuleInputKey_escape",
+        "value": 14
+      },
+      {
+        "label": "PuleInputKey_apostrophe",
+        "value": 15
+      },
+      {
+        "label": "PuleInputKey_comma",
+        "value": 16
+      },
+      {
+        "label": "PuleInputKey_minus",
+        "value": 17
+      },
+      {
+        "label": "PuleInputKey_period",
+        "value": 18
+      },
+      {
+        "label": "PuleInputKey_slash",
+        "value": 19
+      },
+      {
+        "label": "PuleInputKey_semicolon",
+        "value": 20
+      },
+      {
+        "label": "PuleInputKey_equal",
+        "value": 21
+      },
+      {
+        "label": "PuleInputKey_leftBracket",
+        "value": 22
+      },
+      {
+        "label": "PuleInputKey_backslash",
+        "value": 23
+      },
+      {
+        "label": "PuleInputKey_rightBracket",
+        "value": 24
+      },
+      {
+        "label": "PuleInputKey_graveAccent",
+        "value": 25
+      },
+      {
+        "label": "PuleInputKey_capsLock",
+        "value": 26
+      },
+      {
+        "label": "PuleInputKey_scrollLock",
+        "value": 27
+      },
+      {
+        "label": "PuleInputKey_numLock",
+        "value": 28
+      },
+      {
+        "label": "PuleInputKey_printScreen",
+        "value": 29
+      },
+      {
+        "label": "PuleInputKey_pause",
+        "value": 30
+      },
+      {
+        "label": "PuleInputKey_kp0",
+        "value": 31
+      },
+      {
+        "label": "PuleInputKey_kp1",
+        "value": 32
+      },
+      {
+        "label": "PuleInputKey_kp2",
+        "value": 33
+      },
+      {
+        "label": "PuleInputKey_kp3",
+        "value": 34
+      },
+      {
+        "label": "PuleInputKey_kp4",
+        "value": 35
+      },
+      {
+        "label": "PuleInputKey_kp5",
+        "value": 36
+      },
+      {
+        "label": "PuleInputKey_kp6",
+        "value": 37
+      },
+      {
+        "label": "PuleInputKey_kp7",
+        "value": 38
+      },
+      {
+        "label": "PuleInputKey_kp8",
+        "value": 39
+      },
+      {
+        "label": "PuleInputKey_kp9",
+        "value": 40
+      },
+      {
+        "label": "PuleInputKey_kpDecimal",
+        "value": 41
+      },
+      {
+        "label": "PuleInputKey_kpDivide",
+        "value": 42
+      },
+      {
+        "label": "PuleInputKey_kpMultiply",
+        "value": 43
+      },
+      {
+        "label": "PuleInputKey_kpSubtract",
+        "value": 44
+      },
+      {
+        "label": "PuleInputKey_kpAdd",
+        "value": 45
+      },
+      {
+        "label": "PuleInputKey_kpEnter",
+        "value": 46
+      },
+      {
+        "label": "PuleInputKey_kpEqual",
+        "value": 47
+      },
+      {
+        "label": "PuleInputKey_leftShift",
+        "value": 48
+      },
+      {
+        "label": "PuleInputKey_leftControl",
+        "value": 49
+      },
+      {
+        "label": "PuleInputKey_leftAlt",
+        "value": 50
+      },
+      {
+        "label": "PuleInputKey_leftSuper",
+        "value": 51
+      },
+      {
+        "label": "PuleInputKey_rightShift",
+        "value": 52
+      },
+      {
+        "label": "PuleInputKey_rightControl",
+        "value": 53
+      },
+      {
+        "label": "PuleInputKey_rightAlt",
+        "value": 54
+      },
+      {
+        "label": "PuleInputKey_rightSuper",
+        "value": 55
+      },
+      {
+        "label": "PuleInputKey_menu",
+        "value": 56
+      },
+      {
+        "label": "PuleInputKey_i0",
+        "value": 57
+      },
+      {
+        "label": "PuleInputKey_i1",
+        "value": 58
+      },
+      {
+        "label": "PuleInputKey_i2",
+        "value": 59
+      },
+      {
+        "label": "PuleInputKey_i3",
+        "value": 60
+      },
+      {
+        "label": "PuleInputKey_i4",
+        "value": 61
+      },
+      {
+        "label": "PuleInputKey_i5",
+        "value": 62
+      },
+      {
+        "label": "PuleInputKey_i6",
+        "value": 63
+      },
+      {
+        "label": "PuleInputKey_i7",
+        "value": 64
+      },
+      {
+        "label": "PuleInputKey_i8",
+        "value": 65
+      },
+      {
+        "label": "PuleInputKey_i9",
+        "value": 66
+      },
+      {
+        "label": "PuleInputKey_a",
+        "value": 67
+      },
+      {
+        "label": "PuleInputKey_b",
+        "value": 68
+      },
+      {
+        "label": "PuleInputKey_c",
+        "value": 69
+      },
+      {
+        "label": "PuleInputKey_d",
+        "value": 70
+      },
+      {
+        "label": "PuleInputKey_e",
+        "value": 71
+      },
+      {
+        "label": "PuleInputKey_f",
+        "value": 72
+      },
+      {
+        "label": "PuleInputKey_g",
+        "value": 73
+      },
+      {
+        "label": "PuleInputKey_h",
+        "value": 74
+      },
+      {
+        "label": "PuleInputKey_i",
+        "value": 75
+      },
+      {
+        "label": "PuleInputKey_j",
+        "value": 76
+      },
+      {
+        "label": "PuleInputKey_k",
+        "value": 77
+      },
+      {
+        "label": "PuleInputKey_l",
+        "value": 78
+      },
+      {
+        "label": "PuleInputKey_m",
+        "value": 79
+      },
+      {
+        "label": "PuleInputKey_n",
+        "value": 80
+      },
+      {
+        "label": "PuleInputKey_o",
+        "value": 81
+      },
+      {
+        "label": "PuleInputKey_p",
+        "value": 82
+      },
+      {
+        "label": "PuleInputKey_q",
+        "value": 83
+      },
+      {
+        "label": "PuleInputKey_r",
+        "value": 84
+      },
+      {
+        "label": "PuleInputKey_s",
+        "value": 85
+      },
+      {
+        "label": "PuleInputKey_t",
+        "value": 86
+      },
+      {
+        "label": "PuleInputKey_u",
+        "value": 87
+      },
+      {
+        "label": "PuleInputKey_v",
+        "value": 88
+      },
+      {
+        "label": "PuleInputKey_w",
+        "value": 89
+      },
+      {
+        "label": "PuleInputKey_x",
+        "value": 90
+      },
+      {
+        "label": "PuleInputKey_y",
+        "value": 91
+      },
+      {
+        "label": "PuleInputKey_z",
+        "value": 92
+      },
+      {
+        "label": "PuleInputKey_f1",
+        "value": 93
+      },
+      {
+        "label": "PuleInputKey_f2",
+        "value": 94
+      },
+      {
+        "label": "PuleInputKey_f3",
+        "value": 95
+      },
+      {
+        "label": "PuleInputKey_f4",
+        "value": 96
+      },
+      {
+        "label": "PuleInputKey_f5",
+        "value": 97
+      },
+      {
+        "label": "PuleInputKey_f6",
+        "value": 98
+      },
+      {
+        "label": "PuleInputKey_f7",
+        "value": 99
+      },
+      {
+        "label": "PuleInputKey_f8",
+        "value": 100
+      },
+      {
+        "label": "PuleInputKey_f9",
+        "value": 101
+      },
+      {
+        "label": "PuleInputKey_f10",
+        "value": 102
+      },
+      {
+        "label": "PuleInputKey_f11",
+        "value": 103
+      },
+      {
+        "label": "PuleInputKey_f12",
+        "value": 104
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleInputKeyModifier",
+    "values": [
+      {
+        "label": "PuleInputKeyModifier_ctrl",
+        "value": 1
+      },
+      {
+        "label": "PuleInputKeyModifier_shift",
+        "value": 2
+      },
+      {
+        "label": "PuleInputKeyModifier_alt",
+        "value": 4
+      },
+      {
+        "label": "PuleInputKeyModifier_super",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleInputMouse",
+    "values": [
+      {
+        "label": "PuleInputMouse_left",
+        "value": 0
+      },
+      {
+        "label": "PuleInputMouse_right",
+        "value": 1
+      },
+      {
+        "label": "PuleInputMouse_middle",
+        "value": 2
+      },
+      {
+        "label": "PuleInputMouse_side1",
+        "value": 3
+      },
+      {
+        "label": "PuleInputMouse_side2",
+        "value": 4
+      },
+      {
+        "label": "PuleInputMouse_End",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "puleInputKey",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "key",
+        "type": [
+          "PuleInputKey",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleInputKeyModifier"
+    ],
+    "label": "puleInputKeyModifiers",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "puleInputMouse",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "mouseKey",
+        "type": [
+          "PuleInputMouse",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "int32_t"
+    ],
+    "label": "puleInputScroll",
+    "parameters": [
+      {
+        "label": "window",
+        "type": [
+          "PulePlatform",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleInputKeyCallbackCreateInfo",
+    "fields": [
+      {
+        "label": "const",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "PuleInputKey",
+            "const"
+          ],
+          [
+            "PuleInputKeyModifier",
+            "const"
+          ],
+          [
+            "boolconst"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleInputKeyCallback",
+    "parameters": [
+      {
+        "label": "info",
+        "type": [
+          "PuleInputKeyCallbackCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleInputMouseButtonCallbackCreateInfo",
+    "fields": [
+      {
+        "label": "const",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "PuleInputMouse",
+            "const"
+          ],
+          [
+            "PuleInputKeyModifier",
+            "const"
+          ],
+          [
+            "boolconst"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleInputMouseButtonCallback",
+    "parameters": [
+      {
+        "label": "info",
+        "type": [
+          "PuleInputMouseButtonCallbackCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleInputRawTextCallbackCreateInfo",
+    "fields": [
+      {
+        "label": "const",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "uint32_tconst"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleInputRawTextCallback",
+    "parameters": [
+      {
+        "label": "info",
+        "type": [
+          "PuleInputRawTextCallbackCreateInfo",
           "const"
         ],
         "meta-type": "standard"
@@ -3057,6 +4360,14 @@
         "meta-type": "standard"
       }
     ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleError"
+    ],
+    "label": "puleError",
+    "parameters": []
   },
   {
     "type": "function",

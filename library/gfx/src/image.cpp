@@ -161,7 +161,9 @@ PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
 
 void puleGfxGpuImageDestroy(PuleGfxGpuImage const image) {
   GLuint handle = static_cast<GLuint>(image.id);
-  glDeleteTextures(1, &handle);
+  if (handle != 0) {
+    glDeleteTextures(1, &handle);
+  }
 }
 
 } // C
@@ -240,7 +242,9 @@ PuleGfxFramebuffer puleGfxFramebufferCreate(
 
 void puleGfxFramebufferDestroy(PuleGfxFramebuffer const framebuffer) {
   auto const glFramebuffer = static_cast<GLuint>(framebuffer.id);
-  glDeleteFramebuffers(1, &glFramebuffer);
+  if (glFramebuffer != 0) {
+    glDeleteFramebuffers(1, &glFramebuffer);
+  }
 }
 
 PuleGfxFramebuffer puleGfxFramebufferWindow() {

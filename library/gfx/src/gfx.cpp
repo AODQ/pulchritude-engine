@@ -4,7 +4,7 @@
 
 #include <pulchritude-error/error.h>
 #include <pulchritude-log/log.h>
-#include <pulchritude-window/window.h>
+#include <pulchritude-platform/platform.h>
 
 #include <cstring>
 #include <functional>
@@ -32,7 +32,7 @@ static void GLAPIENTRY errorMessageCallback(
   [[maybe_unused]] void const * userdata
 ) {
   auto const messageStr = std::string(message);
-  if (loggedErrorMessages.find(messageStr) == loggedErrorMessages.end()) {
+  if (loggedErrorMessages.find(messageStr) != loggedErrorMessages.end()) {
     return;
   }
   switch (severity) {
@@ -52,7 +52,7 @@ static void GLAPIENTRY errorMessageCallback(
 void puleGfxInitialize(PuleError * const error) {
   PULE_errorAssert(
     gladLoadGLLoader(
-      reinterpret_cast<GLADloadproc>(puleWindowGetProcessAddress())
+      reinterpret_cast<GLADloadproc>(pulePlatformGetProcessAddress())
     ),
     PuleErrorGfx_creationFailed,
   );
@@ -61,12 +61,15 @@ void puleGfxInitialize(PuleError * const error) {
   glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(errorMessageCallback, nullptr);
 
+  glDisable(GL_PRIMITIVE_RESTART);
   glDisable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_MULTISAMPLE);
   glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
   glDisable(GL_SAMPLE_ALPHA_TO_ONE);
   glDisable(GL_SAMPLE_COVERAGE);
+  glDisable(GL_STENCIL_TEST);
 }
 
 void puleGfxShutdown() {
@@ -136,7 +139,7 @@ namespace {
 extern "C" {
 
 PuleGfxGpuBuffer puleGfxGpuBufferCreate(
-  void * const nullableInitialData,
+  void const * const nullableInitialData,
   size_t const byteLength,
   [[maybe_unused]] PuleGfxGpuBufferUsage const usage,
   PuleGfxGpuBufferVisibilityFlag const visibility
@@ -153,7 +156,9 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
 
 void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer) {
   GLuint const bufferHandle = static_cast<GLuint>(buffer.id);
-  glDeleteBuffers(1, &bufferHandle);
+  if (bufferHandle != 0) {
+    glDeleteBuffers(1, &bufferHandle);
+  }
 }
 
 void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
@@ -174,7 +179,7 @@ void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer) {
 void puleGfxGpuBufferMappedFlush(
   PuleGfxGpuBufferMappedFlushRange const range
 ) {
-  glFlushMappedBufferRange(
+  glFlushMappedNamedBufferRange(
     static_cast<GLuint>(range.buffer.id),
     range.byteOffset,
     range.byteLength

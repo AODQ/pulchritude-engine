@@ -11,6 +11,7 @@ target_sources(
     src/glad/glad.c
 
     src/commands.cpp
+    src/barrier.cpp
     src/gfx.cpp
     src/image.cpp
     src/pipeline.cpp

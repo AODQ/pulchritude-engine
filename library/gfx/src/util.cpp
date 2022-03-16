@@ -8,27 +8,34 @@
 #include <unordered_map>
 
 namespace {
-  std::unordered_map<uint64_t, util::PipelineLayout> pipelineLayouts;
-  size_t pipelineLayoutIdx = 0;
+  std::unordered_map<uint64_t, util::Pipeline> pipelines;
+  size_t pipelineIdx = 1;
 }
 
-util::PipelineLayout const * util::pipelineLayout(size_t const id) {
-  auto pipelineLayoutIter = ::pipelineLayouts.find(id);
-  if (pipelineLayoutIter == ::pipelineLayouts.end()) {
+util::Pipeline * util::pipeline(size_t const id) {
+  auto pipelineIter = ::pipelines.find(id);
+  if (pipelineIter == ::pipelines.end()) {
     return nullptr;
   }
-  return &pipelineLayoutIter->second;
+  return &pipelineIter->second;
 }
 
-uint64_t util::createPipelineLayout(util::PipelineLayout const pipelineLayout) {
-  uint64_t const prevPipelineLayoutIdx = ::pipelineLayoutIdx;
-  ::pipelineLayoutIdx += 1;
-  ::pipelineLayouts.emplace(prevPipelineLayoutIdx, pipelineLayout);
-  return prevPipelineLayoutIdx;
+uint64_t util::createPipeline() {
+  uint64_t const prevPipelineIdx = ::pipelineIdx;
+  ::pipelineIdx += 1;
+  puleLogDebug("incrementing pipeline idx now: %lu", ::pipelineIdx);
+  util::Pipeline utilPipeline = {};
+  ::pipelines.emplace(prevPipelineIdx, utilPipeline);
+  puleLogDebug("new pipeline idex to return is %lu", prevPipelineIdx);
+  return prevPipelineIdx;
 }
 
-void util::destroyPipelineLayout(uint64_t const id) {
-  GLuint handle = static_cast<GLuint>(::pipelineLayouts.at(id).descriptor);
-  glDeleteVertexArrays(1, &handle);
-  ::pipelineLayouts.erase(id);
+void util::destroyPipeline(uint64_t const id) {
+  auto const handle = (
+    static_cast<GLuint>(::pipelines.at(id).attributeDescriptorHandle)
+  );
+  if (handle != 0) {
+    glDeleteVertexArrays(1, &handle);
+  }
+  ::pipelines.erase(id);
 }

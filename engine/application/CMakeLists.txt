@@ -18,7 +18,7 @@ set_target_properties(
 target_link_libraries(
   pulchritude-application
   pulchritude-plugin pulchritude-log
-  pulchritude-window
+  pulchritude-platform
 )
 
 install(

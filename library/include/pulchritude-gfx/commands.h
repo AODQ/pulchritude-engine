@@ -1,5 +1,6 @@
 #pragma once
 
+#include <pulchritude-gfx/barrier.h>
 #include <pulchritude-gfx/gfx.h>
 #include <pulchritude-gfx/image.h>
 #include <pulchritude-gfx/pipeline.h>
@@ -25,11 +26,11 @@ extern "C" {
 //   refer to any specific unique index of a queue
 typedef enum {
   PuleGfxAction_bindPipeline,
-  PuleGfxAction_pushConstants,
-  PuleGfxAction_dispatchRender,
-  PuleGfxAction_dispatchRenderElements,
   PuleGfxAction_clearFramebufferColor,
   PuleGfxAction_clearFramebufferDepth,
+  PuleGfxAction_dispatchRender,
+  PuleGfxAction_dispatchRenderElements,
+  PuleGfxAction_pushConstants,
 } PuleGfxAction;
 
 typedef struct {
@@ -50,6 +51,21 @@ typedef struct {
   size_t vertexOffset;
   size_t numVertices;
 } PuleGfxActionDispatchRender;
+
+typedef enum {
+  PuleGfxElementType_u8,
+  PuleGfxElementType_u16,
+  PuleGfxElementType_u32,
+} PuleGfxElementType;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_dispatchRenderElements
+  PuleGfxDrawPrimitive drawPrimitive;
+  size_t numElements;
+  PuleGfxElementType elementType;
+  size_t elementOffset; // can be 0
+  size_t baseVertexOffset; // can be 0
+} PuleGfxActionDispatchRenderElements;
 
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_clearFramebufferColor
@@ -102,10 +118,11 @@ typedef struct {
 typedef union {
   PuleGfxAction action;
   PuleGfxActionBindPipeline bindPipeline;
-  PuleGfxActionPushConstants pushConstants;
-  PuleGfxActionDispatchRender dispatchRender;
   PuleGfxActionClearFramebufferColor clearFramebufferColor;
   PuleGfxActionClearFramebufferDepth clearFramebufferDepth;
+  PuleGfxActionDispatchRender dispatchRender;
+  PuleGfxActionDispatchRenderElements dispatchRenderElements;
+  PuleGfxActionPushConstants pushConstants;
 } PuleGfxCommand;
 
 //------------------------------------------------------------------------------
@@ -135,8 +152,18 @@ PULE_exportFn void puleGfxCommandListAppendAction(
   PuleGfxCommand const action
 );
 
+typedef struct {
+  PuleGfxCommandList commandList;
+  // before this command list starts, will wait on this fence to finish,
+  //   will also destroy the fence
+  PuleGfxFence * fenceTargetStart;
+  // at end of command list submission, if this is non-null, a fence will
+  //   be created to this target
+  PuleGfxFence * fenceTargetFinish;
+} PuleGfxCommandListSubmitInfo;
+
 PULE_exportFn void puleGfxCommandListSubmit(
-  PuleGfxCommandList const commandList,
+  PuleGfxCommandListSubmitInfo const info,
   PuleError * const error
 );
 

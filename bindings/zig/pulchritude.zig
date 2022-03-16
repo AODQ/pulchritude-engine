@@ -49,13 +49,28 @@ pub extern fn puleLogError(
   formatCStr: [*c] const u8,
   ...
 ) callconv(.C) void;
+pub const PuleNanosecond = extern struct {
+  value: i64,
+};
+pub const PuleMicrosecond = extern struct {
+  value: i64,
+};
+pub extern fn puleSleepMicrosecond(
+  us: PuleMicrosecond,
+) callconv(.C) void;
+pub extern fn puleImguiInitialize(
+  window: PulePlatform,
+) callconv(.C) void;
+pub extern fn puleImguiShutdown() callconv(.C) void;
+pub extern fn puleImguiNewFrame() callconv(.C) void;
+pub extern fn puleImguiRender() callconv(.C) void;
 pub const PuleGfxAction = enum(u32) {
   bindPipeline = 0,
-  pushConstants = 1,
-  dispatchRender = 2,
-  dispatchRenderElements = 3,
-  clearFramebufferColor = 4,
-  clearFramebufferDepth = 5,
+  clearFramebufferColor = 1,
+  clearFramebufferDepth = 2,
+  dispatchRender = 3,
+  dispatchRenderElements = 4,
+  pushConstants = 5,
 };
 pub const PuleGfxActionBindPipeline = extern struct {
   action: PuleGfxAction,
@@ -72,6 +87,19 @@ pub const PuleGfxActionDispatchRender = extern struct {
   drawPrimitive: PuleGfxDrawPrimitive,
   vertexOffset: usize,
   numVertices: usize,
+};
+pub const PuleGfxElementType = enum(u32) {
+  u8 = 0,
+  u16 = 1,
+  u32 = 2,
+};
+pub const PuleGfxActionDispatchRenderElements = extern struct {
+  action: PuleGfxAction,
+  drawPrimitive: PuleGfxDrawPrimitive,
+  numElements: usize,
+  elementType: PuleGfxElementType,
+  elementOffset: usize,
+  baseVertexOffset: usize,
 };
 pub const PuleGfxActionClearFramebufferColor = extern struct {
   action: PuleGfxAction,
@@ -118,10 +146,11 @@ pub const PuleGfxActionPushConstants = extern struct {
 pub const PuleGfxCommand = extern union {
   action: PuleGfxAction,
   bindPipeline: PuleGfxActionBindPipeline,
-  pushConstants: PuleGfxActionPushConstants,
-  dispatchRender: PuleGfxActionDispatchRender,
   clearFramebufferColor: PuleGfxActionClearFramebufferColor,
   clearFramebufferDepth: PuleGfxActionClearFramebufferDepth,
+  dispatchRender: PuleGfxActionDispatchRender,
+  dispatchRenderElements: PuleGfxActionDispatchRenderElements,
+  pushConstants: PuleGfxActionPushConstants,
 };
 pub const PuleGfxCommandList = extern struct {
   id: u64,
@@ -145,8 +174,13 @@ pub extern fn puleGfxCommandListAppendAction(
   commandListRecorder: PuleGfxCommandListRecorder,
   action: PuleGfxCommand,
 ) callconv(.C) void;
-pub extern fn puleGfxCommandListSubmit(
+pub const PuleGfxCommandListSubmitInfo = extern struct {
   commandList: PuleGfxCommandList,
+  fenceTargetStart: [*c] PuleGfxFence,
+  fenceTargetFinish: [*c] PuleGfxFence,
+};
+pub extern fn puleGfxCommandListSubmit(
+  info: PuleGfxCommandListSubmitInfo,
   err: [*c] PuleError,
 ) callconv(.C) void;
 pub const PuleGfxDescriptorType = enum(u32) {
@@ -156,6 +190,7 @@ pub const PuleGfxDescriptorType = enum(u32) {
 };
 pub const PuleGfxAttributeDataType = enum(u32) {
   float = 0,
+  unsignedByte = 1,
 };
 pub const PuleGfxPipelineAttributeDescriptorBinding = extern struct {
   buffer: PuleGfxGpuBuffer,
@@ -173,21 +208,35 @@ pub const PuleGfxPipelineDescriptorSetLayout = extern struct {
   bufferElementBinding: PuleGfxGpuBuffer,
 };
 pub extern fn puleGfxPipelineDescriptorSetLayout() callconv(.C) PuleGfxPipelineDescriptorSetLayout;
-pub const PuleGfxPipelineLayout = extern struct {
-  id: u64,
+pub const PuleGfxPipelineConfig = extern struct {
+  blendEnabled: bool,
+  scissorTestEnabled: bool,
+  viewportUl: PuleI32v2,
+  viewportLr: PuleI32v2,
+  scissorUl: PuleI32v2,
+  scissorLr: PuleI32v2,
 };
-pub extern fn puleGfxPipelineLayoutCreate(
-  descriptorSetLayout: [*c] const PuleGfxPipelineDescriptorSetLayout,
-  err: [*c] PuleError,
-) callconv(.C) PuleGfxPipelineLayout;
-pub extern fn puleGfxPipelineLayoutDestroy(
-  pipelineLayout: PuleGfxPipelineLayout,
-) callconv(.C) void;
-pub const PuleGfxPipeline = extern struct {
+pub const PuleGfxPipelineCreateInfo = extern struct {
   shaderModule: PuleGfxShaderModule,
   framebuffer: PuleGfxFramebuffer,
-  layout: PuleGfxPipelineLayout,
+  layout: [*c] const PuleGfxPipelineDescriptorSetLayout,
+  config: PuleGfxPipelineConfig,
 };
+pub const PuleGfxPipeline = extern struct {
+  id: u64,
+};
+pub extern fn puleGfxPipelineCreate(
+  createInfo: [*c] const PuleGfxPipelineCreateInfo,
+  err: [*c] PuleError,
+) callconv(.C) PuleGfxPipeline;
+pub extern fn puleGfxPipelineUpdate(
+  pipeline: PuleGfxPipeline,
+  updateInfo: [*c] const PuleGfxPipelineCreateInfo,
+  err: [*c] PuleError,
+) callconv(.C) void;
+pub extern fn puleGfxPipelineDestroy(
+  pipeline: PuleGfxPipeline,
+) callconv(.C) void;
 pub const PuleGfxPushConstant = extern struct {
   index: usize,
   data: ?* anyopaque,
@@ -210,6 +259,7 @@ pub const PuleErrorGfx = enum(u32) {
   invalidDescriptorSet = 3,
   invalidCommandList = 4,
   invalidFramebuffer = 5,
+  submissionFenceWaitFailed = 6,
 };
 pub const PuleGfxContext = extern struct {
   implementation: ?* anyopaque,
@@ -231,7 +281,7 @@ pub const PuleGfxGpuBufferVisibilityFlag = enum(u32) {
   hostWritable = 4,
 };
 pub extern fn puleGfxGpuBufferCreate(
-  nullableInitialData: ?* anyopaque,
+  nullableInitialData: ?* const anyopaque,
   byteLength: usize,
   usage: PuleGfxGpuBufferUsage,
   visibility: PuleGfxGpuBufferVisibilityFlag,
@@ -269,6 +319,32 @@ pub extern fn puleGfxInitialize(
 pub extern fn puleGfxShutdown() callconv(.C) void;
 pub extern fn puleGfxFrameStart() callconv(.C) void;
 pub extern fn puleGfxFrameEnd() callconv(.C) void;
+pub const PuleGfxFence = extern struct {
+  id: u64,
+};
+pub const PuleGfxFenceConditionFlag = enum(u32) {
+  all = 0,
+};
+pub extern fn puleGfxFenceCreate(
+  condition: PuleGfxFenceConditionFlag,
+) callconv(.C) PuleGfxFence;
+pub extern fn puleGfxFenceDestroy(
+  fence: PuleGfxFence,
+) callconv(.C) void;
+pub extern fn puleGfxFenceCheckSignal(
+  fence: PuleGfxFence,
+  timeout: PuleNanosecond,
+) callconv(.C) bool;
+pub const PuleGfxMemoryBarrierFlag = enum(u32) {
+  attribute = 1,
+  element = 2,
+  bufferUpdate = 4,
+  all = 7,
+  PuleGfxMemoryBarrierFlagEnd = 5,
+};
+pub extern fn puleGfxMemoryBarrier(
+  barrier: PuleGfxMemoryBarrierFlag,
+) callconv(.C) void;
 pub const PuleGfxImageMagnification = enum(u32) {
   nearest = 0,
 };
@@ -439,6 +515,12 @@ pub const PuleF32m44 = extern struct {
 pub extern fn puleF32m44(
   identity: f32,
 ) callconv(.C) PuleF32m44;
+pub extern fn puleF32m44Ptr(
+  data: [*c] const f32,
+) callconv(.C) PuleF32m44;
+pub extern fn puleF32m44PtrTranspose(
+  data: [*c] const f32,
+) callconv(.C) PuleF32m44;
 pub extern fn puleProjectionPerspective(
   fieldOfViewRadians: f32,
   aspectRatio: f32,
@@ -484,7 +566,7 @@ pub const PuleArrayView = extern struct {
   elementStride: usize,
   elementCount: usize,
 };
-pub const PuleWindowVsyncMode = enum(u32) {
+pub const PulePlatformVsyncMode = enum(u32) {
   none = 0,
   single = 1,
   triple = 2,
@@ -495,35 +577,214 @@ pub const PuleErrorWindow = enum(u32) {
   windowCreationFailed = 1,
   invalidConfiguration = 2,
 };
-pub const PuleWindowCreateInfo = extern struct {
+pub const PulePlatformCreateInfo = extern struct {
   name: PuleStringView,
   width: usize,
   height: usize,
-  vsyncMode: PuleWindowVsyncMode,
+  vsyncMode: PulePlatformVsyncMode,
 };
-pub const PuleWindow = extern struct {
+pub const PulePlatform = extern struct {
   data: ?* anyopaque,
 };
-pub extern fn puleWindowInitialize(
+pub extern fn pulePlatformInitialize(
   err: [*c] PuleError,
 ) callconv(.C) void;
-pub extern fn puleWindowShutdown() callconv(.C) void;
-pub extern fn puleWindowCreate(
-  info: PuleWindowCreateInfo,
+pub extern fn pulePlatformShutdown() callconv(.C) void;
+pub extern fn pulePlatformCreate(
+  info: PulePlatformCreateInfo,
   err: [*c] PuleError,
-) callconv(.C) PuleWindow;
-pub extern fn puleWindowDestroy(
-  window: PuleWindow,
+) callconv(.C) PulePlatform;
+pub extern fn pulePlatformDestroy(
+  window: PulePlatform,
 ) callconv(.C) void;
-pub extern fn puleWindowShouldExit(
-  window: PuleWindow,
+pub extern fn pulePlatformShouldExit(
+  window: PulePlatform,
 ) callconv(.C) bool;
-pub extern fn puleWindowGetProcessAddress() callconv(.C) ?* anyopaque;
-pub extern fn puleWindowPollEvents(
-  window: PuleWindow,
+pub extern fn pulePlatformGetProcessAddress() callconv(.C) ?* anyopaque;
+pub extern fn pulePlatformPollEvents(
+  window: PulePlatform,
 ) callconv(.C) void;
-pub extern fn puleWindowSwapFramebuffer(
-  window: PuleWindow,
+pub extern fn pulePlatformSwapFramebuffer(
+  window: PulePlatform,
+) callconv(.C) void;
+pub extern fn pulePlatformWindowSize(
+  window: PulePlatform,
+) callconv(.C) PuleI32v2;
+pub extern fn pulePlatformFramebufferSize(
+  window: PulePlatform,
+) callconv(.C) PuleI32v2;
+pub extern fn pulePlatformGetTime() callconv(.C) f64;
+pub extern fn pulePlatformNull(
+  window: PulePlatform,
+) callconv(.C) bool;
+pub extern fn pulePlatformFocused(
+  window: PulePlatform,
+) callconv(.C) bool;
+pub extern fn pulePlatformMouseOriginSet(
+  window: PulePlatform,
+  origin: PuleI32v2,
+) callconv(.C) void;
+pub extern fn pulePlatformMouseOrigin(
+  window: PulePlatform,
+) callconv(.C) PuleI32v2;
+pub extern fn pulePlatformCursorEnabled(
+  window: PulePlatform,
+) callconv(.C) bool;
+pub extern fn pulePlatformCursorHide(
+  window: PulePlatform,
+) callconv(.C) void;
+pub extern fn pulePlatformCursorShow(
+  window: PulePlatform,
+) callconv(.C) void;
+pub const PuleInputKey = enum(u32) {
+  tab = 0,
+  left = 1,
+  right = 2,
+  up = 3,
+  down = 4,
+  pageUp = 5,
+  pageDown = 6,
+  home = 7,
+  end = 8,
+  insert = 9,
+  delete = 10,
+  backspace = 11,
+  space = 12,
+  enter = 13,
+  escape = 14,
+  apostrophe = 15,
+  comma = 16,
+  minus = 17,
+  period = 18,
+  slash = 19,
+  semicolon = 20,
+  equal = 21,
+  leftBracket = 22,
+  backslash = 23,
+  rightBracket = 24,
+  graveAccent = 25,
+  capsLock = 26,
+  scrollLock = 27,
+  numLock = 28,
+  printScreen = 29,
+  pause = 30,
+  kp0 = 31,
+  kp1 = 32,
+  kp2 = 33,
+  kp3 = 34,
+  kp4 = 35,
+  kp5 = 36,
+  kp6 = 37,
+  kp7 = 38,
+  kp8 = 39,
+  kp9 = 40,
+  kpDecimal = 41,
+  kpDivide = 42,
+  kpMultiply = 43,
+  kpSubtract = 44,
+  kpAdd = 45,
+  kpEnter = 46,
+  kpEqual = 47,
+  leftShift = 48,
+  leftControl = 49,
+  leftAlt = 50,
+  leftSuper = 51,
+  rightShift = 52,
+  rightControl = 53,
+  rightAlt = 54,
+  rightSuper = 55,
+  menu = 56,
+  i0 = 57,
+  i1 = 58,
+  i2 = 59,
+  i3 = 60,
+  i4 = 61,
+  i5 = 62,
+  i6 = 63,
+  i7 = 64,
+  i8 = 65,
+  i9 = 66,
+  a = 67,
+  b = 68,
+  c = 69,
+  d = 70,
+  e = 71,
+  f = 72,
+  g = 73,
+  h = 74,
+  i = 75,
+  j = 76,
+  k = 77,
+  l = 78,
+  m = 79,
+  n = 80,
+  o = 81,
+  p = 82,
+  q = 83,
+  r = 84,
+  s = 85,
+  t = 86,
+  u = 87,
+  v = 88,
+  w = 89,
+  x = 90,
+  y = 91,
+  z = 92,
+  f1 = 93,
+  f2 = 94,
+  f3 = 95,
+  f4 = 96,
+  f5 = 97,
+  f6 = 98,
+  f7 = 99,
+  f8 = 100,
+  f9 = 101,
+  f10 = 102,
+  f11 = 103,
+  f12 = 104,
+};
+pub const PuleInputKeyModifier = enum(u32) {
+  ctrl = 1,
+  shift = 2,
+  alt = 4,
+  super = 8,
+};
+pub const PuleInputMouse = enum(u32) {
+  left = 0,
+  right = 1,
+  middle = 2,
+  side1 = 3,
+  side2 = 4,
+  End = 5,
+};
+pub extern fn puleInputKey(
+  window: PulePlatform,
+  key: PuleInputKey,
+) callconv(.C) bool;
+pub extern fn puleInputKeyModifiers(
+  window: PulePlatform,
+) callconv(.C) PuleInputKeyModifier;
+pub extern fn puleInputMouse(
+  window: PulePlatform,
+  mouseKey: PuleInputMouse,
+) callconv(.C) bool;
+pub extern fn puleInputScroll(
+  window: PulePlatform,
+) callconv(.C) i32;
+pub const PuleInputKeyCallbackCreateInfo = extern struct {
+};
+pub extern fn puleInputKeyCallback(
+  info: PuleInputKeyCallbackCreateInfo,
+) callconv(.C) void;
+pub const PuleInputMouseButtonCallbackCreateInfo = extern struct {
+};
+pub extern fn puleInputMouseButtonCallback(
+  info: PuleInputMouseButtonCallbackCreateInfo,
+) callconv(.C) void;
+pub const PuleInputRawTextCallbackCreateInfo = extern struct {
+};
+pub extern fn puleInputRawTextCallback(
+  info: PuleInputRawTextCallbackCreateInfo,
 ) callconv(.C) void;
 pub const PulePluginType = enum(u32) {
   library = 0,
@@ -555,6 +816,7 @@ pub const PuleError = extern struct {
   description: PuleString,
   id: u32,
 };
+pub extern fn puleError() callconv(.C) PuleError;
 pub extern fn puleErrorConsume(
   err: [*c] PuleError,
 ) callconv(.C) u32;

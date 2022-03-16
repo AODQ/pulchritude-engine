@@ -23,6 +23,8 @@ namespace {
       break;
       case PuleGfxAttributeDataType_float:
         return GL_FLOAT;
+      case PuleGfxAttributeDataType_unsignedByte:
+        return GL_UNSIGNED_BYTE;
     }
   }
 }
@@ -59,48 +61,47 @@ PuleGfxPipelineDescriptorSetLayout puleGfxPipelineDescriptorSetLayout() {
   return descriptorSetLayout;
 }
 
-PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
-  PuleGfxPipelineDescriptorSetLayout const * const descriptorSetLayout,
+void puleGfxPipelineUpdate(
+  PuleGfxPipeline const pipeline,
+  PuleGfxPipelineCreateInfo const * const info,
   PuleError * const error
 ) {
-  GLuint attributeDescriptorHandle;
-  glCreateVertexArrays(1, &attributeDescriptorHandle);
+  util::Pipeline & utilPipeline = *util::pipeline(pipeline.id);
 
   // buffer attribute bindings
   for (size_t it = 0; it < 16; ++ it) {
     PuleGfxPipelineAttributeDescriptorBinding const &
       descriptorAttributeBinding = (
-        descriptorSetLayout->bufferAttributeBindings[it]
+        info->layout->bufferAttributeBindings[it]
       )
     ;
     if (descriptorAttributeBinding.buffer.id == 0) {
+      glDisableVertexArrayAttrib(utilPipeline.attributeDescriptorHandle, it);
       continue;
     }
     PULE_errorAssert(
       descriptorAttributeBinding.numComponents != 0,
       PuleErrorGfx_invalidDescriptorSet,
-      {}
     );
     GLenum const attributeDataType = (
       ::attributeDataTypeToGl(descriptorAttributeBinding.dataType, error)
     );
-    if (error->id > 0) { return {}; }
+    if (error->id > 0) { return; }
     PULE_errorAssert(
       attributeDataType != 0,
       PuleErrorGfx_invalidDescriptorSet,
-      {}
     );
 
     glVertexArrayVertexBuffer(
-      attributeDescriptorHandle,
+      utilPipeline.attributeDescriptorHandle,
       it,
       descriptorAttributeBinding.buffer.id,
       descriptorAttributeBinding.offsetIntoBuffer,
       descriptorAttributeBinding.stridePerElement
     );
-    glEnableVertexArrayAttrib(attributeDescriptorHandle, it);
+    glEnableVertexArrayAttrib(utilPipeline.attributeDescriptorHandle, it);
     glVertexArrayAttribFormat(
-      attributeDescriptorHandle,
+      utilPipeline.attributeDescriptorHandle,
       it,
       descriptorAttributeBinding.numComponents,
       attributeDataType,
@@ -108,58 +109,84 @@ PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
       0
       //descriptorAttributeBinding.stridePerElement
     );
-    glVertexArrayAttribBinding(attributeDescriptorHandle, it, it);
+    glVertexArrayAttribBinding(utilPipeline.attributeDescriptorHandle, it, it);
   }
 
   // TODO element binding
-
-  // TODO right now I just return the attribute descriptor, but I need to also
-  // store texture information, uniform bindings, etc
-
-  // store into the descriptorsetlayout
-  util::PipelineLayout pipelineLayout;
-  pipelineLayout.descriptor = attributeDescriptorHandle;
+  if (info->layout->bufferElementBinding.id != 0) {
+    glVertexArrayElementBuffer(
+      utilPipeline.attributeDescriptorHandle,
+      info->layout->bufferElementBinding.id
+    );
+  }
 
   // collapse textures into a single array, such that if the pipeline layout
   // were [0, 0, 5, 0, 6], we want [{5, 2}, {6, 4}]
-  pipelineLayout.texturesLength = 0;
+  utilPipeline.texturesLength = 0;
   for (size_t it = 0; it < 8; ++ it) {
-    PuleGfxGpuImage const texture = descriptorSetLayout->textureBindings[it];
+    PuleGfxGpuImage const texture = info->layout->textureBindings[it];
     if (texture.id == 0) {
       continue;
     }
-    pipelineLayout.textures[pipelineLayout.texturesLength] = (
+    utilPipeline.textures[utilPipeline.texturesLength] = (
       util::DescriptorSetImageBinding {
         .imageHandle = static_cast<uint32_t>(texture.id),
         .bindingSlot = static_cast<uint32_t>(it),
       }
     );
-    ++ pipelineLayout.texturesLength;
+    ++ utilPipeline.texturesLength;
   }
 
   // collapse storage buffers into array
-  pipelineLayout.storagesLength = 0;
+  utilPipeline.storagesLength = 0;
   for (size_t it = 0; it < 16; ++ it) {
-    PuleGfxGpuBuffer const buffer = (
-      descriptorSetLayout->bufferStorageBindings[it]
-    );
+    PuleGfxGpuBuffer const buffer = info->layout->bufferStorageBindings[it];
     if (buffer.id == 0) {
       continue;
     }
-    pipelineLayout.storages[pipelineLayout.storagesLength] = (
+    utilPipeline.storages[utilPipeline.storagesLength] = (
       util::DescriptorSetStorageBinding {
         .storageHandle = static_cast<uint32_t>(buffer.id),
         .bindingSlot = static_cast<uint32_t>(it),
       }
     );
-    ++ pipelineLayout.storagesLength;
+    ++ utilPipeline.storagesLength;
   }
 
-  return { util::createPipelineLayout(pipelineLayout) };
+  utilPipeline.pipelineHandle     = pipeline.id;
+  utilPipeline.framebufferHandle  = info->framebuffer.id;
+  utilPipeline.shaderModuleHandle = info->shaderModule.id;
+  utilPipeline.blendEnabled       = info->config.blendEnabled;
+  utilPipeline.scissorTestEnabled = info->config.scissorTestEnabled;
+  utilPipeline.viewportUl         = info->config.viewportUl;
+  utilPipeline.viewportLr         = info->config.viewportLr;
+  utilPipeline.scissorUl          = info->config.scissorUl;
+  utilPipeline.scissorLr          = info->config.scissorLr;
 }
 
-void puleGfxPipelineLayoutDestroy(PuleGfxPipelineLayout const pipelineLayout) {
-  util::destroyPipelineLayout(pipelineLayout.id);
+PuleGfxPipeline puleGfxPipelineCreate(
+  PuleGfxPipelineCreateInfo const * const info,
+  PuleError * const error
+) {
+  GLuint attributeDescriptorHandle;
+  glCreateVertexArrays(1, &attributeDescriptorHandle);
+
+  // create the pipeline handle, shove the attribute descriptor into the 
+  //   pipeline and send it up to be 'updated', which will store the rest
+  //   of the pipeline information
+
+  uint64_t handle = util::createPipeline();
+  util::pipeline(handle)->attributeDescriptorHandle = attributeDescriptorHandle;
+  puleGfxPipelineUpdate({handle}, info, error);
+  if (error->id > 0) {
+    return { static_cast<uint64_t>(-1) };
+  }
+
+  return { handle };
+}
+
+void puleGfxPipelineDestroy(PuleGfxPipeline const pipeline) {
+  util::destroyPipeline(pipeline.id);
 }
 
 } // extern C

@@ -96,5 +96,8 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
 }
 
 void puleGfxShaderModuleDestroy(PuleGfxShaderModule const shaderModule) {
-  glDeleteProgram(static_cast<GLuint>(shaderModule.id));
+  auto const handle = static_cast<GLuint>(shaderModule.id);
+  if (handle != 0) {
+    glDeleteProgram(static_cast<GLuint>(shaderModule.id));
+  }
 }

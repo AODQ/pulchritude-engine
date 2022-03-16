@@ -10,9 +10,11 @@ extern "C" {
 #endif
 
 typedef struct {
-  PuleString description;
-  uint32_t id;
+  PuleString description; // default nil
+  uint32_t id; // default 0
 } PuleError;
+
+PULE_exportFn PuleError puleError();
 
 // consumes error , logging the error appropiately with puleLog, returning the
 //   ID of the error, and deallocating the description

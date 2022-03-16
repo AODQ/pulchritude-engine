@@ -70,6 +70,8 @@ typedef struct {
 } PuleF32m44;
 
 PULE_exportFn PuleF32m44 puleF32m44(float const identity);
+PULE_exportFn PuleF32m44 puleF32m44Ptr(float const * const data);
+PULE_exportFn PuleF32m44 puleF32m44PtrTranspose(float const * const data);
 
 PULE_exportFn PuleF32m44 puleProjectionPerspective(
   float const fieldOfViewRadians,

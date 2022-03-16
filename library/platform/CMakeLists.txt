@@ -1,14 +1,14 @@
-add_library(pulchritude-window SHARED)
+add_library(pulchritude-platform SHARED)
 
-target_include_directories(pulchritude-window PUBLIC "../include/")
+target_include_directories(pulchritude-platform PUBLIC "../include/")
 target_sources(
-  pulchritude-window
+  pulchritude-platform
   PRIVATE
-    src/window.cpp
+    src/platform.cpp
 )
 
 set_target_properties(
-  pulchritude-window
+  pulchritude-platform
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,10 +16,14 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulchritude-window glfw pulchritude-error)
+target_link_libraries(
+  pulchritude-platform
+    pulchritude-error pulchritude-math
+    glfw
+)
 
 install(
-  TARGETS pulchritude-window
+  TARGETS pulchritude-platform
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

@@ -36,6 +36,7 @@ typedef enum {
   PuleErrorGfx_invalidDescriptorSet,
   PuleErrorGfx_invalidCommandList,
   PuleErrorGfx_invalidFramebuffer,
+  PuleErrorGfx_submissionFenceWaitFailed,
 } PuleErrorGfx;
 
 typedef struct {
@@ -64,7 +65,7 @@ typedef enum {
 } PuleGfxGpuBufferVisibilityFlag;
 
 PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
-  void * const nullableInitialData,
+  void const * const nullableInitialData,
   size_t const byteLength, // must be >0
   PuleGfxGpuBufferUsage const usage,
   PuleGfxGpuBufferVisibilityFlag const visibility

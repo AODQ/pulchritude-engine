@@ -70,6 +70,22 @@ PuleF32m44 puleF32m44(float const idn) {
     0.0f, 0.0f, 0.0f, idn,
   };
 }
+PuleF32m44 puleF32m44Ptr(float const * const data) {
+  return PuleF32m44 {
+    data[0], data[4], data[8],  data[12],
+    data[1], data[5], data[9],  data[13],
+    data[2], data[6], data[10], data[14],
+    data[3], data[7], data[11], data[15],
+  };
+}
+PULE_exportFn PuleF32m44 puleF32m44PtrTranspose(float const * const data) {
+  return PuleF32m44 {
+    data[0],  data[1],  data[2],  data[3],
+    data[4],  data[5],  data[6],  data[7],
+    data[8],  data[9],  data[10], data[11],
+    data[12], data[13], data[14], data[15],
+  };
+}
 
 PuleF32m44 puleViewLookAt(
   PuleF32v3 const origin,

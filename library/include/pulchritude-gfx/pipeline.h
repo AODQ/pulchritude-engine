@@ -4,6 +4,8 @@
 #include <pulchritude-gfx/image.h>
 #include <pulchritude-gfx/shader-module.h>
 
+#include <pulchritude-math/math.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,6 +18,7 @@ typedef enum {
 
 typedef enum {
   PuleGfxAttributeDataType_float,
+  PuleGfxAttributeDataType_unsignedByte,
 } PuleGfxAttributeDataType;
 
 typedef struct {
@@ -44,22 +47,35 @@ PULE_exportFn PuleGfxPipelineDescriptorSetLayout
   puleGfxPipelineDescriptorSetLayout();
 
 typedef struct {
-  uint64_t id;
-} PuleGfxPipelineLayout;
-
-PULE_exportFn PuleGfxPipelineLayout puleGfxPipelineLayoutCreate(
-  PuleGfxPipelineDescriptorSetLayout const * const descriptorSetLayout,
-  PuleError * const error
-);
-PULE_exportFn void puleGfxPipelineLayoutDestroy(
-  PuleGfxPipelineLayout const pipelineLayout
-);
+  bool blendEnabled;
+  bool scissorTestEnabled;
+  PuleI32v2 viewportUl; // default 0, 0
+  PuleI32v2 viewportLr; // default 1, 1
+  PuleI32v2 scissorUl; // default 0, 0
+  PuleI32v2 scissorLr; // default 1, 1
+} PuleGfxPipelineConfig;
 
 typedef struct {
   PuleGfxShaderModule shaderModule;
   PuleGfxFramebuffer framebuffer;
-  PuleGfxPipelineLayout layout;
+  PuleGfxPipelineDescriptorSetLayout const * layout;
+  PuleGfxPipelineConfig config;
+} PuleGfxPipelineCreateInfo;
+
+typedef struct {
+  uint64_t id;
 } PuleGfxPipeline;
+
+PULE_exportFn PuleGfxPipeline puleGfxPipelineCreate(
+  PuleGfxPipelineCreateInfo const * const createInfo,
+  PuleError * const error
+);
+PULE_exportFn void puleGfxPipelineUpdate(
+  PuleGfxPipeline const pipeline,
+  PuleGfxPipelineCreateInfo  const * const updateInfo,
+  PuleError * const error
+);
+PULE_exportFn void puleGfxPipelineDestroy(PuleGfxPipeline const pipeline);
 
 typedef struct {
   size_t index;
