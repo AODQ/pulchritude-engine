@@ -411,7 +411,6 @@ namespace {
 
 struct WindowData {
   PulePlatform window;
-  PulePlatform mouseWindow;
   double time;
   ImVec2 lastValidMousePos;
   bool installedCallbacks;
@@ -662,14 +661,12 @@ void updateMouseData() {
     );
   }
 
-  if (pulePlatformNull(bd.mouseWindow)) {
-    PuleI32v2 const mouseOrigin = pulePlatformMouseOrigin(bd.window);
-    auto const mouseOriginF = PuleF32v2 {
-      static_cast<float>(mouseOrigin.x), static_cast<float>(mouseOrigin.y),
-    };
-    io.AddMousePosEvent(mouseOriginF.x, mouseOriginF.y);
-    bd.lastValidMousePos = ImVec2(mouseOriginF.x, mouseOriginF.y);
-  }
+  PuleI32v2 const mouseOrigin = pulePlatformMouseOrigin(bd.window);
+  auto const mouseOriginF = PuleF32v2 {
+    static_cast<float>(mouseOrigin.x), static_cast<float>(mouseOrigin.y),
+  };
+  io.AddMousePosEvent(mouseOriginF.x, mouseOriginF.y);
+  bd.lastValidMousePos = ImVec2(mouseOriginF.x, mouseOriginF.y);
 }
 
 void updateMouseCursor() {
@@ -758,7 +755,6 @@ void puleImguiShutdown() {
     *reinterpret_cast<RenderData *>(ImGui::GetIO().BackendRendererUserData)
   );
 
-  puleLogDebug("Deleting: %lu", bd.pipeline);
   puleGfxPipelineDestroy(bd.pipeline);
   puleGfxSamplerDestroy(bd.fontImageSampler);
   puleGfxGpuImageDestroy(bd.fontImage);
@@ -773,10 +769,6 @@ void puleImguiNewFrame() {
 }
 
 void puleImguiRender() {
-
-  ImGui::Begin("hello world");
-  ImGui::Text("yeeeahh");
-  ImGui::End();
   static bool show = true;
   ImGui::ShowDemoWindow(&show);
 

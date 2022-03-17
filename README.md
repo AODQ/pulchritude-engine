@@ -572,6 +572,43 @@ We should strive to unify the ABI to be consistenty pulchritude.
 
   ---
 
+##### long term plans
 
----
-###### *when tomorrow comes you'll wish you had today*
+
+  - allocations:
+    - before 0.1, allocations can be made without a PuleAllocator
+    - before 1.0, allocations can be made without a PuleAllocator if the
+        corresponding API function accepts a PuleAllocator
+    - by version 1.0, every allocation must be backed by a PuleAllocator
+  - hints:
+    - before 0.1, ABI signatures don't need hints
+    - 0.1 and on, ABI signatures must have the correct hints
+  - documentation:
+    - before 0.1, no documentation is necessary
+    - before 1.0, documentation on ABI functions, and a simple setup guide
+    - by version 1.0, must have tutorials, setup guides, and documentation on
+        examples
+  - community
+    - 0.0 to 1.0, I'd like to get some people at some point to help aid in
+        development of the engine
+    - by version 1.0, I'd want some users
+  - rendering
+    - before 0.1, only a 2D renderer is fine
+    - before 1.0, need to expand the 3D renderer
+    - possibly also at some point Vulkan support
+    - possibly at some point OpenGL3.2 support
+  - platforms
+    - before 0.1, only Linux builds are fine
+    - before 1.0, Linux and Windows builds
+  - build system & language support
+    - before 0.1, polish C/C++/cmake/xmake, zig and a scripting language
+    - before 1.0, support some set of core languages
+    - by version 1.0, support wide array of languages, with good polished
+        bindings for core languages
+    - at some point we also want to target VSCode and other IDEs
+  - third party modules
+    - before/by version 1.0, we want some set of third party modules that can
+        integrate easily into new projects
+  - binding generator/parser
+    - before 0.1, using hacked up python scripts to parse & generate bindings
+    - before or by 1.0, want more polished scripts or alternative

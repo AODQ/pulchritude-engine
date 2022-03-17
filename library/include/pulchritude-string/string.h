@@ -21,12 +21,13 @@ typedef struct {
 } PuleString;
 
 // String views are important, and *very most likely* preferred over PuleString
-// or `char const *`. They aren't able to modify a string, thus not only are
-// the contents a string unmodifiable, they can not reallocate/deallocate a
-// string. However, since they don't manage the memory of a string, they are no
-// longer valid once the string being 'viewed' has been modified. If it's not
-// self-evident, they are terrible choices for long-term storage, but are
-// excellent to pass immutable data between interfaces.
+// or `char const *` as they already store the size. They aren't able to modify
+// a string, thus not only are the contents a string unmodifiable, they can not
+// reallocate/deallocate a string. However, since they don't manage the memory
+// of a string, they are no longer valid once the string being 'viewed' has
+// been modified. If it's not self-evident, they are terrible choices for
+// long-term storage, but are excellent to pass immutable data between
+// interfaces.
 typedef struct {
   char const * contents;
   size_t len;

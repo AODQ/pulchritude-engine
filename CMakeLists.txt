@@ -76,8 +76,9 @@ if (EXISTS "${LOC_PATH}")
 endif()
 
 # adds dependencies in correct order
-add_subdirectory(engine)
+add_subdirectory(third-party)
 add_subdirectory(library)
+add_subdirectory(engine)
 
 # perform binding generation
 execute_process(

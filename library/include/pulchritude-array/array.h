@@ -46,8 +46,8 @@ PULE_exportFn void * puleArrayElementAt(
 // Array views let you view the contents of an array, without modifying the
 //   contents nor modifying it's allocation
 typedef struct {
-  void const * data;
-  size_t elementStride; // stride accounts for bytelength and alignment
+  void const * data; // PULE_hintNonnull
+  size_t elementStride; // must be nonzero, accounts for bytelength&alignment
   size_t elementCount;
 } PuleArrayView;
 
