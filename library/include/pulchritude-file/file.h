@@ -29,42 +29,64 @@ typedef struct {
   uint64_t id;
 } PuleFile;
 
-PULE_externFn PuleFile puleFileOpen(
+PULE_exportFn PuleFile puleFileOpen(
   char const * const filename,
   PuleFileDataMode dataMode,
   PuleFileOpenMode openMode,
   PuleError * const error
 );
-PULE_externFn void puleFileClose(PuleFile const file);
+PULE_exportFn void puleFileClose(PuleFile const file);
 
-PULE_externFn bool puleFileIsDone(PuleFile const file);
+PULE_exportFn bool puleFileIsDone(PuleFile const file);
 
-PULE_externFn uint8_t puleFileReadByte(PuleFile const file);
-PULE_externFn size_t puleFileReadBytes(
+PULE_exportFn uint8_t puleFileReadByte(PuleFile const file);
+PULE_exportFn size_t puleFileReadBytes(
   PuleFile const file,
-  PuleArrayView const destination
+  PuleArrayViewMutable const destination
 );
-PULE_externFn size_t puleFileReadBytesWithStride(
+PULE_exportFn size_t puleFileReadBytesWithStride(
   PuleFile const file,
-  PuleArrayView const destination
+  PuleArrayViewMutable const destination
 );
-PULE_externFn void puleFileWriteBytes(
+PULE_exportFn void puleFileWriteBytes(
   PuleFile const file,
   PuleArrayView const source
 );
-PULE_externFn uint64_t puleFileSize(PuleFile const file);
-PULE_externFn void puleFileAdvanceFromStart(
+PULE_exportFn uint64_t puleFileSize(PuleFile const file);
+PULE_exportFn void puleFileAdvanceFromStart(
   PuleFile const file,
   int64_t const offset
 );
-PULE_externFn void puleFileAdvanceFromEnd(
+PULE_exportFn void puleFileAdvanceFromEnd(
   PuleFile const file,
   int64_t const offset
 );
-PULE_externFn void puleFileAdvanceFromCurrent(
+PULE_exportFn void puleFileAdvanceFromCurrent(
   PuleFile const file,
   int64_t const offset
 );
+
+// efficient manner to stream file (such as for parsing), meant to grab
+//   one byte at a time rather than copying the entire contents
+// the only limitation is that you can only have one stream open per file,
+//   you can't use the normal file mechanisms without closing the stream,
+//   and it's not thread-safe
+
+typedef struct {
+  uint64_t id;
+} PuleFileStream;
+
+PULE_exportFn PuleFileStream puleFileStream(
+  PuleFile const file,
+  PuleArrayViewMutable const view // PULE_lifetimeOfReturnObject
+);
+
+// closes the stream, does not close the file
+//   the file will be advanced to the last byte you read from the stream
+PULE_exportFn void puleFileStreamDestroy(PuleFileStream const stream);
+
+PULE_exportFn uint8_t puleStreamReadByte(PuleFileStream const stream);
+PULE_exportFn bool puleStreamIsDone(PuleFileStream const stream);
 
 #ifdef __cplusplus
 }

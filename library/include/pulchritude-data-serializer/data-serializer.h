@@ -1,13 +1,12 @@
 // this is a data-serialization parser & writer; 'Pule Data Serializer'
 // Everything from data to configs is stored in this format. It is very similar
-//   to JSON, but is meant to have more relaxed rules, including support for
-//   more native data-types, support importing raw buffers as data, etc.
+//   to JSON, but is meant to have more relaxed rules.
 //
 // Of course, you can completely replace this serializer with your own backend
 //   and use your own serialization format. I imagine a popular alternative
-//   would be to implement a JSON-compliant parser. Since the engine will just
-//   use these functions anyways, it doesn't matter as long as the data is
-//   prepared beforehand.
+//   would be to implement a JSON-compliant parser, or something like
+//   flatbuffers. Since the engine will just use these functions anyways, it
+//   doesn't matter as long as the data is prepared beforehand.
 //
 // notes
 //  - fastest way to parse a float array? (or other specific data-types)
@@ -23,6 +22,38 @@
 //        casting each value to the underlying type, but they will consume
 //        additional time spent parsing the file. Try to only store meta-data
 //        where possible.
+//
+// spec:
+//    StartingState: ObjectMember*
+//    WS: [ \n\t\r]*
+//    Object: '{'ObjectMember*'}'
+//    ObjectMember: WS Label WS ':' WS Value
+//    Label: [0-9a-zA-z_\-]+
+//    Value: (Object/I64/F64/Array/String) WS ','
+//    Array: '[' WS Value* WS ']
+//    StringCharacter: '\"'
+//    String: '"' (StringCharacter / !'"' .)* '"'
+//
+// multiline strings are handled such that
+//   myAmazingStory:
+//   "
+//     *it goes like this and
+//     * then it went like that!
+//   ",
+// and
+//   myAmazingStory: "it goes like this and then it went like that!",
+// both evaluate to the same thing. The '*' denotes to "join" the line
+//
+// as well
+//  myAmazingStory:
+//  "
+//    *it goes like this and
+//    %then it went like that!
+//  ",
+// and
+//   myAmazingStory: "it goes like this and\nthen it went like that!",
+// also evaluate to the same thing. The '%' denotes to not join the line.
+
 
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-core/core.h>
@@ -40,7 +71,7 @@ typedef enum {
 } PuleErrorDataSerializer;
 
 typedef struct {
-  int64_t id;
+  uint64_t id;
 } PuleDsValue;
 
 typedef struct {
@@ -54,58 +85,70 @@ typedef struct {
   size_t length;
 } PuleDsValueObject;
 
-PULE_externFn int64_t puleDsAsI64(PuleDsValue const value);
-PULE_externFn double puleDsAsF64(PuleDsValue const value);
-PULE_externFn PuleStringView puleDsAsString(PuleDsValue const value);
-PULE_externFn PuleDsValueArray puleDsAsArray(PuleDsValue const value);
-PULE_externFn PuleDsValueObject puleDsAsObject(PuleDsValue const value);
+PULE_exportFn int64_t puleDsAsI64(PuleDsValue const value);
+PULE_exportFn double puleDsAsF64(PuleDsValue const value);
+PULE_exportFn PuleStringView puleDsAsString(PuleDsValue const value);
+PULE_exportFn PuleDsValueArray puleDsAsArray(PuleDsValue const value);
+PULE_exportFn PuleDsValueObject puleDsAsObject(PuleDsValue const value);
 
-PULE_externFn bool puleDsIsI64(PuleDsValue const value);
-PULE_externFn bool puleDsIsF64(PuleDsValue const value);
-PULE_externFn bool puleDsIsString(PuleDsValue const value);
-PULE_externFn bool puleDsIsArray(PuleDsValue const value);
-PULE_externFn bool puleDsIsObject(PuleDsValue const value);
+PULE_exportFn bool puleDsIsI64(PuleDsValue const value);
+PULE_exportFn bool puleDsIsF64(PuleDsValue const value);
+PULE_exportFn bool puleDsIsString(PuleDsValue const value);
+PULE_exportFn bool puleDsIsArray(PuleDsValue const value);
+PULE_exportFn bool puleDsIsObject(PuleDsValue const value);
 
-PULE_externFn PuleDsValue puleDsLoadFromFile(
+// instead of `puleDsLoadFromFile`, use a stream, such as
+// puleDsLoadFromStream(puleDsFileStream(allocator, "hello.pds", &err), &err)
+PULE_exportFn PuleDsValue puleDsLoadFromFile(
   PuleAllocator const allocator,
   char const * const filename,
   PuleError * const error
 );
 
 // recursive destroy
-PULE_externFn void puleDsDestroy(PuleDsValue const value);
+PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 
-PULE_externFn PuleDsValue puleDsCreateI64(int64_t const value);
-PULE_externFn PuleDsValue puleDsCreateF64(double const value);
+PULE_exportFn PuleDsValue puleDsCreateI64(int64_t const value);
+PULE_exportFn PuleDsValue puleDsCreateF64(double const value);
 // TODO this thing is odd because i need to copy it locally anyway,
 //    so i might just want to set a default allocator for a PDS
-PULE_externFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
-PULE_externFn PuleDsValue puleDsCreateArray(PuleAllocator const allocator);
-PULE_externFn PuleDsValue puleDsCreateObject(PuleAllocator const allocator);
+PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
+PULE_exportFn PuleDsValue puleDsCreateArray(PuleAllocator const allocator);
+PULE_exportFn PuleDsValue puleDsCreateObject(PuleAllocator const allocator);
 
-PULE_externFn void puleDsAppendArray(
+PULE_exportFn void puleDsAppendArray(
   PuleDsValue const array,
   PuleDsValue const value
 );
-PULE_externFn size_t puleDsArrayLength(PuleDsValue const array);
-PULE_externFn PuleDsValue puleDsArrayElementAt(
+PULE_exportFn size_t puleDsArrayLength(PuleDsValue const array);
+PULE_exportFn PuleDsValue puleDsArrayElementAt(
   PuleDsValue const array,
   size_t const idx
 );
 
 // object[memberLabel]
-PULE_externFn PuleDsValue puleDsObjectMember(
+PULE_exportFn PuleDsValue puleDsObjectMember(
   PuleDsValue const object,
   PuleStringView const memberLabel
 );
 
 // object[memberLabel] = value;
 // ASSERT(!object.exists(memberLabel))
-PULE_externFn void puleDsAssignObjectMember(
+PULE_exportFn void puleDsAssignObjectMember(
   PuleDsValue const object,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 );
+
+typedef struct {
+  PuleDsValue head;
+  bool prettyPrint; // PULE_defaultValue(false)
+  uint32_t spacePerTab; // PULE_defaultValue(2) only used with pretty-print
+  uint32_t initialTabLevel; // PULE_defaultValue(0)
+} PuleDsWriteInfo;
+
+// again, should probably be puleDsWriteToStream
+PULE_exportFn void puleDsWriteToStdout(PuleDsWriteInfo const info);
 
 #ifdef __cplusplus
 } // extern C

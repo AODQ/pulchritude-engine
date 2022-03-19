@@ -597,6 +597,9 @@ We should strive to unify the ABI to be consistenty pulchritude.
     - before 1.0, need to expand the 3D renderer
     - possibly also at some point Vulkan support
     - possibly at some point OpenGL3.2 support
+  - errors
+    - before 0.1, all errors can just be logged out rather than set Error
+    - by 0.1, all errors must either assert (internal failure) or set Error
   - platforms
     - before 0.1, only Linux builds are fine
     - before 1.0, Linux and Windows builds

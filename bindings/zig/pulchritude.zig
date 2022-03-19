@@ -338,17 +338,99 @@ pub const PuleErrorDataSerializer = enum(u32) {
   invalidFormat = 2,
 };
 pub const PuleDsValue = extern struct {
-  id: i64,
+  id: u64,
 };
 pub const PuleDsValueArray = extern struct {
-  values: [*c] PuleDsValue,
+  values: [*c] const PuleDsValue,
   length: usize,
 };
 pub const PuleDsValueObject = extern struct {
-  labels: [*c] const [*c] const u8,
-  values: [*c] PuleDsValue,
+  labels: [*c] const PuleStringView,
+  values: [*c] const PuleDsValue,
   length: usize,
 };
+pub extern fn puleDsAsI64(
+  value: PuleDsValue,
+) callconv(.C) i64;
+pub extern fn puleDsAsF64(
+  value: PuleDsValue,
+) callconv(.C) f64;
+pub extern fn puleDsAsString(
+  value: PuleDsValue,
+) callconv(.C) PuleStringView;
+pub extern fn puleDsAsArray(
+  value: PuleDsValue,
+) callconv(.C) PuleDsValueArray;
+pub extern fn puleDsAsObject(
+  value: PuleDsValue,
+) callconv(.C) PuleDsValueObject;
+pub extern fn puleDsIsI64(
+  value: PuleDsValue,
+) callconv(.C) bool;
+pub extern fn puleDsIsF64(
+  value: PuleDsValue,
+) callconv(.C) bool;
+pub extern fn puleDsIsString(
+  value: PuleDsValue,
+) callconv(.C) bool;
+pub extern fn puleDsIsArray(
+  value: PuleDsValue,
+) callconv(.C) bool;
+pub extern fn puleDsIsObject(
+  value: PuleDsValue,
+) callconv(.C) bool;
+pub extern fn puleDsLoadFromFile(
+  allocator: PuleAllocator,
+  filename: [*c] const u8,
+  err: [*c] PuleError,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsDestroy(
+  value: PuleDsValue,
+) callconv(.C) void;
+pub extern fn puleDsCreateI64(
+  value: i64,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsCreateF64(
+  value: f64,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsCreateString(
+  stringView: PuleStringView,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsCreateArray(
+  allocator: PuleAllocator,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsCreateObject(
+  allocator: PuleAllocator,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsAppendArray(
+  array: PuleDsValue,
+  value: PuleDsValue,
+) callconv(.C) void;
+pub extern fn puleDsArrayLength(
+  array: PuleDsValue,
+) callconv(.C) usize;
+pub extern fn puleDsArrayElementAt(
+  array: PuleDsValue,
+  idx: usize,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsObjectMember(
+  object: PuleDsValue,
+  memberLabel: PuleStringView,
+) callconv(.C) PuleDsValue;
+pub extern fn puleDsAssignObjectMember(
+  object: PuleDsValue,
+  memberLabel: PuleStringView,
+  valueToEmplace: PuleDsValue,
+) callconv(.C) void;
+pub const PuleDsWriteInfo = extern struct {
+  head: PuleDsValue,
+  prettyPrint: bool,
+  spacePerTab: u32,
+  initialTabLevel: u32,
+};
+pub extern fn puleDsWriteToStdout(
+  info: PuleDsWriteInfo,
+) callconv(.C) void;
 pub extern fn puleImguiInitialize(
   window: PulePlatform,
 ) callconv(.C) void;
@@ -385,7 +467,12 @@ pub extern fn puleArrayElementAt(
   idx: usize,
 ) callconv(.C) ?* anyopaque;
 pub const PuleArrayView = extern struct {
-  data: ?* const anyopaque,
+  data: [*c] const u8,
+  elementStride: usize,
+  elementCount: usize,
+};
+pub const PuleArrayViewMutable = extern struct {
+  data: [*c] u8,
   elementStride: usize,
   elementCount: usize,
 };
@@ -479,6 +566,64 @@ pub const PuleFileOpenMode = enum(u32) {
 pub const PuleFile = extern struct {
   id: u64,
 };
+pub extern fn puleFileOpen(
+  filename: [*c] const u8,
+  dataMode: PuleFileDataMode,
+  openMode: PuleFileOpenMode,
+  err: [*c] PuleError,
+) callconv(.C) PuleFile;
+pub extern fn puleFileClose(
+  file: PuleFile,
+) callconv(.C) void;
+pub extern fn puleFileIsDone(
+  file: PuleFile,
+) callconv(.C) bool;
+pub extern fn puleFileReadByte(
+  file: PuleFile,
+) callconv(.C) u8;
+pub extern fn puleFileReadBytes(
+  file: PuleFile,
+  destination: PuleArrayViewMutable,
+) callconv(.C) usize;
+pub extern fn puleFileReadBytesWithStride(
+  file: PuleFile,
+  destination: PuleArrayViewMutable,
+) callconv(.C) usize;
+pub extern fn puleFileWriteBytes(
+  file: PuleFile,
+  source: PuleArrayView,
+) callconv(.C) void;
+pub extern fn puleFileSize(
+  file: PuleFile,
+) callconv(.C) u64;
+pub extern fn puleFileAdvanceFromStart(
+  file: PuleFile,
+  offset: i64,
+) callconv(.C) void;
+pub extern fn puleFileAdvanceFromEnd(
+  file: PuleFile,
+  offset: i64,
+) callconv(.C) void;
+pub extern fn puleFileAdvanceFromCurrent(
+  file: PuleFile,
+  offset: i64,
+) callconv(.C) void;
+pub const PuleFileStream = extern struct {
+  id: u64,
+};
+pub extern fn puleFileStream(
+  file: PuleFile,
+  view: PuleArrayViewMutable,
+) callconv(.C) PuleFileStream;
+pub extern fn puleFileStreamDestroy(
+  stream: PuleFileStream,
+) callconv(.C) void;
+pub extern fn puleStreamReadByte(
+  stream: PuleFileStream,
+) callconv(.C) u8;
+pub extern fn puleStreamIsDone(
+  stream: PuleFileStream,
+) callconv(.C) bool;
 pub const PulePluginType = enum(u32) {
   library = 0,
   component = 1,

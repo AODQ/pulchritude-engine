@@ -1,7 +1,6 @@
 add_library(pulchritude-file SHARED)
 
 target_include_directories(pulchritude-file PUBLIC "../include/")
-)
 target_sources(
   pulchritude-file
   PRIVATE src/file.cpp

@@ -44,10 +44,13 @@ PuleFile puleFileOpen(
     break;
   }
   FILE * const file = fopen(filename, fileMode);
-  PULE_errorAssert(file, PuleErrorFile_fileOpen, return { 0 });
+  if (!file) {
+    PULE_error(PuleErrorFile_fileOpen, "failed to open: '%s'", filename);
+    return { 0 };
+  }
   uint64_t const id = reinterpret_cast<uint64_t>(file);
   ::openFiles.emplace(id, file);
-  return id;
+  return {id};
 }
 
 void puleFileClose(PuleFile const file) {
@@ -57,17 +60,15 @@ void puleFileClose(PuleFile const file) {
 
 bool puleFileIsDone(PuleFile const file) {
   auto const fileHandle = ::openFiles.at(file.id);
-  int32_t character = getc(fileHandle);
-  ungetc(fileHandle);
-  return character == EOF;
+  return ungetc(getc(fileHandle), fileHandle) == EOF;
 }
 
 uint8_t puleFileReadByte(PuleFile const file) {
   auto const fileHandle = ::openFiles.at(file.id);
-  return static_cast<uint8_t>(fileHandle);
+  return static_cast<uint8_t>(getc(fileHandle));
 }
 
-size_t puleFileReadBytes(PuleFile const file, PuleArrayView const dst) {
+size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
   auto const fileHandle = ::openFiles.at(file.id);
   flockfile(fileHandle);
   uint8_t * data = reinterpret_cast<uint8_t *>(dst.data);
@@ -80,7 +81,7 @@ size_t puleFileReadBytes(PuleFile const file, PuleArrayView const dst) {
   }
   funlockfile(fileHandle);
 
-  return bytesWritten
+  return bytesWritten;
 }
 
 void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
@@ -99,6 +100,87 @@ uint64_t puleFileSize(PuleFile const file) {
   uint64_t const fileSize = static_cast<uint64_t>(ftell(fileHandle));
   fseek(fileHandle, 0L, SEEK_SET);
   return fileSize;
+}
+
+} // C
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+struct PdsStream {
+  PuleFile file = { 0 };
+  PuleArrayViewMutable buffer;
+  size_t fetchedBufferLength;
+  size_t bufferIt;
+};
+
+std::unordered_map<uint64_t, PdsStream> streams;
+
+void refreshPdsStream(PdsStream & stream) {
+  // check if there's still data left to read
+  if (stream.bufferIt < stream.fetchedBufferLength) {
+    return;
+  }
+
+  if (puleFileIsDone(stream.file)) {
+    stream.bufferIt = 0;
+    stream.fetchedBufferLength = 0;
+    return;
+  }
+
+  stream.bufferIt = 0;
+  stream.fetchedBufferLength = puleFileReadBytes(stream.file, stream.buffer);
+}
+
+} // namespace
+
+extern "C" {
+
+PuleFileStream puleFileStream(
+  PuleFile const file,
+  PuleArrayViewMutable const view
+) {
+  if (::streams.find(file.id) != ::streams.end()) {
+    puleLogError("already streaming file: %d", file.id);
+  }
+  ::streams.emplace(
+    file.id,
+    PdsStream {
+      .file = file,
+      .buffer = view,
+      .fetchedBufferLength = 0,
+      .bufferIt = 0,
+    }
+  );
+  return { file.id };
+}
+
+void puleFileStreamDestroy(PuleFileStream const fileStream) {
+  ::PdsStream const stream = ::streams.at(fileStream.id);
+  ::streams.erase(fileStream.id);
+
+  // reverse file to where the user last actually read the byte, as otherwise
+  //   a segment from file will be lost
+  puleFileAdvanceFromCurrent(
+    PuleFile{.id = fileStream.id},
+    -(stream.fetchedBufferLength-stream.bufferIt)
+  );
+}
+
+uint8_t puleStreamReadByte(PuleFileStream const fileStream) {
+  ::PdsStream & stream = ::streams.at(fileStream.id);
+  ::refreshPdsStream(stream);
+  assert(!puleStreamIsDone(stream));
+  uint8_t const character = stream.buffer.data[stream.bufferIt ++];
+  return character;
+}
+
+bool puleStreamIsDone(PuleFileStream const fileStream) {
+  ::PdsStream & stream = ::streams.at(fileStream.id);
+  ::refreshPdsStream(stream);
+  return stream.fetchedBufferLength == 0;
 }
 
 } // C

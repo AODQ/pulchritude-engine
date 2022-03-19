@@ -1,7 +1,6 @@
 add_library(pulchritude-data-serializer SHARED)
 
 target_include_directories(pulchritude-data-serializer PUBLIC "../include/")
-)
 target_sources(
   pulchritude-data-serializer
   PRIVATE src/data-serializer.cpp
