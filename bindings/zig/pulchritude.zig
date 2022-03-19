@@ -618,10 +618,13 @@ pub extern fn puleFileStream(
 pub extern fn puleFileStreamDestroy(
   stream: PuleFileStream,
 ) callconv(.C) void;
-pub extern fn puleStreamReadByte(
+pub extern fn puleFileStreamReadByte(
   stream: PuleFileStream,
 ) callconv(.C) u8;
-pub extern fn puleStreamIsDone(
+pub extern fn puleFileStreamPeekByte(
+  stream: PuleFileStream,
+) callconv(.C) u8;
+pub extern fn puleFileStreamIsDone(
   stream: PuleFileStream,
 ) callconv(.C) bool;
 pub const PulePluginType = enum(u32) {
@@ -1026,6 +1029,3 @@ pub const PuleGfxMemoryBarrierFlag = enum(u32) {
 pub extern fn puleGfxMemoryBarrier(
   barrier: PuleGfxMemoryBarrierFlag,
 ) callconv(.C) void;
-pub const puleConfigComponent = extern struct {
-  updateRatePerSecond: i32,
-};

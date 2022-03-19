@@ -103,7 +103,8 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   puleLog("entering loop");
-  while (true) {
+  bool hasUpdate = updateableComponents.size() > 0;
+  while (hasUpdate) {
     for (auto const componentUpdateFn : updateableComponents) {
       componentUpdateFn();
     }

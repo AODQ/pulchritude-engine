@@ -85,8 +85,9 @@ PULE_exportFn PuleFileStream puleFileStream(
 //   the file will be advanced to the last byte you read from the stream
 PULE_exportFn void puleFileStreamDestroy(PuleFileStream const stream);
 
-PULE_exportFn uint8_t puleStreamReadByte(PuleFileStream const stream);
-PULE_exportFn bool puleStreamIsDone(PuleFileStream const stream);
+PULE_exportFn uint8_t puleFileStreamReadByte(PuleFileStream const stream);
+PULE_exportFn uint8_t puleFileStreamPeekByte(PuleFileStream const stream);
+PULE_exportFn bool puleFileStreamIsDone(PuleFileStream const stream);
 
 #ifdef __cplusplus
 }

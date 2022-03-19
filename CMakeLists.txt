@@ -84,11 +84,11 @@ add_subdirectory(engine)
 execute_process(
   COMMAND
     python3
-    "${CMAKE_SOURCE_DIR}/scripts/json-binding-generator.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
     "--input"
-    "${CMAKE_SOURCE_DIR}/library/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/library/include/"
     "--output"
-    "${CMAKE_SOURCE_DIR}/bindings/json/bindings.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
   RESULT_VARIABLE processFinished
 )
 if (NOT processFinished STREQUAL "0")
@@ -98,11 +98,11 @@ endif()
 execute_process(
   COMMAND
     python3
-    "${CMAKE_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
     "--input"
-    "${CMAKE_SOURCE_DIR}/bindings/json/bindings.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
     "--output"
-    "${CMAKE_SOURCE_DIR}/bindings/zig/pulchritude.zig"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/zig/pulchritude.zig"
   RESULT_VARIABLE processFinished
 )
 if (NOT processFinished STREQUAL "0")

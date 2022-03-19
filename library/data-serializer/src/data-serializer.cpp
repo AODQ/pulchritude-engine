@@ -24,8 +24,14 @@ struct PdsObject {
   std::unordered_map<size_t, PuleStringView> labels = {};
   // this provides memory backing to the labels
   std::vector<std::string> linearLabels;
-  std::vector<PuleStringView> linearLabelsAsViews;
   std::vector<PuleDsValue> linearValues;
+
+  // this is used store information provided to the user
+  std::vector<PuleStringView> linearLabelsAsViews;
+};
+
+struct PdsString {
+  std::string value;
 };
 
 void pdsObjectAdd(
@@ -42,9 +48,9 @@ void pdsObjectAdd(
   // copy string to local storage
   object.linearLabels.emplace_back(std::string(label.contents, label.len));
   auto const stringView = PuleStringView {
-    .contents = object.linearLabels.back().c_str(), .len = label.len
+    .contents = object.linearLabels.back().c_str(),
+    .len = label.len
   };
-  object.linearLabelsAsViews.emplace_back(stringView);
   object.labels.emplace(hash, stringView);
 }
 
@@ -65,7 +71,7 @@ using PdsArray = std::vector<PuleDsValue>;
 using PdsValue = std::variant<
   int64_t,
   double,
-  PuleStringView,
+  PdsString,
   PdsArray,
   PdsObject
 >;
@@ -75,8 +81,8 @@ uint64_t pdsValueIt = 1;
 
 template <typename T>
 uint64_t pdsValueAdd(T const value) {
-  pdsValues.emplace(pdsValueIt++, value);
-  return pdsValueIt;
+  pdsValues.emplace(pdsValueIt, value);
+  return pdsValueIt ++;
 }
 
 } // namespace
@@ -94,15 +100,31 @@ double puleDsAsF64(PuleDsValue const value) {
   return *std::get_if<double>(&::pdsValues.at(value.id));
 }
 PuleStringView puleDsAsString(PuleDsValue const value) {
-  return *std::get_if<PuleStringView>(&::pdsValues.at(value.id));
+  std::string & asString = (
+    std::get_if<PdsString>(&::pdsValues.at(value.id))->value
+  );
+  return (
+    PuleStringView { .contents = asString.c_str(), .len = asString.size(), }
+  );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
   auto const & array = *std::get_if<PdsArray>(&::pdsValues.at(value.id));
   return { .values = array.data(), .length = array.size(), };
 }
 PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
-  auto const & object = *std::get_if<PdsObject>(&::pdsValues.at(value.id));
+  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(value.id));
+
+  // have to refresh the object's linear label as view pointers
+  object.linearLabelsAsViews.resize(object.linearValues.size());
+  for (size_t it = 0; it < object.linearLabels.size(); ++ it) {
+    object.linearLabelsAsViews[it] = PuleStringView {
+      .contents = object.linearLabels[it].c_str(),
+      .len = object.linearLabels[it].size(),
+    };
+  }
+
   PULE_assert(object.linearLabelsAsViews.size() == object.linearValues.size());
+
   return PuleDsValueObject {
     .labels = object.linearLabelsAsViews.data(),
     .values = object.linearValues.data(),
@@ -118,7 +140,7 @@ bool puleDsIsF64(PuleDsValue const value) {
   return std::get_if<double>(&::pdsValues.at(value.id)) != nullptr;
 }
 bool puleDsIsString(PuleDsValue const value) {
-  return std::get_if<PuleStringView>(&::pdsValues.at(value.id)) != nullptr;
+  return std::get_if<PdsString>(&::pdsValues.at(value.id)) != nullptr;
 }
 bool puleDsIsArray(PuleDsValue const value) {
   return std::get_if<PdsArray>(&::pdsValues.at(value.id)) != nullptr;
@@ -135,7 +157,7 @@ PuleDsValue puleDsCreateF64(double const value) {
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
-  return {::pdsValueAdd(stringView)};
+  return {::pdsValueAdd(PdsString{.value = std::string(stringView.contents)})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
   (void)allocator;
@@ -234,17 +256,20 @@ struct pdsStreamer {
 
 // accounts for comments
 char pdsReadByte(PuleFileStream const stream) {
-  char character = puleStreamReadByte(stream);
+  char character = puleFileStreamReadByte(stream);
   if (character != '#') return character;
-  while (!puleStreamIsDone(stream) && puleStreamReadByte(stream) != '\n');
-  return puleStreamReadByte(stream);
+  while (
+    !puleFileStreamIsDone(stream)
+    && puleFileStreamReadByte(stream) != '\n'
+  );
+  return puleFileStreamReadByte(stream);
 }
 
 std::string trimBeginEndWhitespace(std::string const & s) {
   size_t const start = s.find_first_not_of(whitespaceAsString);
   if (start == std::string::npos) { return ""; }
   size_t const end = s.find_last_not_of(whitespaceAsString);
-  return s.substr(start, end+1);
+  return s.substr(start, end-start+1);
 }
 
 std::string pdsParseLabel(PuleFileStream const stream) {
@@ -253,8 +278,8 @@ std::string pdsParseLabel(PuleFileStream const stream) {
   std::string label;
   char character = 0;
   while (true) {
-    if (puleStreamIsDone(stream)) {
-      puleLogError("hit EOF trying to parse label '%s', label");
+    if (puleFileStreamIsDone(stream)) {
+      puleLogError("hit EOF trying to parse label '%s'", label.c_str());
       return "";
     }
     character = pdsReadByte(stream);
@@ -262,7 +287,8 @@ std::string pdsParseLabel(PuleFileStream const stream) {
       firstLetter
       && !(
            (character >= 'a' && character <= 'z')
-        || (character >= 'a' && character <= 'Z')
+        || (character >= 'A' && character <= 'Z')
+        || character == '_'
       )
     ) {
       invalidLabel = true;
@@ -273,7 +299,7 @@ std::string pdsParseLabel(PuleFileStream const stream) {
     if (
       !(
            (character >= 'a' && character <= 'z')
-        || (character >= 'a' && character <= 'Z')
+        || (character >= 'A' && character <= 'Z')
         || (character >= '0' && character <= '9')
         || (character == '-' || character == '_')
       )
@@ -287,7 +313,7 @@ std::string pdsParseLabel(PuleFileStream const stream) {
     character = pdsReadByte(stream);
   }
   if (invalidLabel || label == "") {
-    puleLogError("invalid label: '%s'", label);
+    puleLogError("invalid label: '%s'", label.c_str());
   }
   return label;
 }
@@ -298,12 +324,17 @@ int64_t parseHex(std::string const & value) {
     char const ch = value[it];
     if (ch >= '0' && ch <= '9') {
       hex = hex*16 + (ch-'0');
-    } else if (ch >= 'A' && ch <= 'F') {
-      hex = hex*16 + (ch-'A') + 10;
-    } else if (ch >= 'a' && ch <= 'f') {
-      hex = hex*16 + (ch-'a') + 10;
     }
-    puleLogError("could not parse hex value from: '%s'", value);
+    else
+    if (ch >= 'A' && ch <= 'F') {
+      hex = hex*16 + (ch-'A') + 10;
+    }
+    else
+    if (ch >= 'a' && ch <= 'f') {
+      hex = hex*16 + (ch-'a') + 10;
+    } else {
+      puleLogError("could not parse hex value from: '%s'", value.c_str());
+    }
     break;
   }
   return hex;
@@ -315,10 +346,13 @@ int64_t parseBin(std::string const & value) {
     char const ch = value[it];
     if (ch == '0') {
       bin *= 2;
-    } else if (ch == '1') {
-      bin = bin*2 + 1;
     }
-    puleLogError("could not parse bin value from: '%s'", value);
+    else
+    if (ch == '1') {
+      bin = bin*2 + 1;
+    } else {
+      puleLogError("could not parse bin value from: '%s'", value.c_str());
+    }
     break;
   }
   return bin;
@@ -333,17 +367,21 @@ int64_t parseDec(std::string const & value) {
       sign = -1;
       continue;
     }
+    else
     if (ch >= '0' && ch <= '9') {
       dec = dec*10 + (ch-'0');
+      continue;
     }
-    puleLogError("could not parse dec value from: '%s'", value);
+    else {
+      puleLogError("could not parse dec value from: '%s'", value.c_str());
+    }
     break;
   }
   return sign*dec;
 }
 
 PuleDsValue parseBase64(std::string const & value) {
-  puleLogError("base 64 encoding not yet implemented: '%s'", value);
+  puleLogError("base 64 encoding not yet implemented: '%s'", value.c_str());
   return { 0 };
 }
 
@@ -351,16 +389,29 @@ PuleDsValue pdsParseArray(
   PuleAllocator const allocator,
   PuleFileStream const stream
 ) {
-  assert(character == '[');
-
-  PuleDsValue object = puleDsCreateArray(allocator);;
+  PuleDsValue object = puleDsCreateArray(allocator);
   while (true) {
-    // skip whitespace
-    if (::isWhitespace(pdsReadByte(stream))) {
+    while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+      pdsReadByte(stream);
       continue;
+    }
+    if (puleFileStreamIsDone(stream)) {
+      puleLogError("hit EOF while parsing object");
+      return {0};
+    }
+    if (puleFileStreamPeekByte(stream) == ']') {
+      break;
     }
     puleDsAppendArray(object, pdsParseValue(allocator, stream));
   }
+
+  // consume ]
+  pdsReadByte(stream);
+  // consume ','
+  while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+    pdsReadByte(stream);
+  }
+  pdsReadByte(stream);
 
   return object;
 }
@@ -372,7 +423,7 @@ PuleDsValue pdsParseObject(
 ) {
   char character = ' ';
   while (!inObject && character != '{') {
-    if (puleStreamIsDone(stream)) {
+    if (puleFileStreamIsDone(stream)) {
       puleLogError("hit EOF while parsing object");
       return {0};
     }
@@ -382,16 +433,15 @@ PuleDsValue pdsParseObject(
 
   PuleDsValue object = puleDsCreateObject(allocator);
   while (true) {
-    character = pdsReadByte(stream);
     // skip whitespace
-    if (::isWhitespace(character)) {
-      continue;
+    while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+      pdsReadByte(stream);
     }
-    if (puleStreamIsDone(stream)) {
+    if (puleFileStreamIsDone(stream)) {
       puleLogError("hit EOF while parsing object");
       return {0};
     }
-    if (character == '}') {
+    if (puleFileStreamPeekByte(stream) == '}') {
       break;
     }
     std::string memberLabel = pdsParseLabel(stream);
@@ -405,6 +455,14 @@ PuleDsValue pdsParseObject(
     );
   }
 
+  // consume }
+  pdsReadByte(stream);
+  // consume ','
+  while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+    pdsReadByte(stream);
+  }
+  pdsReadByte(stream);
+
   return object;
 }
 
@@ -412,34 +470,10 @@ PuleDsValue pdsParseValue(
   PuleAllocator const allocator,
   PuleFileStream const stream
 ) {
-  char character = ' ';
-  // skip whitespace
-  while (::isWhitespace(character)) {
-    character = pdsReadByte(stream);
-    continue;
+  while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+    pdsReadByte(stream);
   }
-
-  // first get this thing into a value to check what type it is
-  std::string value = "";
-  {
-    char prevChar = ' ';
-    bool inString = false;
-    while (!inString && character != ',') {
-      value += character;
-      character = pdsReadByte(stream);
-      if (character == '[' || character == '{') {
-        break;
-      }
-      if (prevChar != '\"' && character == '"') {
-        inString ^= 1;
-      }
-      prevChar = character;
-
-      if (!inString && (character == '}' || character == ']')) {
-        puleLogError("seems like you're missing a comma");
-      }
-    }
-  }
+  char character = pdsReadByte(stream);
 
   if (character == '[') {
     return pdsParseArray(allocator, stream);
@@ -447,6 +481,43 @@ PuleDsValue pdsParseValue(
 
   if (character == '{') {
     return pdsParseObject(allocator, stream, true);
+  }
+
+  // first get this thing into a value to check what type it is
+  std::string value = "";
+  value += character;
+  {
+    char prevChar = '\\';
+    bool inString = character == '"';
+    while (true) {
+      prevChar = character;
+      character = pdsReadByte(stream);
+
+      if (!inString && character == ',') {
+        break;
+      }
+
+      value += character;
+
+      if (inString && prevChar != '\\' && character == '"') {
+        // get & consume to the ','
+        while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+          pdsReadByte(stream);
+        }
+        [[maybe_unused]]
+        char const c = pdsReadByte(stream);
+        assert(c == ',');
+        break;
+      }
+
+      if (character == '[' || character == '{') {
+        break;
+      }
+
+      if (!inString && (character == '}' || character == ']')) {
+        puleLogError("seems like you're missing a comma");
+      }
+    }
   }
 
   value = trimBeginEndWhitespace(value);
@@ -482,7 +553,7 @@ PuleDsValue pdsParseValue(
   }
 
   // example, 0.0 3238.238230
-  if (value.find_first_not_of('.') != std::string::npos) {
+  if (value.find_first_of('.') != std::string::npos) {
     return puleDsCreateF64(std::stod(value));
   }
 
@@ -524,12 +595,13 @@ PuleDsValue puleDsLoadFromFile(
 
   auto const defaultObject = puleDsCreateObject(allocator);
 
-  while (!puleStreamIsDone(stream)) {
-    uint8_t character = pdsReadByte(stream);
+  while (!puleFileStreamIsDone(stream)) {
     // skip whitespace
-    if (::isWhitespace(character)) {
+    if (::isWhitespace(puleFileStreamPeekByte(stream))) {
+      printf("%c", pdsReadByte(stream));
       continue;
     }
+    if (puleFileStreamIsDone(stream)) { break; }
     std::string memberLabel = pdsParseLabel(stream);
     puleDsAssignObjectMember(
       defaultObject,
@@ -537,7 +609,7 @@ PuleDsValue puleDsLoadFromFile(
         .contents = memberLabel.c_str(),
         .len = memberLabel.size()
       },
-      pdsParseObject(allocator, stream)
+      pdsParseValue(allocator, stream)
     );
   }
 
@@ -555,7 +627,12 @@ void addTab(PuleDsWriteInfo info, uint32_t const tabLevel, std::string & out) {
   if (!info.prettyPrint) {
     return;
   }
-  for (uint32_t it = 0; it < tabLevel; ++ it) {
+  // put out new line before tabbing, unless we are already on a new line
+  if (out != "" && out.back() != '\n') {
+    out += "\n";
+  }
+
+  for (int32_t it = 0; it < tabLevel; ++ it) {
     for (uint32_t itspace = 0; itspace < info.spacePerTab; ++ itspace) {
       out += " ";
     }
@@ -564,17 +641,18 @@ void addTab(PuleDsWriteInfo info, uint32_t const tabLevel, std::string & out) {
 
 void pdsIterateWriteToStdout(
   PuleDsWriteInfo const info,
-  uint32_t const tabLevel,
-  std::string & out
+  int32_t const tabLevel,
+  std::string & out,
+  bool firstRun = true
 ) {
   if (puleDsIsI64(info.head)) {
     out += std::to_string(puleDsAsI64(info.head));
-    out += info.prettyPrint ? ",\n" : ",";
+    out += info.prettyPrint ? "," : ",";
   }
   else
   if (puleDsIsF64(info.head)) {
     out += std::to_string(puleDsAsF64(info.head));
-    out += info.prettyPrint ? ",\n" : ",";
+    out += info.prettyPrint ? "," : ",";
   }
   else
   if (puleDsIsString(info.head)) {
@@ -582,39 +660,59 @@ void pdsIterateWriteToStdout(
     out += '\'';
     out += std::string_view(stringView.contents, stringView.len);
     out += '\'';
-    out += info.prettyPrint ? ",\n" : ",";
+    out += info.prettyPrint ? "," : ",";
   }
   else
   if (puleDsIsArray(info.head)) {
     PuleDsValueArray const array = puleDsAsArray(info.head);
-    out += info.prettyPrint ? "[\n" : "[";
+    out += info.prettyPrint ? "[" : "[";
+    size_t intsHit = 0;
     for (size_t it = 0; it < array.length; ++ it) {
-      addTab(info, tabLevel+1, out);
       PuleDsWriteInfo childInfo = info;
       childInfo.head = array.values[it];
-      pdsIterateWriteToStdout(childInfo, tabLevel+1, out);
+
+      // dependent on type, we might want to flatten the list out a bit
+      if (puleDsIsI64(array.values[it]) || puleDsIsF64(array.values[it])) {
+        intsHit = (intsHit+1)%8;
+        if (it == 0 || intsHit % 8 == 0) {
+          addTab(info, tabLevel+1, out);
+        }
+        // add space between commas
+        if (info.prettyPrint && it > 0 && it % 8 != 0) {
+          out += " ";
+        }
+      } else {
+        intsHit = 0;
+        addTab(info, tabLevel+1, out);
+      }
+
+      pdsIterateWriteToStdout(childInfo, tabLevel+1, out, false);
     }
     addTab(info, tabLevel, out);
-    out += info.prettyPrint ? "],\n" : "]";
+    out += info.prettyPrint ? "]," : "]";
   }
   else
   if (puleDsIsObject(info.head)) {
     PuleDsValueObject const object = puleDsAsObject(info.head);
-    out += info.prettyPrint ? "{\n" : "{";
+    if (!firstRun) {
+      out += info.prettyPrint ? "{" : "{";
+    }
     for (size_t it = 0; it < object.length; ++ it) {
       addTab(info, tabLevel+1, out);
       // write label
-      PuleStringView const stringView = puleDsAsString(info.head);
+      PuleStringView const stringView = object.labels[it];
       out += std::string_view(stringView.contents, stringView.len);
       out += info.prettyPrint ? ":" : ": ";
 
       // write value
       PuleDsWriteInfo childInfo = info;
       childInfo.head = object.values[it];
-      pdsIterateWriteToStdout(childInfo, tabLevel+1, out);
+      pdsIterateWriteToStdout(childInfo, tabLevel+1, out, false);
     }
-    addTab(info, tabLevel, out);
-    out += info.prettyPrint ? "},\n" : "}";
+    if (!firstRun) {
+      addTab(info, tabLevel, out);
+      out += info.prettyPrint ? "}," : "}";
+    }
   }
 }
 
@@ -628,7 +726,7 @@ void puleDsWriteToStdout(PuleDsWriteInfo const info) {
   }
 
   std::string out;
-  ::pdsIterateWriteToStdout(info, info.initialTabLevel, out);
+  ::pdsIterateWriteToStdout(info, info.initialTabLevel-1, out);
   printf("---------------\n%s\n---------------\n", out.c_str());
 }
 

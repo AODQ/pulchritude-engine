@@ -159,25 +159,35 @@ PuleFileStream puleFileStream(
 
 void puleFileStreamDestroy(PuleFileStream const fileStream) {
   ::PdsStream const stream = ::streams.at(fileStream.id);
+  (void)stream; // TODO remove this void
   ::streams.erase(fileStream.id);
 
   // reverse file to where the user last actually read the byte, as otherwise
   //   a segment from file will be lost
-  puleFileAdvanceFromCurrent(
-    PuleFile{.id = fileStream.id},
-    -(stream.fetchedBufferLength-stream.bufferIt)
-  );
+  // TODO (needs this function impl.)
+  //puleFileAdvanceFromCurrent(
+  //  PuleFile{.id = fileStream.id},
+  //  -(stream.fetchedBufferLength-stream.bufferIt)
+  //);
 }
 
-uint8_t puleStreamReadByte(PuleFileStream const fileStream) {
+uint8_t puleFileStreamPeekByte(PuleFileStream const fileStream) {
   ::PdsStream & stream = ::streams.at(fileStream.id);
   ::refreshPdsStream(stream);
-  assert(!puleStreamIsDone(stream));
-  uint8_t const character = stream.buffer.data[stream.bufferIt ++];
+  assert(!puleFileStreamIsDone(stream));
+  assert(stream.bufferIt < stream.fetchedBufferLength);
+  uint8_t const character = stream.buffer.data[stream.bufferIt];
   return character;
 }
 
-bool puleStreamIsDone(PuleFileStream const fileStream) {
+uint8_t puleFileStreamReadByte(PuleFileStream const fileStream) {
+  ::PdsStream & stream = ::streams.at(fileStream.id);
+  uint8_t const character = puleFileStreamPeekByte(fileStream);
+  stream.bufferIt += 1;
+  return character;
+}
+
+bool puleFileStreamIsDone(PuleFileStream const fileStream) {
   ::PdsStream & stream = ::streams.at(fileStream.id);
   ::refreshPdsStream(stream);
   return stream.fetchedBufferLength == 0;

@@ -3459,7 +3459,24 @@
     "return-type": [
       "uint8_t"
     ],
-    "label": "puleStreamReadByte",
+    "label": "puleFileStreamReadByte",
+    "parameters": [
+      {
+        "label": "stream",
+        "type": [
+          "PuleFileStream",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "uint8_t"
+    ],
+    "label": "puleFileStreamPeekByte",
     "parameters": [
       {
         "label": "stream",
@@ -3476,7 +3493,7 @@
     "return-type": [
       "bool"
     ],
-    "label": "puleStreamIsDone",
+    "label": "puleFileStreamIsDone",
     "parameters": [
       {
         "label": "stream",
@@ -5612,19 +5629,6 @@
         "type": [
           "PuleGfxMemoryBarrierFlag",
           "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "label": "puleConfigComponent",
-    "fields": [
-      {
-        "label": "updateRatePerSecond",
-        "type": [
-          "int32_t"
         ],
         "meta-type": "standard"
       }

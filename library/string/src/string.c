@@ -70,7 +70,7 @@ PuleString puleStringFormat(
     va_list argsFmt;
     va_start(argsFmt, format);
     stringOut.len = (size_t)(
-      vsnprintf(stringOut.contents, len, format, argsFmt)
+      vsnprintf(stringOut.contents, len+1, format, argsFmt)
     );
     va_end(argsFmt);
   }
