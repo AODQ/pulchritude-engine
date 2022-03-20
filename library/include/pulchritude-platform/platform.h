@@ -54,6 +54,23 @@ PULE_exportFn PuleI32v2 pulePlatformWindowSize(
   PulePlatform const window
 );
 PULE_exportFn PuleI32v2 pulePlatformFramebufferSize(PulePlatform const window);
+
+typedef struct {
+  void (* callback)(PuleI32v2 const dimensions);
+} PulePlatformFramebufferResizeCallbackCreateInfo;
+
+PULE_exportFn void pulePlatformFramebufferResizeCallback(
+  PulePlatformFramebufferResizeCallbackCreateInfo const info
+);
+
+typedef struct {
+  void (* callback)(PuleI32v2 const dimensions);
+} PulePlatformWindowResizeCallbackCreateInfo;
+
+PULE_exportFn void pulePlatformWindowResizeCallback(
+  PulePlatformWindowResizeCallbackCreateInfo const info
+);
+
 PULE_exportFn double pulePlatformGetTime();
 
 PULE_exportFn bool pulePlatformNull(PulePlatform const window);

@@ -14,12 +14,12 @@ static void inputKeyCallback(
   GLFWwindow * window,
   int32_t keycode, int32_t scancode, int32_t action, int32_t modifiers
 );
-
 static void inputMouseButtonCallback(
   GLFWwindow * window, int32_t button, int32_t action, int32_t modifiers
 );
-
 static void inputRawTextCallback(GLFWwindow * window, uint32_t rawCharacter);
+static void framebufferResizeCallback(GLFWwindow *, int32_t, int32_t);
+static void windowResizeCallback(GLFWwindow * w, int32_t, int32_t);
 
 static void scrollCallback(
   GLFWwindow * window, double xoffset, double yoffset
@@ -117,6 +117,8 @@ PulePlatform pulePlatformCreate(
   glfwSetKeyCallback(window, ::inputKeyCallback);
   glfwSetMouseButtonCallback(window, ::inputMouseButtonCallback);
   glfwSetCharCallback(window, ::inputRawTextCallback);
+  glfwSetFramebufferSizeCallback(window, ::framebufferResizeCallback);
+  glfwSetWindowSizeCallback(window, ::windowResizeCallback);
 
   return platform;
 }
@@ -546,6 +548,8 @@ std::vector<
 std::vector<
   void (*)(PuleInputMouse const, PuleInputKeyModifier const, bool const)
 > userInputMouseButtonCallbacks = {};
+std::vector<void (*)(PuleI32v2 const)> userFramebufferResizeCallbacks = {};
+std::vector<void (*)(PuleI32v2 const)> userWindowResizeCallbacks = {};
 std::vector<void (*)(uint32_t const)> userInputRawTextCallbacks = {};
 
 // copied from glfw's imgui, untranslates GLFW's keys
@@ -621,6 +625,24 @@ static void inputRawTextCallback(GLFWwindow * platform, uint32_t rawCharacter) {
   }
 }
 
+static void framebufferResizeCallback(
+  GLFWwindow * platform, int32_t width, int32_t height
+) {
+  (void)platform;
+  for (auto const callback : ::userFramebufferResizeCallbacks) {
+    callback(PuleI32v2 { width, height });
+  }
+}
+
+static void windowResizeCallback(
+  GLFWwindow * platform, int32_t width, int32_t height
+) {
+  (void)platform;
+  for (auto const callback : ::userWindowResizeCallbacks) {
+    callback(PuleI32v2 { width, height });
+  }
+}
+
 } // C
 
 extern "C" {
@@ -649,6 +671,26 @@ void puleInputRawTextCallback(PuleInputRawTextCallbackCreateInfo const info) {
     return;
   }
   ::userInputRawTextCallbacks.emplace_back(info.callback);
+}
+
+void pulePlatformFramebufferResizeCallback(
+  PulePlatformFramebufferResizeCallbackCreateInfo const info
+) {
+  if (info.callback == nullptr) {
+    puleLogError("attempting to add null framebuffer resize callback");
+    return;
+  }
+  ::userFramebufferResizeCallbacks.emplace_back(info.callback);
+}
+
+void pulePlatformWindowResizeCallback(
+  PulePlatformWindowResizeCallbackCreateInfo const info
+) {
+  if (info.callback == nullptr) {
+    puleLogError("attempting to add null framebuffer resize callback");
+    return;
+  }
+  ::userWindowResizeCallbacks.emplace_back(info.callback);
 }
 
 } // extern C
