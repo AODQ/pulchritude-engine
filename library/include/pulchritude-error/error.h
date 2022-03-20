@@ -1,8 +1,6 @@
 #pragma once
 
 #include <pulchritude-core/core.h>
-
-
 #include <pulchritude-string/string.h>
 
 #ifdef __cplusplus
@@ -34,10 +32,21 @@ PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
 #define PULE_errorAssert(X, ErrorId, RetValue, ...) \
   if (!(X)) { \
     *error = { \
-      .description = puleStringFormatDefault("assertion failed; %s", #X), \
+      .description = ( \
+        puleStringFormatDefault( \
+          "assertion failed; %s:%d; %s", __FILE__, __LINE__, #X \
+        ) \
+      ), \
       .id = ErrorId, \
     }; \
     return RetValue; \
+  }
+
+// irrecoverable assert, should only be on for relwithdebinfo builds i guess
+#define PULE_assert(X) \
+  if (!(X)) { \
+    puleLogError("assertion failed at %s:%d; %s", __FILE__, __LINE__, #X); \
+    exit(-1); \
   }
 
 #ifdef __cplusplus

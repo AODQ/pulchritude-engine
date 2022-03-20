@@ -20,7 +20,7 @@ namespace {
     std::vector<uint8_t> constantData;
   };
   std::unordered_map<uint64_t, CommandList> commandLists;
-  uint64_t commandListsIt = 0;
+  uint64_t commandListsIt = 1;
 
   GLenum drawPrimitiveToGl(PuleGfxDrawPrimitive drawPrimitive) {
     switch (drawPrimitive) {
@@ -65,6 +65,7 @@ PuleGfxCommandList puleGfxCommandListCreate(PuleAllocator const allocator) {
 }
 
 void puleGfxCommandListDestroy(PuleGfxCommandList const commandList) {
+  if (commandList.id == 0) { return; }
   ::commandLists.erase(commandList.id);
 }
 
@@ -236,6 +237,7 @@ void puleGfxCommandListSubmit(
           util::DescriptorSetImageBinding const & binding = (
             pipeline.textures[it]
           );
+          puleLogDebug("binding: %d", binding.imageHandle);
           glBindTextureUnit(binding.bindingSlot, binding.imageHandle);
         }
         for (size_t it = 0; it < pipeline.storagesLength; ++ it) {

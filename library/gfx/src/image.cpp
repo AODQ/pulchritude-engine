@@ -9,7 +9,7 @@
 
 namespace { // sampler
   std::unordered_map<uint64_t, PuleGfxSamplerCreateInfo> samplers;
-  uint64_t samplersIt = 0;
+  uint64_t samplersIt = 1;
 
   GLenum imageMagnificationToGl(PuleGfxImageMagnification const magnify) {
     switch (magnify) {
@@ -71,6 +71,7 @@ PuleGfxSampler puleGfxSamplerCreate(
 void puleGfxSamplerDestroy(
   PuleGfxSampler const sampler
 ) {
+  if (sampler.id == 0) { return; }
   ::samplers.erase(sampler.id);
 }
 
@@ -142,7 +143,7 @@ PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
         createInfo.width,
         createInfo.height
       );
-      if (createInfo.nullableInitialData) {
+      if (createInfo.optionalInitialData) {
         glTextureSubImage2D(
           textureHandle,
           0, 0, 0,
@@ -150,7 +151,7 @@ PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
           createInfo.height,
           ::byteFormatToGlFormat(createInfo.byteFormat),
           ::byteFormatToGlType(createInfo.byteFormat),
-          createInfo.nullableInitialData
+          createInfo.optionalInitialData
         );
       }
     break;
@@ -160,6 +161,7 @@ PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
 }
 
 void puleGfxGpuImageDestroy(PuleGfxGpuImage const image) {
+  if (image.id == 0) { return; }
   GLuint handle = static_cast<GLuint>(image.id);
   if (handle != 0) {
     glDeleteTextures(1, &handle);
@@ -241,6 +243,7 @@ PuleGfxFramebuffer puleGfxFramebufferCreate(
 }
 
 void puleGfxFramebufferDestroy(PuleGfxFramebuffer const framebuffer) {
+  if (framebuffer.id == 0) { return; }
   auto const glFramebuffer = static_cast<GLuint>(framebuffer.id);
   if (glFramebuffer != 0) {
     glDeleteFramebuffers(1, &glFramebuffer);

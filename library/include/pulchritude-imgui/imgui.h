@@ -1,3 +1,5 @@
+#pragma once
+
 // this is an immediate mode GUI, most likely only to be used as a debug GUI
 //   during development, and hidden/unused in production builds. it's meant to
 //   provide a clean C ABI that lets you quickly prototype and create a lot of

@@ -139,7 +139,7 @@ namespace {
 extern "C" {
 
 PuleGfxGpuBuffer puleGfxGpuBufferCreate(
-  void const * const nullableInitialData,
+  void const * const optionalInitialData,
   size_t const byteLength,
   [[maybe_unused]] PuleGfxGpuBufferUsage const usage,
   PuleGfxGpuBufferVisibilityFlag const visibility
@@ -148,13 +148,14 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   glCreateBuffers(1, &buffer);
   puleLogDebug("buffer: %u", buffer);
   glNamedBufferStorage(
-    buffer, byteLength, nullableInitialData, bufferVisibilityToGl(visibility)
+    buffer, byteLength, optionalInitialData, bufferVisibilityToGl(visibility)
   );
 
   return { static_cast<uint64_t>(buffer) };
 }
 
 void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer) {
+  if (buffer.id == 0) { return; }
   GLuint const bufferHandle = static_cast<GLuint>(buffer.id);
   if (bufferHandle != 0) {
     glDeleteBuffers(1, &bufferHandle);

@@ -1,9 +1,5 @@
 #pragma once
 
-// TODO change name from `window` to `platform`
-//      since this does more than just windowing; it interacts with the
-//      underlying platform; inputs, clipboards, timing, events, etc.
-
 #include <stdbool.h>
 
 #include <pulchritude-core/core.h>
@@ -17,7 +13,7 @@ extern "C" {
 
 typedef enum {
   PulePlatformVsyncMode_none,
-  PulePlatformVsyncMode_single,
+  PulePlatformVsyncMode_double,
   PulePlatformVsyncMode_triple,
   PulePlatformVsyncMode_End,
   PulePlatformVsyncMode_MaxEnum = 0x7FFFFFFF,
@@ -37,7 +33,7 @@ typedef struct {
 } PulePlatformCreateInfo;
 
 typedef struct {
-  void * data;
+  void * data; // TODO use uint64
 } PulePlatform;
 
 PULE_exportFn void pulePlatformInitialize(PuleError * const error);

@@ -1,9 +1,3 @@
-# first copy files from third party into internal
-FILE(
-  GLOB imgui_source_files
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/imgui/imgui/*.cpp"
-)
-
 # then add library
 add_library(pulchritude-imgui SHARED)
 
@@ -11,7 +5,13 @@ target_include_directories(
   pulchritude-imgui
   PUBLIC "../include/"
   PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/imgui"
-  )
+)
+
+FILE(
+  GLOB imgui_source_files
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/imgui/imgui/*.cpp"
+)
+
 target_sources(
   pulchritude-imgui
   PRIVATE

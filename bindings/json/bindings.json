@@ -684,7 +684,7 @@
         "value": 0
       },
       {
-        "label": "PulePlatformVsyncMode_single",
+        "label": "PulePlatformVsyncMode_double",
         "value": 1
       },
       {
@@ -1757,12 +1757,8 @@
         "value": 0
       },
       {
-        "label": "PuleErrorDataSerializer_fileOpen",
-        "value": 1
-      },
-      {
         "label": "PuleErrorDataSerializer_invalidFormat",
-        "value": 2
+        "value": 1
       }
     ]
   },
@@ -2007,7 +2003,7 @@
     "return-type": [
       "PuleDsValue"
     ],
-    "label": "puleDsLoadFromFile",
+    "label": "puleDsLoadFromStream",
     "parameters": [
       {
         "label": "allocator",
@@ -2018,11 +2014,9 @@
         "meta-type": "standard"
       },
       {
-        "label": "filename",
+        "label": "stream",
         "type": [
-          "char",
-          "const",
-          "*",
+          "PuleStreamRead",
           "const"
         ],
         "meta-type": "standard"
@@ -2356,6 +2350,432 @@
     ],
     "label": "puleImguiRender",
     "parameters": []
+  },
+  {
+    "type": "enum",
+    "label": "PuleErrorAssetImage",
+    "values": [
+      {
+        "label": "PuleErrorAssetImage_none",
+        "value": 0
+      },
+      {
+        "label": "PuleErrorAssetImage_decode",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleAssetImage",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleAssetImageSupportFlag",
+    "values": [
+      {
+        "label": "PuleAssetImageSupportFlag_none",
+        "value": 0
+      },
+      {
+        "label": "PuleAssetImageSupportFlag_read",
+        "value": 1
+      },
+      {
+        "label": "PuleAssetImageSupportFlag_write",
+        "value": 2
+      },
+      {
+        "label": "PuleAssetImageSupportFlag_readWrite",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleAssetImageSupportFlag"
+    ],
+    "label": "puleAssetImageExtensionSupported",
+    "parameters": [
+      {
+        "label": "extension",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleAssetImageFormat",
+    "values": [
+      {
+        "label": "PuleAssetImageFormat_rgbaU8",
+        "value": 0
+      },
+      {
+        "label": "PuleAssetImageFormat_rgbaU16",
+        "value": 1
+      },
+      {
+        "label": "PuleAssetImageFormat_rgbU8",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleAssetImage"
+    ],
+    "label": "puleAssetImageLoadFromStream",
+    "parameters": [
+      {
+        "label": "allocator",
+        "type": [
+          "PuleAllocator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "imageSource",
+        "type": [
+          "PuleStreamRead",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "requestedFormat",
+        "type": [
+          "PuleAssetImageFormat",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "error",
+        "type": [
+          "PuleError",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleAssetImageDestroy",
+    "parameters": [
+      {
+        "label": "image",
+        "type": [
+          "PuleAssetImage",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleAssetImageDecodedData",
+    "parameters": [
+      {
+        "label": "image",
+        "type": [
+          "PuleAssetImage",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "size_t"
+    ],
+    "label": "puleAssetImageDecodedDataLength",
+    "parameters": [
+      {
+        "label": "image",
+        "type": [
+          "PuleAssetImage",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "size_t"
+    ],
+    "label": "puleAssetImageWidth",
+    "parameters": [
+      {
+        "label": "image",
+        "type": [
+          "PuleAssetImage",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "size_t"
+    ],
+    "label": "puleAssetImageHeight",
+    "parameters": [
+      {
+        "label": "image",
+        "type": [
+          "PuleAssetImage",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleStreamRead",
+    "fields": [
+      {
+        "label": "userdata",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "readByte",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "uint8_t"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "constuserdata"
+          ]
+        ]
+      },
+      {
+        "label": "peekByte",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "uint8_t"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "constuserdata"
+          ]
+        ]
+      },
+      {
+        "label": "isDone",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "bool"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "constuserdata"
+          ]
+        ]
+      },
+      {
+        "label": "destroy",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "constuserdata"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "uint8_t"
+    ],
+    "label": "puleStreamReadByte",
+    "parameters": [
+      {
+        "label": "stream",
+        "type": [
+          "PuleStreamRead",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "uint8_t"
+    ],
+    "label": "puleStreamPeekByte",
+    "parameters": [
+      {
+        "label": "stream",
+        "type": [
+          "PuleStreamRead",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "puleStreamReadIsDone",
+    "parameters": [
+      {
+        "label": "stream",
+        "type": [
+          "PuleStreamRead",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleStreamReadDestroy",
+    "parameters": [
+      {
+        "label": "stream",
+        "type": [
+          "PuleStreamRead",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleStreamWrite",
+    "fields": [
+      {
+        "label": "userdata",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "writeBytes",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "void",
+            "*",
+            "const",
+            "userdata"
+          ],
+          [
+            "void",
+            "*",
+            "const",
+            "bytes"
+          ],
+          [
+            "size_t",
+            "const",
+            "length"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleStreamWriteBytes",
+    "parameters": [
+      {
+        "label": "stream",
+        "type": [
+          "PuleStreamWrite",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "bytes",
+        "type": [
+          "void",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "length",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
   },
   {
     "type": "enum",
@@ -3159,14 +3579,16 @@
       {
         "label": "dataMode",
         "type": [
-          "PuleFileDataMode"
+          "PuleFileDataMode",
+          "const"
         ],
         "meta-type": "standard"
       },
       {
         "label": "openMode",
         "type": [
-          "PuleFileOpenMode"
+          "PuleFileOpenMode",
+          "const"
         ],
         "meta-type": "standard"
       },
@@ -3400,22 +3822,9 @@
     ]
   },
   {
-    "type": "struct",
-    "label": "PuleFileStream",
-    "fields": [
-      {
-        "label": "id",
-        "type": [
-          "uint64_t"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
     "type": "function",
     "return-type": [
-      "PuleFileStream"
+      "PuleStreamRead"
     ],
     "label": "puleFileStream",
     "parameters": [
@@ -3431,74 +3840,6 @@
         "label": "view",
         "type": [
           "PuleArrayViewMutable",
-          "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "void"
-    ],
-    "label": "puleFileStreamDestroy",
-    "parameters": [
-      {
-        "label": "stream",
-        "type": [
-          "PuleFileStream",
-          "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "uint8_t"
-    ],
-    "label": "puleFileStreamReadByte",
-    "parameters": [
-      {
-        "label": "stream",
-        "type": [
-          "PuleFileStream",
-          "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "uint8_t"
-    ],
-    "label": "puleFileStreamPeekByte",
-    "parameters": [
-      {
-        "label": "stream",
-        "type": [
-          "PuleFileStream",
-          "const"
-        ],
-        "meta-type": "standard"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "return-type": [
-      "bool"
-    ],
-    "label": "puleFileStreamIsDone",
-    "parameters": [
-      {
-        "label": "stream",
-        "type": [
-          "PuleFileStream",
           "const"
         ],
         "meta-type": "standard"
@@ -4306,7 +4647,7 @@
         "meta-type": "standard"
       },
       {
-        "label": "nullableInitialData",
+        "label": "optionalInitialData",
         "type": [
           "void",
           "const",
@@ -4666,7 +5007,7 @@
     "label": "puleGfxGpuBufferCreate",
     "parameters": [
       {
-        "label": "nullableInitialData",
+        "label": "optionalInitialData",
         "type": [
           "void",
           "const",

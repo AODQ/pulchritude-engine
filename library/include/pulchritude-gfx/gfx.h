@@ -65,7 +65,7 @@ typedef enum {
 } PuleGfxGpuBufferVisibilityFlag;
 
 PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
-  void const * const nullableInitialData,
+  void const * const optionalInitialData,
   size_t const byteLength, // must be >0
   PuleGfxGpuBufferUsage const usage,
   PuleGfxGpuBufferVisibilityFlag const visibility

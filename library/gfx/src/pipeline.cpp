@@ -186,6 +186,7 @@ PuleGfxPipeline puleGfxPipelineCreate(
 }
 
 void puleGfxPipelineDestroy(PuleGfxPipeline const pipeline) {
+  if (pipeline.id == 0) { return; }
   util::destroyPipeline(pipeline.id);
 }
 

@@ -114,7 +114,7 @@ pub extern fn puleViewLookAt(
 ) callconv(.C) PuleF32m44;
 pub const PulePlatformVsyncMode = enum(u32) {
   none = 0,
-  single = 1,
+  double = 1,
   triple = 2,
   End = 3,
 };
@@ -334,8 +334,7 @@ pub extern fn puleInputRawTextCallback(
 ) callconv(.C) void;
 pub const PuleErrorDataSerializer = enum(u32) {
   none = 0,
-  fileOpen = 1,
-  invalidFormat = 2,
+  invalidFormat = 1,
 };
 pub const PuleDsValue = extern struct {
   id: u64,
@@ -379,9 +378,9 @@ pub extern fn puleDsIsArray(
 pub extern fn puleDsIsObject(
   value: PuleDsValue,
 ) callconv(.C) bool;
-pub extern fn puleDsLoadFromFile(
+pub extern fn puleDsLoadFromStream(
   allocator: PuleAllocator,
-  filename: [*c] const u8,
+  stream: PuleStreamRead,
   err: [*c] PuleError,
 ) callconv(.C) PuleDsValue;
 pub extern fn puleDsDestroy(
@@ -437,6 +436,71 @@ pub extern fn puleImguiInitialize(
 pub extern fn puleImguiShutdown() callconv(.C) void;
 pub extern fn puleImguiNewFrame() callconv(.C) void;
 pub extern fn puleImguiRender() callconv(.C) void;
+pub const PuleErrorAssetImage = enum(u32) {
+  none = 0,
+  decode = 1,
+};
+pub const PuleAssetImage = extern struct {
+  id: u64,
+};
+pub const PuleAssetImageSupportFlag = enum(u32) {
+  none = 0,
+  read = 1,
+  write = 2,
+  readWrite = 3,
+};
+pub extern fn puleAssetImageExtensionSupported(
+  extension: [*c] const u8,
+) callconv(.C) PuleAssetImageSupportFlag;
+pub const PuleAssetImageFormat = enum(u32) {
+  rgbaU8 = 0,
+  rgbaU16 = 1,
+  rgbU8 = 2,
+};
+pub extern fn puleAssetImageLoadFromStream(
+  allocator: PuleAllocator,
+  imageSource: PuleStreamRead,
+  requestedFormat: PuleAssetImageFormat,
+  err: [*c] PuleError,
+) callconv(.C) PuleAssetImage;
+pub extern fn puleAssetImageDestroy(
+  image: PuleAssetImage,
+) callconv(.C) void;
+pub extern fn puleAssetImageDecodedData(
+  image: PuleAssetImage,
+) callconv(.C) ?* anyopaque;
+pub extern fn puleAssetImageDecodedDataLength(
+  image: PuleAssetImage,
+) callconv(.C) usize;
+pub extern fn puleAssetImageWidth(
+  image: PuleAssetImage,
+) callconv(.C) usize;
+pub extern fn puleAssetImageHeight(
+  image: PuleAssetImage,
+) callconv(.C) usize;
+pub const PuleStreamRead = extern struct {
+  userdata: ?* anyopaque,
+};
+pub extern fn puleStreamReadByte(
+  stream: PuleStreamRead,
+) callconv(.C) u8;
+pub extern fn puleStreamPeekByte(
+  stream: PuleStreamRead,
+) callconv(.C) u8;
+pub extern fn puleStreamReadIsDone(
+  stream: PuleStreamRead,
+) callconv(.C) bool;
+pub extern fn puleStreamReadDestroy(
+  stream: PuleStreamRead,
+) callconv(.C) void;
+pub const PuleStreamWrite = extern struct {
+  userdata: ?* anyopaque,
+};
+pub extern fn puleStreamWriteBytes(
+  stream: PuleStreamWrite,
+  bytes: ?* anyopaque,
+  length: usize,
+) callconv(.C) void;
 pub const PuleErrorArray = enum(u32) {
   none = 0,
   errorAllocation = 1,
@@ -608,25 +672,10 @@ pub extern fn puleFileAdvanceFromCurrent(
   file: PuleFile,
   offset: i64,
 ) callconv(.C) void;
-pub const PuleFileStream = extern struct {
-  id: u64,
-};
 pub extern fn puleFileStream(
   file: PuleFile,
   view: PuleArrayViewMutable,
-) callconv(.C) PuleFileStream;
-pub extern fn puleFileStreamDestroy(
-  stream: PuleFileStream,
-) callconv(.C) void;
-pub extern fn puleFileStreamReadByte(
-  stream: PuleFileStream,
-) callconv(.C) u8;
-pub extern fn puleFileStreamPeekByte(
-  stream: PuleFileStream,
-) callconv(.C) u8;
-pub extern fn puleFileStreamIsDone(
-  stream: PuleFileStream,
-) callconv(.C) bool;
+) callconv(.C) PuleStreamRead;
 pub const PulePluginType = enum(u32) {
   library = 0,
   component = 1,
@@ -768,7 +817,7 @@ pub const PuleGfxImageCreateInfo = extern struct {
   target: PuleGfxImageTarget,
   byteFormat: PuleGfxImageByteFormat,
   sampler: PuleGfxSampler,
-  nullableInitialData: ?* const anyopaque,
+  optionalInitialData: ?* const anyopaque,
 };
 pub extern fn puleGfxGpuImageCreate(
   imageCreateInfo: PuleGfxImageCreateInfo,
@@ -846,7 +895,7 @@ pub const PuleGfxGpuBufferVisibilityFlag = enum(u32) {
   hostWritable = 4,
 };
 pub extern fn puleGfxGpuBufferCreate(
-  nullableInitialData: ?* const anyopaque,
+  optionalInitialData: ?* const anyopaque,
   byteLength: usize,
   usage: PuleGfxGpuBufferUsage,
   visibility: PuleGfxGpuBufferVisibilityFlag,

@@ -56,7 +56,7 @@ typedef struct {
   PuleGfxImageTarget target;
   PuleGfxImageByteFormat byteFormat;
   PuleGfxSampler sampler; // TODO this should technically be changable
-  void const * nullableInitialData;
+  void const * optionalInitialData;
 } PuleGfxImageCreateInfo;
 
 PULE_exportFn PuleGfxGpuImage puleGfxGpuImageCreate(

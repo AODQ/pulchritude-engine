@@ -50,6 +50,7 @@ PuleGfxFence puleGfxFenceCreate(PuleGfxFenceConditionFlag const condition) {
   };
 }
 void puleGfxFenceDestroy(PuleGfxFence const fence) {
+  if (fence.id == 0) { return; }
   auto const handle = reinterpret_cast<GLsync>(fence.id);
   glDeleteSync(handle);
 }

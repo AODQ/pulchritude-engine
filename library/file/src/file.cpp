@@ -15,16 +15,16 @@ extern "C" {
 
 PuleFile puleFileOpen(
   char const * const filename,
-  PuleFileDataMode dataMode,
-  PuleFileOpenMode openMode,
+  PuleFileDataMode const dataMode,
+  PuleFileOpenMode const openMode,
   PuleError * const error
 ) {
   char const * fileMode = "";
   switch (dataMode) {
-    default: assert(false);
+    default: PULE_assert(false);
     case PuleFileDataMode_text:
       switch (openMode) {
-        default: assert(false);
+        default: PULE_assert(false);
         case PuleFileOpenMode_read: fileMode = "r"; break;
         case PuleFileOpenMode_writeOverwrite: fileMode = "w"; break;
         case PuleFileOpenMode_writeAppend: fileMode = "a+"; break;
@@ -34,7 +34,7 @@ PuleFile puleFileOpen(
     break;
     case PuleFileDataMode_binary:
       switch (openMode) {
-        default: assert(false);
+        default: PULE_assert(false);
         case PuleFileOpenMode_read: fileMode = "rb"; break;
         case PuleFileOpenMode_writeOverwrite: fileMode = "wb"; break;
         case PuleFileOpenMode_writeAppend: fileMode = "a+b"; break;
@@ -54,6 +54,9 @@ PuleFile puleFileOpen(
 }
 
 void puleFileClose(PuleFile const file) {
+  if (file.id == 0) {
+    return;
+  }
   auto const fileHandle = ::openFiles.at(file.id);
   fclose(fileHandle);
 }
@@ -138,7 +141,44 @@ void refreshPdsStream(PdsStream & stream) {
 
 extern "C" {
 
-PuleFileStream puleFileStream(
+static bool fileStreamIsDone(void * const userdata) {
+  ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+  ::refreshPdsStream(stream);
+  return stream.fetchedBufferLength == 0;
+}
+
+static uint8_t fileStreamPeekByte(void * const userdata) {
+  ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+  ::refreshPdsStream(stream);
+  PULE_assert(!fileStreamIsDone(userdata));
+  PULE_assert(stream.bufferIt < stream.fetchedBufferLength);
+  uint8_t const character = stream.buffer.data[stream.bufferIt];
+  return character;
+}
+
+static uint8_t fileStreamReadByte(void * const userdata) {
+  ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+  uint8_t const character = fileStreamPeekByte(userdata);
+  stream.bufferIt += 1;
+  return character;
+}
+
+static void fileStreamDestroy(void * const userdata) {
+  if (!userdata) { return; }
+  ::PdsStream const stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+  (void)stream; // TODO remove this void
+  ::streams.erase(reinterpret_cast<uint64_t>(userdata));
+
+  // reverse file to where the user last actually read the byte, as otherwise
+  //   a segment from file will be lost
+  // TODO (needs this function impl.)
+  //puleFileAdvanceFromCurrent(
+  //  PuleFile{.id = fileStream.id},
+  //  -(stream.fetchedBufferLength-stream.bufferIt)
+  //);
+}
+
+PuleStreamRead puleFileStream(
   PuleFile const file,
   PuleArrayViewMutable const view
 ) {
@@ -154,43 +194,13 @@ PuleFileStream puleFileStream(
       .bufferIt = 0,
     }
   );
-  return { file.id };
-}
-
-void puleFileStreamDestroy(PuleFileStream const fileStream) {
-  ::PdsStream const stream = ::streams.at(fileStream.id);
-  (void)stream; // TODO remove this void
-  ::streams.erase(fileStream.id);
-
-  // reverse file to where the user last actually read the byte, as otherwise
-  //   a segment from file will be lost
-  // TODO (needs this function impl.)
-  //puleFileAdvanceFromCurrent(
-  //  PuleFile{.id = fileStream.id},
-  //  -(stream.fetchedBufferLength-stream.bufferIt)
-  //);
-}
-
-uint8_t puleFileStreamPeekByte(PuleFileStream const fileStream) {
-  ::PdsStream & stream = ::streams.at(fileStream.id);
-  ::refreshPdsStream(stream);
-  assert(!puleFileStreamIsDone(stream));
-  assert(stream.bufferIt < stream.fetchedBufferLength);
-  uint8_t const character = stream.buffer.data[stream.bufferIt];
-  return character;
-}
-
-uint8_t puleFileStreamReadByte(PuleFileStream const fileStream) {
-  ::PdsStream & stream = ::streams.at(fileStream.id);
-  uint8_t const character = puleFileStreamPeekByte(fileStream);
-  stream.bufferIt += 1;
-  return character;
-}
-
-bool puleFileStreamIsDone(PuleFileStream const fileStream) {
-  ::PdsStream & stream = ::streams.at(fileStream.id);
-  ::refreshPdsStream(stream);
-  return stream.fetchedBufferLength == 0;
+  return PuleStreamRead {
+    .userdata = reinterpret_cast<void *>(file.id),
+    .readByte = fileStreamReadByte,
+    .peekByte = fileStreamPeekByte,
+    .isDone = fileStreamIsDone,
+    .destroy = fileStreamDestroy,
+  };
 }
 
 } // C

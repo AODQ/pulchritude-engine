@@ -1,3 +1,5 @@
+#pragma once
+
 // this is a data-serialization parser & writer; 'Pule Data Serializer'
 // Everything from data to configs is stored in this format. It is very similar
 //   to JSON, but is meant to have more relaxed rules.
@@ -58,6 +60,7 @@
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
+#include <pulchritude-file/file.h>
 #include <pulchritude-string/string.h>
 
 #ifdef __cplusplus
@@ -66,7 +69,6 @@ extern "C" {
 
 typedef enum {
   PuleErrorDataSerializer_none,
-  PuleErrorDataSerializer_fileOpen,
   PuleErrorDataSerializer_invalidFormat,
 } PuleErrorDataSerializer;
 
@@ -97,11 +99,9 @@ PULE_exportFn bool puleDsIsString(PuleDsValue const value);
 PULE_exportFn bool puleDsIsArray(PuleDsValue const value);
 PULE_exportFn bool puleDsIsObject(PuleDsValue const value);
 
-// instead of `puleDsLoadFromFile`, use a stream, such as
-// puleDsLoadFromStream(puleDsFileStream(allocator, "hello.pds", &err), &err)
-PULE_exportFn PuleDsValue puleDsLoadFromFile(
+PULE_exportFn PuleDsValue puleDsLoadFromStream(
   PuleAllocator const allocator,
-  char const * const filename,
+  PuleStreamRead const stream,
   PuleError * const error
 );
 

@@ -91,7 +91,7 @@ PulePlatform pulePlatformCreate(
 
   GLFWwindow * window = (
     glfwCreateWindow(
-      windowWidth, windowHeight, "platformer example", nullptr, nullptr
+      windowWidth, windowHeight, info.name.contents, nullptr, nullptr
     )
   );
 
@@ -105,7 +105,7 @@ PulePlatform pulePlatformCreate(
     case PulePlatformVsyncMode_triple:
       // I don't think triple (3) will work as intended in GLFW, nor is it an
       //   option in OpenGL so set it to 1
-    case PulePlatformVsyncMode_single:
+    case PulePlatformVsyncMode_double:
       glfwSwapInterval(1);
     break;
     default:

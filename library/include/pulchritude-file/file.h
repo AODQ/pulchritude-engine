@@ -1,7 +1,9 @@
+#pragma once
 
 #include <pulchritude-array/array.h>
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
+#include <pulchritude-stream/stream.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,8 +33,8 @@ typedef struct {
 
 PULE_exportFn PuleFile puleFileOpen(
   char const * const filename,
-  PuleFileDataMode dataMode,
-  PuleFileOpenMode openMode,
+  PuleFileDataMode const dataMode,
+  PuleFileOpenMode const openMode,
   PuleError * const error
 );
 PULE_exportFn void puleFileClose(PuleFile const file);
@@ -71,23 +73,10 @@ PULE_exportFn void puleFileAdvanceFromCurrent(
 // the only limitation is that you can only have one stream open per file,
 //   you can't use the normal file mechanisms without closing the stream,
 //   and it's not thread-safe
-
-typedef struct {
-  uint64_t id;
-} PuleFileStream;
-
-PULE_exportFn PuleFileStream puleFileStream(
+PULE_exportFn PuleStreamRead puleFileStream(
   PuleFile const file,
   PuleArrayViewMutable const view // PULE_lifetimeOfReturnObject
 );
-
-// closes the stream, does not close the file
-//   the file will be advanced to the last byte you read from the stream
-PULE_exportFn void puleFileStreamDestroy(PuleFileStream const stream);
-
-PULE_exportFn uint8_t puleFileStreamReadByte(PuleFileStream const stream);
-PULE_exportFn uint8_t puleFileStreamPeekByte(PuleFileStream const stream);
-PULE_exportFn bool puleFileStreamIsDone(PuleFileStream const stream);
 
 #ifdef __cplusplus
 }

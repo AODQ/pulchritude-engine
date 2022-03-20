@@ -168,6 +168,9 @@ PuleDsValue puleDsCreateObject(PuleAllocator const allocator) {
   return {::pdsValueAdd(PdsObject{})};
 }
 void puleDsDestroy(PuleDsValue const value) {
+  if (value.id == 0) {
+    return;
+  }
   if (auto const asArray = std::get_if<PdsArray>(&::pdsValues.at(value.id))) {
     for (auto const pdsValue : *asArray) {
       puleDsDestroy(pdsValue);
@@ -232,7 +235,7 @@ void puleDsAssignObjectMember(
 namespace {
 PuleDsValue pdsParseValue(
   PuleAllocator const allocator,
-  PuleFileStream const stream
+  PuleStreamRead const stream
 );
 } // namespace
 
@@ -246,23 +249,15 @@ bool isWhitespace(char const character) {
   );
 }
 
-// TODO maybe somehow move to file.h?
-struct pdsStreamer {
-  PuleFile file = { 0 };
-  uint8_t pdsData[128] = { 0 };
-  size_t pdsDataLength = 0;
-  size_t pdsDataIter = 0;
-};
-
 // accounts for comments
-char pdsReadByte(PuleFileStream const stream) {
-  char character = puleFileStreamReadByte(stream);
+char pdsReadByte(PuleStreamRead const stream) {
+  char character = puleStreamReadByte(stream);
   if (character != '#') return character;
   while (
-    !puleFileStreamIsDone(stream)
-    && puleFileStreamReadByte(stream) != '\n'
+    !puleStreamReadIsDone(stream)
+    && puleStreamReadByte(stream) != '\n'
   );
-  return puleFileStreamReadByte(stream);
+  return puleStreamReadByte(stream);
 }
 
 std::string trimBeginEndWhitespace(std::string const & s) {
@@ -272,13 +267,13 @@ std::string trimBeginEndWhitespace(std::string const & s) {
   return s.substr(start, end-start+1);
 }
 
-std::string pdsParseLabel(PuleFileStream const stream) {
+std::string pdsParseLabel(PuleStreamRead const stream) {
   bool firstLetter = false;
   bool invalidLabel = false;
   std::string label;
   char character = 0;
   while (true) {
-    if (puleFileStreamIsDone(stream)) {
+    if (puleStreamReadIsDone(stream)) {
       puleLogError("hit EOF trying to parse label '%s'", label.c_str());
       return "";
     }
@@ -387,19 +382,19 @@ PuleDsValue parseBase64(std::string const & value) {
 
 PuleDsValue pdsParseArray(
   PuleAllocator const allocator,
-  PuleFileStream const stream
+  PuleStreamRead const stream
 ) {
   PuleDsValue object = puleDsCreateArray(allocator);
   while (true) {
-    while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+    while (::isWhitespace(puleStreamPeekByte(stream))) {
       pdsReadByte(stream);
       continue;
     }
-    if (puleFileStreamIsDone(stream)) {
+    if (puleStreamReadIsDone(stream)) {
       puleLogError("hit EOF while parsing object");
       return {0};
     }
-    if (puleFileStreamPeekByte(stream) == ']') {
+    if (puleStreamPeekByte(stream) == ']') {
       break;
     }
     puleDsAppendArray(object, pdsParseValue(allocator, stream));
@@ -408,7 +403,7 @@ PuleDsValue pdsParseArray(
   // consume ]
   pdsReadByte(stream);
   // consume ','
-  while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+  while (::isWhitespace(puleStreamPeekByte(stream))) {
     pdsReadByte(stream);
   }
   pdsReadByte(stream);
@@ -418,30 +413,29 @@ PuleDsValue pdsParseArray(
 
 PuleDsValue pdsParseObject(
   PuleAllocator const allocator,
-  PuleFileStream const stream,
+  PuleStreamRead const stream,
   bool inObject=false
 ) {
   char character = ' ';
   while (!inObject && character != '{') {
-    if (puleFileStreamIsDone(stream)) {
+    if (puleStreamReadIsDone(stream)) {
       puleLogError("hit EOF while parsing object");
       return {0};
     }
     character = pdsReadByte(stream);
   }
-  assert(character == '{');
 
   PuleDsValue object = puleDsCreateObject(allocator);
   while (true) {
     // skip whitespace
-    while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+    while (::isWhitespace(puleStreamPeekByte(stream))) {
       pdsReadByte(stream);
     }
-    if (puleFileStreamIsDone(stream)) {
+    if (puleStreamReadIsDone(stream)) {
       puleLogError("hit EOF while parsing object");
       return {0};
     }
-    if (puleFileStreamPeekByte(stream) == '}') {
+    if (puleStreamPeekByte(stream) == '}') {
       break;
     }
     std::string memberLabel = pdsParseLabel(stream);
@@ -458,7 +452,7 @@ PuleDsValue pdsParseObject(
   // consume }
   pdsReadByte(stream);
   // consume ','
-  while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+  while (::isWhitespace(puleStreamPeekByte(stream))) {
     pdsReadByte(stream);
   }
   pdsReadByte(stream);
@@ -468,9 +462,9 @@ PuleDsValue pdsParseObject(
 
 PuleDsValue pdsParseValue(
   PuleAllocator const allocator,
-  PuleFileStream const stream
+  PuleStreamRead const stream
 ) {
-  while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+  while (::isWhitespace(puleStreamPeekByte(stream))) {
     pdsReadByte(stream);
   }
   char character = pdsReadByte(stream);
@@ -501,12 +495,12 @@ PuleDsValue pdsParseValue(
 
       if (inString && prevChar != '\\' && character == '"') {
         // get & consume to the ','
-        while (::isWhitespace(puleFileStreamPeekByte(stream))) {
+        while (::isWhitespace(puleStreamPeekByte(stream))) {
           pdsReadByte(stream);
         }
         [[maybe_unused]]
         char const c = pdsReadByte(stream);
-        assert(c == ',');
+        PULE_assert(c == ',');
         break;
       }
 
@@ -564,44 +558,21 @@ PuleDsValue pdsParseValue(
 
 extern "C" {
 
-PuleDsValue puleDsLoadFromFile(
+PuleDsValue puleDsLoadFromStream(
   PuleAllocator const allocator,
-  char const * const filename,
+  PuleStreamRead const stream,
   PuleError * const error
 ) {
-  PuleFile file = (
-    puleFileOpen(
-      filename,
-      PuleFileDataMode_text,
-      PuleFileOpenMode_read,
-      error
-    )
-  );
-  if (puleErrorConsume(error) > 0) {
-    PULE_error(
-      PuleErrorDataSerializer_fileOpen,
-      "failed to open: '%s'", filename
-    );
-    return { 0 };
-  }
-
-  uint8_t pdsData[128];
-  PuleArrayViewMutable pdsDataView = {
-    .data = &pdsData[0],
-    .elementStride = sizeof(uint8_t),
-    .elementCount = 128,
-  };
-  PuleFileStream stream = puleFileStream(file, pdsDataView);
-
+  (void)error;
   auto const defaultObject = puleDsCreateObject(allocator);
 
-  while (!puleFileStreamIsDone(stream)) {
+  while (!puleStreamReadIsDone(stream)) {
     // skip whitespace
-    if (::isWhitespace(puleFileStreamPeekByte(stream))) {
-      printf("%c", pdsReadByte(stream));
+    if (::isWhitespace(puleStreamPeekByte(stream))) {
+      pdsReadByte(stream);
       continue;
     }
-    if (puleFileStreamIsDone(stream)) { break; }
+    if (puleStreamReadIsDone(stream)) { break; }
     std::string memberLabel = pdsParseLabel(stream);
     puleDsAssignObjectMember(
       defaultObject,
@@ -613,9 +584,6 @@ PuleDsValue puleDsLoadFromFile(
     );
   }
 
-  puleFileStreamDestroy(stream);
-  puleFileClose(file);
-
   return defaultObject;
 }
 
@@ -623,7 +591,7 @@ PuleDsValue puleDsLoadFromFile(
 
 namespace {
 
-void addTab(PuleDsWriteInfo info, uint32_t const tabLevel, std::string & out) {
+void addTab(PuleDsWriteInfo info, int32_t const tabLevel, std::string & out) {
   if (!info.prettyPrint) {
     return;
   }
@@ -727,7 +695,7 @@ void puleDsWriteToStdout(PuleDsWriteInfo const info) {
 
   std::string out;
   ::pdsIterateWriteToStdout(info, info.initialTabLevel-1, out);
-  printf("---------------\n%s\n---------------\n", out.c_str());
+  puleLog("---------------\n%s\n---------------\n", out.c_str());
 }
 
 } // C

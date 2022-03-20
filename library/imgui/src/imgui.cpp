@@ -57,7 +57,7 @@ void createFontsTexture() {
       .target = PuleGfxImageTarget_i2D,
       .byteFormat = PuleGfxImageByteFormat_rgba8U,
       .sampler = bd.fontImageSampler,
-      .nullableInitialData = pixels,
+      .optionalInitialData = pixels,
     })
   );
 
@@ -92,12 +92,12 @@ void initializeRenderData() {
     in layout(location = 0) vec2 inUv;
     in layout(location = 1) vec4 inColor;
 
-    uniform layout(binding = 0) sampler2D unfSampler;
+    uniform layout(binding = 0) sampler2D boundSampler;
 
     out layout(location = 0) vec4 outColor;
 
     void main() {
-      outColor = inColor * texture(unfSampler, inUv);
+      outColor = inColor * texture(boundSampler, inUv);
     }
   );
 

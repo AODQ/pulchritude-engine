@@ -166,10 +166,10 @@ def exportJsonFromFile(contents):
         label += contents[it]
         it += 1
 
-      if ("MaxEnum" not in enums):
-        print(f"WARNING: enum {label} has no MaxEnum")
-      if ("End" not in enums):
-        print(f"WARNING: enum {label} has no End")
+      #if ("MaxEnum" not in enums):
+      #  print(f"WARNING: enum {label} has no MaxEnum")
+      #if ("End" not in enums):
+      #  print(f"WARNING: enum {label} has no End")
 
       exportedSymbols += [{
         "type": "enum",
@@ -186,7 +186,6 @@ def exportJsonFromFile(contents):
         it += 1
       it += 1
 
-      print(f"---------------")
       while (contents[it] != "}"):
         while (contents[it].isspace()):
           it += 1
@@ -208,7 +207,6 @@ def exportJsonFromFile(contents):
             "meta-type": "standard"
           }]
 
-        print(f"field: {field}")
         while (contents[it].isspace()):
           it += 1
         if (contents[it] == ";"):
