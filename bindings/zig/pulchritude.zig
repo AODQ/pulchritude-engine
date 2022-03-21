@@ -159,6 +159,16 @@ pub extern fn pulePlatformWindowSize(
 pub extern fn pulePlatformFramebufferSize(
   window: PulePlatform,
 ) callconv(.C) PuleI32v2;
+pub const PulePlatformFramebufferResizeCallbackCreateInfo = extern struct {
+};
+pub extern fn pulePlatformFramebufferResizeCallback(
+  info: PulePlatformFramebufferResizeCallbackCreateInfo,
+) callconv(.C) void;
+pub const PulePlatformWindowResizeCallbackCreateInfo = extern struct {
+};
+pub extern fn pulePlatformWindowResizeCallback(
+  info: PulePlatformWindowResizeCallbackCreateInfo,
+) callconv(.C) void;
 pub extern fn pulePlatformGetTime() callconv(.C) f64;
 pub extern fn pulePlatformNull(
   window: PulePlatform,
@@ -430,6 +440,69 @@ pub const PuleDsWriteInfo = extern struct {
 pub extern fn puleDsWriteToStdout(
   info: PuleDsWriteInfo,
 ) callconv(.C) void;
+pub const PuleEcsWorld = extern struct {
+  id: u64,
+};
+pub const PuleEcsComponent = extern struct {
+  id: u64,
+};
+pub const PuleEcsSystem = extern struct {
+  id: u64,
+};
+pub const PuleEcsEntity = extern struct {
+  id: u64,
+};
+pub extern fn puleEcsWorldCreate() callconv(.C) PuleEcsWorld;
+pub extern fn puleEcsWorldDestroy(
+  world: PuleEcsWorld,
+) callconv(.C) void;
+pub extern fn puleEcsWorldAdvance(
+  world: PuleEcsWorld,
+  msDelta: f32,
+) callconv(.C) void;
+pub const PuleEcsComponentCreateInfo = extern struct {
+  label: [*c] const u8,
+  byteLength: usize,
+  byteAlignment: usize,
+};
+pub extern fn puleEcsComponentCreate(
+  world: PuleEcsWorld,
+  info: PuleEcsComponentCreateInfo,
+) callconv(.C) PuleEcsComponent;
+pub const PuleEcsIterator = extern struct {
+  data: ?* anyopaque,
+};
+pub extern fn puleEcsIteratorEntityCount(
+  iterator: PuleEcsIterator,
+) callconv(.C) usize;
+pub extern fn puleEcsIteratorQueryComponents(
+  iterator: PuleEcsIterator,
+  componentIndex: usize,
+  componentByteLength: usize,
+) callconv(.C) ?* anyopaque;
+pub const PuleEcsSystemCallbackFrequency = enum(u32) {
+  preUpdate = 0,
+  onUpdate = 1,
+  postUpdate = 2,
+};
+pub const PuleEcsSystemCreateInfo = extern struct {
+  label: [*c] const u8,
+  commaSeparatedComponentLabels: [*c] const u8,
+  callbackFrequency: PuleEcsSystemCallbackFrequency,
+};
+pub extern fn puleEcsSystemCreate(
+  world: PuleEcsWorld,
+  info: PuleEcsSystemCreateInfo,
+) callconv(.C) PuleEcsSystem;
+pub extern fn puleEcsEntityCreate(
+  world: PuleEcsWorld,
+) callconv(.C) PuleEcsEntity;
+pub extern fn puleEcsEntityAttachComponent(
+  world: PuleEcsWorld,
+  entity: PuleEcsEntity,
+  component: PuleEcsComponent,
+  nullableInitialData: ?* anyopaque,
+) callconv(.C) void;
 pub extern fn puleImguiInitialize(
   window: PulePlatform,
 ) callconv(.C) void;
@@ -474,10 +547,10 @@ pub extern fn puleAssetImageDecodedDataLength(
 ) callconv(.C) usize;
 pub extern fn puleAssetImageWidth(
   image: PuleAssetImage,
-) callconv(.C) usize;
+) callconv(.C) u32;
 pub extern fn puleAssetImageHeight(
   image: PuleAssetImage,
-) callconv(.C) usize;
+) callconv(.C) u32;
 pub const PuleStreamRead = extern struct {
   userdata: ?* anyopaque,
 };

@@ -75,6 +75,7 @@ PULE_exportFn void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer);
 typedef enum {
   PuleGfxGpuBufferMapAccess_hostVisible = 0x1,
   PuleGfxGpuBufferMapAccess_hostWritable = 0x2,
+  PuleGfxGpuBufferMapAccess_invalidate = 0x4,
 } PuleGfxGpuBufferMapAccess;
 
 typedef struct {

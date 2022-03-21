@@ -71,13 +71,13 @@ PuleAssetImage puleAssetImageLoadFromStream(
     spng_decoded_image_size(context, format, &imageLength) != SPNG_OK
     || imageLength == 0
   ) {
-    PULE_error(PuleErrorAssetImage_decode, "failed to get image size");
+    PULE_error(PuleErrorAssetImage_decode, "failed to get image size",);
     spng_ctx_free(context);
     return { 0 };
   }
   spng_ihdr ihdr;
   if (spng_get_ihdr(context, &ihdr) != SPNG_OK) {
-    PULE_error(PuleErrorAssetImage_decode, "failed to get image ihdr info");
+    PULE_error(PuleErrorAssetImage_decode, "failed to get image ihdr info",);
     spng_ctx_free(context);
     return { 0 };
   }
@@ -99,7 +99,7 @@ PuleAssetImage puleAssetImageLoadFromStream(
   );
 
   if (spng_decode_image(context, data, imageLength, format, 0) != SPNG_OK) {
-    PULE_error(PuleErrorAssetImage_decode, "failed to decode image");
+    PULE_error(PuleErrorAssetImage_decode, "failed to decode image",);
     spng_ctx_free(context);
     return { 0 };
   }

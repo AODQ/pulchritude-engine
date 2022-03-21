@@ -128,9 +128,11 @@ namespace {
     }
     if (access & PuleGfxGpuBufferMapAccess_hostWritable) {
       field |= (
-        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
-        | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
       );
+    }
+    if (access & PuleGfxGpuBufferMapAccess_invalidate) {
+      field |= GL_MAP_INVALIDATE_RANGE_BIT;
     }
     return field;
   }

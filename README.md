@@ -53,6 +53,13 @@ irreplacable part of Pulchritude is the cohesive interfaces between plugins.
 
 ---
 
+### requirements
+
+  - CMake
+  - GCC or Clang
+  - works only on Linux currently
+  - ZLIB
+
 ### current considerations
 
  - Right now bindings are done by converting C header to JSON script and then
@@ -286,6 +293,118 @@ Errorable(PuleString) puleString(
   return str;
 }
 ```
+
+Pulchritude can provide interfaces to many languages, but the ones targetted are
+primarily those that have the best FFI interop.
+
+Current candidates are, in order of priority
+
+     - C/C++, obviously, but they also share headers
+     - zig
+     - lua
+     - V
+     - C#
+     - rust
+     - D
+
+    effectively, making most applications look like
+
+                     .-----------.
+    .----------.     | 3rd party |    .-------------.     .-------.
+    |  ENGINE  |     | LIBRARIES |    | APPLICATION |     | LOGIC |
+    '----------'     '-----------'    '-------------'     '-------'
+     C, C++,         C, C++            C, C++, zig,        lua, D,
+     Zig, Rust                         C#, rust, D,        V
+                                       lua, V
+
+  | C header | -> | JSON | -> | language bindings | -> | first class support |
+
+From C header, translate to a JSON file. The JSON file contains all metadata
+necessary to generate bindings for any language that supports C-ABI function
+calls. Each language needs an appropiate script written perform the
+transformation, but once that's done then the language can be used with the
+engine. Some things might require some extra work, such as error handling; for
+example a language might have errors that can be combined along with the return
+value, and thus
+    `PuleObj puleCreate(char const * const label, PuleError * const error)`
+would become something like
+    `PuleObj~(PuleErrorObjCreate) puleCreate(char const * const label)
+
+A language is considered under first class support if it has an additional
+layer that facilitates the bindings to be comfortable with the language's
+ecosystem. This would most likely need to be some set of manually written
+functions, but care needs to be taken such the engine & libraries can be updated
+without breaking these functions. These should be limited in scope and contain
+only auxillary functions, preferrably that can be paired with many functions
+
+Some examples of what this would look like are;
+
+ex 1:
+    logging
+-> C
+  void puleLog(char const * const format, ...)
+-> JSON
+    # this json layout is only examplatory
+    {
+        "type": "function",
+        "return-type": "void",
+        "parameters": [
+            { "type": {"const", "*", "const"}, "label": "format"},
+            { "type": "variadic", "label": "..."}
+        ]
+    }
+-> Zig binding
+    pub extern fn puleLog(format: [*c] const u8, ...) extern(.C);
+-> Zig first class support
+    pub const log = struct {
+        pub fn info(format: [:0] const u8, formatter:anytype) {
+            // apply formatting to a buffer...
+            puleLog("%s", formattedBuffer);
+        }
+        pub fn error(format: [:0] const u8, formatter:anytype) {
+            // apply formatting to a buffer...
+            puleLog("%s", formattedBuffer);
+        }
+        pub fn debug(format: [:0] const u8, formatter:anytype) {
+            // apply formatting to a buffer...
+            puleLog("%s", formattedBuffer);
+        }
+    }
+    // ei pul.log.info("numobjects {} | name {s}", .{numObjs, name});
+    //    matches 1:1 to zig's std.log.info
+
+ex 2:
+    allocator
+
+ provide example how to pass a zig allocator to a pul allocator
+
+### external libraries
+
+external libraries need to be easy to find, easy to integrate and follow same
+  consistency as engine libraries
+
+list of things that makes a library a good candidate to be part of core
+  engine and not an external library:
+
+  - will be used by many applications (or libraries);
+          examples: logging, plugin management
+  - the libraries' dependencies are minimal, not bloated; in other
+      words it wouldn't disproportionally impact the size of the
+      repository. This excludes dependencies on other engine libraries.
+          examples: GLFW w.r.t windowing, OpenGL w.r.t graphics
+  - allows new users to write 'hello world' type applications; it's
+      a detrimental first time experience to require managing external
+      libraries for a user's first test application, while remaining or
+      increasing in useful for all future uses.
+          examples: imgui, resource loading
+  - covers a broad spectrum of usecases in a simple ABI, such that it can
+      be easily extended for
+          examples: math, networking
+
+core libraries should check ALL of these requirements and there needs to be a
+strong argument for their inclusion. We want to avoid bloating the engine but
+at the same time allow it to be flexible for most 'example'/test projects in a
+broad range of usecases
 
 ### error handling
 
@@ -571,6 +690,7 @@ create an issue and propose the modifications to be made to the exposing C ABI.
 We should strive to unify the ABI to be consistenty pulchritude.
 
   ---
+
 
 ##### long term plans
 

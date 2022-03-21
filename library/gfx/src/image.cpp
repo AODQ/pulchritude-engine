@@ -236,7 +236,7 @@ PuleGfxFramebuffer puleGfxFramebufferCreate(
       ) == GL_FRAMEBUFFER_COMPLETE
     ),
     PuleErrorGfx_invalidFramebuffer,
-    {0},
+    {0}
   )
 
   return { framebuffer };

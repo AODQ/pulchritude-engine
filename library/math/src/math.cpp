@@ -38,7 +38,7 @@ PuleF32v3 puleF32v3Cross(PuleF32v3 const a, PuleF32v3 const b) {
 }
 
 float puleF32v3Length(PuleF32v3 const a) {
-  return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+  return fsqrt(a.x*a.x + a.y*a.y + a.z*a.z);
 }
 
 PuleF32v3 puleF32v3Add(PuleF32v3 const a, PuleF32v3 const b) {
@@ -118,7 +118,7 @@ PuleF32m44 puleProjectionPerspective(
   float const near,
   float const far
 ) {
-  float const halfTanFov = tan(fieldOfViewRadians*0.5f);
+  float const halfTanFov = tanf(fieldOfViewRadians*0.5f);
   return PuleF32m44 {
     .elements = {
       1.0f / (aspectRatio * halfTanFov), 0.0f, 0.0f, 0.0f,

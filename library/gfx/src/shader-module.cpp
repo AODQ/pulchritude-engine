@@ -17,7 +17,11 @@ namespace {
     GLuint handle;
   };
 
-  bool compileShader(GLuint const handle, char const * const source) {
+  bool compileShader(
+    GLuint const handle,
+    char const * const label,
+    char const * const source
+  ) {
     glShaderSource(handle, 1, &source, nullptr);
     glCompileShader(handle);
     GLint compilationSuccess = false;
@@ -28,7 +32,7 @@ namespace {
     if (logLength > 0) {
       char * message = reinterpret_cast<char *>(malloc(logLength+1));
       glGetShaderInfoLog(handle, logLength, nullptr, message);
-      puleLogError("GL shader compilation failed: %s", message);
+      puleLogError("GL %s shader compilation failed: %s", label, message);
       free(message);
     }
 
@@ -44,7 +48,7 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
   GLuint const vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER);
   GLuint const fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
 
-  if (!::compileShader(vertexShaderHandle, vertexShaderSource)) {
+  if (!::compileShader(vertexShaderHandle, "vertex", vertexShaderSource)) {
     PULE_error(
       PuleErrorGfx_shaderModuleCompilationFailed,
       "failed to compile vertex shader",
@@ -53,10 +57,10 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
   }
   // defer glDeleteShader(vertexShaderHandle)
 
-  if (!::compileShader(fragmentShaderHandle, fragmentShaderSource)) {
+  if (!::compileShader(fragmentShaderHandle, "fragment", fragmentShaderSource)){
     PULE_error(
       PuleErrorGfx_shaderModuleCompilationFailed,
-      "failed to compile fragment shader"
+      "failed to compile fragment shader",
     );
     glDeleteShader(vertexShaderHandle);
     return {0};
@@ -85,7 +89,7 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
   if (!shaderLinkSuccess) {
     PULE_error(
       PuleErrorGfx_shaderModuleCompilationFailed,
-      "failed to link shader module"
+      "failed to link shader module",
     );
   }
 

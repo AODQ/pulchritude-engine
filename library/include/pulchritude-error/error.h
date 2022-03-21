@@ -23,13 +23,13 @@ PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
 // errors out with message, storing the error ID to error as well
 #define PULE_error(ErrorId, message, ...) \
   *error = { \
-    .description = puleStringFormatDefault(message), \
+    .description = puleStringFormatDefault(message __VA_OPT__(,) __VA_ARGS__), \
     .id = ErrorId, \
   };
 
 // asserts an expression, which on failure will return the error with the
 //   expression as it's description
-#define PULE_errorAssert(X, ErrorId, RetValue, ...) \
+#define PULE_errorAssert(X, ErrorId, RetValue) \
   if (!(X)) { \
     *error = { \
       .description = ( \

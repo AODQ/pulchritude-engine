@@ -146,12 +146,13 @@ void puleGfxCommandListSubmit(
     if (
       !puleGfxFenceCheckSignal(
         *info.fenceTargetStart,
-        PuleNanosecond(100'000'000)
+        PuleNanosecond{100'000'000}
       )
     ) {
       PULE_error(
         PuleErrorGfx_submissionFenceWaitFailed,
-        "failed to wait for fence '%d' on submission", info.fenceTargetStart->id
+        "failed to wait for fence '%d' on submission",
+        info.fenceTargetStart->id
       );
       puleGfxFenceDestroy(*info.fenceTargetStart);
       info.fenceTargetStart->id = 0;
@@ -237,7 +238,6 @@ void puleGfxCommandListSubmit(
           util::DescriptorSetImageBinding const & binding = (
             pipeline.textures[it]
           );
-          puleLogDebug("binding: %d", binding.imageHandle);
           glBindTextureUnit(binding.bindingSlot, binding.imageHandle);
         }
         for (size_t it = 0; it < pipeline.storagesLength; ++ it) {

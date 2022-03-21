@@ -931,6 +931,78 @@
     ]
   },
   {
+    "type": "struct",
+    "label": "PulePlatformFramebufferResizeCallbackCreateInfo",
+    "fields": [
+      {
+        "label": "callback",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "PuleI32v2",
+            "constdimensions"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePlatformFramebufferResizeCallback",
+    "parameters": [
+      {
+        "label": "info",
+        "type": [
+          "PulePlatformFramebufferResizeCallbackCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PulePlatformWindowResizeCallbackCreateInfo",
+    "fields": [
+      {
+        "label": "callback",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "PuleI32v2",
+            "constdimensions"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "pulePlatformWindowResizeCallback",
+    "parameters": [
+      {
+        "label": "info",
+        "type": [
+          "PulePlatformWindowResizeCallbackCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
     "type": "function",
     "return-type": [
       "double"
@@ -2311,6 +2383,373 @@
     ]
   },
   {
+    "type": "struct",
+    "label": "PuleEcsWorld",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleEcsComponent",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleEcsSystem",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleEcsEntity",
+    "fields": [
+      {
+        "label": "id",
+        "type": [
+          "uint64_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleEcsWorld"
+    ],
+    "label": "puleEcsWorldCreate",
+    "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleEcsWorldDestroy",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleEcsWorldAdvance",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "msDelta",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleEcsComponentCreateInfo",
+    "fields": [
+      {
+        "label": "label",
+        "type": [
+          "char",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteLength",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "byteAlignment",
+        "type": [
+          "size_t"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleEcsComponent"
+    ],
+    "label": "puleEcsComponentCreate",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "info",
+        "type": [
+          "PuleEcsComponentCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleEcsIterator",
+    "fields": [
+      {
+        "label": "data",
+        "type": [
+          "void",
+          "*"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "size_t"
+    ],
+    "label": "puleEcsIteratorEntityCount",
+    "parameters": [
+      {
+        "label": "iterator",
+        "type": [
+          "PuleEcsIterator",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleEcsIteratorQueryComponents",
+    "parameters": [
+      {
+        "label": "iterator",
+        "type": [
+          "PuleEcsIterator",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "componentIndex",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "componentByteLength",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "label": "PuleEcsSystemCallbackFrequency",
+    "values": [
+      {
+        "label": "PuleEcsSystemCallbackFrequency_preUpdate",
+        "value": 0
+      },
+      {
+        "label": "PuleEcsSystemCallbackFrequency_onUpdate",
+        "value": 1
+      },
+      {
+        "label": "PuleEcsSystemCallbackFrequency_postUpdate",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "label": "PuleEcsSystemCreateInfo",
+    "fields": [
+      {
+        "label": "label",
+        "type": [
+          "char",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "commaSeparatedComponentLabels",
+        "type": [
+          "char",
+          "const",
+          "*"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "callback",
+        "meta-type": "fn-ptr",
+        "return-type": [
+          "void"
+        ],
+        "parameters": [
+          [
+            "PuleEcsIterator",
+            "constiterator"
+          ]
+        ]
+      },
+      {
+        "label": "callbackFrequency",
+        "type": [
+          "PuleEcsSystemCallbackFrequency"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleEcsSystem"
+    ],
+    "label": "puleEcsSystemCreate",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "info",
+        "type": [
+          "PuleEcsSystemCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleEcsEntity"
+    ],
+    "label": "puleEcsEntityCreate",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleEcsEntityAttachComponent",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "entity",
+        "type": [
+          "PuleEcsEntity",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "component",
+        "type": [
+          "PuleEcsComponent",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "nullableInitialData",
+        "type": [
+          "void",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
     "type": "function",
     "return-type": [
       "void"
@@ -2534,7 +2973,7 @@
   {
     "type": "function",
     "return-type": [
-      "size_t"
+      "uint32_t"
     ],
     "label": "puleAssetImageWidth",
     "parameters": [
@@ -2551,7 +2990,7 @@
   {
     "type": "function",
     "return-type": [
-      "size_t"
+      "uint32_t"
     ],
     "label": "puleAssetImageHeight",
     "parameters": [

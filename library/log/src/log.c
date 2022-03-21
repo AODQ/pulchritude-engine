@@ -46,7 +46,11 @@ static void logger(LogType logType, char const * const formatCStr, va_list args)
     break;
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
   vprintf (formatCStr, args);
+#pragma GCC diagnostic pop
+
   printf("\n");
 }
 

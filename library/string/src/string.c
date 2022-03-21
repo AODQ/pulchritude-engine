@@ -49,7 +49,10 @@ PuleString puleStringFormat(
   { // get size of formatted string
     va_list argsLen;
     va_start(argsLen, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     lenOrErr = vsnprintf(NULL, 0, format, argsLen);
+#pragma GCC diagnostic pop
     va_end(argsLen);
   }
 
@@ -69,9 +72,12 @@ PuleString puleStringFormat(
   { // format
     va_list argsFmt;
     va_start(argsFmt, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     stringOut.len = (size_t)(
       vsnprintf(stringOut.contents, len+1, format, argsFmt)
     );
+#pragma GCC diagnostic pop
     va_end(argsFmt);
   }
 

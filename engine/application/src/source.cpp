@@ -32,9 +32,9 @@ namespace {
       *reinterpret_cast<std::vector<size_t> *>(userdata)
     );
     tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
-    puleLog("name '%s' plugin type %p", plugin.name, pluginTypeFn);
+    puleLogDebug("name '%s' plugin type %p", plugin.name, pluginTypeFn);
     if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
-      puleLog("plugin '%s' registered as component", plugin.name);
+      puleLogDebug("plugin '%s' registered as component", plugin.name);
       componentPlugins.emplace_back(plugin.id);
     }
   }
@@ -63,7 +63,7 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-  puleLog("hello. loading plugins now");
+  puleLogDebug("hello. loading plugins now");
   pulePluginsLoad();
 
   std::vector<size_t> componentPluginIds;
@@ -77,18 +77,21 @@ int32_t main(
     // try to load component
     void (*componentLoadFn)() = nullptr;
     ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
-    puleLog("for plugin id %zu got loadfn %p", componentPluginId, componentLoadFn);
+    puleLogDebug(
+      "for plugin id %zu got loadfn %p",
+      componentPluginId, componentLoadFn
+    );
     if (componentLoadFn) {
-      puleLog("loading component");
+      puleLogDebug("loading component");
       componentLoadFn();
-      puleLog("finished");
+      puleLogDebug("finished");
     }
 
     // check if they have an update function
     void (*componentUpdateFn)() = nullptr;
     ::tryLoadFn(componentUpdateFn, componentPluginId, "pulcComponentUpdate");
     if (componentUpdateFn) {
-      puleLog("plugin has component update");
+      puleLogDebug("plugin has component update");
       updateableComponents.emplace_back(componentUpdateFn);
     }
   }
@@ -102,7 +105,7 @@ int32_t main(
   //                        \_____/ \___/  \___/ \_|                           *
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  puleLog("entering loop");
+  puleLogDebug("entering loop");
   bool hasUpdate = updateableComponents.size() > 0;
   while (hasUpdate) {
     for (auto const componentUpdateFn : updateableComponents) {
@@ -129,7 +132,7 @@ int32_t main(
     }
   }
 
-  ::puleLog("unloading plugins now. bye");
+  ::puleLogDebug("unloading plugins now. bye");
   pulePluginsFree();
   return 0;
 }
