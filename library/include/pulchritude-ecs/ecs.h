@@ -48,18 +48,22 @@ typedef struct {
 PULE_exportFn size_t puleEcsIteratorEntityCount(
   PuleEcsIterator const iterator
 );
-
 PULE_exportFn size_t puleEcsIteratorRelativeOffset(
   PuleEcsIterator const iterator
 );
-
 PULE_exportFn void * puleEcsIteratorQueryComponents(
   PuleEcsIterator const iterator,
   size_t const componentIndex,
   size_t const componentByteLength
 );
+PULE_exportFn PuleEcsEntity * puleEcsIteratorQueryEntities(
+  PuleEcsIterator const iterator
+);
+PULE_exportFn PuleEcsWorld puleEcsIteratorWorld(PuleEcsIterator const iterator);
+PULE_exportFn void * puleEcsIteratorUserData(PuleEcsIterator const iterator);
 
 typedef enum {
+  PuleEcsSystemCallbackFrequency_none,
   PuleEcsSystemCallbackFrequency_preUpdate,
   PuleEcsSystemCallbackFrequency_onUpdate,
   PuleEcsSystemCallbackFrequency_postUpdate,
@@ -75,6 +79,13 @@ typedef struct {
 PULE_exportFn PuleEcsSystem puleEcsSystemCreate(
   PuleEcsWorld const world,
   PuleEcsSystemCreateInfo const info
+);
+
+PULE_exportFn void puleEcsSystemAdvance(
+  PuleEcsWorld const world,
+  PuleEcsSystem const system,
+  float const deltaTime,
+  void * const userdata
 );
 
 PULE_exportFn PuleEcsEntity puleEcsEntityCreate(PuleEcsWorld const world);

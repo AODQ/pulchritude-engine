@@ -15,7 +15,9 @@ namespace {
 extern "C" {
 
 PuleEcsWorld puleEcsWorldCreate() {
-  return { reinterpret_cast<uint64_t>(ecs_init()) };
+  auto world = ecs_init();
+  ecs_set_threads(world, 8);
+  return { reinterpret_cast<uint64_t>(world) };
 }
 
 void puleEcsWorldDestroy(PuleEcsWorld const world) {
@@ -28,6 +30,7 @@ void puleEcsWorldDestroy(PuleEcsWorld const world) {
 PULE_exportFn void puleEcsWorldAdvance(
   PuleEcsWorld const world, float const msDelta
 ) {
+  ecs_set_threads(reinterpret_cast<ecs_world_t *>(world.id), 8);
   ecs_progress(reinterpret_cast<ecs_world_t *>(world.id), msDelta);
 }
 
@@ -71,11 +74,31 @@ void * puleEcsIteratorQueryComponents(
   return ecs_term_w_size(iter, componentByteLength, componentIndex+1);
 }
 
+PuleEcsEntity * puleEcsIteratorQueryEntities(
+  PuleEcsIterator const iterator
+) {
+  auto iter = reinterpret_cast<ecs_iter_t *>(iterator.data);
+  return reinterpret_cast<PuleEcsEntity *>(iter->entities);
+}
+
+PuleEcsWorld puleEcsIteratorWorld(
+  PuleEcsIterator const iterator
+) {
+  auto iter = reinterpret_cast<ecs_iter_t *>(iterator.data);
+  return { reinterpret_cast<uint64_t>(iter->world) };
+}
+
+void * puleEcsIteratorUserData(PuleEcsIterator const iterator) {
+  auto iter = reinterpret_cast<ecs_iter_t *>(iterator.data);
+  return iter->param;
+}
+
 static ecs_entity_t callbackFrequencyToFlecs(
   PuleEcsSystemCallbackFrequency const frequency
 ) {
   switch (frequency) {
     default: PULE_assert(false);
+    case PuleEcsSystemCallbackFrequency_none:       return EcsInactive;
     case PuleEcsSystemCallbackFrequency_preUpdate:  return EcsPreUpdate;
     case PuleEcsSystemCallbackFrequency_onUpdate:   return EcsOnUpdate;
     case PuleEcsSystemCallbackFrequency_postUpdate: return EcsPostUpdate;
@@ -99,6 +122,20 @@ PuleEcsSystem puleEcsSystemCreate(
   );
   PULE_assert(system != 0);
   return {system};
+}
+
+void puleEcsSystemAdvance(
+  PuleEcsWorld const world,
+  PuleEcsSystem const system,
+  float const deltaTime,
+  void * const userdata
+) {
+  ecs_run(
+    reinterpret_cast<ecs_world_t *>(world.id),
+    system.id,
+    deltaTime,
+    userdata
+  );
 }
 
 PuleEcsEntity puleEcsEntityCreate(PuleEcsWorld const world) {
