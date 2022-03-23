@@ -18,6 +18,23 @@ PULE_exportFn void puleImguiShutdown();
 PULE_exportFn void puleImguiNewFrame();
 PULE_exportFn void puleImguiRender();
 
+
+PULE_exportFn bool puleImguiSliderF32(
+  char const * const label,
+  float * const data,
+  float const min, float const max
+);
+
+PULE_exportFn bool puleImguiSliderZu(
+  char const * const label,
+  size_t * const data,
+  size_t const min, size_t const max
+
+);
+
+PULE_exportFn bool puleImguiToggle(char const * const label, bool * const data);
+PULE_exportFn bool puleImguiButton(char const * const label);
+
 #ifdef __cplusplus
 } // extern C
 #endif

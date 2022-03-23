@@ -89,6 +89,10 @@ PULE_exportFn void puleEcsSystemAdvance(
 );
 
 PULE_exportFn PuleEcsEntity puleEcsEntityCreate(PuleEcsWorld const world);
+PULE_exportFn void puleEcsEntityDestroy(
+  PuleEcsWorld const world,
+  PuleEcsEntity const entity
+);
 PULE_exportFn void puleEcsEntityAttachComponent(
  PuleEcsWorld const world,
  PuleEcsEntity const entity,

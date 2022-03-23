@@ -2572,6 +2572,23 @@
   {
     "type": "function",
     "return-type": [
+      "size_t"
+    ],
+    "label": "puleEcsIteratorRelativeOffset",
+    "parameters": [
+      {
+        "label": "iterator",
+        "type": [
+          "PuleEcsIterator",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
       "void",
       "*"
     ],
@@ -2604,20 +2621,77 @@
     ]
   },
   {
+    "type": "function",
+    "return-type": [
+      "PuleEcsEntity",
+      "*"
+    ],
+    "label": "puleEcsIteratorQueryEntities",
+    "parameters": [
+      {
+        "label": "iterator",
+        "type": [
+          "PuleEcsIterator",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "PuleEcsWorld"
+    ],
+    "label": "puleEcsIteratorWorld",
+    "parameters": [
+      {
+        "label": "iterator",
+        "type": [
+          "PuleEcsIterator",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void",
+      "*"
+    ],
+    "label": "puleEcsIteratorUserData",
+    "parameters": [
+      {
+        "label": "iterator",
+        "type": [
+          "PuleEcsIterator",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
     "type": "enum",
     "label": "PuleEcsSystemCallbackFrequency",
     "values": [
       {
-        "label": "PuleEcsSystemCallbackFrequency_preUpdate",
+        "label": "PuleEcsSystemCallbackFrequency_none",
         "value": 0
       },
       {
-        "label": "PuleEcsSystemCallbackFrequency_onUpdate",
+        "label": "PuleEcsSystemCallbackFrequency_preUpdate",
         "value": 1
       },
       {
-        "label": "PuleEcsSystemCallbackFrequency_postUpdate",
+        "label": "PuleEcsSystemCallbackFrequency_onUpdate",
         "value": 2
+      },
+      {
+        "label": "PuleEcsSystemCallbackFrequency_postUpdate",
+        "value": 3
       }
     ]
   },
@@ -2684,6 +2758,48 @@
         "label": "info",
         "type": [
           "PuleEcsSystemCreateInfo",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleEcsSystemAdvance",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "system",
+        "type": [
+          "PuleEcsSystem",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "deltaTime",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "userdata",
+        "type": [
+          "void",
+          "*",
           "const"
         ],
         "meta-type": "standard"
@@ -2789,6 +2905,97 @@
     ],
     "label": "puleImguiRender",
     "parameters": []
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleImguiSliderFloat",
+    "parameters": [
+      {
+        "label": "label",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "data",
+        "type": [
+          "float",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "min",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "max",
+        "type": [
+          "float",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
+    "label": "puleImguiToggle",
+    "parameters": [
+      {
+        "label": "label",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "data",
+        "type": [
+          "bool",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
+    ],
+    "label": "puleImguiButton",
+    "parameters": [
+      {
+        "label": "label",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
   },
   {
     "type": "enum",
@@ -5509,6 +5716,10 @@
       {
         "label": "PuleGfxGpuBufferMapAccess_hostWritable",
         "value": 2
+      },
+      {
+        "label": "PuleGfxGpuBufferMapAccess_invalidate",
+        "value": 4
       }
     ]
   },

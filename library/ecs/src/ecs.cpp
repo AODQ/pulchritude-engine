@@ -142,6 +142,13 @@ PuleEcsEntity puleEcsEntityCreate(PuleEcsWorld const world) {
   return { ecs_new_id(reinterpret_cast<ecs_world_t *>(world.id)) };
 }
 
+void puleEcsEntityDestroy(
+  PuleEcsWorld const world,
+  PuleEcsEntity const entity
+) {
+  ecs_delete(reinterpret_cast<ecs_world_t *>(world.id), entity.id);
+}
+
 void puleEcsEntityAttachComponent(
   PuleEcsWorld const world,
   PuleEcsEntity const entity,

@@ -475,15 +475,28 @@ pub const PuleEcsIterator = extern struct {
 pub extern fn puleEcsIteratorEntityCount(
   iterator: PuleEcsIterator,
 ) callconv(.C) usize;
+pub extern fn puleEcsIteratorRelativeOffset(
+  iterator: PuleEcsIterator,
+) callconv(.C) usize;
 pub extern fn puleEcsIteratorQueryComponents(
   iterator: PuleEcsIterator,
   componentIndex: usize,
   componentByteLength: usize,
 ) callconv(.C) ?* anyopaque;
+pub extern fn puleEcsIteratorQueryEntities(
+  iterator: PuleEcsIterator,
+) callconv(.C) [*c] PuleEcsEntity;
+pub extern fn puleEcsIteratorWorld(
+  iterator: PuleEcsIterator,
+) callconv(.C) PuleEcsWorld;
+pub extern fn puleEcsIteratorUserData(
+  iterator: PuleEcsIterator,
+) callconv(.C) ?* anyopaque;
 pub const PuleEcsSystemCallbackFrequency = enum(u32) {
-  preUpdate = 0,
-  onUpdate = 1,
-  postUpdate = 2,
+  none = 0,
+  preUpdate = 1,
+  onUpdate = 2,
+  postUpdate = 3,
 };
 pub const PuleEcsSystemCreateInfo = extern struct {
   label: [*c] const u8,
@@ -494,6 +507,12 @@ pub extern fn puleEcsSystemCreate(
   world: PuleEcsWorld,
   info: PuleEcsSystemCreateInfo,
 ) callconv(.C) PuleEcsSystem;
+pub extern fn puleEcsSystemAdvance(
+  world: PuleEcsWorld,
+  system: PuleEcsSystem,
+  deltaTime: f32,
+  userdata: ?* anyopaque,
+) callconv(.C) void;
 pub extern fn puleEcsEntityCreate(
   world: PuleEcsWorld,
 ) callconv(.C) PuleEcsEntity;
@@ -509,6 +528,19 @@ pub extern fn puleImguiInitialize(
 pub extern fn puleImguiShutdown() callconv(.C) void;
 pub extern fn puleImguiNewFrame() callconv(.C) void;
 pub extern fn puleImguiRender() callconv(.C) void;
+pub extern fn puleImguiSliderFloat(
+  label: [*c] const u8,
+  data: [*c] f32,
+  min: f32,
+  max: f32,
+) callconv(.C) void;
+pub extern fn puleImguiToggle(
+  label: [*c] const u8,
+  data: [*c] bool,
+) callconv(.C) void;
+pub extern fn puleImguiButton(
+  label: [*c] const u8,
+) callconv(.C) bool;
 pub const PuleErrorAssetImage = enum(u32) {
   none = 0,
   decode = 1,
@@ -979,6 +1011,7 @@ pub extern fn puleGfxGpuBufferDestroy(
 pub const PuleGfxGpuBufferMapAccess = enum(u32) {
   hostVisible = 1,
   hostWritable = 2,
+  invalidate = 4,
 };
 pub const PuleGfxGpuBufferMapRange = extern struct {
   buffer: PuleGfxGpuBuffer,

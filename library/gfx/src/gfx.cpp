@@ -176,7 +176,26 @@ void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
 }
 
 void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer) {
+  if (buffer.id == 0) {
+    return;
+  }
   glUnmapNamedBuffer(static_cast<GLuint>(buffer.id));
+}
+
+void puleGfxFrameStart() {
+  glViewport(
+    static_cast<GLsizei>(0),
+    static_cast<GLsizei>(0),
+    static_cast<GLsizei>(1),
+    static_cast<GLsizei>(1)
+  );
+
+  glScissor(
+    static_cast<int32_t>(0),
+    static_cast<int32_t>(0),
+    static_cast<int32_t>(1),
+    static_cast<int32_t>(1)
+  );
 }
 
 void puleGfxGpuBufferMappedFlush(

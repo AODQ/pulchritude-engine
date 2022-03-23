@@ -98,6 +98,7 @@ void initializeRenderData() {
 
     void main() {
       outColor = inColor * texture(boundSampler, inUv);
+      if (outColor.a < 0.8f) discard;
     }
   );
 
@@ -730,7 +731,7 @@ void puleImguiWindowNewFrame() {
 } // C
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//-- GUI WIDGETS ---------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////
 
 extern "C" {
@@ -774,6 +775,40 @@ void puleImguiRender() {
 
   ImGui::Render();
   renderDrawData(ImGui::GetDrawData());
+}
+
+bool puleImguiSliderF32(
+  char const * const label,
+  float * const data,
+  float const min, float const max
+) {
+  return ImGui::SliderFloat(label, data, min, max);
+}
+
+bool puleImguiSliderZu(
+  char const * label,
+  size_t * const data,
+  size_t const min, size_t const max
+) {
+  int32_t dataI32 = *data;
+  bool const ret = (
+    ImGui::SliderInt(
+      label,
+      &dataI32,
+      static_cast<int32_t>(min),
+      static_cast<int32_t>(max)
+    )
+  );
+  *data = static_cast<size_t>(dataI32);
+  return ret;
+}
+
+bool puleImguiToggle(char const * const label, bool * const data) {
+  return ImGui::Checkbox(label, data);
+}
+
+bool puleImguiButton(char const * const label) {
+  return ImGui::Button(label);
 }
 
 } // C
