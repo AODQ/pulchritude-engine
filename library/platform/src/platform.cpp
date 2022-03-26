@@ -50,7 +50,7 @@ PulePlatform pulePlatformCreate(
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
   glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
   glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
@@ -80,7 +80,7 @@ PulePlatform pulePlatformCreate(
     {}
   );
 
-  if (windowWidth > 0 && windowHeight > 0) {
+  if (windowWidth == 0 || windowHeight == 0) {
     int32_t xpos, ypos;
     glfwGetMonitorWorkarea(
       glfwGetPrimaryMonitor(), &xpos, &ypos, &windowWidth, &windowHeight
