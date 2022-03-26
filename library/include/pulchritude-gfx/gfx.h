@@ -18,14 +18,6 @@
 #include <pulchritude-error/error.h>
 
 #ifdef __cplusplus
-#include <cstddef>
-#include <cstdint>
-#else
-#include <stddef.h>
-#include <stdint.h>
-#endif
-
-#ifdef __cplusplus
 extern "C" {
 #endif
 
