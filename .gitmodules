@@ -10,3 +10,6 @@
 [submodule "third-party/libspng"]
 	path = third-party/libspng
 	url = https://github.com/randy408/libspng
+[submodule "third-party/box2d"]
+	path = third-party/box2d
+	url = https://github.com/erincatto/box2d

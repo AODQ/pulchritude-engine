@@ -646,7 +646,7 @@ pub const PuleArrayViewMutable = extern struct {
   elementCount: usize,
 };
 pub const PuleAllocateInfo = extern struct {
-  zeroOut: u8,
+  zeroOut: bool,
   numBytes: usize,
   alignment: usize,
 };
@@ -1183,4 +1183,70 @@ pub const PuleGfxMemoryBarrierFlag = enum(u32) {
 };
 pub extern fn puleGfxMemoryBarrier(
   barrier: PuleGfxMemoryBarrierFlag,
+) callconv(.C) void;
+pub const PulePhysics2DWorld = extern struct {
+  id: u64,
+};
+pub const PulePhysics2DWorldCreateInfo = extern struct {
+  allocator: PuleAllocator,
+  pixelsToMeterScale: f32,
+  gravity: PuleF32v2,
+};
+pub extern fn pulePhysics2DWorldCreate(
+  info: PulePhysics2DWorldCreateInfo,
+) callconv(.C) PulePhysics2DWorld;
+pub extern fn pulePhysics2DWorldDestroy(
+  world: PulePhysics2DWorld,
+) callconv(.C) void;
+pub extern fn pulePhysics2DWorldGravitySet(
+  gravity: PuleF32v2,
+) callconv(.C) void;
+pub extern fn pulePhysics2DDebugDraw(
+  enabled: bool,
+) callconv(.C) void;
+pub const PulePhysicsShape = enum(u32) {
+  polygon = 0,
+  circle = 1,
+  edge = 2,
+  surface = 3,
+};
+pub const PulePhysics2DBody = extern struct {
+  id: u64,
+};
+pub const PulePhysics2DDynamicPolygonCreateInfo = extern struct {
+  world: PulePhysics2DWorld,
+  origin: PuleF32v2,
+  dimensions: PuleF32v2,
+  density: f32,
+  friction: f32,
+  restitution: f32,
+  restitutionThreshold: f32,
+  isSensor: bool density f32,
+};
+pub extern fn pulePhysics2DPolygonCreate(
+  info: PulePhysics2DDynamicPolygonCreateInfo,
+) callconv(.C) PulePhysics2DBody;
+pub extern fn pulePhysics2DBodyDestroy(
+  world: PulePhysics2DWorld,
+  body: PulePhysics2DBody,
+) callconv(.C) void;
+pub extern fn pulePhysics2DBodyOrigin(
+  body: PulePhysics2DBody,
+) callconv(.C) PuleF32v2;
+pub const PulePhysics2DForceInfo = extern struct {
+  body: PulePhysics2DBody,
+  force: PuleF32v2,
+  absoluteOrigin: PuleF32v2,
+};
+pub extern fn pulePhysics2DBodyApplyForce(
+  info: PulePhysics2DForceInfo,
+) callconv(.C) void;
+pub const PulePhysics2DAdvanceInfo = extern struct {
+  world: PulePhysics2DWorld,
+  timeDelta: f32,
+  velocityIterations: usize,
+  positionIterations: usize,
+};
+pub extern fn pulePhysics2DAdvance(
+  info: PulePhysics2DAdvanceInfo,
 ) callconv(.C) void;

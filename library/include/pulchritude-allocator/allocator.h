@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 typedef struct {
-  uint8_t zeroOut; // if the allocated memory should be zeroed out
+  bool zeroOut; // if the allocated memory should be zeroed out
   size_t numBytes; // minimum number of bytes that need to be allocated
 
   // returned pointer will modulate to the alignment, 0 specifies to assume
