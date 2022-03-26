@@ -2828,6 +2828,31 @@
     "return-type": [
       "void"
     ],
+    "label": "puleEcsEntityDestroy",
+    "parameters": [
+      {
+        "label": "world",
+        "type": [
+          "PuleEcsWorld",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "entity",
+        "type": [
+          "PuleEcsEntity",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "void"
+    ],
     "label": "puleEcsEntityAttachComponent",
     "parameters": [
       {
@@ -2909,9 +2934,9 @@
   {
     "type": "function",
     "return-type": [
-      "void"
+      "bool"
     ],
-    "label": "puleImguiSliderFloat",
+    "label": "puleImguiSliderF32",
     "parameters": [
       {
         "label": "label",
@@ -2953,7 +2978,51 @@
   {
     "type": "function",
     "return-type": [
-      "void"
+      "bool"
+    ],
+    "label": "puleImguiSliderZu",
+    "parameters": [
+      {
+        "label": "label",
+        "type": [
+          "char",
+          "const",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "data",
+        "type": [
+          "size_t",
+          "*",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "min",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      },
+      {
+        "label": "max",
+        "type": [
+          "size_t",
+          "const"
+        ],
+        "meta-type": "standard"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "return-type": [
+      "bool"
     ],
     "label": "puleImguiToggle",
     "parameters": [

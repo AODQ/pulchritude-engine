@@ -516,6 +516,10 @@ pub extern fn puleEcsSystemAdvance(
 pub extern fn puleEcsEntityCreate(
   world: PuleEcsWorld,
 ) callconv(.C) PuleEcsEntity;
+pub extern fn puleEcsEntityDestroy(
+  world: PuleEcsWorld,
+  entity: PuleEcsEntity,
+) callconv(.C) void;
 pub extern fn puleEcsEntityAttachComponent(
   world: PuleEcsWorld,
   entity: PuleEcsEntity,
@@ -528,16 +532,22 @@ pub extern fn puleImguiInitialize(
 pub extern fn puleImguiShutdown() callconv(.C) void;
 pub extern fn puleImguiNewFrame() callconv(.C) void;
 pub extern fn puleImguiRender() callconv(.C) void;
-pub extern fn puleImguiSliderFloat(
+pub extern fn puleImguiSliderF32(
   label: [*c] const u8,
   data: [*c] f32,
   min: f32,
   max: f32,
-) callconv(.C) void;
+) callconv(.C) bool;
+pub extern fn puleImguiSliderZu(
+  label: [*c] const u8,
+  data: [*c] usize,
+  min: usize,
+  max: usize,
+) callconv(.C) bool;
 pub extern fn puleImguiToggle(
   label: [*c] const u8,
   data: [*c] bool,
-) callconv(.C) void;
+) callconv(.C) bool;
 pub extern fn puleImguiButton(
   label: [*c] const u8,
 ) callconv(.C) bool;
