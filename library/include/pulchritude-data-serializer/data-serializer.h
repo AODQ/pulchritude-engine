@@ -99,12 +99,6 @@ PULE_exportFn bool puleDsIsString(PuleDsValue const value);
 PULE_exportFn bool puleDsIsArray(PuleDsValue const value);
 PULE_exportFn bool puleDsIsObject(PuleDsValue const value);
 
-PULE_exportFn PuleDsValue puleDsLoadFromStream(
-  PuleAllocator const allocator,
-  PuleStreamRead const stream,
-  PuleError * const error
-);
-
 // recursive destroy
 PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 
