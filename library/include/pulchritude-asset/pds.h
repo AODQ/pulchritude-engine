@@ -28,10 +28,10 @@ typedef struct {
   bool prettyPrint; // PULE_defaultValue(false)
   uint32_t spacesPerTab; // PULE_defaultValue(2) ; only used with pretty-print
   uint32_t initialTabLevel; // PULE_defaultValue(0)
-} PuleDsWriteInfo;
+} PuleAssetPdsWriteInfo;
 PULE_exportFn void puleAssetPdsWriteToStream(
   PuleStreamWrite const stream,
-  PuleDsWriteInfo const writeInfo
+  PuleAssetPdsWriteInfo const writeInfo
 );
 
 #ifdef __cplusplus

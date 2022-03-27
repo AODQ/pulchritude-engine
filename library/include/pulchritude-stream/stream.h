@@ -26,16 +26,22 @@ typedef struct {
   void * userdata;
   void (*writeBytes)(
     void * const userdata,
-    void * const bytes,
+    uint8_t const * const bytes,
     size_t const length
   );
+  void (*flush)(void * const userdata);
+  void (*destroy)(void * const userdata);
 } PuleStreamWrite;
 
 PULE_exportFn void puleStreamWriteBytes(
   PuleStreamWrite const stream,
-  void * const bytes,
+  uint8_t const * const bytes,
   size_t const length
 );
+PULE_exportFn void puleStreamWriteFlush(PuleStreamWrite const stream);
+PULE_exportFn void puleStreamWriteDestroy(PuleStreamWrite const stream);
+
+PULE_exportFn PuleStreamWrite puleStreamStdoutWrite();
 
 #ifdef __cplusplus
 }

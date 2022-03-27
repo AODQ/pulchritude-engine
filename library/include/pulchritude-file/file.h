@@ -73,9 +73,14 @@ PULE_exportFn void puleFileAdvanceFromCurrent(
 // the only limitation is that you can only have one stream open per file,
 //   you can't use the normal file mechanisms without closing the stream,
 //   and it's not thread-safe
-PULE_exportFn PuleStreamRead puleFileStream(
+PULE_exportFn PuleStreamRead puleFileStreamRead(
   PuleFile const file,
-  PuleArrayViewMutable const view // PULE_lifetimeOfReturnObject
+  PuleArrayViewMutable const intermediateBuffer // PULE_lifetimeOfReturnObject
+);
+
+PULE_exportFn PuleStreamWrite puleFileStreamWrite(
+  PuleFile const file,
+  PuleArrayViewMutable const intermediateBuffer
 );
 
 #ifdef __cplusplus

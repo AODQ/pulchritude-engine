@@ -2,15 +2,6 @@
 
 #include <string>
 
-extern "C" {
-
-void puleAssetPdsLoadFromStream(
-  PuleAllocator const allocator,
-  PuleStreamRead const stream,
-  PuleError * const error
-) {
-}
-
 namespace {
 PuleDsValue pdsParseValue(
   PuleAllocator const allocator,

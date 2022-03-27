@@ -126,23 +126,11 @@ PULE_exportFn PuleDsValue puleDsObjectMember(
   PuleStringView const memberLabel
 );
 
-// object[memberLabel] = value;
-// ASSERT(!object.exists(memberLabel))
 PULE_exportFn void puleDsAssignObjectMember(
-  PuleDsValue const object,
+  PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 );
-
-typedef struct {
-  PuleDsValue head;
-  bool prettyPrint; // PULE_defaultValue(false)
-  uint32_t spacePerTab; // PULE_defaultValue(2) only used with pretty-print
-  uint32_t initialTabLevel; // PULE_defaultValue(0)
-} PuleDsWriteInfo;
-
-// again, should probably be puleDsWriteToStream
-PULE_exportFn void puleDsWriteToStdout(PuleDsWriteInfo const info);
 
 #ifdef __cplusplus
 } // extern C

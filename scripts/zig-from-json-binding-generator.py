@@ -101,7 +101,8 @@ def extractField(symbol, isStructOrUnion):
     print(f"WARNING: unknown metatype: '{symbol['meta-type']} in {symbol}'")
   return string
 
-outFile = open(inputArgs["output"], 'w')
+os.makedirs(os.path.dirname(inputArgs["output"]), exist_ok=True)
+outFile = open(inputArgs["output"], "w+")
 for symbol in inputJson:
   # extern fn label(params...) callconv(.C) returntype
   if (symbol["type"] == "function"):
