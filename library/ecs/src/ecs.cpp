@@ -51,7 +51,10 @@ PuleEcsComponent puleEcsComponentCreate(
     )
   );
   PULE_assert(componentEntity != 0);
-  ::componentInfos.emplace(componentEntity, info.byteLength);
+  ::componentInfos.emplace(
+    componentEntity,
+    ComponentInfo { .byteLength = info.byteLength, }
+  );
   return { componentEntity };
 }
 
