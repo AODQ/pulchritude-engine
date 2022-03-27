@@ -1,6 +1,7 @@
 #include <pulchritude-file/file.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include <unordered_map>
 
@@ -163,11 +164,53 @@ static uint8_t fileStreamReadByte(void * const userdata) {
   return character;
 }
 
-static void fileStreamDestroy(void * const userdata) {
+static void fileStreamFlush(void * const userdata) {
+  ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+  puleFileWriteBytes(
+    stream.file,
+    PuleArrayView {
+      .data = stream.buffer.data,
+      .elementStride = 1,
+      .elementCount = stream.bufferIt,
+    }
+  );
+  stream.bufferIt = 0;
+}
+
+static void fileStreamWriteBytes(
+  void * const userdata,
+  uint8_t const * const bytes,
+  size_t const length
+) {
+  ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+
+  // check if buffer should be flushed out
+  if (length + stream.bufferIt >= stream.buffer.elementCount) {
+    fileStreamFlush(userdata);
+  }
+
+  // check if contents can fit in the intermediary buffer
+  if (length >= stream.buffer.elementCount) {
+    puleFileWriteBytes(
+      stream.file,
+      PuleArrayView {
+        .data = bytes, .elementStride = 1, .elementCount = length,
+      }
+    );
+  }
+
+  // copy data into the intermediary buffer
+  memcpy(stream.buffer.data + stream.bufferIt, bytes, length);
+  stream.bufferIt += length;
+}
+
+static void fileStreamReadDestroy(void * const userdata) {
   if (!userdata) { return; }
   ::PdsStream const stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
   (void)stream; // TODO remove this void
   ::streams.erase(reinterpret_cast<uint64_t>(userdata));
+
+  // note that the file isn't closed -- that's still on the user to do
 
   // reverse file to where the user last actually read the byte, as otherwise
   //   a segment from file will be lost
@@ -178,7 +221,16 @@ static void fileStreamDestroy(void * const userdata) {
   //);
 }
 
-PuleStreamRead puleFileStream(
+static void fileStreamWriteDestroy(void * const userdata) {
+  if (!userdata) { return; }
+  ::PdsStream const stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
+  (void)stream; // TODO remove this void
+  ::streams.erase(reinterpret_cast<uint64_t>(userdata));
+
+  // note that the file isn't closed -- that's still on the user to do
+}
+
+PuleStreamRead puleFileStreamRead(
   PuleFile const file,
   PuleArrayViewMutable const view
 ) {
@@ -199,7 +251,34 @@ PuleStreamRead puleFileStream(
     .readByte = fileStreamReadByte,
     .peekByte = fileStreamPeekByte,
     .isDone = fileStreamIsDone,
-    .destroy = fileStreamDestroy,
+    .destroy = fileStreamReadDestroy,
+  };
+}
+
+PuleStreamWrite puleFileStreamWrite(
+  PuleFile const file,
+  PuleArrayViewMutable const view
+) {
+  if (::streams.find(file.id) != ::streams.end()) {
+    puleLogError("already streaming file: %d", file.id);
+  }
+  if (view.elementStride != 0 || view.elementStride != 1) {
+    puleLogError("stream write intermediary buffer must have no stride");
+  }
+  ::streams.emplace(
+    file.id,
+    PdsStream {
+      .file = file,
+      .buffer = view,
+      .fetchedBufferLength = 0,
+      .bufferIt = 0,
+    }
+  );
+  return PuleStreamWrite {
+    .userdata = reinterpret_cast<void *>(file.id),
+    .writeBytes = fileStreamWriteBytes,
+    .flush = fileStreamFlush,
+    .destroy = fileStreamWriteDestroy,
   };
 }
 

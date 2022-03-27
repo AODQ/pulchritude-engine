@@ -419,6 +419,7 @@ for symbol in exportJson:
         if (ptype == ""):
           print(f"---- invalid empty type in '{field}' [{symbol['label']}]")
 
-fileWrite = open(inputArgs["output"], "w")
+os.makedirs(os.path.dirname(inputArgs["output"]), exist_ok=True)
+fileWrite = open(inputArgs["output"], "w+")
 fileWrite.write(json.dumps(exportJson, indent=2))
 fileWrite.close()

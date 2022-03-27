@@ -4,7 +4,11 @@
 
 namespace {
 
-void addTab(PuleDsWriteInfo info, int32_t const tabLevel, std::string & out) {
+void addTab(
+  PuleAssetPdsWriteInfo info,
+  int32_t const tabLevel,
+  std::string & out
+) {
   if (!info.prettyPrint) {
     return;
   }
@@ -14,14 +18,14 @@ void addTab(PuleDsWriteInfo info, int32_t const tabLevel, std::string & out) {
   }
 
   for (int32_t it = 0; it < tabLevel; ++ it) {
-    for (uint32_t itspace = 0; itspace < info.spacePerTab; ++ itspace) {
+    for (uint32_t itspace = 0; itspace < info.spacesPerTab; ++ itspace) {
       out += " ";
     }
   }
 }
 
-void pdsIterateWriteToStdout(
-  PuleDsWriteInfo const info,
+void pdsIterateWriteToStream(
+  PuleAssetPdsWriteInfo const info,
   int32_t const tabLevel,
   std::string & out,
   bool firstRun = true
@@ -49,7 +53,7 @@ void pdsIterateWriteToStdout(
     out += info.prettyPrint ? "[" : "[";
     size_t intsHit = 0;
     for (size_t it = 0; it < array.length; ++ it) {
-      PuleDsWriteInfo childInfo = info;
+      PuleAssetPdsWriteInfo childInfo = info;
       childInfo.head = array.values[it];
 
       // dependent on type, we might want to flatten the list out a bit
@@ -67,7 +71,7 @@ void pdsIterateWriteToStdout(
         addTab(info, tabLevel+1, out);
       }
 
-      pdsIterateWriteToStdout(childInfo, tabLevel+1, out, false);
+      pdsIterateWriteToStream(childInfo, tabLevel+1, out, false);
     }
     addTab(info, tabLevel, out);
     out += info.prettyPrint ? "]," : "]";
@@ -86,9 +90,9 @@ void pdsIterateWriteToStdout(
       out += info.prettyPrint ? ":" : ": ";
 
       // write value
-      PuleDsWriteInfo childInfo = info;
+      PuleAssetPdsWriteInfo childInfo = info;
       childInfo.head = object.values[it];
-      pdsIterateWriteToStdout(childInfo, tabLevel+1, out, false);
+      pdsIterateWriteToStream(childInfo, tabLevel+1, out, false);
     }
     if (!firstRun) {
       addTab(info, tabLevel, out);
@@ -104,16 +108,20 @@ extern "C" {
 
 void puleAssetPdsWriteToStream(
   PuleStreamWrite const stream,
-  PuleDsWriteInfo const writeInfo
+  PuleAssetPdsWriteInfo const writeInfo
 ) {
-  if (info.head.id == 0) {
+  if (writeInfo.head.id == 0) {
     return;
   }
 
   // TODO dont use string just pass stream
   std::string out;
-  ::pdsIterateWriteToStream(info, info.initialTabLevel-1, out);
-  puleStreamWriteBytes(stream, out.c_str(), out.size());
+  ::pdsIterateWriteToStream(writeInfo, writeInfo.initialTabLevel-1, out);
+  puleStreamWriteBytes(
+    stream,
+    reinterpret_cast<uint8_t const * >(out.c_str()),
+    out.size()
+  );
 }
 
 } // C
