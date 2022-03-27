@@ -13,4 +13,5 @@ assignees: ''
 
 **specs**
  - OS:
- - Build Tools (ex GCC 11.2.0, zig 0.10.0):
+ - Build Tools:  -- (ex GCC 11.2.0, zig 0.10.0)
+ - Project: -- (personal, example, etc):
