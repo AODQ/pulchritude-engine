@@ -29,7 +29,7 @@ def comment_remover(text):
   )
   return re.sub(pattern, replacer, text)
 
-def exportJsonFromFile(contents):
+def exportJsonFromFile(filename, contents):
   contents = comment_remover(contents)
   exportedSymbols = []
 
@@ -105,6 +105,7 @@ def exportJsonFromFile(contents):
 
       exportedSymbols += [{
         "type": "function",
+        "file": filename,
         "return-type": returnType,
         "label": fnName,
         "parameters": parameters,
@@ -173,6 +174,7 @@ def exportJsonFromFile(contents):
 
       exportedSymbols += [{
         "type": "enum",
+        "file": filename,
         "label": label,
         "values": enums,
       }]
@@ -225,6 +227,7 @@ def exportJsonFromFile(contents):
 
       exportedSymbols += [{
         "type": "struct" if isStructNotUnion else "union",
+        "file": filename,
         "label": label,
         "fields": fields,
       }]
@@ -242,8 +245,10 @@ for subdir, dirs, files in os.walk(inputArgs["input"]):
     if (filename == "core.h"):
       continue
 
-    file = open(subdir + "/" + filename)
-    exportJson += exportJsonFromFile(file.read())
+    filepath = subdir + "/" + filename;
+    file = open(filepath);
+    relativePath = filepath[filepath.rfind("pulchritude") : ];
+    exportJson += exportJsonFromFile(relativePath, file.read())
     file.close()
 
 # transform function pointers in structs & functions

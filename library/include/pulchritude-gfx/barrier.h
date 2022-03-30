@@ -32,7 +32,6 @@ typedef enum {
   PuleGfxMemoryBarrierFlag_element = 0x2,
   PuleGfxMemoryBarrierFlag_bufferUpdate = 0x4,
   PuleGfxMemoryBarrierFlag_all = 0x7,
-  PuleGfxMemoryBarrierFlagEnd = 0x5
 } PuleGfxMemoryBarrierFlag;
 
 PULE_exportFn void puleGfxMemoryBarrier(PuleGfxMemoryBarrierFlag const barrier);

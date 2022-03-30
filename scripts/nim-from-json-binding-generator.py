@@ -103,8 +103,8 @@ def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabel):
         re.sub(
           "([a-z0-9A-Z]+)_End([^a-z0-9A-Z_])",
           "\\1.End\\2",
-          param[1:-1]
-        )
+          param
+        )[1:-1]
       );
       string += ", "
       arrayEnds = 2
@@ -160,7 +160,7 @@ for symbol in inputJson:
     label = symbol["label"]
     returnType = (extractType(symbol["return-type"], True, label))
     parameters = ""
-    fieldHeader = "{.importc"
+    fieldHeader = "{.importc, header: \"<" + symbol["file"] + ">\""
     for param in symbol["parameters"]:
       parameters += extractField(param, isStructOrUnion=False)
       fieldHeader += extractFieldHeader(param, isStructOrUnion=False)
@@ -206,8 +206,10 @@ for symbol in inputJson:
     fields = ""
     for param in symbol["fields"]:
       fields += extractField(param, isStructOrUnion=True)
+    header = symbol["file"]
     outFile.write(
-      f"type\n  {label} {{.importc: \"struct {label}\".}} = object\n{fields}\n"
+      f"type\n  {label} {{.importc: \"struct {label}\", header: "
+      + f"\"<{header}>\".}} = object\n{fields}\n"
     )
 
 outFile.close()
