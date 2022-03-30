@@ -14,3 +14,8 @@ add_subdirectory(plugin)
 add_subdirectory(stream)
 add_subdirectory(string)
 add_subdirectory(time)
+
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION include
+)

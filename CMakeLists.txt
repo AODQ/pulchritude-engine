@@ -108,3 +108,17 @@ execute_process(
 if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not generate zig bindings")
 endif()
+
+execute_process(
+  COMMAND
+    python3
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/nim-from-json-binding-generator.py"
+    "--input"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
+    "--output"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/nim/pulchritude.nim"
+  RESULT_VARIABLE processFinished
+)
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not generate nim bindings")
+endif()
