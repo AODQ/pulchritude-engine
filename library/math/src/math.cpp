@@ -38,7 +38,7 @@ PuleF32v3 puleF32v3Cross(PuleF32v3 const a, PuleF32v3 const b) {
 }
 
 float puleF32v3Length(PuleF32v3 const a) {
-  return fsqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+  return sqrtf(a.x*a.x + a.y*a.y + a.z*a.z);
 }
 
 PuleF32v3 puleF32v3Add(PuleF32v3 const a, PuleF32v3 const b) {
