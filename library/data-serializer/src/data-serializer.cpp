@@ -55,6 +55,7 @@ void pdsObjectAdd(
 union pdsValueUnion {
   int64_t asI64 = 0;
   double asF64;
+  bool asBool;
   PuleStringView asString;
   std::vector<PuleDsValue> asArray;
   std::unordered_map<size_t, PuleDsValue> asObject;
@@ -69,6 +70,7 @@ using PdsArray = std::vector<PuleDsValue>;
 using PdsValue = std::variant<
   int64_t,
   double,
+  bool,
   PdsString,
   PdsArray,
   PdsObject
@@ -96,6 +98,9 @@ int64_t puleDsAsI64(PuleDsValue const value) {
 }
 double puleDsAsF64(PuleDsValue const value) {
   return *std::get_if<double>(&::pdsValues.at(value.id));
+}
+bool puleDsAsBool(PuleDsValue const value) {
+  return *std::get_if<bool>(&::pdsValues.at(value.id));
 }
 PuleStringView puleDsAsString(PuleDsValue const value) {
   std::string & asString = (
@@ -137,6 +142,9 @@ bool puleDsIsI64(PuleDsValue const value) {
 bool puleDsIsF64(PuleDsValue const value) {
   return std::get_if<double>(&::pdsValues.at(value.id)) != nullptr;
 }
+bool puleDsIsObject(PuleDsValue const value) {
+  return std::get_if<bool>(&::pdsValues.at(value.id)) != nullptr;
+}
 bool puleDsIsString(PuleDsValue const value) {
   return std::get_if<PdsString>(&::pdsValues.at(value.id)) != nullptr;
 }
@@ -154,6 +162,8 @@ PuleDsValue puleDsCreateI64(int64_t const value) {
 PuleDsValue puleDsCreateF64(double const value) {
   return {::pdsValueAdd(value)};
 }
+PuleDsValue puleDsCreateBool(bool const value) {
+  return {::pdsValueAdd(value)};
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
   return {::pdsValueAdd(PdsString{.value = std::string(stringView.contents)})};
 }

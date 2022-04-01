@@ -89,12 +89,14 @@ typedef struct {
 
 PULE_exportFn int64_t puleDsAsI64(PuleDsValue const value);
 PULE_exportFn double puleDsAsF64(PuleDsValue const value);
+PULE_exportFn bool puleDsAsBool(PuleDsValue const value);
 PULE_exportFn PuleStringView puleDsAsString(PuleDsValue const value);
 PULE_exportFn PuleDsValueArray puleDsAsArray(PuleDsValue const value);
 PULE_exportFn PuleDsValueObject puleDsAsObject(PuleDsValue const value);
 
 PULE_exportFn bool puleDsIsI64(PuleDsValue const value);
 PULE_exportFn bool puleDsIsF64(PuleDsValue const value);
+PULE_exportFn bool puleDsIsBool(PuleDsValue const value);
 PULE_exportFn bool puleDsIsString(PuleDsValue const value);
 PULE_exportFn bool puleDsIsArray(PuleDsValue const value);
 PULE_exportFn bool puleDsIsObject(PuleDsValue const value);
@@ -104,6 +106,7 @@ PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 
 PULE_exportFn PuleDsValue puleDsCreateI64(int64_t const value);
 PULE_exportFn PuleDsValue puleDsCreateF64(double const value);
+PULE_exportFn PuleDsValue puleDsCreateBool(bool const value);
 // TODO this thing is odd because i need to copy it locally anyway,
 //    so i might just want to set a default allocator for a PDS
 PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
