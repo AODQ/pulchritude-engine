@@ -266,7 +266,7 @@ for objkey, obj in enumerate(exportJson):
 
     ptr = ' '.join(field["type"])
     if (isStructOrUnion):
-      ptr += field["label"]
+      ptr += ' ' + field["label"]
 
     retType = []
     params = []
@@ -296,7 +296,7 @@ for objkey, obj in enumerate(exportJson):
     shouldBeConst = ""
     while (ptr[it].isspace()):
       it += 1
-    if (not isStructOrUnion or ptr[it:it+4] == "const"):
+    if (not isStructOrUnion or ptr[it:it+5] == "const"):
       while (not ptr[it].isspace()):
         shouldBeConst += ptr[it]
         it += 1
@@ -308,6 +308,9 @@ for objkey, obj in enumerate(exportJson):
     while (not ptr[it].isspace() and ptr[it] != ")"):
       label += ptr[it]
       it += 1
+    if (label == "const"):
+      print(f"failed to remove const from '{label}' [const: '{shouldBeConst}']")
+      assert false
     while (ptr[it] != ")"):
       it += 1
     it += 1
