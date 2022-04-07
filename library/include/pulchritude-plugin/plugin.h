@@ -36,7 +36,7 @@ PULE_exportFn void * puleTryPluginLoadFn(
   char const * const fnCStr
 );
 PULE_exportFn void puleIteratePlugins(
-  void (* const fn)(PulePluginInfo const, void * const userdata),
+  void (* const fn)(PulePluginInfo const plugin, void * const userdata),
   void * const userdata
 );
 

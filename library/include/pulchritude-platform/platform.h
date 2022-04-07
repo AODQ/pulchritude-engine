@@ -56,7 +56,8 @@ PULE_exportFn PuleI32v2 pulePlatformWindowSize(
 PULE_exportFn PuleI32v2 pulePlatformFramebufferSize(PulePlatform const window);
 
 typedef struct {
-  void (* callback)(PuleI32v2 const dimensions);
+  void (* callback)(PuleI32v2 const
+      dimensions);
 } PulePlatformFramebufferResizeCallbackCreateInfo;
 
 PULE_exportFn void pulePlatformFramebufferResizeCallback(
@@ -64,7 +65,8 @@ PULE_exportFn void pulePlatformFramebufferResizeCallback(
 );
 
 typedef struct {
-  void (* callback)(PuleI32v2 const dimensions);
+  void (* callback)(PuleI32v2 const
+      dimensions);
 } PulePlatformWindowResizeCallbackCreateInfo;
 
 PULE_exportFn void pulePlatformWindowResizeCallback(
@@ -227,7 +229,11 @@ PULE_exportFn int32_t puleInputScroll(PulePlatform const window);
 // TODO fix the json exporter to allow function pointers in params
 typedef struct {
   // TODO fix this to allow multiline in parser
-  void (* const callback)(PuleInputKey const, PuleInputKeyModifier const, bool const);
+  void (* const callback)(
+    PuleInputKey const inputKey,
+    PuleInputKeyModifier const keyModifier,
+    bool const wasPressed
+  );
 } PuleInputKeyCallbackCreateInfo;
 
 // callback for keyboard input, for event-driven applications such as text
@@ -238,7 +244,11 @@ PULE_exportFn void puleInputKeyCallback(
 );
 
 typedef struct {
-  void (* const callback)(PuleInputMouse const, PuleInputKeyModifier const, bool const);
+  void (* const callback)(
+    PuleInputMouse const mouse,
+    PuleInputKeyModifier const keyModifier,
+    bool const wasPressed
+  );
 } PuleInputMouseButtonCallbackCreateInfo;
 
 // callback for mouse input, for event-driven applications. It's recommended to
@@ -249,7 +259,7 @@ PULE_exportFn void puleInputMouseButtonCallback(
 );
 
 typedef struct {
-  void (* const callback)(uint32_t const);
+  void (* const callback)(uint32_t const character);
 } PuleInputRawTextCallbackCreateInfo;
 
 // callback for text input, with UTF8 support, for text editors
