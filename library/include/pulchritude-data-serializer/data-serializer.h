@@ -88,6 +88,10 @@ typedef struct {
 } PuleDsValueObject;
 
 PULE_exportFn int64_t puleDsAsI64(PuleDsValue const value);
+PULE_exportFn int32_t puleDsAsI32(PuleDsValue const value);
+PULE_exportFn size_t puleDsAsUSize(PuleDsValue const value);
+PULE_exportFn uint64_t puleDsAsU64(PuleDsValue const value);
+PULE_exportFn uint64_t puleDsAsU32(PuleDsValue const value);
 PULE_exportFn double puleDsAsF64(PuleDsValue const value);
 PULE_exportFn bool puleDsAsBool(PuleDsValue const value);
 PULE_exportFn PuleStringView puleDsAsString(PuleDsValue const value);
@@ -123,10 +127,10 @@ PULE_exportFn PuleDsValue puleDsArrayElementAt(
   size_t const idx
 );
 
-// object[memberLabel]
+// object[memberLabel] , returns { 0 } if no member
 PULE_exportFn PuleDsValue puleDsObjectMember(
   PuleDsValue const object,
-  PuleStringView const memberLabel
+  char const * const memberLabel
 );
 
 PULE_exportFn void puleDsAssignObjectMember(
