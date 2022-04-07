@@ -37,35 +37,45 @@ def tabs():
   for i in range(tabber):
     fileWrite.write("\t")
 
-def parseJson(obj):
+def parseJson(obj, onFirstPass, inArray = False):
   global tabber
   if obj and type(obj) is dict:
-    fileWrite.write("{\n")
-    tabber += 1
+    if (not onFirstPass):
+      fileWrite.write("{\n")
+      tabber += 1
     for key in obj:
       tabs()
       fileWrite.write(f"{key}: ")
-      parseJson(obj[key])
-    tabber -= 1
+      parseJson(obj[key], onFirstPass=False, inArray=False)
+    if (not onFirstPass):
+      tabber -= 1
     tabs()
-    fileWrite.write("},\n")
+    if (not onFirstPass):
+      fileWrite.write("},\n")
 
   elif obj and type(obj) is list:
-    fileWrite.write("[\n")
-    tabber += 1
+    if (onFirstPass):
+      print("can't have array as top level object in PDS")
+      exit(0)
+    fileWrite.write("[")
     for item in obj:
-      tabs()
-      parseJson(item)
-    tabber -= 1
+      parseJson(item, onFirstPass=False, inArray=True)
     tabs()
     fileWrite.write("],\n")
   else:
+    if (onFirstPass):
+      print("can't have values as top level object in PDS")
+      exit(0)
     if (type(obj) is str):
-      fileWrite.write(f"\"{obj}\",\n")
+      if (obj[-5:] == ".json"):
+        obj = obj[:-5] + ".pds"
+      fileWrite.write(f"\"{obj}\",")
     elif (type(obj) is bool):
-      fileWrite.write(f"{'true' if obj else 'false'},\n")
+      fileWrite.write(f"{'true' if obj else 'false'},")
     else:
-      fileWrite.write(f"{obj},\n")
+      fileWrite.write(f"{obj},")
+    if (not inArray):
+      fileWrite.write("\n")
 
-parseJson(inputJson)
+parseJson(inputJson, onFirstPass=True)
 fileWrite.close()

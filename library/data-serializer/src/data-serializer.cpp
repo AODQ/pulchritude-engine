@@ -96,6 +96,26 @@ extern "C" {
 int64_t puleDsAsI64(PuleDsValue const value) {
   return *std::get_if<int64_t>(&::pdsValues.at(value.id));
 }
+int32_t puleDsAsI32(PuleDsValue const value) {
+  return (
+    static_cast<int32_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
+size_t puleDsAsUSize(PuleDsValue const value) {
+  return (
+    static_cast<size_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
+uint64_t puleDsAsU64(PuleDsValue const value) {
+  return (
+    static_cast<uint64_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
+uint64_t puleDsAsU32(PuleDsValue const value) {
+  return (
+    static_cast<uint32_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
 double puleDsAsF64(PuleDsValue const value) {
   return *std::get_if<double>(&::pdsValues.at(value.id));
 }
@@ -111,8 +131,15 @@ PuleStringView puleDsAsString(PuleDsValue const value) {
   );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
-  auto const & array = *std::get_if<PdsArray>(&::pdsValues.at(value.id));
-  return { .values = array.data(), .length = array.size(), };
+  auto valuePtr = ::pdsValues.find(value.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("array value '%zu' does not exist", value.id);
+  }
+  auto asArray = std::get_if<PdsArray>(&valuePtr->second);
+  if (!asArray) {
+    puleLogError("array value '%zu' is not an array", value.id);
+  }
+  return { .values = asArray->data(), .length = asArray->size(), };
 }
 PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
   auto & object = *std::get_if<PdsObject>(&::pdsValues.at(value.id));
@@ -142,7 +169,7 @@ bool puleDsIsI64(PuleDsValue const value) {
 bool puleDsIsF64(PuleDsValue const value) {
   return std::get_if<double>(&::pdsValues.at(value.id)) != nullptr;
 }
-bool puleDsIsObject(PuleDsValue const value) {
+bool puleDsIsBool(PuleDsValue const value) {
   return std::get_if<bool>(&::pdsValues.at(value.id)) != nullptr;
 }
 bool puleDsIsString(PuleDsValue const value) {
@@ -164,7 +191,10 @@ PuleDsValue puleDsCreateF64(double const value) {
 }
 PuleDsValue puleDsCreateBool(bool const value) {
   return {::pdsValueAdd(value)};
+}
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
+  std::string contents = std::string(stringView.contents);
+  contents.resize(stringView.len);
   return {::pdsValueAdd(PdsString{.value = std::string(stringView.contents)})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
@@ -217,13 +247,37 @@ PuleDsValue puleDsArrayElementAt(
 
 PuleDsValue puleDsObjectMember(
   PuleDsValue const objectValue,
-  PuleStringView const memberLabel
+  char const * const memberLabel
 ) {
-  auto const & object = (
-    *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id))
-  );
-  auto const hash = pdsHash(memberLabel);
-  return object.values.at(hash);
+  auto valuePtr = ::pdsValues.find(objectValue.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError(
+      "object value {%zu} from member '%s' does not exist",
+      objectValue.id,
+      memberLabel
+    );
+  }
+
+  auto objectPtr = std::get_if<PdsObject>(&valuePtr->second);
+  if (!objectPtr) {
+    puleLogError(
+      "object value {%zu} from member '%s' is not an object",
+      objectValue.id,
+      memberLabel
+    );
+    return { 0 };
+  }
+  auto const & object = *objectPtr;
+  auto const hash = pdsHash(puleStringViewCStr(memberLabel));
+  auto member = object.values.find(hash);
+  if (member == object.values.end()) {
+    puleLogError(
+      "member '%s' does not exist in object value {%zu}",
+      memberLabel, objectValue.id
+    );
+    return { 0 };
+  }
+  return member->second;
 }
 
 void puleDsAssignObjectMember(

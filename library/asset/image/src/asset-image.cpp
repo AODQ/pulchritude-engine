@@ -39,7 +39,6 @@ static int32_t readFromStream(
   PuleStreamRead & stream = *reinterpret_cast<PuleStreamRead *>(user);
   size_t it = 0;
   uint8_t * destinationAsU8 = reinterpret_cast<uint8_t *>(destination);
-  puleLogDebug("reading length: %zu", length);
   for (it = 0; it < length; ++ it) {
     if (puleStreamReadIsDone(stream)) {
       destinationAsU8[it] = 0;

@@ -10,6 +10,8 @@ extern "C" {
 typedef struct {
   PuleString description; // default nil
   uint32_t id; // default 0
+  char const * sourceLocationNullable; // default nil
+  size_t lineNumber; // default 0
 } PuleError;
 
 PULE_exportFn PuleError puleError();
@@ -25,6 +27,8 @@ PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
   *error = { \
     .description = puleStringFormatDefault(message __VA_OPT__(,) __VA_ARGS__), \
     .id = ErrorId, \
+    .sourceLocationNullable = __FILE__, \
+    .lineNumber = __LINE__, \
   };
 
 // asserts an expression, which on failure will return the error with the
@@ -34,10 +38,12 @@ PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
     *error = { \
       .description = ( \
         puleStringFormatDefault( \
-          "assertion failed; %s:%d; %s", __FILE__, __LINE__, #X \
+          "assertion failed; %s", #X \
         ) \
       ), \
       .id = ErrorId, \
+      .sourceLocationNullable = __FILE__, \
+      .lineNumber = __LINE__, \
     }; \
     return RetValue; \
   }
@@ -45,7 +51,7 @@ PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
 // irrecoverable assert, should only be on for relwithdebinfo builds i guess
 #define PULE_assert(X) \
   if (!(X)) { \
-    puleLogError("assertion failed at %s:%d; %s", __FILE__, __LINE__, #X); \
+    puleLogError("assertion failed; %s", #X); \
     exit(-1); \
   }
 

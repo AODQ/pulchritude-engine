@@ -1,5 +1,6 @@
 #include <pulchritude-file/file.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -46,7 +47,10 @@ PuleFile puleFileOpen(
   }
   FILE * const file = fopen(filename, fileMode);
   if (!file) {
-    PULE_error(PuleErrorFile_fileOpen, "failed to open: '%s'", filename);
+    PULE_error(
+      PuleErrorFile_fileOpen,
+      "failed to open file '%s' (%s)", filename, strerror(errno)
+    );
     return { 0 };
   }
   uint64_t const id = reinterpret_cast<uint64_t>(file);

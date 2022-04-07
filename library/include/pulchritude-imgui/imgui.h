@@ -29,7 +29,6 @@ PULE_exportFn bool puleImguiSliderZu(
   char const * const label,
   size_t * const data,
   size_t const min, size_t const max
-
 );
 
 PULE_exportFn bool puleImguiToggle(char const * const label, bool * const data);

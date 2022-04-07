@@ -1,13 +1,14 @@
-add_library(pulchritude-data-serializer SHARED)
+add_library(pulchritude-asset-tiled SHARED)
 
-target_include_directories(pulchritude-data-serializer PUBLIC "../include/")
+target_include_directories(pulchritude-asset-tiled PUBLIC "../include/")
 target_sources(
-  pulchritude-data-serializer
-  PRIVATE src/data-serializer.cpp
+  pulchritude-asset-tiled
+  PRIVATE
+    src/asset-tiled-read.cpp
 )
 
 set_target_properties(
-  pulchritude-data-serializer
+  pulchritude-asset-tiled
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -16,16 +17,17 @@ set_target_properties(
 )
 
 target_link_libraries(
-  pulchritude-data-serializer
-    pulchritude-asset-image
+  pulchritude-asset-tiled
+    pulchritude-allocator
+    pulchritude-asset-pds
+    pulchritude-data-serializer
     pulchritude-error
-    pulchritude-log
+    pulchritude-file
     pulchritude-stream
-    pulchritude-string
 )
 
 install(
-  TARGETS pulchritude-data-serializer
+  TARGETS pulchritude-asset-tiled
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

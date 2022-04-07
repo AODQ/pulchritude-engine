@@ -25,6 +25,10 @@ typedef struct { int32_t x; int32_t y; } PuleI32v2;
 typedef struct { int32_t x; int32_t y; int32_t z; } PuleI32v3;
 typedef struct { int32_t x; int32_t y; int32_t z; int32_t w; } PuleI32v4;
 
+typedef struct { int32_t x; int32_t y; } PuleU32v2;
+typedef struct { int32_t x; int32_t y; int32_t z; } PuleU32v3;
+typedef struct { int32_t x; int32_t y; int32_t z; int32_t w; } PuleU32v4;
+
 PULE_exportFn PuleF32v2 pulef32v2(float const identity);
 PULE_exportFn PuleF32v3 pulef32v2Ptr(float const * const values);
 //PuleF32v2 pulef32v2Add(pulef32v2 const a, pulef32v2 const b);

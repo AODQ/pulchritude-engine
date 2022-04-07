@@ -24,12 +24,13 @@ def keywordRename(token):
   # rename tokens if they are keywords in zig
   keywordTranslator = {
     "error": "err",
+    "fn": "func",
   }
   if (token in keywordTranslator):
     return keywordTranslator[token]
   return token
 
-def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabel):
+def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabelForDebug):
   string = ""
 
   typeTranslator = {
@@ -45,7 +46,7 @@ def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabel):
   # zig demands all function parameters are constant
   if (not isReturnOrStructUnionFieldType and typeArray[-1] != "const"):
     print(
-      f"WARNING: the last const of type {typeArray} from {symbolLabel} "
+      f"WARNING: the last const of type {typeArray} from {symbolLabelForDebug} "
       "is not constant :/"
     )
   elif (not isReturnOrStructUnionFieldType):
@@ -90,10 +91,18 @@ def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabel):
 def extractField(symbol, isStructOrUnion):
   string = ""
   if (symbol["meta-type"] == "fn-ptr"):
-    pass
+    string += "  " + keywordRename(symbol["label"]) + ": "
+    string += "* const fn("
+    for parameter in symbol["parameters"]:
+      string += parameter[-1] + ": "
+      string += extractType(parameter[:-1], False, parameter[-1])
+      string += ", "
+    string += ") "
+    string += extractType(symbol["return-type"], isStructOrUnion, "")
+    string += ",\n"
   elif (symbol["meta-type"] == "standard"):
-    string += "  " + keywordRename(param["label"]) + ": "
-    string += extractType(param["type"], isStructOrUnion, label)
+    string += "  " + keywordRename(symbol["label"]) + ": "
+    string += extractType(symbol["type"], isStructOrUnion, label)
     string += ",\n"
   elif (symbol["meta-type"] == "variadic"):
     string += "  ...\n"

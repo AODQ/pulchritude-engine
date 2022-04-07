@@ -291,13 +291,13 @@ PuleDsValue pdsParseValue(
     return { 0 };
   }
 
-  if (value == "true" || value = "false") {
+  if (value == "true" || value == "false") {
     return puleDsCreateBool(value == "true");
   }
 
   // example, "" "asdf"
-  if (value.size() > 2 && value[0] == '"' && value[value.size()-1] == '"') {
-    value = value.substr(1, value.size()-1);
+  if (value.size() > 1 && value[0] == '"' && value[value.size()-1] == '"') {
+    value = value.substr(1, value.size()-2);
     return puleDsCreateString(
       PuleStringView { .contents = value.c_str(), .len = value.size(), }
     );
