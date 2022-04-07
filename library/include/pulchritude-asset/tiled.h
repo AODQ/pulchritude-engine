@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pulchritude-asset/image.h>
+#include <pulchritude-math/math.h>
 
 // reads Tiled PDS loading (mapeditor.org); note that Tiled only natively
 //   supports writing JSON/tmx, so a conversion to the internal PDS format is
@@ -18,66 +19,86 @@ typedef enum {
 typedef struct {
   PuleAssetImage spritesheet;
   size_t tileLength;
-  size_t tileWidth;
-  size_t tileHeight;
+  PuleU32v2 tileDim;
   size_t spritesheetStartingGlobalId;
-  size_t rotationDegreesX90; // 0 = 0, 1 = 90, 2 = 180, 3 = 270
-  size_t flipX;
-  size_t flipY;
-  // TODO provide support for individual tile properties/animations
-} PuleAssetTiledTileTileset;
+} PuleAssetTiledTileset;
 
-typedef struct {
+typedef enum {
   PuleAssetTiledLayerType_tiles,
   PuleAssetTiledLayerType_objects,
 } PuleAssetTiledLayerType;
 
 typedef struct {
-  size_t * ids;
-  size_t length; // = height*width
-  size_t width;
-  size_t height;
+  size_t * tileIds;
+  size_t tileIdsLength; // = height*width
+  PuleU32v2 dim;
 } PuleAssetTiledLayerTiles;
 
 typedef struct {
   size_t globalId;
-  size_t width;
-  size_t height;
-  PuleAssetTiledProperty * properties;
-  size_t propertiesLength;
+  PuleU32v2 originInPixels;
   PuleStringView name;
+  // [TODO] PuleAssetTiledProperty * properties;
+  // [TODO] size_t propertiesLength;
 } PuleAssetTiledObject;
 
 typedef struct {
-  PuleAssetTiledObject objects;
-  size_t length;
+  PuleAssetTiledObject * objects;
+  size_t objectsLength;
 } PuleAssetTiledLayerObjects;
 
 typedef union {
-  PuleAssetTiledObject object;
+  PuleAssetTiledLayerObjects object;
   PuleAssetTiledLayerTiles tiles;
 } PuleAssetTiledLayerTaggedUnion;
 
 typedef struct {
-  size_t * tileIds;
-  size_t tileIdsLength; // = height*width
-  size_t height;
-  size_t width;
-  PuleAssetTiledLayerType type;
+  PuleAssetTiledLayerType dataType;
   PuleAssetTiledLayerTaggedUnion data;
 } PuleAssetTiledLayer;
 
 typedef struct {
-  size_t heightInTiles;
-  size_t widthInTiles;
-  size_t tileWidth;
-  size_t tileHeight;
-} PuleAssetTiledMap;
+  PuleU32v2 dimInTiles;
+  PuleU32v2 tileDimInPixels;
+
+  PuleAssetTiledLayer * layers;
+  size_t layersLength;
+
+  PuleAssetTiledTileset * tilesets;
+  size_t tilesetsLength;
+} PuleAssetTiledMapInfo;
 
 typedef struct {
-} PuleAssetTiled;
+  uint64_t id;
+} PuleAssetTiledMap;
 
-PULE_exportFn Pule
+PULE_exportFn PuleAssetTiledMapInfo puleAssetTiledMapInfo(
+  PuleAssetTiledMap const tiledMap
+);
+
+typedef struct {
+  PuleAllocator allocator;
+  PuleStringView baseUrl;
+  PuleStreamRead mapSource;
+  PuleAssetImageFormat requestedImageFormat;
+} PuleAssetTiledMapLoadCreateInfo;
+
+PULE_exportFn PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
+  PuleAssetTiledMapLoadCreateInfo const info,
+  PuleError * const error
+);
+
+typedef struct {
+  PuleAllocator allocator;
+  PuleStringView url;
+  PuleAssetImageFormat requestedImageFormat;
+} PuleAssetTiledMapLoadFromFileCreateInfo;
+PULE_exportFn PuleAssetTiledMap puleAssetTiledMapLoadFromFile(
+  PuleAssetTiledMapLoadFromFileCreateInfo const info,
+  PuleError * const error
+);
+
+PULE_exportFn void puleAssetTiledMapDestroy(PuleAssetTiledMap const map);
 
 #ifdef __cplusplus
 }

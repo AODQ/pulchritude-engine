@@ -17,6 +17,7 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-data-serializer
+    pulchritude-asset-image
     pulchritude-error
     pulchritude-log
     pulchritude-stream

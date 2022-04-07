@@ -19,9 +19,10 @@ set_target_properties(
 target_link_libraries(
   pulchritude-asset-tiled
     pulchritude-allocator
-    pulchritude-data-serializer
     pulchritude-asset-pds
+    pulchritude-data-serializer
     pulchritude-error
+    pulchritude-file
     pulchritude-stream
 )
 
