@@ -10,7 +10,6 @@ PuleString puleString(
   char const * const baseContents
 ) {
   size_t const len = strlen(baseContents);
-  printf("len: %zu\n", len);
   PuleAllocateInfo allocateInfo = {
     .zeroOut = false,
     .numBytes = len+1,
@@ -23,7 +22,6 @@ PuleString puleString(
     .contents = data,
     .len = len,
   };
-  printf("data: %s\n", data);
   return str;
 }
 
@@ -37,18 +35,15 @@ void puleStringDeallocate(PuleString * const stringInout) {
   stringInout->len = 0;
 }
 
-// allocates and formats specified string, using C specifier notations
-PuleString puleStringFormat(
+static PuleString puleStringFormatVargs(
   PuleAllocator const allocator,
-  char const * const format, ...
+  char const * const format,
+  va_list args
 ) {
-  PuleString stringOut;
-  stringOut.allocator = allocator;
-
   int32_t lenOrErr;
   { // get size of formatted string
     va_list argsLen;
-    va_start(argsLen, format);
+    va_copy(argsLen, args);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
     lenOrErr = vsnprintf(NULL, 0, format, argsLen);
@@ -60,6 +55,9 @@ PuleString puleStringFormat(
 
   size_t const len = (size_t)(lenOrErr);
 
+  PuleString stringOut;
+  stringOut.allocator = allocator;
+
   { // allocate memory
     PuleAllocateInfo allocateInfo = {
       .zeroOut = false,
@@ -69,25 +67,35 @@ PuleString puleStringFormat(
     stringOut.contents = puleAllocate(allocator, allocateInfo);
   }
 
-  { // format
-    va_list argsFmt;
-    va_start(argsFmt, format);
+  { // format (consumes args)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
     stringOut.len = (size_t)(
-      vsnprintf(stringOut.contents, len+1, format, argsFmt)
+      vsnprintf(stringOut.contents, len+1, format, args)
     );
 #pragma GCC diagnostic pop
-    va_end(argsFmt);
   }
 
+  va_end(args);
   return stringOut;
 }
 
-PuleString puleStringFormatDefault(char const * format, ...) {
+// allocates and formats specified string, using C specifier notations
+PuleString puleStringFormat(
+  PuleAllocator const allocator,
+  char const * const format, ...
+) {
   va_list args;
   va_start(args, format);
-  PuleString str = puleStringFormat(puleAllocateDefault(), format, args);
+  PuleString str = puleStringFormatVargs(allocator, format, args);
+  va_end(args);
+  return str;
+}
+
+PuleString puleStringFormatDefault(char const * const format, ...) {
+  va_list args;
+  va_start(args, format);
+  PuleString str = puleStringFormatVargs(puleAllocateDefault(), format, args);
   va_end(args);
   return str;
 }
