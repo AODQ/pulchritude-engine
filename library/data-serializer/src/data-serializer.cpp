@@ -280,13 +280,14 @@ PuleDsValue puleDsObjectMember(
   return member->second;
 }
 
-void puleDsAssignObjectMember(
+PuleDsValue puleDsAssignObjectMember(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 ) {
   auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
   ::pdsObjectAdd(object, memberLabel, valueToEmplace);
+  return puleDsObjectMember(objectValue, memberLabel.contents);
 }
 
 } // C

@@ -133,7 +133,7 @@ PULE_exportFn PuleDsValue puleDsObjectMember(
   char const * const memberLabel
 );
 
-PULE_exportFn void puleDsAssignObjectMember(
+PULE_exportFn PuleDsValue puleDsAssignObjectMember(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
