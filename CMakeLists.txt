@@ -77,6 +77,7 @@ endif()
 
 # adds dependencies in correct order
 add_subdirectory(application)
+add_subdirectory(editor)
 add_subdirectory(library)
 add_subdirectory(third-party)
 
