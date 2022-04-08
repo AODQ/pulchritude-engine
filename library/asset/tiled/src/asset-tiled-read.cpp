@@ -351,7 +351,7 @@ PuleAssetTiledMapInfo puleAssetTiledMapInfo(
   PuleAssetTiledMap const tiledMap
 ) {
   auto const ptr = maps.find(tiledMap.id);
-  if (ptr = maps.end()) {
+  if (ptr == maps.end()) {
     puleLogError("invalid tiled map %u", tiledMap.id);
     return {};
   }

@@ -17,7 +17,7 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-editor
-    pulchritude-asset
+    pulchritude-asset-pds
     pulchritude-data-serializer
     pulchritude-error
     pulchritude-gfx
