@@ -1,6 +1,7 @@
 #include <pulchritude-asset/pds.h>
 
 #include <string>
+#include <string.h>
 
 namespace {
 PuleDsValue pdsParseValue(
@@ -361,5 +362,136 @@ PuleDsValue puleAssetPdsLoadFromStream(
   return defaultObject;
 }
 
+/* static void parseCommandLineArgument( */
+/*   PuleAllocator */ 
+
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
+  PuleAllocator const allocator,
+  char const * const layout,
+  int32_t const argumentLength,
+  char const * const * const arguments,
+  PuleError * const error
+) {
+  PuleStreamRead const layoutStreamRead = (
+    puleStreamReadFromString(puleStringViewCStr(layout))
+  );
+  PuleDsValue const layoutValue = (
+    puleAssetPdsLoadFromStream(
+      allocator,
+      layoutStreamRead,
+      error
+    )
+  );
+  puleStreamReadDestroy(layoutStreamRead);
+  if (error) {
+    return { 0 };
+  }
+
+  PuleDsValue const emitValue = puleDsCreateObject(allocator);
+  PuleDsValue emitIt = emitValue;
+
+  PuleDsValue layoutIt = layoutValue;
+
+  // parse objects
+  int32_t argumentIt = 1;
+  for (; argumentIt < argumentLength; ++ argumentIt) {
+    char const * const argument = arguments[argumentIt];
+    PuleDsValue arg = puleDsObjectMember(layoutIt, argument);
+    if (arg.id == 0) {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "unexpected parameter: '%s'", argument
+      );
+      puleDsDestroy(layoutValue);
+      puleDsDestroy(emitValue);
+      return { 0 };
+    }
+    layoutIt = arg;
+    emitIt = (
+      puleDsAssignObjectMember(
+        emitIt,
+        puleStringViewCStr(argument),
+        puleDsCreateObject(allocator)
+      )
+    );
+    if (puleDsIsObject(arg)) {
+      continue;
+    }
+    if (puleDsIsArray(arg)) {
+      break;
+    }
+  }
+
+  PuleDsValueArray layoutArray;
+
+  if (!puleDsIsArray(layoutIt)) {
+    goto finishArrayParsing;
+  }
+
+  layoutArray = puleDsAsArray(layoutIt);
+
+  // parse arrays
+  // TODO parse types (ints, floats, etc)
+  // TODO enforce opt=true
+  for (; argumentIt < argumentLength; ++ argumentIt) {
+    char const * const argument = arguments[argumentIt];
+    // at this point everything must have preceding '--'
+    if (argument[0] != '-' || argument[1] != '-') {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "unexpected parameter: '%s'", argument
+      );
+      puleDsDestroy(layoutValue);
+      puleDsDestroy(emitValue);
+      return { 0 };
+    }
+
+    bool parameterFound = false;
+    for (size_t arrIt = 0; arrIt < layoutArray.length; ++ arrIt) {
+      PuleDsValue const obj = layoutArray.values[arrIt];
+      PuleStringView objLabel = puleDsAsString(obj);
+
+      if (strncmp(objLabel.contents, argument+2, objLabel.len)) {
+        continue;
+      }
+
+      parameterFound = true;
+      if (argumentIt+1 >= argumentLength) {
+        PULE_error(
+          PuleErrorAssetPds_decode,
+          "missing argument for '%s'", argument
+        );
+        puleDsDestroy(layoutValue);
+        puleDsDestroy(emitValue);
+        return { 0 };
+      }
+
+      puleDsAssignObjectMember(
+        emitValue,
+        objLabel,
+        puleDsCreateString(puleStringViewCStr(arguments[argumentIt+1]))
+      );
+
+      argumentIt += 1;
+      break;
+    }
+
+    if (!parameterFound) {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "unknown option: '%s'", argument
+      );
+      puleDsDestroy(layoutValue);
+      puleDsDestroy(emitValue);
+      return { 0 };
+    }
+  }
+
+  finishArrayParsing:
+
+  puleDsDestroy(layoutValue);
+
+  return emitValue;
+}
 
 }

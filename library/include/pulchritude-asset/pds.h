@@ -34,6 +34,16 @@ PULE_exportFn void puleAssetPdsWriteToStream(
   PuleAssetPdsWriteInfo const writeInfo
 );
 
+// can parse command line arguments from the given PDS
+// "help" will be inserted if the user requested help flag `--help`
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
+  PuleAllocator const allocator,
+  char const * const layout,
+  int32_t const argumentLength,
+  char const * const * const arguments,
+  PuleError * const error
+);
+
 #ifdef __cplusplus
 }
 #endif

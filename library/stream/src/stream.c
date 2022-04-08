@@ -1,6 +1,7 @@
 #include <pulchritude-stream/stream.h>
 
 #include <stdio.h>
+#include <string.h>
 
 uint8_t puleStreamReadByte(PuleStreamRead const stream) {
   return stream.readByte(stream.userdata);
@@ -54,3 +55,38 @@ PULE_exportFn void puleStreamWriteDestroy(PuleStreamWrite const stream) {
   stream.destroy(stream.userdata);
 }
 
+static uint8_t puleStreamReadFromCStringReadByte(void * const userdata) {
+  PuleStringView * const stringView = (PuleStringView *)(userdata);
+  uint8_t const retValue = *(uint8_t *)(stringView->contents);
+  stringView->contents += 1;
+  if (stringView->len > 0) {
+    stringView->len -= 1;
+  }
+  return retValue;
+}
+static uint8_t puleStreamReadFromCStringPeekByte(void * const userdata) {
+  PuleStringView * const stringView = (PuleStringView *)(userdata);
+  return *(uint8_t *)(stringView->contents);
+}
+static bool puleStreamReadFromCStringIsDone(void * const userdata) {
+  PuleStringView * const stringView = (PuleStringView *)(userdata);
+  return stringView->len == 0;
+}
+static void puleStreamReadFromCStringDestroy(void * const userdata) {
+  free(userdata);
+}
+
+PULE_exportFn PuleStreamRead puleStreamReadFromString(
+  PuleStringView const stringView
+) {
+  PuleStringView * const stringViewPtr = malloc(sizeof(PuleStringView));
+  memcpy(stringViewPtr, &stringView, sizeof(PuleStringView));
+  PuleStreamRead streamRead = {
+    .userdata = stringViewPtr,
+    .readByte = &puleStreamReadFromCStringReadByte,
+    .peekByte = &puleStreamReadFromCStringPeekByte,
+    .isDone = &puleStreamReadFromCStringIsDone,
+    .destroy = &puleStreamReadFromCStringDestroy,
+  };
+  return streamRead;
+}
