@@ -73,6 +73,14 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleError * const error
 );
 
+void puleAssetPdsFileCacheSystemUpdate(PuleTimeMs const deltatime);
+
+PULE_exportFn PuleDsValue puleAssetPdsOpenFromDisk(
+  PuleAssetPdsOpenFromDiskInfo const info,
+  PuleError * const error
+) {
+}
+
 #ifdef __cplusplus
 }
 #endif
