@@ -302,12 +302,12 @@ bool puleFileCopy(
 ) {
   std::error_code errorCode;
   std::filesystem::copy_file(
-    std::filesystem::path(std::string_view(srcPath.content, srcPath.len)),
-    std::filesystem::path(std::string_view(dstPath.content, dstPath.len)),
+    std::filesystem::path(std::string_view(srcPath.contents, srcPath.len)),
+    std::filesystem::path(std::string_view(dstPath.contents, dstPath.len)),
     errorCode
   );
   if (errorCode) {
-    PULE_error(
+    puleLogError(
       "could not copy file from '%s' to '%s'\n\t-> %s",
       srcPath.contents,
       dstPath.contents,
@@ -321,11 +321,11 @@ bool puleFileCopy(
 bool puleFileRemove(PuleStringView const filePath) {
   std::error_code errorCode;
   std::filesystem::remove(
-    std::filesystem::path(std::string_view(filePath.content, filePath.len)),
+    std::filesystem::path(std::string_view(filePath.contents, filePath.len)),
     errorCode
   );
   if (errorCode) {
-    PULE_error(
+    puleLogError(
       "could not remove file at '%s'\n\t-> %s",
       filePath.contents, errorCode.message().c_str()
     );

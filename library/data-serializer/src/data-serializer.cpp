@@ -1,7 +1,6 @@
 #include <pulchritude-data-serializer/data-serializer.h>
 
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -10,12 +9,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace {
-
-size_t pdsHash(PuleStringView const view) {
-  auto stringView = std::string_view(view.contents, view.len);
-  auto hash = std::hash<std::string_view>{}(stringView);
-  return hash;
-}
 
 struct PdsObject {
   std::unordered_map<size_t, PuleDsValue> values = {};
@@ -37,7 +30,7 @@ void pdsObjectAdd(
   PuleStringView const label,
   PuleDsValue const value
 ) {
-  size_t const hash = ::pdsHash(label);
+  size_t const hash = puleStringViewHash(label);
   PULE_assert(object.values.find(hash) == object.values.end());
 
   object.values.emplace(hash, value);
@@ -270,7 +263,7 @@ PuleDsValue puleDsObjectMember(
     return { 0 };
   }
   auto const & object = *objectPtr;
-  auto const hash = pdsHash(puleStringViewCStr(memberLabel));
+  auto const hash = puleStringViewHash(puleStringViewCStr(memberLabel));
   auto member = object.values.find(hash);
   if (member == object.values.end()) {
     return { 0 };
@@ -290,11 +283,11 @@ static PuleDsValue puleDsObjectCloneRecursively(
   PuleDsValueObject const oldObj = puleDsAsObject(object);
   for (size_t it = 0; it < oldObj.length; ++ it) {
     PuleDsValue const value = oldObj.values[it];
-    PuleStringView const stringView = oldObj
+    PuleStringView const stringView = oldObj.labels[it];
     puleDsAssignObjectMember(
       newObj,
-      stringView.contents,
-      puleDsValueCloneRecursively(value)
+      stringView,
+      puleDsValueCloneRecursively(value, allocator)
     );
   }
   return newObj;
@@ -305,10 +298,10 @@ static PuleDsValue puleDsArrayCloneRecursively(
   PuleAllocator const allocator
 ) {
   PuleDsValue const newArr = puleDsCreateArray(allocator);
-  PuleDsValueObject const oldArr = puleDsAsArray(object);
+  PuleDsValueArray const oldArr = puleDsAsArray(array);
   for (size_t it = 0; it < oldArr.length; ++ it) {
     PuleDsValue const value = oldArr.values[it];
-    puleDsAppendArray(newArr, puleDsValueCloneRecursively(value));
+    puleDsAppendArray(newArr, puleDsValueCloneRecursively(value, allocator));
   }
   return newArr;
 }

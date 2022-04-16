@@ -408,9 +408,7 @@ PuleDsValue puleAssetPdsLoadFromFile(
 
   // plug the stream into the data-serializer to deserialize its contents
   PuleStreamRead const stream = puleFileStreamRead(file, streamStorageView);
-  PuleDsValue const head = (
-    puleAssetPdsLoadFromStream(puleAllocateDefault(), stream, error)
-  );
+  PuleDsValue const head = puleAssetPdsLoadFromStream(allocator, stream, error);
 
   // even if error occured we don't have to do anything special
   puleFileClose(file);
@@ -436,21 +434,7 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   }
 
   // parse the user requested layout
-  PuleStreamRead const layoutStreamRead = (
-    puleStreamReadFromString(puleStringViewCStr(info.layout))
-  );
-  PuleDsValue const layoutValue = (
-    puleAssetPdsLoadFromStream(
-      info.allocator,
-      layoutStreamRead,
-      error
-    )
-  );
-  puleStreamReadDestroy(layoutStreamRead);
-  if (puleErrorExists(error)) {
-    return { 0 };
-  }
-  PULE_assert(layoutValue.id != 0);
+  PULE_assert(info.layout.id != 0);
 
   // TODO assert the layoutValue is in correct format
 
@@ -459,7 +443,7 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleDsValue const emitValue = puleDsCreateObject(info.allocator);
   PuleDsValue emitIt = emitValue;
 
-  PuleDsValue layoutIt = layoutValue;
+  PuleDsValue layoutIt = info.layout;
   char const * helpPreviousLayoutArgument = info.arguments[0];
 
   // parse objects
@@ -473,7 +457,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       if (info.userRequestedHelpOutNullable) {
         *info.userRequestedHelpOutNullable = true;
       }
-      puleDsDestroy(layoutValue);
       puleDsDestroy(emitValue);
       return { 0 };
     }
@@ -485,7 +468,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         PuleErrorAssetPds_decode,
         "unexpected parameter: '%s'", argument
       );
-      puleDsDestroy(layoutValue);
       puleDsDestroy(emitValue);
       return { 0 };
     }
@@ -511,7 +493,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
     if (info.userRequestedHelpOutNullable) {
       *info.userRequestedHelpOutNullable = true;
     }
-    puleDsDestroy(layoutValue);
     puleDsDestroy(emitValue);
     return { 0 };
   }
@@ -524,7 +505,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         PuleErrorAssetPds_decode,
         "not enough parameters passed from '%s'", argument
       );
-      puleDsDestroy(layoutValue);
       puleDsDestroy(emitValue);
       return { 0 };
     goto finishArrayParsing;
@@ -543,7 +523,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       if (info.userRequestedHelpOutNullable) {
         *info.userRequestedHelpOutNullable = true;
       }
-      puleDsDestroy(layoutValue);
       puleDsDestroy(emitValue);
       return { 0 };
     }
@@ -554,7 +533,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         PuleErrorAssetPds_decode,
         "unexpected parameter: '%s'", argument
       );
-      puleDsDestroy(layoutValue);
       puleDsDestroy(emitValue);
       return { 0 };
     }
@@ -576,7 +554,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
           PuleErrorAssetPds_decode,
           "missing argument for '%s'", argument
         );
-        puleDsDestroy(layoutValue);
         puleDsDestroy(emitValue);
         return { 0 };
       }
@@ -596,15 +573,12 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         PuleErrorAssetPds_decode,
         "unknown option: '%s'", argument
       );
-      puleDsDestroy(layoutValue);
       puleDsDestroy(emitValue);
       return { 0 };
     }
   }
 
   finishArrayParsing:
-
-  puleDsDestroy(layoutValue);
 
   return emitValue;
 }

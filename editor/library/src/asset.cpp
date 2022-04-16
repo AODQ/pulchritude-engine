@@ -20,7 +20,7 @@ void puldGuiUpdate();
 
 extern "C" {
 
-static void assetAddForward(
+void assetAddForward(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
   PuleDsValue const input,
@@ -56,12 +56,12 @@ static void assetAddForward(
       puleDsCreateString(destination)
     );
   }
-  puleAssetPdsWriteToFile(assetValue, error);
+  puleAssetPdsWriteToFile(assetValue, "assets/assets.pds", error);
 
   puleDsDestroy(assetValue);
 }
 
-static void assetAddRewind(
+void assetAddRewind(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
   PuleDsValue const input,
@@ -84,12 +84,13 @@ static void assetAddRewind(
 
   { // remove file reference
     PuleDsValue const filesArray = puleDsObjectMember(assetValue, "files");
+    (void)filesArray;
     // TODO add function that can remove array elements
   }
-  puleAssetPdsWriteToFile(assetValue, error);
+  puleAssetPdsWriteToFile(assetValue, "assets/assets.pds", error);
   puleDsDestroy(assetValue);
 
-  if (puleErrorExists(err)) {
+  if (puleErrorExists(error)) {
     return;
   }
 
@@ -118,7 +119,7 @@ PuleDsValue puldRegisterCommands(
     puleAssetPdsLoadFromRvalStream(
       allocator,
       puleStreamReadFromString(puleStringViewCStr(commandRegisterCStr)),
-      &error
+      error
     )
   );
 }
@@ -143,7 +144,7 @@ PuleDsValue puldRegisterCLICommands(
     puleAssetPdsLoadFromRvalStream(
       allocator,
       puleStreamReadFromString(puleStringViewCStr(CLIRegisterCStr)),
-      &error
+      error
     )
   );
 }

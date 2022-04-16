@@ -144,7 +144,7 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
           plugin.id,
           puleDsAsString(puleDsObjectMember(command, "rewind-label")).contents
         );
-        ::commandRegistry.emplace({pdsHash(label), registry});
+        ::commandRegistry.emplace(puleStringViewHash(label), registry);
       }
       puleDsDestroy(registeredCommands);
     }
@@ -159,6 +159,7 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
     PuleDsValue const registeredCLICommands = (
       registerCLICommands(puleAllocateDefault(), &error)
     );
+    puleAssetPdsWriteToStdout(cliArguments);
     if (!puleErrorConsume(&error) && registeredCLICommands.id != 0) {
       PuleDsValueObject const cliCommands = (
         puleDsAsObject(registeredCLICommands)
@@ -166,10 +167,10 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
       for (size_t it = 0; it < cliCommands.length; ++ it) {
         PuleStringView const label = cliCommands.labels[it];
         PuleDsValue const value = cliCommands.values[it];
-        assert(puleDsObjectMember(cliArguments, label).id == 0);
+        PULE_assert(puleDsObjectMember(cliArguments, label.contents).id == 0);
         puleDsAssignObjectMember(
           cliArguments,
-          label.contents,
+          label,
           puleDsValueCloneRecursively(value, puleAllocateDefault())
         );
       }
@@ -184,22 +185,28 @@ int32_t main(
   int32_t const userArgumentLength,
   char const * const * const userArguments
 ) {
+  pulePluginsLoad();
+
   // TODO parse plugins
   PuleDsValue const cliArguments = puleDsCreateObject(puleAllocateDefault());
-  puleIteratePlugins(::iteratePlugins, &cliArguments);
+  puleIteratePlugins(
+    ::iteratePlugins,
+    const_cast<PuleDsValue *>(&cliArguments)
+  );
 
   bool userRequestedHelp = false;
   PuleDsValue const userArgs = (
     puleAssetPdsLoadFromCommandLineArguments(
-      {
+      PuleAssetPdsCommandLineArgumentsInfo {
         .allocator = puleAllocateDefault(),
-        .layout = commandLineParameterLayout,
+        .layout = cliArguments,
         .argumentLength = userArgumentLength, .arguments = userArguments,
         .userRequestedHelpOutNullable = &userRequestedHelp,
       },
       &err
     )
   );
+  puleDsDestroy(cliArguments);
   if (puleErrorConsume(&err)) {
     return 0;
   }
@@ -207,12 +214,14 @@ int32_t main(
   // check if user passed anything in
   if (userRequestedHelp) {}
   else if (userArgs.id != 0) {
-    parseArguments(args);
+    parseArguments(userArgs);
   } else {
     puleLog("no parameters passed in");
   }
 
-  puleDsDestroy(args);
+  puleDsDestroy(userArgs);
+
+  pulePluginsFree();
 }
 
 // genfu guvf genfu gung nofgenpg njnl nyy nznytbhf jbeevrf juvpu rire unir orra

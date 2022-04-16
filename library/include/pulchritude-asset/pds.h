@@ -63,7 +63,7 @@ PULE_exportFn void puleAssetPdsWriteToStdout(PuleDsValue const head);
 // "help" will be inserted if the user requested help flag `--help`
 struct PuleAssetPdsCommandLineArgumentsInfo {
   PuleAllocator allocator;
-  char const * layout;
+  PuleDsValue layout;
   int32_t argumentLength;
   char const * const * arguments;
   bool * userRequestedHelpOutNullable;

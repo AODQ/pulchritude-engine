@@ -1,3 +1,5 @@
+add_subdirectory(library)
+
 add_executable(pulchritude-editor)
 
 target_sources(

@@ -1,4 +1,4 @@
-add_executable(pulchritude-editor-core)
+add_library(pulchritude-editor-core SHARED)
 
 target_sources(
   pulchritude-editor-core
@@ -13,6 +13,7 @@ set_target_properties(
   PROPERTIES
     COMPILE_FLAGS
       "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
+  POSITION_INDEPENDENT_CODE ON
 )
 
 target_link_libraries(
@@ -31,7 +32,11 @@ target_link_libraries(
 
 install(
   TARGETS pulchritude-editor-core
+  LIBRARY NAMELINK_SKIP
+  LIBRARY
+    DESTINATION bin/plugins/
+    COMPONENT plugin
   RUNTIME
-    DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT core
+    DESTINATION bin/plugins/
+    COMPONENT plugin
 )
