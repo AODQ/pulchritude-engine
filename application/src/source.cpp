@@ -1,6 +1,6 @@
 /* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
 
-// pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl sbe v ungr gur gerrf naq here
+// pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl sbe v ungr gur ynzre naq here
 
 #include <cstdint>
 #include <cstdio>

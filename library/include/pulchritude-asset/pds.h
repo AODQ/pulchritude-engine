@@ -23,6 +23,20 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromStream(
   PuleError * const error
 );
 
+// convenience function, takes over management of the input stream
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(
+  PuleAllocator const allocator,
+  PuleStreamRead const rvalStream,
+  PuleError * const error
+);
+
+// convenience function, combined file+stream but disables PDS streaming
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(
+  PuleAllocator const allocator,
+  char const * const filename,
+  PuleError * const error
+);
+
 typedef struct {
   PuleDsValue head;
   bool prettyPrint; // PULE_defaultValue(false)
@@ -34,13 +48,28 @@ PULE_exportFn void puleAssetPdsWriteToStream(
   PuleAssetPdsWriteInfo const writeInfo
 );
 
+
+// convenience function using file+stream but disables PDS streaming
+PULE_exportFn void puleAssetPdsWriteToFile(
+  PuleDsValue const head,
+  char const * const filename,
+  PuleError * const error
+);
+
+// convenience function using puleStreamStdoutWrite
+PULE_exportFn void puleAssetPdsWriteToStdout(PuleDsValue const head);
+
 // can parse command line arguments from the given PDS
 // "help" will be inserted if the user requested help flag `--help`
+struct PuleAssetPdsCommandLineArgumentsInfo {
+  PuleAllocator allocator;
+  char const * layout;
+  int32_t argumentLength;
+  char const * const * arguments;
+  bool * userRequestedHelpOutNullable;
+};
 PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
-  PuleAllocator const allocator,
-  char const * const layout,
-  int32_t const argumentLength,
-  char const * const * const arguments,
+  PuleAssetPdsCommandLineArgumentsInfo const info,
   PuleError * const error
 );
 

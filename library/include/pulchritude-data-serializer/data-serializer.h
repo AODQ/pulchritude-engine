@@ -88,15 +88,17 @@ typedef struct {
 } PuleDsValueObject;
 
 PULE_exportFn int64_t puleDsAsI64(PuleDsValue const value);
-PULE_exportFn int32_t puleDsAsI32(PuleDsValue const value);
-PULE_exportFn size_t puleDsAsUSize(PuleDsValue const value);
-PULE_exportFn uint64_t puleDsAsU64(PuleDsValue const value);
-PULE_exportFn uint64_t puleDsAsU32(PuleDsValue const value);
 PULE_exportFn double puleDsAsF64(PuleDsValue const value);
 PULE_exportFn bool puleDsAsBool(PuleDsValue const value);
 PULE_exportFn PuleStringView puleDsAsString(PuleDsValue const value);
 PULE_exportFn PuleDsValueArray puleDsAsArray(PuleDsValue const value);
 PULE_exportFn PuleDsValueObject puleDsAsObject(PuleDsValue const value);
+
+// below are just convenient type conversions of (T)puleDsAsI64
+PULE_exportFn int32_t puleDsAsI32(PuleDsValue const value);
+PULE_exportFn size_t puleDsAsUSize(PuleDsValue const value);
+PULE_exportFn uint64_t puleDsAsU64(PuleDsValue const value);
+PULE_exportFn uint64_t puleDsAsU32(PuleDsValue const value);
 
 PULE_exportFn bool puleDsIsI64(PuleDsValue const value);
 PULE_exportFn bool puleDsIsF64(PuleDsValue const value);
@@ -111,8 +113,7 @@ PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 PULE_exportFn PuleDsValue puleDsCreateI64(int64_t const value);
 PULE_exportFn PuleDsValue puleDsCreateF64(double const value);
 PULE_exportFn PuleDsValue puleDsCreateBool(bool const value);
-// TODO this thing is odd because i need to copy it locally anyway,
-//    so i might just want to set a default allocator for a PDS
+// TODO this needs to pass in an allocator
 PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
 PULE_exportFn PuleDsValue puleDsCreateArray(PuleAllocator const allocator);
 PULE_exportFn PuleDsValue puleDsCreateObject(PuleAllocator const allocator);
@@ -131,6 +132,11 @@ PULE_exportFn PuleDsValue puleDsArrayElementAt(
 PULE_exportFn PuleDsValue puleDsObjectMember(
   PuleDsValue const object,
   char const * const memberLabel
+);
+
+PULE_exportFn PuleDsValue puleDsValueCloneRecursively(
+  PuleDsValue const object,
+  PuleAllocator const allocator
 );
 
 PULE_exportFn PuleDsValue puleDsAssignObjectMember(

@@ -123,11 +123,17 @@ bool puleDsAsBool(PuleDsValue const value) {
   return *std::get_if<bool>(&::pdsValues.at(value.id));
 }
 PuleStringView puleDsAsString(PuleDsValue const value) {
-  std::string & asString = (
-    std::get_if<PdsString>(&::pdsValues.at(value.id))->value
-  );
+  auto valuePtr = ::pdsValues.find(value.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("string value '%zu' does not exist", value.id);
+  }
+  auto const & asString = std::get_if<PdsString>(&valuePtr->second);
+  if (!asString) {
+    puleLogError("string value '%zu' is not a string", value.id);
+  }
+  auto const & strValue = asString->value;
   return (
-    PuleStringView { .contents = asString.c_str(), .len = asString.size(), }
+    PuleStringView { .contents = strValue.c_str(), .len = strValue.size(), }
   );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
@@ -195,7 +201,7 @@ PuleDsValue puleDsCreateBool(bool const value) {
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
   std::string contents = std::string(stringView.contents);
   contents.resize(stringView.len);
-  return {::pdsValueAdd(PdsString{.value = std::string(stringView.contents)})};
+  return {::pdsValueAdd(PdsString{.value = contents})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
   (void)allocator;
@@ -251,11 +257,7 @@ PuleDsValue puleDsObjectMember(
 ) {
   auto valuePtr = ::pdsValues.find(objectValue.id);
   if (valuePtr == ::pdsValues.end()) {
-    puleLogError(
-      "object value {%zu} from member '%s' does not exist",
-      objectValue.id,
-      memberLabel
-    );
+    puleLogError("object value {%zu} does not exist", objectValue.id);
   }
 
   auto objectPtr = std::get_if<PdsObject>(&valuePtr->second);
@@ -271,13 +273,70 @@ PuleDsValue puleDsObjectMember(
   auto const hash = pdsHash(puleStringViewCStr(memberLabel));
   auto member = object.values.find(hash);
   if (member == object.values.end()) {
-    puleLogError(
-      "member '%s' does not exist in object value {%zu}",
-      memberLabel, objectValue.id
-    );
     return { 0 };
   }
   return member->second;
+}
+
+static PuleDsValue puleDsArrayCloneRecursively(
+  PuleDsValue const array,
+  PuleAllocator const allocator
+); // prototype for object recursive
+static PuleDsValue puleDsObjectCloneRecursively(
+  PuleDsValue const object,
+  PuleAllocator const allocator
+) {
+  PuleDsValue const newObj = puleDsCreateObject(allocator);
+  PuleDsValueObject const oldObj = puleDsAsObject(object);
+  for (size_t it = 0; it < oldObj.length; ++ it) {
+    PuleDsValue const value = oldObj.values[it];
+    PuleStringView const stringView = oldObj
+    puleDsAssignObjectMember(
+      newObj,
+      stringView.contents,
+      puleDsValueCloneRecursively(value)
+    );
+  }
+  return newObj;
+}
+
+static PuleDsValue puleDsArrayCloneRecursively(
+  PuleDsValue const array,
+  PuleAllocator const allocator
+) {
+  PuleDsValue const newArr = puleDsCreateArray(allocator);
+  PuleDsValueObject const oldArr = puleDsAsArray(object);
+  for (size_t it = 0; it < oldArr.length; ++ it) {
+    PuleDsValue const value = oldArr.values[it];
+    puleDsAppendArray(newArr, puleDsValueCloneRecursively(value));
+  }
+  return newArr;
+}
+
+PuleDsValue puleDsValueCloneRecursively(
+  PuleDsValue const value,
+  PuleAllocator const allocator
+) {
+  if (value.id == 0) { return { 0 }; }
+  if (puleDsIsI64(value)) {
+    return puleDsCreateI64(puleDsAsI64(value));
+  }
+  if (puleDsIsF64(value)) {
+    return puleDsCreateF64(puleDsAsF64(value));
+  }
+  if (puleDsIsBool(value)) {
+    return puleDsCreateBool(puleDsAsBool(value));
+  }
+  if (puleDsIsString(value)) {
+    return puleDsCreateString(puleDsAsString(value));
+  }
+  if (puleDsIsArray(value)) {
+    return puleDsArrayCloneRecursively(value, allocator);
+  }
+  if (puleDsIsObject(value)) {
+    return puleDsObjectCloneRecursively(value, allocator);
+  }
+  return { 0 };
 }
 
 PuleDsValue puleDsAssignObjectMember(

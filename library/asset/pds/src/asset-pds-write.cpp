@@ -39,6 +39,7 @@ void pdsIterateWriteToStream(
     out += std::to_string(puleDsAsF64(info.head));
     out += info.prettyPrint ? "," : ",";
   }
+  else
   if (puleDsIsBool(info.head)) {
     out += std::to_string(puleDsAsBool(info.head));
     out += info.prettyPrint ? "," : ",";
@@ -46,9 +47,18 @@ void pdsIterateWriteToStream(
   else
   if (puleDsIsString(info.head)) {
     PuleStringView const stringView = puleDsAsString(info.head);
-    out += '\'';
-    out += std::string_view(stringView.contents, stringView.len);
-    out += '\'';
+    out += '"';
+    for (size_t it = 0; it < stringView.len; ++ it) {
+      auto const ch = stringView.contents[it];
+      if (ch == '\n' || ch == '\r') {
+        out += "\\n";
+      } else if (ch == '\t') {
+        out += "\\t";
+      } else {
+        out += ch;
+      }
+    }
+    out += '"';
     out += info.prettyPrint ? "," : ",";
   }
   else
@@ -103,6 +113,9 @@ void pdsIterateWriteToStream(
       out += info.prettyPrint ? "}," : "}";
     }
   }
+  else {
+    puleLogError("Could not get underlying type for: %d", info.head.id);
+  }
 }
 
 } // namespace
@@ -121,11 +134,63 @@ void puleAssetPdsWriteToStream(
   // TODO dont use string just pass stream
   std::string out;
   ::pdsIterateWriteToStream(writeInfo, writeInfo.initialTabLevel-1, out);
+  out += "\n";
   puleStreamWriteBytes(
     stream,
     reinterpret_cast<uint8_t const * >(out.c_str()),
     out.size()
   );
+}
+
+void puleAssetPdsWriteToFile(
+  PuleDsValue const head,
+  char const * const filename,
+  PuleError * const error
+) {
+  PuleFile const file = (
+    puleFileOpen(
+      filename,
+      PuleFileDataMode_text,
+      PuleFileOpenMode_writeOverwrite,
+      error
+    )
+  );
+  if (puleErrorConsume(error) > 0) {
+    PULE_error(PuleErrorAssetPds_decode, "failed to open file");
+    return;
+  }
+  uint8_t streamStorage[512];
+  PuleArrayViewMutable const streamStorageView = {
+    .data = &streamStorage[0],
+    .elementStride = sizeof(uint8_t),
+    .elementCount = 512,
+  };
+  PuleStreamWrite const stream = puleFileStreamWrite(file, streamStorageView);
+
+  puleAssetPdsWriteToStream(
+    stream,
+    PuleAssetPdsWriteInfo {
+      .head = head,
+      .prettyPrint = false, .spacesPerTab = 2, .initialTabLevel = 0,
+    }
+  );
+
+  puleFileClose(file);
+  puleStreamWriteDestroy(stream);
+}
+
+void puleAssetPdsWriteToStdout(PuleDsValue const head) {
+  PuleStreamWrite stdoutWrite = puleStreamStdoutWrite();
+  puleAssetPdsWriteToStream(
+    stdoutWrite,
+    PuleAssetPdsWriteInfo {
+      .head = head,
+      .prettyPrint = true,
+      .spacesPerTab = 2,
+      .initialTabLevel = 1,
+    }
+  );
+  puleStreamWriteDestroy(stdoutWrite);
 }
 
 } // C

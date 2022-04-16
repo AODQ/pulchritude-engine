@@ -20,6 +20,8 @@ PULE_exportFn PuleError puleError();
 //   ID of the error, and deallocating the description
 PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
 
+PULE_exportFn bool puleErrorExists(PuleError * const error);
+
 // --- general helpers in C/C++
 
 // errors out with message, storing the error ID to error as well

@@ -115,3 +115,15 @@ PuleStringView puleStringViewCStr(char const * const cstr) {
   };
   return str;
 }
+
+bool puleStringViewCmp(PuleStringView const v0, PuleStringView const v1) {
+  if (v0.len != v1.len) {
+    return false;
+  }
+  for (size_t it = 0; it < v0.len; ++ it) {
+    if (v0.contents[v0.len] != v1.contents[v0.len]) {
+      return false;
+    }
+  }
+  return true;
+}

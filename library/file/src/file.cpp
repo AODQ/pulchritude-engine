@@ -287,3 +287,51 @@ PuleStreamWrite puleFileStreamWrite(
 }
 
 } // C
+
+// -- filesystem
+
+// this will be a fun one to replace :/
+#include <filesystem>
+#include <string_view>
+
+extern "C" {
+
+bool puleFileCopy(
+  PuleStringView const srcPath,
+  PuleStringView const dstPath
+) {
+  std::error_code errorCode;
+  std::filesystem::copy_file(
+    std::filesystem::path(std::string_view(srcPath.content, srcPath.len)),
+    std::filesystem::path(std::string_view(dstPath.content, dstPath.len)),
+    errorCode
+  );
+  if (errorCode) {
+    PULE_error(
+      "could not copy file from '%s' to '%s'\n\t-> %s",
+      srcPath.contents,
+      dstPath.contents,
+      errorCode.message().c_str()
+    );
+    return false;
+  }
+  return true;
+}
+
+bool puleFileRemove(PuleStringView const filePath) {
+  std::error_code errorCode;
+  std::filesystem::remove(
+    std::filesystem::path(std::string_view(filePath.content, filePath.len)),
+    errorCode
+  );
+  if (errorCode) {
+    PULE_error(
+      "could not remove file at '%s'\n\t-> %s",
+      filePath.contents, errorCode.message().c_str()
+    );
+    return false;
+  }
+  return true;
+}
+
+} // C

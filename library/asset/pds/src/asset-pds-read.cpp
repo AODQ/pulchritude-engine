@@ -299,9 +299,10 @@ PuleDsValue pdsParseValue(
   // example, "" "asdf"
   if (value.size() > 1 && value[0] == '"' && value[value.size()-1] == '"') {
     value = value.substr(1, value.size()-2);
-    return puleDsCreateString(
+    auto str = puleDsCreateString(
       PuleStringView { .contents = value.c_str(), .len = value.size(), }
     );
+    return str;
   }
 
   // example, 0x0 0x00fE30
@@ -362,40 +363,122 @@ PuleDsValue puleAssetPdsLoadFromStream(
   return defaultObject;
 }
 
-/* static void parseCommandLineArgument( */
-/*   PuleAllocator */ 
-
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
+PuleDsValue puleAssetPdsLoadFromRvalStream(
   PuleAllocator const allocator,
-  char const * const layout,
-  int32_t const argumentLength,
-  char const * const * const arguments,
+  PuleStreamRead const rvalStream,
   PuleError * const error
 ) {
-  PuleStreamRead const layoutStreamRead = (
-    puleStreamReadFromString(puleStringViewCStr(layout))
-  );
   PuleDsValue const layoutValue = (
     puleAssetPdsLoadFromStream(
       allocator,
+      rvalStream,
+      error
+    )
+  );
+  puleStreamReadDestroy(rvalStream);
+  return layoutValue;
+}
+
+PuleDsValue puleAssetPdsLoadFromFile(
+  PuleAllocator const allocator,
+  char const * const filename,
+  PuleError * const error
+) {
+  PuleFile const file = (
+    puleFileOpen(
+      filename,
+      PuleFileDataMode_text,
+      PuleFileOpenMode_read,
+      error
+    )
+  );
+  if (puleErrorConsume(error) > 0) {
+    PULE_error(PuleErrorAssetPds_decode, "failed to open file");
+    return { 0 };
+  }
+
+  // create a file stream, using a storage buffer for the stream to store
+  //   intermediary data in
+  uint8_t streamStorage[512];
+  PuleArrayViewMutable streamStorageView = {
+    .data = &streamStorage[0],
+    .elementStride = sizeof(uint8_t),
+    .elementCount = 512,
+  };
+
+  // plug the stream into the data-serializer to deserialize its contents
+  PuleStreamRead const stream = puleFileStreamRead(file, streamStorageView);
+  PuleDsValue const head = (
+    puleAssetPdsLoadFromStream(puleAllocateDefault(), stream, error)
+  );
+
+  // even if error occured we don't have to do anything special
+  puleFileClose(file);
+  puleStreamReadDestroy(stream);
+  return head;
+}
+
+static void printCommandLineParameterHelp(
+  char const * const argumentName,
+  PuleDsValue const layoutValue
+) {
+  printf("---- help for '%s' ----\n", argumentName);
+  puleAssetPdsWriteToStdout(layoutValue);
+}
+
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
+  PuleAssetPdsCommandLineArgumentsInfo const info,
+  PuleError * const error
+) {
+  // if no work to do just return
+  if (info.argumentLength <= 1) {
+    return { 0 };
+  }
+
+  // parse the user requested layout
+  PuleStreamRead const layoutStreamRead = (
+    puleStreamReadFromString(puleStringViewCStr(info.layout))
+  );
+  PuleDsValue const layoutValue = (
+    puleAssetPdsLoadFromStream(
+      info.allocator,
       layoutStreamRead,
       error
     )
   );
   puleStreamReadDestroy(layoutStreamRead);
-  if (error) {
+  if (puleErrorExists(error)) {
     return { 0 };
   }
+  PULE_assert(layoutValue.id != 0);
 
-  PuleDsValue const emitValue = puleDsCreateObject(allocator);
+  // TODO assert the layoutValue is in correct format
+
+  // prepare to iterate over the user requested layout, and emit the arguments
+  //   to a separate PDS
+  PuleDsValue const emitValue = puleDsCreateObject(info.allocator);
   PuleDsValue emitIt = emitValue;
 
   PuleDsValue layoutIt = layoutValue;
+  char const * helpPreviousLayoutArgument = info.arguments[0];
 
   // parse objects
   int32_t argumentIt = 1;
-  for (; argumentIt < argumentLength; ++ argumentIt) {
-    char const * const argument = arguments[argumentIt];
+  char const * argument; // track last argument outside of function scope
+  for (; argumentIt < info.argumentLength; ++ argumentIt) {
+    argument = info.arguments[argumentIt];
+
+    if (strcmp(argument, "--help") == 0) {
+      printCommandLineParameterHelp(helpPreviousLayoutArgument, layoutIt);
+      if (info.userRequestedHelpOutNullable) {
+        *info.userRequestedHelpOutNullable = true;
+      }
+      puleDsDestroy(layoutValue);
+      puleDsDestroy(emitValue);
+      return { 0 };
+    }
+    helpPreviousLayoutArgument = info.arguments[argumentIt];
+
     PuleDsValue arg = puleDsObjectMember(layoutIt, argument);
     if (arg.id == 0) {
       PULE_error(
@@ -411,20 +494,39 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       puleDsAssignObjectMember(
         emitIt,
         puleStringViewCStr(argument),
-        puleDsCreateObject(allocator)
+        puleDsCreateObject(info.allocator)
       )
     );
     if (puleDsIsObject(arg)) {
       continue;
     }
     if (puleDsIsArray(arg)) {
+      argumentIt += 1;
       break;
     }
   }
 
+  if (strcmp(argument, "--help") == 0) {
+    printCommandLineParameterHelp(helpPreviousLayoutArgument, layoutIt);
+    if (info.userRequestedHelpOutNullable) {
+      *info.userRequestedHelpOutNullable = true;
+    }
+    puleDsDestroy(layoutValue);
+    puleDsDestroy(emitValue);
+    return { 0 };
+  }
+  helpPreviousLayoutArgument = info.arguments[argumentIt];
+
   PuleDsValueArray layoutArray;
 
   if (!puleDsIsArray(layoutIt)) {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "not enough parameters passed from '%s'", argument
+      );
+      puleDsDestroy(layoutValue);
+      puleDsDestroy(emitValue);
+      return { 0 };
     goto finishArrayParsing;
   }
 
@@ -433,8 +535,19 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   // parse arrays
   // TODO parse types (ints, floats, etc)
   // TODO enforce opt=true
-  for (; argumentIt < argumentLength; ++ argumentIt) {
-    char const * const argument = arguments[argumentIt];
+  for (; argumentIt < info.argumentLength; ++ argumentIt) {
+    argument = info.arguments[argumentIt];
+
+    if (strcmp(argument, "--help") == 0) {
+      printCommandLineParameterHelp(helpPreviousLayoutArgument, layoutIt);
+      if (info.userRequestedHelpOutNullable) {
+        *info.userRequestedHelpOutNullable = true;
+      }
+      puleDsDestroy(layoutValue);
+      puleDsDestroy(emitValue);
+      return { 0 };
+    }
+
     // at this point everything must have preceding '--'
     if (argument[0] != '-' || argument[1] != '-') {
       PULE_error(
@@ -449,14 +562,16 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
     bool parameterFound = false;
     for (size_t arrIt = 0; arrIt < layoutArray.length; ++ arrIt) {
       PuleDsValue const obj = layoutArray.values[arrIt];
-      PuleStringView objLabel = puleDsAsString(obj);
+      PuleStringView const objLabel = (
+        puleDsAsString(puleDsObjectMember(obj, "label"))
+      );
 
       if (strncmp(objLabel.contents, argument+2, objLabel.len)) {
         continue;
       }
 
       parameterFound = true;
-      if (argumentIt+1 >= argumentLength) {
+      if (argumentIt+1 >= info.argumentLength) {
         PULE_error(
           PuleErrorAssetPds_decode,
           "missing argument for '%s'", argument
@@ -467,9 +582,9 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       }
 
       puleDsAssignObjectMember(
-        emitValue,
+        emitIt,
         objLabel,
-        puleDsCreateString(puleStringViewCStr(arguments[argumentIt+1]))
+        puleDsCreateString(puleStringViewCStr(info.arguments[argumentIt+1]))
       );
 
       argumentIt += 1;
@@ -494,4 +609,4 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   return emitValue;
 }
 
-}
+} // C
