@@ -79,7 +79,10 @@ std::string pdsParseLabel(PuleStreamRead const stream) {
     character = pdsReadByte(stream);
   }
   if (invalidLabel || label == "") {
-    puleLogError("invalid label: '%s'", label.c_str());
+    puleLogError("PDS parsing error: invalid label '%s'", label.c_str());
+    if (label.front() == '"' && label.back() == '"') {
+      puleLog("\tNOTE: did you mean to omit parenthesis in label?");
+    }
   }
   return label;
 }
@@ -441,7 +444,22 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   // prepare to iterate over the user requested layout, and emit the arguments
   //   to a separate PDS
   PuleDsValue const emitValue = puleDsCreateObject(info.allocator);
-  PuleDsValue emitIt = emitValue;
+
+  PuleDsValue emitCommandValue = (
+    puleDsAssignObjectMember(
+      emitValue,
+      puleStringViewCStr("command"),
+      puleDsCreateArray(info.allocator)
+    )
+  );
+
+  PuleDsValue emitParametersValue = (
+    puleDsAssignObjectMember(
+      emitValue,
+      puleStringViewCStr("parameters"),
+      puleDsCreateObject(info.allocator)
+    )
+  );
 
   PuleDsValue layoutIt = info.layout;
   char const * helpPreviousLayoutArgument = info.arguments[0];
@@ -472,12 +490,8 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       return { 0 };
     }
     layoutIt = arg;
-    emitIt = (
-      puleDsAssignObjectMember(
-        emitIt,
-        puleStringViewCStr(argument),
-        puleDsCreateObject(info.allocator)
-      )
+    puleDsAppendArray(
+      emitCommandValue, puleDsCreateString(puleStringViewCStr(argument))
     );
     if (puleDsIsObject(arg)) {
       continue;
@@ -537,6 +551,7 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       return { 0 };
     }
 
+    // find matching parameter in layout
     bool parameterFound = false;
     for (size_t arrIt = 0; arrIt < layoutArray.length; ++ arrIt) {
       PuleDsValue const obj = layoutArray.values[arrIt];
@@ -544,27 +559,56 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         puleDsAsString(puleDsObjectMember(obj, "label"))
       );
 
+      // if input parameter != layout-iter parameter
       if (strncmp(objLabel.contents, argument+2, objLabel.len)) {
         continue;
       }
-
       parameterFound = true;
-      if (argumentIt+1 >= info.argumentLength) {
-        PULE_error(
-          PuleErrorAssetPds_decode,
-          "missing argument for '%s'", argument
-        );
-        puleDsDestroy(emitValue);
-        return { 0 };
-      }
 
-      puleDsAssignObjectMember(
-        emitIt,
-        objLabel,
-        puleDsCreateString(puleStringViewCStr(info.arguments[argumentIt+1]))
+      PuleStringView const objType = (
+        puleDsAsString(puleDsObjectMember(obj, "type"))
       );
 
-      argumentIt += 1;
+      if (
+           puleStringViewEqCStr(objType, "url")
+        || puleStringViewEqCStr(objType, "string")
+      ) {
+        if (argumentIt+1 >= info.argumentLength) {
+          PULE_error(
+            PuleErrorAssetPds_decode,
+            "missing argument for '%s'", argument
+          );
+          puleDsDestroy(emitValue);
+          return { 0 };
+        }
+
+        puleDsAssignObjectMember(
+          emitParametersValue,
+          objLabel,
+          puleDsCreateString(puleStringViewCStr(info.arguments[argumentIt+1]))
+        );
+        argumentIt += 1;
+      }
+      else
+      if (puleStringViewEqCStr(objType, "bool")) {
+        bool isTrue = true;
+        if (argumentIt+1 < info.argumentLength) {
+          if (strcmp(info.arguments[argumentIt+1], "true")) {
+            argumentIt += 1;
+          }
+          else
+          if (strcmp(info.arguments[argumentIt+1], "false")) {
+            isTrue = false;
+            argumentIt += 1;
+          }
+        }
+        puleDsAssignObjectMember(
+          emitParametersValue,
+          objLabel,
+          puleDsCreateBool(isTrue)
+        );
+      }
+
       break;
     }
 
@@ -576,6 +620,40 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       puleDsDestroy(emitValue);
       return { 0 };
     }
+  }
+
+  // assign default values for optional layout values
+  for (size_t arrIt = 0; arrIt < layoutArray.length; ++ arrIt) {
+    PuleDsValue const obj = layoutArray.values[arrIt];
+    PuleDsValue const defaultValue = puleDsObjectMember(obj, "default-value");
+    PuleStringView const objLabel = (
+      puleDsAsString(puleDsObjectMember(obj, "label"))
+    );
+
+    // check if optional
+    if (defaultValue.id == 0) { continue; }
+
+    // check if user already supplied argument
+    if (puleDsObjectMember(emitParametersValue, objLabel.contents).id != 0) {
+      continue;
+    }
+
+    if (defaultValue.id == 0) {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "layout for '%s' is optional but doesn't have a default value",
+        objLabel.contents
+      );
+      puleDsDestroy(emitValue);
+      return { 0 };
+    }
+
+    // clone object into the emit values
+    puleDsAssignObjectMember(
+      emitParametersValue,
+      objLabel,
+      puleDsValueCloneRecursively(defaultValue, info.allocator)
+    );
   }
 
   finishArrayParsing:

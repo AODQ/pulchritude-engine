@@ -7,6 +7,7 @@
 #include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-stream/stream.h>
+#include <pulchritude-time/time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,14 +73,6 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleAssetPdsCommandLineArgumentsInfo const info,
   PuleError * const error
 );
-
-void puleAssetPdsFileCacheSystemUpdate(PuleTimeMs const deltatime);
-
-PULE_exportFn PuleDsValue puleAssetPdsOpenFromDisk(
-  PuleAssetPdsOpenFromDiskInfo const info,
-  PuleError * const error
-) {
-}
 
 #ifdef __cplusplus
 }

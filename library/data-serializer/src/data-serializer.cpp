@@ -31,7 +31,13 @@ void pdsObjectAdd(
   PuleDsValue const value
 ) {
   size_t const hash = puleStringViewHash(label);
-  PULE_assert(object.values.find(hash) == object.values.end());
+  if (object.values.find(hash) != object.values.end()) {
+    puleLogError(
+      "adding object '%s' which would overwrite existing label",
+      label.contents
+    );
+    return;
+  }
 
   object.values.emplace(hash, value);
   object.linearValues.emplace_back(value);
@@ -119,10 +125,12 @@ PuleStringView puleDsAsString(PuleDsValue const value) {
   auto valuePtr = ::pdsValues.find(value.id);
   if (valuePtr == ::pdsValues.end()) {
     puleLogError("string value '%zu' does not exist", value.id);
+    return { .contents = nullptr, .len = 0 };
   }
   auto const & asString = std::get_if<PdsString>(&valuePtr->second);
   if (!asString) {
     puleLogError("string value '%zu' is not a string", value.id);
+    return { .contents = nullptr, .len = 0 };
   }
   auto const & strValue = asString->value;
   return (
@@ -130,19 +138,31 @@ PuleStringView puleDsAsString(PuleDsValue const value) {
   );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
-  auto valuePtr = ::pdsValues.find(value.id);
+  auto const valuePtr = ::pdsValues.find(value.id);
   if (valuePtr == ::pdsValues.end()) {
     puleLogError("array value '%zu' does not exist", value.id);
+    return { .values = nullptr, .length = 0 };
   }
-  auto asArray = std::get_if<PdsArray>(&valuePtr->second);
+  auto const asArray = std::get_if<PdsArray>(&valuePtr->second);
   if (!asArray) {
     puleLogError("array value '%zu' is not an array", value.id);
+    return { .values = nullptr, .length = 0 };
   }
   return { .values = asArray->data(), .length = asArray->size(), };
 }
 PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
-  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(value.id));
+  auto const valuePtr = ::pdsValues.find(value.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("object value '%zu' does not exist", value.id);
+    return { .labels = nullptr, .values = nullptr, .length = 0 };
+  }
+  auto const asObject = std::get_if<PdsObject>(&valuePtr->second);
+  if (!asObject) {
+    puleLogError("object value '%zu' is not an object", value.id);
+    return { .labels = nullptr, .values = nullptr, .length = 0 };
+  }
 
+  auto & object = *asObject;
   // have to refresh the object's linear label as view pointers
   object.linearLabelsAsViews.resize(object.linearValues.size());
   for (size_t it = 0; it < object.linearLabels.size(); ++ it) {
@@ -227,8 +247,17 @@ void puleDsDestroy(PuleDsValue const value) {
 
 //------------------------------------------------------------------------------
 void puleDsAppendArray(PuleDsValue const arrayValue, PuleDsValue const value) {
-  auto & array = *std::get_if<PdsArray>(&::pdsValues.at(arrayValue.id));
-  array.emplace_back(value);
+  auto const valuePtr = ::pdsValues.find(arrayValue.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("array value '%zu' does not exist", value.id);
+    return;
+  }
+  auto const asArray = std::get_if<PdsArray>(&valuePtr->second);
+  if (!asArray) {
+    puleLogError("array value '%zu' is not an array", value.id);
+    return;
+  }
+  asArray->emplace_back(value);
 }
 
 size_t puleDsArrayLength(PuleDsValue const arrayValue) {
@@ -251,6 +280,7 @@ PuleDsValue puleDsObjectMember(
   auto valuePtr = ::pdsValues.find(objectValue.id);
   if (valuePtr == ::pdsValues.end()) {
     puleLogError("object value {%zu} does not exist", objectValue.id);
+    return { 0 };
   }
 
   auto objectPtr = std::get_if<PdsObject>(&valuePtr->second);

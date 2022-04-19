@@ -64,6 +64,10 @@ PULE_exportFn bool puleStringViewEq(
   PuleStringView const v0,
   PuleStringView const v1
 );
+PULE_exportFn bool puleStringViewEqCStr(
+  PuleStringView const v0,
+  char const * const v1
+);
 
 PULE_exportFn size_t puleStringViewHash(PuleStringView const view);
 

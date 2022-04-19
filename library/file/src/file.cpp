@@ -4,13 +4,19 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <string>
+
 #include <unordered_map>
 
 // TODO:
 //   - add buffering (configurable, like 256 bytes)
 
 namespace {
-std::unordered_map<uint64_t, FILE *> openFiles;
+struct OpenFileInfo {
+  std::string path;
+  FILE * file;
+};
+std::unordered_map<uint64_t, OpenFileInfo> openFiles;
 } // namespace
 
 extern "C" {
@@ -54,7 +60,10 @@ PuleFile puleFileOpen(
     return { 0 };
   }
   uint64_t const id = reinterpret_cast<uint64_t>(file);
-  ::openFiles.emplace(id, file);
+  ::openFiles.emplace(
+    id,
+    OpenFileInfo { .path = std::string(filename), .file = file, }
+  );
   return {id};
 }
 
@@ -62,22 +71,30 @@ void puleFileClose(PuleFile const file) {
   if (file.id == 0) {
     return;
   }
-  auto const fileHandle = ::openFiles.at(file.id);
+  auto const fileHandle = ::openFiles.at(file.id).file;
   fclose(fileHandle);
+  ::openFiles.erase(file.id);
 }
 
 bool puleFileIsDone(PuleFile const file) {
-  auto const fileHandle = ::openFiles.at(file.id);
+  auto const fileHandle = ::openFiles.at(file.id).file;
   return ungetc(getc(fileHandle), fileHandle) == EOF;
 }
 
+PuleStringView puleFilePath(PuleFile const file) {
+  auto const & filepath = ::openFiles.at(file.id).path;
+  return PuleStringView {
+    .contents = filepath.c_str(), .len = filepath.size()
+  };
+}
+
 uint8_t puleFileReadByte(PuleFile const file) {
-  auto const fileHandle = ::openFiles.at(file.id);
+  auto const fileHandle = ::openFiles.at(file.id).file;
   return static_cast<uint8_t>(getc(fileHandle));
 }
 
 size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
-  auto const fileHandle = ::openFiles.at(file.id);
+  auto const fileHandle = ::openFiles.at(file.id).file;
   flockfile(fileHandle);
   uint8_t * data = reinterpret_cast<uint8_t *>(dst.data);
   size_t bytesWritten = 0;
@@ -93,7 +110,7 @@ size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
 }
 
 void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
-  auto const fileHandle = ::openFiles.at(file.id);
+  auto const fileHandle = ::openFiles.at(file.id).file;
   flockfile(fileHandle);
   uint8_t const * data = reinterpret_cast<uint8_t const *>(src.data);
   for (size_t it = 0; it < src.elementCount; ++ it) {
@@ -103,7 +120,7 @@ void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
 }
 
 uint64_t puleFileSize(PuleFile const file) {
-  auto const fileHandle = ::openFiles.at(file.id);
+  auto const fileHandle = ::openFiles.at(file.id).file;
   fseek(fileHandle, 0L, SEEK_END);
   uint64_t const fileSize = static_cast<uint64_t>(ftell(fileHandle));
   fseek(fileHandle, 0L, SEEK_SET);
@@ -266,8 +283,12 @@ PuleStreamWrite puleFileStreamWrite(
   if (::streams.find(file.id) != ::streams.end()) {
     puleLogError("already streaming file: %d", file.id);
   }
-  if (view.elementStride != 0 || view.elementStride != 1) {
-    puleLogError("stream write intermediary buffer must have no stride");
+  if (view.elementStride != 0 && view.elementStride != 1) {
+    puleLogError(
+      "puleFileStreamWrite(%s) intermediary buffer stride '%zu' must be 0 or 1",
+      puleFilePath(file),
+      view.elementStride
+    );
   }
   ::streams.emplace(
     file.id,
@@ -304,6 +325,7 @@ bool puleFileCopy(
   std::filesystem::copy_file(
     std::filesystem::path(std::string_view(srcPath.contents, srcPath.len)),
     std::filesystem::path(std::string_view(dstPath.contents, dstPath.len)),
+    std::filesystem::copy_options::overwrite_existing,
     errorCode
   );
   if (errorCode) {

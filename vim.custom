@@ -1,4 +1,4 @@
 function! MakeprgRelease()
-  let &makeprg = 'ninja -C ../build-engine/ install'
+  let &makeprg = 'ninja -C ../build/ install'
   make
 endfunction

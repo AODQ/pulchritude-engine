@@ -41,9 +41,8 @@ PULE_exportFn PuleFile puleFileOpen(
   PuleError * const error
 );
 PULE_exportFn void puleFileClose(PuleFile const file);
-
 PULE_exportFn bool puleFileIsDone(PuleFile const file);
-
+PULE_exportFn PuleStringView puleFilePath(PuleFile const file);
 PULE_exportFn uint8_t puleFileReadByte(PuleFile const file);
 PULE_exportFn size_t puleFileReadBytes(
   PuleFile const file,

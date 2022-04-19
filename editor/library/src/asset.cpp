@@ -32,16 +32,12 @@ void assetAddForward(
   PuleStringView const destination = (
     puleDsAsString(puleDsObjectMember(input, "destination"))
   );
+  bool const overwrite = puleDsAsBool(puleDsObjectMember(input, "overwrite"));
   puleLog(
     "adding resource from '%s' to '%s'",
     source.contents,
     destination.contents
   );
-
-  if (!puleFileCopy(source, destination)) {
-    return;
-  }
-
   PuleDsValue const assetValue = (
     puleAssetPdsLoadFromFile(allocator, "./assets/assets.pds", error)
   );
@@ -49,16 +45,48 @@ void assetAddForward(
     return;
   }
 
-  { // append file reference
-    PuleDsValue const filesArray = puleDsObjectMember(assetValue, "files");
-    puleDsAppendArray(
-      filesArray,
-      puleDsCreateString(destination)
+  PuleDsValue const filesValue = puleDsObjectMember(assetValue, "files");
+  PuleDsValueArray const filesArray = puleDsAsArray(filesValue);
+
+  // check exists
+  // TODO need to 'simplify'/remove redundancies in path
+  for (size_t it = 0; it < filesArray.length; ++ it) {
+    PuleStringView const filepath = (
+      puleDsAsString(puleDsObjectMember(filesArray.values[it], "path"))
     );
+    if (puleStringViewEq(filepath, destination)) {
+      if (!overwrite) {
+        PULE_error(
+          1,
+          "file '%s' already exists in assets.pds (%s)",
+          destination.contents
+        );
+        return;
+      }
+      // TODO remove element from array
+    }
+  }
+
+  { // append file reference
+    PuleDsValue fileObj = puleDsCreateObject(allocator);
+    puleDsAssignObjectMember(
+      fileObj, puleStringViewCStr("path"), puleDsCreateString(destination)
+    );
+    puleDsAssignObjectMember(
+      fileObj, puleStringViewCStr("tracking"), puleDsCreateBool(false)
+    );
+    puleDsAppendArray(filesValue, fileObj);
   }
   puleAssetPdsWriteToFile(assetValue, "assets/assets.pds", error);
-
   puleDsDestroy(assetValue);
+  if (puleErrorExists(error)) {
+    return;
+  }
+
+  if (!puleFileCopy(source, destination)) {
+    // TODO pop the array
+    return;
+  }
 }
 
 void assetAddRewind(
@@ -101,6 +129,41 @@ void assetAddRewind(
   }
 }
 
+void assetInfo(
+  PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  PuleDsValue const input,
+  PuleError * const error
+) {
+  PuleStringView const source = (
+    puleDsAsString(puleDsObjectMember(input, "source"))
+  );
+
+  PuleDsValue const assetValue = (
+    puleAssetPdsLoadFromFile(allocator, "./assets/assets.pds", error)
+  );
+  if (puleErrorExists(error)) {
+    return;
+  }
+
+  PuleDsValue const filesValue = puleDsObjectMember(assetValue, "files");
+  PuleDsValueArray const filesArray = puleDsAsArray(filesValue);
+
+  // check exists
+  // TODO need to 'simplify'/remove redundancies in path
+  for (size_t it = 0; it < filesArray.length; ++ it) {
+    PuleStringView const filepath = (
+      puleDsAsString(puleDsObjectMember(filesArray.values[it], "path"))
+    );
+    if (puleStringViewEq(filepath, source)) {
+      puleAssetPdsWriteToStdout(filesArray.values[it]);
+      return;
+    }
+  }
+
+  puleLog("file '%s' is not being tracked", source.contents);
+}
+
 PuleDsValue puldRegisterCommands(
   PuleAllocator const allocator,
   PuleError * const error
@@ -111,6 +174,10 @@ PuleDsValue puldRegisterCommands(
         label: "asset-add",
         forward-label: "assetAddForward",
         rewind-label: "assetAddRewind",
+      },
+      {
+        label: "asset-info",
+        apply-label: "assetInfo",
       },
     ],
   );
@@ -131,8 +198,9 @@ PuleDsValue puldRegisterCLICommands(
   char const * const CLIRegisterCStr = PULE_multilineString(
     asset: {
       add: [
-        { label: "source", type: "url", opt: false, },
-        { label: "destination", type: "url", opt: false, },
+        { label: "source", type: "url", },
+        { label: "destination", type: "url", },
+        { label: "overwrite", type: "bool", default-value: false, },
       ],
       info: [
         { label: "source", type: "url", opt: false, },

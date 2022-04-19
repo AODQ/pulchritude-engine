@@ -128,7 +128,16 @@ bool puleStringViewEq(PuleStringView const v0, PuleStringView const v1) {
     return false;
   }
   for (size_t it = 0; it < v0.len; ++ it) {
-    if (v0.contents[v0.len] != v1.contents[v0.len]) {
+    if (v0.contents[it] != v1.contents[it]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool puleStringViewEqCStr(PuleStringView const v0, char const * const v1) {
+  for (size_t it = 0; it < v0.len; ++ it) {
+    if (v0.contents[it] != v1[it]) {
       return false;
     }
   }

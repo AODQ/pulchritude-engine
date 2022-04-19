@@ -16,68 +16,11 @@
 #include <pulchritude-log/log.h>
 #include <pulchritude-plugin/plugin.h>
 
-namespace {
+namespace { // error
 PuleError err = { {}, 0, nullptr, 0 };
 }
 
-#define PARAMETER_LAYOUT_MULTINE_STR(...) #__VA_ARGS__
-
-// this would be read back as `{ asset: {info: {source: {"some-string"}}} }
-// and written to as ./pulchritude asset info --source some-string
-// it has to cascade from object to array
-
-void parseArguments(PuleDsValue const args) {
-  if (
-    PuleDsValue const launch = puleDsObjectMember(args, "launch"); launch.id
-  ) {
-    puleLog("launching application");
-    return;
-  }
-
-  if (
-    PuleDsValue const init = puleDsObjectMember(args, "init"); init.id
-  ) {
-    puleLog("NOT YET IMPLEMENTED :(");
-    return;
-  }
-
-  if (
-    PuleDsValue const init = puleDsObjectMember(args, "init"); init.id
-  ) {
-    puleLog("initializing project");
-  }
-
-  if (
-    PuleDsValue const asset = puleDsObjectMember(args, "asset"); asset.id
-  ) {
-    PuleDsValue assetParam;
-    if (assetParam = puleDsObjectMember(asset, "add"); assetParam.id) {
-      PuleStringView const source = (
-        puleDsAsString(puleDsObjectMember(assetParam, "source"))
-      );
-      PuleStringView const destination = (
-        puleDsAsString(puleDsObjectMember(assetParam, "destination"))
-      );
-      puleLog(
-        "adding resource from '%s' to '%s'",
-        source.contents,
-        destination.contents
-      );
-    }
-
-    /* if (assetParam = puleDsObjectMember(asset, "info"); assetParam.id) { */
-    /*   PuleStringView const source = ( */
-    /*     puleDsAsString(puleDsObjectMember(asset, "source")) */
-    /*   ); */
-    /*   puleLog("info '%s'", source.contents); */
-    /*   puleLog("\tin application fileystem? %s", "NO"); */
-    /*   puleLog("\twatched? %s", "NO"); */
-    /*   puleLog("\tconversion? %s", "NO"); */
-    /* } */
-  }
-}
-
-namespace {
+namespace { // command registry
 
 template <typename T>
 void tryLoadFn(T & fn, size_t const pluginId, char const * const label) {
@@ -98,17 +41,104 @@ struct CommandRegistry {
     PuleDsValue const,
     PuleError * const
   );
+  void (*apply)(
+    PuleAllocator const,
+    PuleDsValue const,
+    PuleDsValue const,
+    PuleError * const
+  );
 };
 
 std::unordered_map<size_t, CommandRegistry> commandRegistry;
 
+} // namespace command registry
+
+
+namespace { // argument parsing
+
+// this would be read back as `{ asset: {info: {source: {"some-string"}}} }
+// and written to as ./pulchritude asset info --source some-string
+// it has to cascade from object to array
+
+// where ./application <arguments>,
+// arguments = <commands> <parameters>
+void parseArguments(
+  PuleDsValue const cliArgumentLayout,
+  PuleDsValue const userArguments
+) {
+  if (*puleLogDebugEnabled()) {
+    puleLogDebug("--- cli argument layout ---");
+    puleAssetPdsWriteToStdout(cliArgumentLayout);
+    puleLogDebug("------ user arguments -----");
+    puleAssetPdsWriteToStdout(userArguments);
+  }
+  // if we get here we can assume the command is correct and any validation is
+  //   redundant
+  PuleDsValueArray const userCommand = (
+    puleDsAsArray(puleDsObjectMember(userArguments, "command"))
+  );
+  std::string userCommandJoined = "";
+
+  // userCommands.join('-')
+  for (
+    size_t userCommandIt = 0;
+    userCommandIt < userCommand.length;
+    ++ userCommandIt
+  ) {
+    PuleStringView const userCommandWord = (
+      puleDsAsString(userCommand.values[userCommandIt])
+    );
+
+    if (userCommandIt != 0) {
+      userCommandJoined += "-";
+    }
+    userCommandJoined += (
+      std::string_view(userCommandWord.contents, userCommandWord.len)
+    );
+  }
+
+  size_t const userCommandHash = (
+    puleStringViewHash(puleStringViewCStr(userCommandJoined.c_str()))
+  );
+  auto const command = commandRegistry.find(userCommandHash);
+  if (command == commandRegistry.end()) {
+    puleLogError("failed to locate command: '%s'", userCommandJoined.c_str());
+    return;
+  }
+
+  if (command->second.forward) {
+    command->second.forward(
+      puleAllocateDefault(),
+      PuleDsValue { 0 },
+      puleDsObjectMember(userArguments, "parameters"),
+      &err
+    );
+    if (puleErrorConsume(&err)) {
+      return;
+    }
+    // TODO after command succeeds, add to commands list
+  }
+  else
+  if (command->second.apply) {
+    command->second.apply(
+      puleAllocateDefault(),
+      PuleDsValue { 0 },
+      puleDsObjectMember(userArguments, "parameters"),
+      &err
+    );
+  }
+
 }
+
+} // namespace argument parsing
 
 extern "C" {
 
 void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
   (void)userdata;
-  auto const cliArguments = *reinterpret_cast<PuleDsValue const *>(userdata);
+  auto const cliArgumentLayout = (
+    *reinterpret_cast<PuleDsValue const *>(userdata)
+  );
 
   PuleError error = puleError();
 
@@ -131,19 +161,63 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
           puleDsAsString(puleDsObjectMember(command, "label"))
         );
         CommandRegistry registry;
+        registry.forward = registry.rewind = registry.apply = nullptr;
         registry.label = (
           std::string(std::string_view(label.contents, label.len))
         );
-        ::tryLoadFn(
-          registry.forward,
-          plugin.id,
-          puleDsAsString(puleDsObjectMember(command, "forward-label")).contents
+        PuleDsValue const
+          forwardLabel = puleDsObjectMember(command, "forward-label"),
+          rewindLabel = puleDsObjectMember(command, "rewind-label"),
+          applyLabel = puleDsObjectMember(command, "apply-label")
+        ;
+        if (forwardLabel.id != 0) {
+          ::tryLoadFn(
+            registry.forward,
+            plugin.id,
+            puleDsAsString(forwardLabel).contents
+          );
+        }
+        if (rewindLabel.id != 0) {
+          ::tryLoadFn(
+            registry.rewind,
+            plugin.id,
+            puleDsAsString(rewindLabel).contents
+          );
+        }
+        if (applyLabel.id != 0) {
+          ::tryLoadFn(
+            registry.apply,
+            plugin.id,
+            puleDsAsString(applyLabel).contents
+          );
+        }
+        puleLogDebug(
+          "label: '%s' forward: %p rewind: %p apply: %p",
+          label.contents, registry.forward, registry.rewind, registry.apply
         );
-        ::tryLoadFn(
-          registry.rewind,
-          plugin.id,
-          puleDsAsString(puleDsObjectMember(command, "rewind-label")).contents
-        );
+        if (
+             static_cast<bool>(registry.forward)
+          != static_cast<bool>(registry.rewind)
+        ) {
+          puleLogError(
+            "registry command '%s' has %s but not %s",
+            label.contents,
+            (registry.forward ? "forward" : "rewind"),
+            (registry.forward ? "rewind" : "forward")
+          );
+        }
+        if ((registry.forward || registry.rewind) && registry.apply) {
+          puleLogError(
+            "registry command '%s' has both forward/rewind and apply",
+            label.contents
+          );
+        }
+        if (!registry.forward && !registry.rewind && !registry.apply) {
+          puleLogError(
+            "registry command '%s' has no rewind/forward/apply action",
+            label.contents
+          );
+        }
         ::commandRegistry.emplace(puleStringViewHash(label), registry);
       }
       puleDsDestroy(registeredCommands);
@@ -159,7 +233,6 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
     PuleDsValue const registeredCLICommands = (
       registerCLICommands(puleAllocateDefault(), &error)
     );
-    puleAssetPdsWriteToStdout(cliArguments);
     if (!puleErrorConsume(&error) && registeredCLICommands.id != 0) {
       PuleDsValueObject const cliCommands = (
         puleDsAsObject(registeredCLICommands)
@@ -167,9 +240,11 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
       for (size_t it = 0; it < cliCommands.length; ++ it) {
         PuleStringView const label = cliCommands.labels[it];
         PuleDsValue const value = cliCommands.values[it];
-        PULE_assert(puleDsObjectMember(cliArguments, label.contents).id == 0);
+        PULE_assert(
+          puleDsObjectMember(cliArgumentLayout, label.contents).id == 0
+        );
         puleDsAssignObjectMember(
-          cliArguments,
+          cliArgumentLayout,
           label,
           puleDsValueCloneRecursively(value, puleAllocateDefault())
         );
@@ -186,12 +261,15 @@ int32_t main(
   char const * const * const userArguments
 ) {
   pulePluginsLoad();
+  *puleLogDebugEnabled() = true;
 
   // TODO parse plugins
-  PuleDsValue const cliArguments = puleDsCreateObject(puleAllocateDefault());
+  PuleDsValue const cliArgumentLayout = (
+    puleDsCreateObject(puleAllocateDefault())
+  );
   puleIteratePlugins(
     ::iteratePlugins,
-    const_cast<PuleDsValue *>(&cliArguments)
+    const_cast<PuleDsValue *>(&cliArgumentLayout)
   );
 
   bool userRequestedHelp = false;
@@ -199,14 +277,13 @@ int32_t main(
     puleAssetPdsLoadFromCommandLineArguments(
       PuleAssetPdsCommandLineArgumentsInfo {
         .allocator = puleAllocateDefault(),
-        .layout = cliArguments,
+        .layout = cliArgumentLayout,
         .argumentLength = userArgumentLength, .arguments = userArguments,
         .userRequestedHelpOutNullable = &userRequestedHelp,
       },
       &err
     )
   );
-  puleDsDestroy(cliArguments);
   if (puleErrorConsume(&err)) {
     return 0;
   }
@@ -214,7 +291,7 @@ int32_t main(
   // check if user passed anything in
   if (userRequestedHelp) {}
   else if (userArgs.id != 0) {
-    parseArguments(userArgs);
+    parseArguments(cliArgumentLayout, userArgs);
   } else {
     puleLog("no parameters passed in");
   }

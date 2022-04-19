@@ -25,6 +25,7 @@ target_link_libraries(
     pulchritude-file
     pulchritude-stream
     pulchritude-string
+    pulchritude-time
 )
 
 install(
