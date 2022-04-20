@@ -63,7 +63,10 @@ void assetAddForward(
         );
         return;
       }
-      // TODO remove element from array
+      puleDsArrayRemoveAt(filesValue, it);
+      // there should never be any duplicates; otherwise though you could do
+      // it -= 1; filesArray = puleDsAsArray(filesValue);
+      break;
     }
   }
 
@@ -84,7 +87,7 @@ void assetAddForward(
   }
 
   if (!puleFileCopy(source, destination)) {
-    // TODO pop the array
+    puleDsArrayPopBack(filesValue);
     return;
   }
 }
@@ -111,9 +114,22 @@ void assetAddRewind(
   }
 
   { // remove file reference
-    PuleDsValue const filesArray = puleDsObjectMember(assetValue, "files");
-    (void)filesArray;
-    // TODO add function that can remove array elements
+    PuleDsValue const filesValue = puleDsObjectMember(assetValue, "files");
+    PuleDsValueArray const filesArray = puleDsAsArray(filesValue);
+    bool foundFileToRemove = false;
+    for (size_t it = 0; it < filesArray.length; ++ it) {
+      PuleStringView const filepath = (
+        puleDsAsString(puleDsObjectMember(filesArray.values[it], "path"))
+      );
+      if (puleStringViewEq(filepath, destination)) {
+        puleDsArrayRemoveAt(filesValue, it);
+        foundFileToRemove = true;
+        break;
+      }
+    }
+    if (!foundFileToRemove) {
+      puleLogError("failed to find the file reference to remove");
+    }
   }
   puleAssetPdsWriteToFile(assetValue, "assets/assets.pds", error);
   puleDsDestroy(assetValue);

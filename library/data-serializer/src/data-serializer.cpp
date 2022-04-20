@@ -75,8 +75,24 @@ using PdsValue = std::variant<
   PdsObject
 >;
 
+
 std::unordered_map<uint64_t, PdsValue> pdsValues;
 uint64_t pdsValueIt = 1;
+
+PdsArray * getArrayElement(PuleDsValue const arrayValue) {
+  auto const valuePtr = ::pdsValues.find(arrayValue.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("array value '%zu' does not exist", arrayValue.id);
+    return nullptr;
+  }
+  auto const asArray = std::get_if<PdsArray>(&valuePtr->second);
+  if (!asArray) {
+    puleLogError("array value '%zu' is not an array", arrayValue.id);
+    return nullptr;
+  }
+  return asArray;
+}
+
 
 template <typename T>
 uint64_t pdsValueAdd(T const value) {
@@ -138,14 +154,8 @@ PuleStringView puleDsAsString(PuleDsValue const value) {
   );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
-  auto const valuePtr = ::pdsValues.find(value.id);
-  if (valuePtr == ::pdsValues.end()) {
-    puleLogError("array value '%zu' does not exist", value.id);
-    return { .values = nullptr, .length = 0 };
-  }
-  auto const asArray = std::get_if<PdsArray>(&valuePtr->second);
+  PdsArray * asArray = getArrayElement(value);
   if (!asArray) {
-    puleLogError("array value '%zu' is not an array", value.id);
     return { .values = nullptr, .length = 0 };
   }
   return { .values = asArray->data(), .length = asArray->size(), };
@@ -247,17 +257,27 @@ void puleDsDestroy(PuleDsValue const value) {
 
 //------------------------------------------------------------------------------
 void puleDsAppendArray(PuleDsValue const arrayValue, PuleDsValue const value) {
-  auto const valuePtr = ::pdsValues.find(arrayValue.id);
-  if (valuePtr == ::pdsValues.end()) {
-    puleLogError("array value '%zu' does not exist", value.id);
-    return;
-  }
-  auto const asArray = std::get_if<PdsArray>(&valuePtr->second);
-  if (!asArray) {
-    puleLogError("array value '%zu' is not an array", value.id);
-    return;
-  }
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
   asArray->emplace_back(value);
+}
+
+void puleDsArrayPopBack(PuleDsValue const arrayValue) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
+  asArray->pop_back();
+}
+
+void puleDsArrayPopFront(PuleDsValue const arrayValue) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
+  asArray->erase(asArray->begin());
+}
+
+void puleDsArrayRemoveAt(PuleDsValue const arrayValue, size_t const idx) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
+  asArray->erase(asArray->begin() + idx);
 }
 
 size_t puleDsArrayLength(PuleDsValue const arrayValue) {

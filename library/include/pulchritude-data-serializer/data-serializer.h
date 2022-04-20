@@ -122,6 +122,12 @@ PULE_exportFn void puleDsAppendArray(
   PuleDsValue const array,
   PuleDsValue const value
 );
+PULE_exportFn void puleDsArrayPopBack(PuleDsValue const array);
+PULE_exportFn void puleDsArrayPopFront(PuleDsValue const array);
+PULE_exportFn void puleDsArrayRemoveAt(
+  PuleDsValue const array,
+  size_t const idx
+);
 PULE_exportFn size_t puleDsArrayLength(PuleDsValue const array);
 PULE_exportFn PuleDsValue puleDsArrayElementAt(
   PuleDsValue const array,
