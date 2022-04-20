@@ -4,6 +4,8 @@ target_sources(
   pulchritude-editor-core
   PRIVATE
     src/asset.cpp
+    src/undotree.cpp
+    src/package.cpp
 )
 
 #target_compile_features(pulchritude-application PRIVATE cxx_std_20)

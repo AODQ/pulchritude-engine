@@ -75,7 +75,6 @@ using PdsValue = std::variant<
   PdsObject
 >;
 
-
 std::unordered_map<uint64_t, PdsValue> pdsValues;
 uint64_t pdsValueIt = 1;
 
@@ -92,7 +91,6 @@ PdsArray * getArrayElement(PuleDsValue const arrayValue) {
   }
   return asArray;
 }
-
 
 template <typename T>
 uint64_t pdsValueAdd(T const value) {
