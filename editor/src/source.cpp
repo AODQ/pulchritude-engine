@@ -106,9 +106,11 @@ void parseArguments(
     return;
   }
 
+  PuleAllocator const allocator = puleAllocateDefault();
+
   if (command->second.forward) {
     command->second.forward(
-      puleAllocateDefault(),
+      allocator,
       PuleDsValue { 0 },
       puleDsObjectMember(userArguments, "parameters"),
       &err
@@ -117,11 +119,73 @@ void parseArguments(
       return;
     }
     // TODO after command succeeds, add to commands list
+    PuleDsValue const commandsFileValue = (
+      puleAssetPdsLoadFromFile(allocator, "./editor/commands.pds", &err)
+    );
+    if (puleErrorConsume(&err)) { return; }
+
+    PuleDsValue const commandsValue = (
+      puleDsObjectMember(commandsFileValue, "commands")
+    );
+    PuleDsValueArray const commandsAsArray = puleDsAsArray(commandsValue);
+    size_t const currentHeadIdx = (
+      puleDsAsUSize(puleDsObjectMember(commandsFileValue, "current-head-idx"))
+    );
+
+    puleDsOverwriteObjectMember(
+      commandsFileValue,
+      puleStringViewCStr("branch-head-idx"),
+      puleDsCreateI64(commandsAsArray.length)
+    );
+
+    // append the command to the children of current, if we have any command
+    if (commandsAsArray.length != 0) {
+      puleDsAppendArray(
+        puleDsObjectMember(commandsAsArray.values[currentHeadIdx], "children"),
+        puleDsCreateI64(commandsAsArray.length)
+      );
+    }
+
+    { // create new command and append to commands list
+      PuleDsValue const newCommand = puleDsCreateObject(allocator);
+      puleDsAssignObjectMember(
+        newCommand,
+        puleStringViewCStr("parent"),
+        puleDsCreateI64(currentHeadIdx)
+      );
+      puleDsAssignObjectMember(
+        newCommand,
+        puleStringViewCStr("command"),
+        puleDsValueCloneRecursively(
+          puleDsObjectMember(userArguments, "command"),
+          allocator
+        )
+      );
+      puleDsAssignObjectMember(
+        newCommand,
+        puleStringViewCStr("parameters"),
+        puleDsValueCloneRecursively(
+          puleDsObjectMember(userArguments, "parameters"),
+          allocator
+        )
+      );
+      puleDsAssignObjectMember(
+        newCommand,
+        puleStringViewCStr("children"),
+        puleDsCreateArray(allocator)
+      );
+
+      puleDsAppendArray(commandsValue, newCommand);
+    }
+
+    puleAssetPdsWriteToFile(commandsFileValue, "editor/commands.pds", &err);
+    puleDsDestroy(commandsFileValue);
+    if (puleErrorConsume(&err)) { return; }
   }
   else
   if (command->second.apply) {
     command->second.apply(
-      puleAllocateDefault(),
+      allocator,
       PuleDsValue { 0 },
       puleDsObjectMember(userArguments, "parameters"),
       &err

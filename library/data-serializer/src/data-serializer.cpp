@@ -28,15 +28,30 @@ struct PdsString {
 void pdsObjectAdd(
   PdsObject & object,
   PuleStringView const label,
-  PuleDsValue const value
+  PuleDsValue const value,
+  bool const overwrite
 ) {
   size_t const hash = puleStringViewHash(label);
   if (object.values.find(hash) != object.values.end()) {
-    puleLogError(
-      "adding object '%s' which would overwrite existing label",
-      label.contents
-    );
-    return;
+    if (overwrite) {
+      PuleDsValue const oldValue = object.values.at(hash);
+      // erase hashmap values & linearly iterate linear values to erase
+      object.values.erase(hash);
+      for (size_t it = 0; it < object.linearValues.size(); ++ it) {
+        if (object.linearValues[it].id == oldValue.id) {
+          object.linearValues.erase(object.linearValues.begin() + it);
+          break;
+        }
+      }
+      // destroy overwritten value
+      puleDsDestroy(oldValue);
+    } else {
+      puleLogError(
+        "adding object '%s' which would overwrite existing label",
+        label.contents
+      );
+      return;
+    }
   }
 
   object.values.emplace(hash, value);
@@ -386,7 +401,17 @@ PuleDsValue puleDsAssignObjectMember(
   PuleDsValue const valueToEmplace
 ) {
   auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
-  ::pdsObjectAdd(object, memberLabel, valueToEmplace);
+  ::pdsObjectAdd(object, memberLabel, valueToEmplace, false);
+  return puleDsObjectMember(objectValue, memberLabel.contents);
+}
+
+PuleDsValue puleDsOverwriteObjectMember(
+  PuleDsValue const objectValue,
+  PuleStringView const memberLabel,
+  PuleDsValue const valueToEmplace
+) {
+  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
+  ::pdsObjectAdd(object, memberLabel, valueToEmplace, true);
   return puleDsObjectMember(objectValue, memberLabel.contents);
 }
 

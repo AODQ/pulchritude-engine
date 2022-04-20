@@ -151,6 +151,12 @@ PULE_exportFn PuleDsValue puleDsAssignObjectMember(
   PuleDsValue const valueToEmplace
 );
 
+PULE_exportFn PuleDsValue puleDsOverwriteObjectMember(
+  PuleDsValue const objectValue,
+  PuleStringView const memberLabel,
+  PuleDsValue const valueToEmplace
+);
+
 #ifdef __cplusplus
 } // extern C
 #endif
