@@ -178,6 +178,7 @@ void assetInfo(
   }
 
   puleLog("file '%s' is not being tracked", source.contents);
+  puleDsDestroy(assetValue);
 }
 
 } // C
