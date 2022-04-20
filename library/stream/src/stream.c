@@ -27,7 +27,7 @@ void puleStreamWriteBytes(
   stream.writeBytes(stream.userdata, bytes, length);
 }
 
-static void writeBytes(
+static void stdoutWriteBytes(
   void * const userdata,
   uint8_t const * const bytes,
   size_t const length
@@ -36,15 +36,15 @@ static void writeBytes(
   for (size_t it = 0; it < length; ++ it)
     printf("%c", ((char const *)(bytes))[it]);
 }
-static void flush(void * const userdata) { (void)userdata; }
-static void destroy(void * const userdata) { (void)userdata; }
+static void stdoutFlush(void * const userdata) { (void)userdata; }
+static void stdoutDestroy(void * const userdata) { (void)userdata; }
 
 PuleStreamWrite puleStreamStdoutWrite() {
   PuleStreamWrite writer;
   writer.userdata = NULL;
-  writer.writeBytes = &writeBytes;
-  writer.flush = &flush;
-  writer.destroy = &destroy;
+  writer.writeBytes = &stdoutWriteBytes;
+  writer.flush = &stdoutFlush;
+  writer.destroy = &stdoutDestroy;
   return writer;
 }
 

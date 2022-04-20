@@ -110,6 +110,8 @@ size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
 }
 
 void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
+  puleLog("writing %zu bytes", src.elementCount);
+  if (src.elementCount == 0) { return; }
   auto const fileHandle = ::openFiles.at(file.id).file;
   flockfile(fileHandle);
   uint8_t const * data = reinterpret_cast<uint8_t const *>(src.data);
@@ -163,29 +165,29 @@ void refreshPdsStream(PdsStream & stream) {
 
 extern "C" {
 
-static bool fileStreamIsDone(void * const userdata) {
+static bool fileReadStreamIsDone(void * const userdata) {
   ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
   ::refreshPdsStream(stream);
   return stream.fetchedBufferLength == 0;
 }
 
-static uint8_t fileStreamPeekByte(void * const userdata) {
+static uint8_t fileReadStreamPeekByte(void * const userdata) {
   ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
   ::refreshPdsStream(stream);
-  PULE_assert(!fileStreamIsDone(userdata));
+  PULE_assert(!fileReadStreamIsDone(userdata));
   PULE_assert(stream.bufferIt < stream.fetchedBufferLength);
   uint8_t const character = stream.buffer.data[stream.bufferIt];
   return character;
 }
 
-static uint8_t fileStreamReadByte(void * const userdata) {
+static uint8_t fileReadStreamReadByte(void * const userdata) {
   ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
-  uint8_t const character = fileStreamPeekByte(userdata);
+  uint8_t const character = fileReadStreamPeekByte(userdata);
   stream.bufferIt += 1;
   return character;
 }
 
-static void fileStreamFlush(void * const userdata) {
+static void fileWriteStreamFlush(void * const userdata) {
   ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
   puleFileWriteBytes(
     stream.file,
@@ -198,7 +200,7 @@ static void fileStreamFlush(void * const userdata) {
   stream.bufferIt = 0;
 }
 
-static void fileStreamWriteBytes(
+static void fileWriteStreamWriteBytes(
   void * const userdata,
   uint8_t const * const bytes,
   size_t const length
@@ -207,7 +209,7 @@ static void fileStreamWriteBytes(
 
   // check if buffer should be flushed out
   if (length + stream.bufferIt >= stream.buffer.elementCount) {
-    fileStreamFlush(userdata);
+    fileWriteStreamFlush(userdata);
   }
 
   // check if contents can fit in the intermediary buffer
@@ -218,14 +220,14 @@ static void fileStreamWriteBytes(
         .data = bytes, .elementStride = 1, .elementCount = length,
       }
     );
+  } else {
+    // copy data into the intermediary buffer
+    memcpy(stream.buffer.data + stream.bufferIt, bytes, length);
+    stream.bufferIt += length;
   }
-
-  // copy data into the intermediary buffer
-  memcpy(stream.buffer.data + stream.bufferIt, bytes, length);
-  stream.bufferIt += length;
 }
 
-static void fileStreamReadDestroy(void * const userdata) {
+static void fileReadStreamDestroy(void * const userdata) {
   if (!userdata) { return; }
   ::PdsStream const stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
   (void)stream; // TODO remove this void
@@ -242,7 +244,7 @@ static void fileStreamReadDestroy(void * const userdata) {
   //);
 }
 
-static void fileStreamWriteDestroy(void * const userdata) {
+static void fileWriteStreamDestroy(void * const userdata) {
   if (!userdata) { return; }
   ::PdsStream const stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
   (void)stream; // TODO remove this void
@@ -269,10 +271,10 @@ PuleStreamRead puleFileStreamRead(
   );
   return PuleStreamRead {
     .userdata = reinterpret_cast<void *>(file.id),
-    .readByte = fileStreamReadByte,
-    .peekByte = fileStreamPeekByte,
-    .isDone = fileStreamIsDone,
-    .destroy = fileStreamReadDestroy,
+    .readByte = fileReadStreamReadByte,
+    .peekByte = fileReadStreamPeekByte,
+    .isDone   = fileReadStreamIsDone,
+    .destroy  = fileReadStreamDestroy,
   };
 }
 
@@ -301,9 +303,9 @@ PuleStreamWrite puleFileStreamWrite(
   );
   return PuleStreamWrite {
     .userdata = reinterpret_cast<void *>(file.id),
-    .writeBytes = fileStreamWriteBytes,
-    .flush = fileStreamFlush,
-    .destroy = fileStreamWriteDestroy,
+    .writeBytes = fileWriteStreamWriteBytes,
+    .flush      = fileWriteStreamFlush,
+    .destroy    = fileWriteStreamDestroy,
   };
 }
 
