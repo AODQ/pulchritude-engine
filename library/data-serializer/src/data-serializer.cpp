@@ -12,7 +12,7 @@ namespace {
 
 struct PdsObject {
   std::unordered_map<size_t, PuleDsValue> values = {};
-  std::unordered_map<size_t, PuleStringView> labels = {};
+  std::unordered_map<size_t, std::string> labels = {};
   // this provides memory backing to the labels
   std::vector<std::string> linearLabels;
   std::vector<PuleDsValue> linearValues;
@@ -40,6 +40,7 @@ void pdsObjectAdd(
       for (size_t it = 0; it < object.linearValues.size(); ++ it) {
         if (object.linearValues[it].id == oldValue.id) {
           object.linearValues.erase(object.linearValues.begin() + it);
+          object.linearLabels.erase(object.linearLabels.begin() + it);
           break;
         }
       }
@@ -58,12 +59,9 @@ void pdsObjectAdd(
   object.linearValues.emplace_back(value);
 
   // copy string to local storage
-  object.linearLabels.emplace_back(std::string(label.contents, label.len));
-  auto const stringView = PuleStringView {
-    .contents = object.linearLabels.back().c_str(),
-    .len = label.len
-  };
-  object.labels.emplace(hash, stringView);
+  std::string const labelStr = std::string(label.contents, label.len);
+  object.linearLabels.emplace_back(labelStr);
+  object.labels.emplace(hash, labelStr);
 }
 
 union pdsValueUnion {
@@ -186,8 +184,10 @@ PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
   }
 
   auto & object = *asObject;
+
+  PULE_assert(object.linearLabels.size() == object.linearValues.size());
   // have to refresh the object's linear label as view pointers
-  object.linearLabelsAsViews.resize(object.linearValues.size());
+  object.linearLabelsAsViews.resize(object.linearLabels.size());
   for (size_t it = 0; it < object.linearLabels.size(); ++ it) {
     object.linearLabelsAsViews[it] = PuleStringView {
       .contents = object.linearLabels[it].c_str(),
@@ -195,7 +195,7 @@ PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
     };
   }
 
-  PULE_assert(object.linearLabelsAsViews.size() == object.linearValues.size());
+  PULE_assert(object.linearLabelsAsViews.size() == object.linearLabels.size());
 
   return PuleDsValueObject {
     .labels = object.linearLabelsAsViews.data(),
@@ -235,8 +235,7 @@ PuleDsValue puleDsCreateBool(bool const value) {
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
-  std::string contents = std::string(stringView.contents);
-  contents.resize(stringView.len);
+  std::string contents = std::string(stringView.contents, stringView.len);
   return {::pdsValueAdd(PdsString{.value = contents})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
@@ -263,9 +262,7 @@ void puleDsDestroy(PuleDsValue const value) {
     }
   }
 
-  if (value.id != 0) {
-    ::pdsValues.erase(value.id);
-  }
+  ::pdsValues.erase(value.id);
 }
 
 //------------------------------------------------------------------------------
@@ -346,10 +343,9 @@ static PuleDsValue puleDsObjectCloneRecursively(
   PuleDsValueObject const oldObj = puleDsAsObject(object);
   for (size_t it = 0; it < oldObj.length; ++ it) {
     PuleDsValue const value = oldObj.values[it];
-    PuleStringView const stringView = oldObj.labels[it];
     puleDsAssignObjectMember(
       newObj,
-      stringView,
+      oldObj.labels[it],
       puleDsValueCloneRecursively(value, allocator)
     );
   }
