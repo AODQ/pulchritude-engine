@@ -142,11 +142,13 @@ uint64_t puleDsAsU32(PuleDsValue const value) {
     static_cast<uint32_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
   );
 }
+bool puleDsAsBool(PuleDsValue const value) {
+  return (
+    *std::get_if<int64_t>(&::pdsValues.at(value.id)) != 0
+  );
+}
 double puleDsAsF64(PuleDsValue const value) {
   return *std::get_if<double>(&::pdsValues.at(value.id));
-}
-bool puleDsAsBool(PuleDsValue const value) {
-  return *std::get_if<bool>(&::pdsValues.at(value.id));
 }
 PuleStringView puleDsAsString(PuleDsValue const value) {
   auto valuePtr = ::pdsValues.find(value.id);
@@ -210,9 +212,6 @@ bool puleDsIsI64(PuleDsValue const value) {
 }
 bool puleDsIsF64(PuleDsValue const value) {
   return std::get_if<double>(&::pdsValues.at(value.id)) != nullptr;
-}
-bool puleDsIsBool(PuleDsValue const value) {
-  return std::get_if<bool>(&::pdsValues.at(value.id)) != nullptr;
 }
 bool puleDsIsString(PuleDsValue const value) {
   return std::get_if<PdsString>(&::pdsValues.at(value.id)) != nullptr;
@@ -375,9 +374,6 @@ PuleDsValue puleDsValueCloneRecursively(
   }
   if (puleDsIsF64(value)) {
     return puleDsCreateF64(puleDsAsF64(value));
-  }
-  if (puleDsIsBool(value)) {
-    return puleDsCreateBool(puleDsAsBool(value));
   }
   if (puleDsIsString(value)) {
     return puleDsCreateString(puleDsAsString(value));

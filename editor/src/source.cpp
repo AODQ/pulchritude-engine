@@ -53,7 +53,6 @@ std::unordered_map<size_t, CommandRegistry> commandRegistry;
 
 } // namespace command registry
 
-
 namespace { // argument parsing
 
 // this would be read back as `{ asset: {info: {source: {"some-string"}}} }

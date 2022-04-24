@@ -102,7 +102,6 @@ PULE_exportFn uint64_t puleDsAsU32(PuleDsValue const value);
 
 PULE_exportFn bool puleDsIsI64(PuleDsValue const value);
 PULE_exportFn bool puleDsIsF64(PuleDsValue const value);
-PULE_exportFn bool puleDsIsBool(PuleDsValue const value);
 PULE_exportFn bool puleDsIsString(PuleDsValue const value);
 PULE_exportFn bool puleDsIsArray(PuleDsValue const value);
 PULE_exportFn bool puleDsIsObject(PuleDsValue const value);

@@ -41,11 +41,6 @@ void pdsIterateWriteToStream(
     out += info.prettyPrint ? "," : ",";
   }
   else
-  if (puleDsIsBool(info.head)) {
-    out += std::to_string(puleDsAsBool(info.head));
-    out += info.prettyPrint ? "," : ",";
-  }
-  else
   if (puleDsIsString(info.head)) {
     PuleStringView const stringView = puleDsAsString(info.head);
     out += '"';

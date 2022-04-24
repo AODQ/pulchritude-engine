@@ -110,7 +110,6 @@ size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
 }
 
 void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
-  puleLog("writing %zu bytes", src.elementCount);
   if (src.elementCount == 0) { return; }
   auto const fileHandle = ::openFiles.at(file.id).file;
   flockfile(fileHandle);

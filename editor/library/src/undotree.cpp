@@ -225,8 +225,6 @@ void undotreeShow(
         localCommand.parameter += std::to_string(puleDsAsI64(paramVal));
       } else if (puleDsIsF64(paramVal)) {
         localCommand.parameter += std::to_string(puleDsAsF64(paramVal));
-      } else if (puleDsIsBool(paramVal)) {
-        localCommand.parameter += std::to_string(puleDsAsBool(paramVal));
       } else if (puleDsIsString(paramVal)) {
         auto const paramValStr = puleDsAsString(paramVal);
         for (size_t strIt = 0; strIt < paramValStr.len; ++ strIt) {
