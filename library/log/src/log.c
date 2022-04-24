@@ -74,5 +74,5 @@ void puleLogError(char const * const formatCStr, ...) {
   va_start(args, formatCStr);
   logger(LogType_error, formatCStr, args);
   va_end(args);
-  raise(SIGSEGV);
+  //raise(SIGSEGV);
 }

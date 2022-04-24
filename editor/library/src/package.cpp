@@ -41,10 +41,10 @@ PuleDsValue puldRegisterCLICommands(
   PuleError * const error
 ) {
   char const * const CLIRegisterCStr = PULE_multilineString(
-    undo: [],
-    redo: [],
+    undo: [ { label: "levels", type: "int", default-value: 1, }, ],
+    redo: [ { label: "levels", type: "int", default-value: 1, }, ],
     undotree: {
-      show: [],
+      show: [ { label: "all", type: "bool", default-value: false, }, ],
     },
     asset: {
       add: [

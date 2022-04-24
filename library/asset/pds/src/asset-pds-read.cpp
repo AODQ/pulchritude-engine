@@ -608,6 +608,23 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
           puleDsCreateBool(isTrue)
         );
       }
+      else
+      if (puleStringViewEqCStr(objType, "int")) {
+        if (argumentIt+1 >= info.argumentLength) {
+          PULE_error(
+            PuleErrorAssetPds_decode,
+            "missing argument for '%s'", argument
+          );
+          puleDsDestroy(emitValue);
+          return { 0 };
+        }
+
+        puleDsAssignObjectMember(
+          emitParametersValue,
+          objLabel,
+          puleDsCreateI64(parseDec(std::string(info.arguments[argumentIt+1])))
+        );
+      }
 
       break;
     }
