@@ -124,12 +124,16 @@ void parseArguments(
     );
     if (puleErrorConsume(&err)) { return; }
 
+    puleLog("----- editor/commands.pds ------");
+    puleAssetPdsWriteToStdout(commandsFileValue);
+    puleLog("--------------------------------");
+
     PuleDsValue const commandsValue = (
       puleDsObjectMember(commandsFileValue, "commands")
     );
     PuleDsValueArray const commandsAsArray = puleDsAsArray(commandsValue);
-    size_t const currentHeadIdx = (
-      puleDsAsUSize(puleDsObjectMember(commandsFileValue, "current-head-idx"))
+    int64_t const parentHeadIdx = (
+      puleDsAsI64(puleDsObjectMember(commandsFileValue, "current-head-idx"))
     );
 
     puleDsOverwriteObjectMember(
@@ -138,10 +142,16 @@ void parseArguments(
       puleDsCreateI64(commandsAsArray.length)
     );
 
+    puleDsOverwriteObjectMember(
+      commandsFileValue,
+      puleStringViewCStr("current-head-idx"),
+      puleDsCreateI64(commandsAsArray.length)
+    );
+
     // append the command to the children of current, if we have any command
     if (commandsAsArray.length != 0) {
       puleDsAppendArray(
-        puleDsObjectMember(commandsAsArray.values[currentHeadIdx], "children"),
+        puleDsObjectMember(commandsAsArray.values[parentHeadIdx], "children"),
         puleDsCreateI64(commandsAsArray.length)
       );
     }
@@ -151,7 +161,7 @@ void parseArguments(
       puleDsAssignObjectMember(
         newCommand,
         puleStringViewCStr("parent"),
-        puleDsCreateI64(currentHeadIdx)
+        puleDsCreateI64(parentHeadIdx)
       );
       puleDsAssignObjectMember(
         newCommand,
@@ -325,7 +335,7 @@ int32_t main(
   char const * const * const userArguments
 ) {
   pulePluginsLoad();
-  *puleLogDebugEnabled() = true;
+  /* *puleLogDebugEnabled() = true; */
 
   // TODO parse plugins
   PuleDsValue const cliArgumentLayout = (
