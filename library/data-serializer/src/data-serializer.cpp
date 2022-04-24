@@ -265,10 +265,14 @@ void puleDsDestroy(PuleDsValue const value) {
 }
 
 //------------------------------------------------------------------------------
-void puleDsAppendArray(PuleDsValue const arrayValue, PuleDsValue const value) {
+PuleDsValue puleDsAppendArray(
+  PuleDsValue const arrayValue,
+  PuleDsValue const value
+) {
   PdsArray * asArray = getArrayElement(arrayValue);
-  if (!asArray) { return; }
+  if (!asArray) { return { 0 }; }
   asArray->emplace_back(value);
+  return value;
 }
 
 void puleDsArrayPopBack(PuleDsValue const arrayValue) {

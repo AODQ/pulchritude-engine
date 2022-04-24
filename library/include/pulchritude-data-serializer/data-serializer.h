@@ -117,7 +117,7 @@ PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
 PULE_exportFn PuleDsValue puleDsCreateArray(PuleAllocator const allocator);
 PULE_exportFn PuleDsValue puleDsCreateObject(PuleAllocator const allocator);
 
-PULE_exportFn void puleDsAppendArray(
+PULE_exportFn PuleDsValue puleDsAppendArray(
   PuleDsValue const array,
   PuleDsValue const value
 );
