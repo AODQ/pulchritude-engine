@@ -76,7 +76,7 @@ void assetAddForward(
       fileObj, puleStringViewCStr("path"), puleDsCreateString(destination)
     );
     puleDsAssignObjectMember(
-      fileObj, puleStringViewCStr("tracking"), puleDsCreateBool(false)
+      fileObj, puleStringViewCStr("tracking"), puleDsCreateI64(false)
     );
     puleDsAppendArray(filesValue, fileObj);
   }

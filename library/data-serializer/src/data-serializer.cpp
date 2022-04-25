@@ -82,7 +82,6 @@ using PdsArray = std::vector<PuleDsValue>;
 using PdsValue = std::variant<
   int64_t,
   double,
-  bool,
   PdsString,
   PdsArray,
   PdsObject
@@ -228,9 +227,6 @@ PuleDsValue puleDsCreateI64(int64_t const value) {
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateF64(double const value) {
-  return {::pdsValueAdd(value)};
-}
-PuleDsValue puleDsCreateBool(bool const value) {
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {

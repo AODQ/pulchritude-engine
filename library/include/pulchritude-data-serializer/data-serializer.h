@@ -111,7 +111,6 @@ PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 
 PULE_exportFn PuleDsValue puleDsCreateI64(int64_t const value);
 PULE_exportFn PuleDsValue puleDsCreateF64(double const value);
-PULE_exportFn PuleDsValue puleDsCreateBool(bool const value);
 // TODO this needs to pass in an allocator
 PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
 PULE_exportFn PuleDsValue puleDsCreateArray(PuleAllocator const allocator);

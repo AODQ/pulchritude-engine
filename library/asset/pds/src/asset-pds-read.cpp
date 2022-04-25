@@ -296,7 +296,7 @@ PuleDsValue pdsParseValue(
   }
 
   if (value == "true" || value == "false") {
-    return puleDsCreateBool(value == "true");
+    return puleDsCreateI64(value == "true");
   }
 
   // example, "" "asdf"
@@ -427,7 +427,7 @@ static void printCommandLineParameterHelp(
   puleAssetPdsWriteToStdout(layoutValue);
 }
 
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
+PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleAssetPdsCommandLineArgumentsInfo const info,
   PuleError * const error
 ) {
@@ -605,7 +605,7 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         puleDsAssignObjectMember(
           emitParametersValue,
           objLabel,
-          puleDsCreateBool(isTrue)
+          puleDsCreateI64(isTrue)
         );
       }
       else
