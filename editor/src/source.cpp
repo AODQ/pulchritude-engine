@@ -59,11 +59,14 @@ namespace { // argument parsing
 // and written to as ./pulchritude asset info --source some-string
 // it has to cascade from object to array
 
+enum class ActionDirection { Forward, Rewind };
+
 // where ./application <arguments>,
 // arguments = <commands> <parameters>
 void parseArguments(
   PuleDsValue const cliArgumentLayout,
-  PuleDsValue const userArguments
+  PuleDsValue const userArguments,
+  ActionDirection const actionDirection
 ) {
   if (*puleLogDebugEnabled()) {
     puleLogDebug("--- cli argument layout ---");
@@ -108,12 +111,21 @@ void parseArguments(
   PuleAllocator const allocator = puleAllocateDefault();
 
   if (command->second.forward) {
-    command->second.forward(
-      allocator,
-      PuleDsValue { 0 },
-      puleDsObjectMember(userArguments, "parameters"),
-      &err
-    );
+    if (actionDirection == ActionDirection::Forward) {
+      command->second.forward(
+        allocator,
+        PuleDsValue { 0 },
+        puleDsObjectMember(userArguments, "parameters"),
+        &err
+      );
+    } else {
+      command->second.rewind(
+        allocator,
+        PuleDsValue { 0 },
+        puleDsObjectMember(userArguments, "parameters"),
+        &err
+      );
+    }
     if (puleErrorConsume(&err)) {
       return;
     }
@@ -123,9 +135,11 @@ void parseArguments(
     );
     if (puleErrorConsume(&err)) { return; }
 
-    puleLog("----- editor/commands.pds ------");
-    puleAssetPdsWriteToStdout(commandsFileValue);
-    puleLog("--------------------------------");
+    puleLogDebug("----- editor/commands.pds ------");
+    if (*puleLogDebugEnabled()) {
+      puleAssetPdsWriteToStdout(commandsFileValue);
+    }
+    puleLogDebug("--------------------------------");
 
     PuleDsValue const commandsValue = (
       puleDsObjectMember(commandsFileValue, "commands")
@@ -193,14 +207,44 @@ void parseArguments(
   }
   else
   if (command->second.apply) {
+    PuleDsValue const mainValue = puleDsCreateObject(allocator);
     command->second.apply(
       allocator,
-      PuleDsValue { 0 },
+      mainValue,
       puleDsObjectMember(userArguments, "parameters"),
       &err
     );
-  }
 
+    // if the user requests to apply more actions, (ex undo/redo), apply them
+    PuleDsValue const commandsToApply = (
+      puleDsObjectMember(mainValue, "commands-to-apply")
+    );
+    if (commandsToApply.id > 0) {
+      PuleDsValue const commandForward = (
+        puleDsObjectMember(mainValue, "command-true-forward-false-rewind")
+      );
+      PULE_assert(commandForward.id > 0);
+      ActionDirection const newActionDirection = (
+        puleDsAsBool(commandForward)
+        ? ActionDirection::Forward : ActionDirection::Rewind
+      );
+      PuleDsValueArray const commandsToApplyAsArray = (
+        puleDsAsArray(commandsToApply)
+      );
+      for (
+        size_t commandIt = 0;
+        commandIt < commandsToApplyAsArray.length;
+        ++ commandIt
+      ) {
+        parseArguments(
+          cliArgumentLayout,
+          commandsToApplyAsArray.values[commandIt],
+          newActionDirection
+        );
+      }
+    }
+    puleDsDestroy(mainValue);
+  }
 }
 
 } // namespace argument parsing
@@ -364,7 +408,7 @@ int32_t main(
   // check if user passed anything in
   if (userRequestedHelp) {}
   else if (userArgs.id != 0) {
-    parseArguments(cliArgumentLayout, userArgs);
+    parseArguments(cliArgumentLayout, userArgs, ActionDirection::Forward);
   } else {
     puleLog("no parameters passed in");
   }
