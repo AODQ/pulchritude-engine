@@ -31,6 +31,10 @@ void pdsIterateWriteToStream(
   std::string & out,
   bool firstRun = true
 ) {
+  if (info.head.id == 0) {
+    out += "*** NULL ***";
+  }
+  else
   if (puleDsIsI64(info.head)) {
     out += std::to_string(puleDsAsI64(info.head));
     out += info.prettyPrint ? "," : ",";
