@@ -49,8 +49,6 @@ PuleDsValue puldRegisterCLICommands(
     asset: {
       add: [
         { label: "source", type: "url", },
-        { label: "destination", type: "url", },
-        { label: "overwrite", type: "bool", default-value: false, },
       ],
       info: [
         { label: "source", type: "url", opt: false, },

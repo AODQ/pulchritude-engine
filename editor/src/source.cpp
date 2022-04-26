@@ -60,13 +60,15 @@ namespace { // argument parsing
 // it has to cascade from object to array
 
 enum class ActionDirection { Forward, Rewind };
+enum class ApplyToActionHistory { Yes, No };
 
 // where ./application <arguments>,
 // arguments = <commands> <parameters>
 void parseArguments(
   PuleDsValue const cliArgumentLayout,
   PuleDsValue const userArguments,
-  ActionDirection const actionDirection
+  ActionDirection const actionDirection,
+  ApplyToActionHistory const applyToActionHistory
 ) {
   if (*puleLogDebugEnabled()) {
     puleLogDebug("--- cli argument layout ---");
@@ -201,7 +203,9 @@ void parseArguments(
       puleDsAppendArray(commandsValue, newCommand);
     }
 
-    puleAssetPdsWriteToFile(commandsFileValue, "editor/commands.pds", &err);
+    if (applyToActionHistory == ApplyToActionHistory::Yes) {
+      puleAssetPdsWriteToFile(commandsFileValue, "editor/commands.pds", &err);
+    }
     puleDsDestroy(commandsFileValue);
     if (puleErrorConsume(&err)) { return; }
   }
@@ -239,7 +243,8 @@ void parseArguments(
         parseArguments(
           cliArgumentLayout,
           commandsToApplyAsArray.values[commandIt],
-          newActionDirection
+          newActionDirection,
+          ApplyToActionHistory::No
         );
       }
     }
@@ -408,7 +413,12 @@ int32_t main(
   // check if user passed anything in
   if (userRequestedHelp) {}
   else if (userArgs.id != 0) {
-    parseArguments(cliArgumentLayout, userArgs, ActionDirection::Forward);
+    parseArguments(
+      cliArgumentLayout,
+      userArgs,
+      ActionDirection::Forward,
+      ApplyToActionHistory::Yes
+    );
   } else {
     puleLog("no parameters passed in");
   }

@@ -3,6 +3,7 @@
 #include <pulchritude-error/error.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-string/string.h>
+#include <pulchritude-string/string.h>
 
 extern "C" {
 
@@ -29,17 +30,8 @@ void assetAddForward(
   PuleStringView const source = (
     puleDsAsString(puleDsObjectMember(input, "source"))
   );
-  PuleStringView const destination = (
-    puleDsAsString(puleDsObjectMember(input, "destination"))
-  );
-  bool const overwrite = puleDsAsBool(puleDsObjectMember(input, "overwrite"));
-  puleLog(
-    "adding resource from '%s' to '%s'",
-    source.contents,
-    destination.contents
-  );
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./assets/assets.pds", error)
+    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
   );
   if (puleErrorExists(error)) {
     return;
@@ -54,40 +46,28 @@ void assetAddForward(
     PuleStringView const filepath = (
       puleDsAsString(puleDsObjectMember(filesArray.values[it], "path"))
     );
-    if (puleStringViewEq(filepath, destination)) {
-      if (!overwrite) {
-        PULE_error(
-          1,
-          "file '%s' already exists in assets.pds (%s)",
-          destination.contents
-        );
-        return;
-      }
-      puleDsArrayRemoveAt(filesValue, it);
-      // there should never be any duplicates; otherwise though you could do
-      // it -= 1; filesArray = puleDsAsArray(filesValue);
-      break;
+    if (puleStringViewEq(filepath, source)) {
+      PULE_error(
+        1,
+        "file '%s' already exists in assets.pds (%s)",
+        source.contents
+      );
     }
   }
 
   { // append file reference
     PuleDsValue fileObj = puleDsCreateObject(allocator);
     puleDsAssignObjectMember(
-      fileObj, puleStringViewCStr("path"), puleDsCreateString(destination)
+      fileObj, puleStringViewCStr("path"), puleDsCreateString(source)
     );
     puleDsAssignObjectMember(
       fileObj, puleStringViewCStr("tracking"), puleDsCreateI64(false)
     );
     puleDsAppendArray(filesValue, fileObj);
   }
-  puleAssetPdsWriteToFile(assetValue, "assets/assets.pds", error);
+  puleAssetPdsWriteToFile(assetValue, "editor/assets.pds", error);
   puleDsDestroy(assetValue);
   if (puleErrorExists(error)) {
-    return;
-  }
-
-  if (!puleFileCopy(source, destination)) {
-    puleDsArrayPopBack(filesValue);
     return;
   }
 }
@@ -101,13 +81,10 @@ void assetAddRewind(
   PuleStringView const source = (
     puleDsAsString(puleDsObjectMember(input, "source"))
   );
-  PuleStringView const destination = (
-    puleDsAsString(puleDsObjectMember(input, "destination"))
-  );
-  puleLog("removing resource at '%s'", destination.contents);
+  puleLog("removing resource at '%s'", source.contents);
 
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./assets/assets.pds", error)
+    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
   );
   if (puleErrorExists(error)) {
     return;
@@ -121,7 +98,7 @@ void assetAddRewind(
       PuleStringView const filepath = (
         puleDsAsString(puleDsObjectMember(filesArray.values[it], "path"))
       );
-      if (puleStringViewEq(filepath, destination)) {
+      if (puleStringViewEq(filepath, source)) {
         puleDsArrayRemoveAt(filesValue, it);
         foundFileToRemove = true;
         break;
@@ -131,17 +108,11 @@ void assetAddRewind(
       puleLogError("failed to find the file reference to remove");
     }
   }
-  puleAssetPdsWriteToFile(assetValue, "assets/assets.pds", error);
+  puleAssetPdsWriteToFile(assetValue, "editor/assets.pds", error);
   puleDsDestroy(assetValue);
 
   if (puleErrorExists(error)) {
     return;
-  }
-
-  // only remove the file if the user didn't put the file there manually,
-  //   TODO - and if the hash of both files match
-  if (!puleStringViewEq(source, destination)) {
-    puleFileRemove(destination);
   }
 }
 
@@ -156,7 +127,7 @@ void assetInfo(
   );
 
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./assets/assets.pds", error)
+    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
   );
   if (puleErrorExists(error)) {
     return;
@@ -173,6 +144,7 @@ void assetInfo(
     );
     if (puleStringViewEq(filepath, source)) {
       puleAssetPdsWriteToStdout(filesArray.values[it]);
+      puleDsDestroy(assetValue);
       return;
     }
   }
