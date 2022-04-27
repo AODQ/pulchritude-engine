@@ -7,6 +7,7 @@
 #include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-stream/stream.h>
+#include <pulchritude-time/time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +24,20 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromStream(
   PuleError * const error
 );
 
+// convenience function, takes over management of the input stream
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(
+  PuleAllocator const allocator,
+  PuleStreamRead const rvalStream,
+  PuleError * const error
+);
+
+// convenience function, combined file+stream but disables PDS streaming
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(
+  PuleAllocator const allocator,
+  char const * const filename,
+  PuleError * const error
+);
+
 typedef struct {
   PuleDsValue head;
   bool prettyPrint; // PULE_defaultValue(false)
@@ -32,6 +47,31 @@ typedef struct {
 PULE_exportFn void puleAssetPdsWriteToStream(
   PuleStreamWrite const stream,
   PuleAssetPdsWriteInfo const writeInfo
+);
+
+
+// convenience function using file+stream but disables PDS streaming
+PULE_exportFn void puleAssetPdsWriteToFile(
+  PuleDsValue const head,
+  char const * const filename,
+  PuleError * const error
+);
+
+// convenience function using puleStreamStdoutWrite
+PULE_exportFn void puleAssetPdsWriteToStdout(PuleDsValue const head);
+
+// can parse command line arguments from the given PDS
+// "help" will be inserted if the user requested help flag `--help`
+struct PuleAssetPdsCommandLineArgumentsInfo {
+  PuleAllocator allocator;
+  PuleDsValue layout;
+  int32_t argumentLength;
+  char const * const * arguments;
+  bool * userRequestedHelpOutNullable;
+};
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
+  PuleAssetPdsCommandLineArgumentsInfo const info,
+  PuleError * const error
 );
 
 #ifdef __cplusplus

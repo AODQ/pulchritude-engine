@@ -1,9 +1,13 @@
 #include <pulchritude-string/string.h>
 
+#include <string_view>
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+
+extern "C" {
 
 PuleString puleString(
   PuleAllocator const allocator,
@@ -21,6 +25,7 @@ PuleString puleString(
   PuleString str = {
     .contents = data,
     .len = len,
+    .allocator = allocator,
   };
   return str;
 }
@@ -64,7 +69,9 @@ static PuleString puleStringFormatVargs(
       .numBytes = len+1,
       .alignment = 0,
     };
-    stringOut.contents = puleAllocate(allocator, allocateInfo);
+    stringOut.contents = (
+      reinterpret_cast<char *>(puleAllocate(allocator, allocateInfo))
+    );
   }
 
   { // format (consumes args)
@@ -115,3 +122,32 @@ PuleStringView puleStringViewCStr(char const * const cstr) {
   };
   return str;
 }
+
+bool puleStringViewEq(PuleStringView const v0, PuleStringView const v1) {
+  if (v0.len != v1.len) {
+    return false;
+  }
+  for (size_t it = 0; it < v0.len; ++ it) {
+    if (v0.contents[it] != v1.contents[it]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool puleStringViewEqCStr(PuleStringView const v0, char const * const v1) {
+  for (size_t it = 0; it < v0.len; ++ it) {
+    if (v0.contents[it] != v1[it]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+size_t puleStringViewHash(PuleStringView const view) {
+  auto stringView = std::string_view(view.contents, view.len);
+  auto hash = std::hash<std::string_view>{}(stringView);
+  return hash;
+}
+
+} // C

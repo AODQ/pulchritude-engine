@@ -1,7 +1,6 @@
 #include <pulchritude-data-serializer/data-serializer.h>
 
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -11,15 +10,9 @@
 
 namespace {
 
-size_t pdsHash(PuleStringView const view) {
-  auto stringView = std::string_view(view.contents, view.len);
-  auto hash = std::hash<std::string_view>{}(stringView);
-  return hash;
-}
-
 struct PdsObject {
   std::unordered_map<size_t, PuleDsValue> values = {};
-  std::unordered_map<size_t, PuleStringView> labels = {};
+  std::unordered_map<size_t, std::string> labels = {};
   // this provides memory backing to the labels
   std::vector<std::string> linearLabels;
   std::vector<PuleDsValue> linearValues;
@@ -35,21 +28,40 @@ struct PdsString {
 void pdsObjectAdd(
   PdsObject & object,
   PuleStringView const label,
-  PuleDsValue const value
+  PuleDsValue const value,
+  bool const overwrite
 ) {
-  size_t const hash = ::pdsHash(label);
-  PULE_assert(object.values.find(hash) == object.values.end());
+  size_t const hash = puleStringViewHash(label);
+  if (object.values.find(hash) != object.values.end()) {
+    if (overwrite) {
+      PuleDsValue const oldValue = object.values.at(hash);
+      // erase hashmap values & linearly iterate linear values to erase
+      object.values.erase(hash);
+      for (size_t it = 0; it < object.linearValues.size(); ++ it) {
+        if (object.linearValues[it].id == oldValue.id) {
+          object.linearValues.erase(object.linearValues.begin() + it);
+          object.linearLabels.erase(object.linearLabels.begin() + it);
+          break;
+        }
+      }
+      // destroy overwritten value
+      puleDsDestroy(oldValue);
+    } else {
+      puleLogError(
+        "adding object '%s' which would overwrite existing label",
+        label.contents
+      );
+      return;
+    }
+  }
 
   object.values.emplace(hash, value);
   object.linearValues.emplace_back(value);
 
   // copy string to local storage
-  object.linearLabels.emplace_back(std::string(label.contents, label.len));
-  auto const stringView = PuleStringView {
-    .contents = object.linearLabels.back().c_str(),
-    .len = label.len
-  };
-  object.labels.emplace(hash, stringView);
+  std::string const labelStr = std::string(label.contents, label.len);
+  object.linearLabels.emplace_back(labelStr);
+  object.labels.emplace(hash, labelStr);
 }
 
 union pdsValueUnion {
@@ -70,7 +82,6 @@ using PdsArray = std::vector<PuleDsValue>;
 using PdsValue = std::variant<
   int64_t,
   double,
-  bool,
   PdsString,
   PdsArray,
   PdsObject
@@ -78,6 +89,20 @@ using PdsValue = std::variant<
 
 std::unordered_map<uint64_t, PdsValue> pdsValues;
 uint64_t pdsValueIt = 1;
+
+PdsArray * getArrayElement(PuleDsValue const arrayValue) {
+  auto const valuePtr = ::pdsValues.find(arrayValue.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("array value '%zu' does not exist", arrayValue.id);
+    return nullptr;
+  }
+  auto const asArray = std::get_if<PdsArray>(&valuePtr->second);
+  if (!asArray) {
+    puleLogError("array value '%zu' is not an array", arrayValue.id);
+    return nullptr;
+  }
+  return asArray;
+}
 
 template <typename T>
 uint64_t pdsValueAdd(T const value) {
@@ -116,36 +141,54 @@ uint64_t puleDsAsU32(PuleDsValue const value) {
     static_cast<uint32_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
   );
 }
+bool puleDsAsBool(PuleDsValue const value) {
+  return (
+    *std::get_if<int64_t>(&::pdsValues.at(value.id)) != 0
+  );
+}
 double puleDsAsF64(PuleDsValue const value) {
   return *std::get_if<double>(&::pdsValues.at(value.id));
 }
-bool puleDsAsBool(PuleDsValue const value) {
-  return *std::get_if<bool>(&::pdsValues.at(value.id));
-}
 PuleStringView puleDsAsString(PuleDsValue const value) {
-  std::string & asString = (
-    std::get_if<PdsString>(&::pdsValues.at(value.id))->value
-  );
+  auto valuePtr = ::pdsValues.find(value.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("string value '%zu' does not exist", value.id);
+    return { .contents = nullptr, .len = 0 };
+  }
+  auto const & asString = std::get_if<PdsString>(&valuePtr->second);
+  if (!asString) {
+    puleLogError("string value '%zu' is not a string", value.id);
+    return { .contents = nullptr, .len = 0 };
+  }
+  auto const & strValue = asString->value;
   return (
-    PuleStringView { .contents = asString.c_str(), .len = asString.size(), }
+    PuleStringView { .contents = strValue.c_str(), .len = strValue.size(), }
   );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
-  auto valuePtr = ::pdsValues.find(value.id);
-  if (valuePtr == ::pdsValues.end()) {
-    puleLogError("array value '%zu' does not exist", value.id);
-  }
-  auto asArray = std::get_if<PdsArray>(&valuePtr->second);
+  PdsArray * asArray = getArrayElement(value);
   if (!asArray) {
-    puleLogError("array value '%zu' is not an array", value.id);
+    return { .values = nullptr, .length = 0 };
   }
   return { .values = asArray->data(), .length = asArray->size(), };
 }
 PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
-  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(value.id));
+  auto const valuePtr = ::pdsValues.find(value.id);
+  if (valuePtr == ::pdsValues.end()) {
+    puleLogError("object value '%zu' does not exist", value.id);
+    return { .labels = nullptr, .values = nullptr, .length = 0 };
+  }
+  auto const asObject = std::get_if<PdsObject>(&valuePtr->second);
+  if (!asObject) {
+    puleLogError("object value '%zu' is not an object", value.id);
+    return { .labels = nullptr, .values = nullptr, .length = 0 };
+  }
 
+  auto & object = *asObject;
+
+  PULE_assert(object.linearLabels.size() == object.linearValues.size());
   // have to refresh the object's linear label as view pointers
-  object.linearLabelsAsViews.resize(object.linearValues.size());
+  object.linearLabelsAsViews.resize(object.linearLabels.size());
   for (size_t it = 0; it < object.linearLabels.size(); ++ it) {
     object.linearLabelsAsViews[it] = PuleStringView {
       .contents = object.linearLabels[it].c_str(),
@@ -153,7 +196,7 @@ PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
     };
   }
 
-  PULE_assert(object.linearLabelsAsViews.size() == object.linearValues.size());
+  PULE_assert(object.linearLabelsAsViews.size() == object.linearLabels.size());
 
   return PuleDsValueObject {
     .labels = object.linearLabelsAsViews.data(),
@@ -168,9 +211,6 @@ bool puleDsIsI64(PuleDsValue const value) {
 }
 bool puleDsIsF64(PuleDsValue const value) {
   return std::get_if<double>(&::pdsValues.at(value.id)) != nullptr;
-}
-bool puleDsIsBool(PuleDsValue const value) {
-  return std::get_if<bool>(&::pdsValues.at(value.id)) != nullptr;
 }
 bool puleDsIsString(PuleDsValue const value) {
   return std::get_if<PdsString>(&::pdsValues.at(value.id)) != nullptr;
@@ -189,13 +229,9 @@ PuleDsValue puleDsCreateI64(int64_t const value) {
 PuleDsValue puleDsCreateF64(double const value) {
   return {::pdsValueAdd(value)};
 }
-PuleDsValue puleDsCreateBool(bool const value) {
-  return {::pdsValueAdd(value)};
-}
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
-  std::string contents = std::string(stringView.contents);
-  contents.resize(stringView.len);
-  return {::pdsValueAdd(PdsString{.value = std::string(stringView.contents)})};
+  std::string contents = std::string(stringView.contents, stringView.len);
+  return {::pdsValueAdd(PdsString{.value = contents})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
   (void)allocator;
@@ -221,15 +257,36 @@ void puleDsDestroy(PuleDsValue const value) {
     }
   }
 
-  if (value.id != 0) {
-    ::pdsValues.erase(value.id);
-  }
+  ::pdsValues.erase(value.id);
 }
 
 //------------------------------------------------------------------------------
-void puleDsAppendArray(PuleDsValue const arrayValue, PuleDsValue const value) {
-  auto & array = *std::get_if<PdsArray>(&::pdsValues.at(arrayValue.id));
-  array.emplace_back(value);
+PuleDsValue puleDsAppendArray(
+  PuleDsValue const arrayValue,
+  PuleDsValue const value
+) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return { 0 }; }
+  asArray->emplace_back(value);
+  return value;
+}
+
+void puleDsArrayPopBack(PuleDsValue const arrayValue) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
+  asArray->pop_back();
+}
+
+void puleDsArrayPopFront(PuleDsValue const arrayValue) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
+  asArray->erase(asArray->begin());
+}
+
+void puleDsArrayRemoveAt(PuleDsValue const arrayValue, size_t const idx) {
+  PdsArray * asArray = getArrayElement(arrayValue);
+  if (!asArray) { return; }
+  asArray->erase(asArray->begin() + idx);
 }
 
 size_t puleDsArrayLength(PuleDsValue const arrayValue) {
@@ -251,11 +308,8 @@ PuleDsValue puleDsObjectMember(
 ) {
   auto valuePtr = ::pdsValues.find(objectValue.id);
   if (valuePtr == ::pdsValues.end()) {
-    puleLogError(
-      "object value {%zu} from member '%s' does not exist",
-      objectValue.id,
-      memberLabel
-    );
+    puleLogError("object value {%zu} does not exist", objectValue.id);
+    return { 0 };
   }
 
   auto objectPtr = std::get_if<PdsObject>(&valuePtr->second);
@@ -268,25 +322,89 @@ PuleDsValue puleDsObjectMember(
     return { 0 };
   }
   auto const & object = *objectPtr;
-  auto const hash = pdsHash(puleStringViewCStr(memberLabel));
+  auto const hash = puleStringViewHash(puleStringViewCStr(memberLabel));
   auto member = object.values.find(hash);
   if (member == object.values.end()) {
-    puleLogError(
-      "member '%s' does not exist in object value {%zu}",
-      memberLabel, objectValue.id
-    );
     return { 0 };
   }
   return member->second;
 }
 
-void puleDsAssignObjectMember(
+static PuleDsValue puleDsArrayCloneRecursively(
+  PuleDsValue const array,
+  PuleAllocator const allocator
+); // prototype for object recursive
+static PuleDsValue puleDsObjectCloneRecursively(
+  PuleDsValue const object,
+  PuleAllocator const allocator
+) {
+  PuleDsValue const newObj = puleDsCreateObject(allocator);
+  PuleDsValueObject const oldObj = puleDsAsObject(object);
+  for (size_t it = 0; it < oldObj.length; ++ it) {
+    PuleDsValue const value = oldObj.values[it];
+    puleDsAssignObjectMember(
+      newObj,
+      oldObj.labels[it],
+      puleDsValueCloneRecursively(value, allocator)
+    );
+  }
+  return newObj;
+}
+
+static PuleDsValue puleDsArrayCloneRecursively(
+  PuleDsValue const array,
+  PuleAllocator const allocator
+) {
+  PuleDsValue const newArr = puleDsCreateArray(allocator);
+  PuleDsValueArray const oldArr = puleDsAsArray(array);
+  for (size_t it = 0; it < oldArr.length; ++ it) {
+    PuleDsValue const value = oldArr.values[it];
+    puleDsAppendArray(newArr, puleDsValueCloneRecursively(value, allocator));
+  }
+  return newArr;
+}
+
+PuleDsValue puleDsValueCloneRecursively(
+  PuleDsValue const value,
+  PuleAllocator const allocator
+) {
+  if (value.id == 0) { return { 0 }; }
+  if (puleDsIsI64(value)) {
+    return puleDsCreateI64(puleDsAsI64(value));
+  }
+  if (puleDsIsF64(value)) {
+    return puleDsCreateF64(puleDsAsF64(value));
+  }
+  if (puleDsIsString(value)) {
+    return puleDsCreateString(puleDsAsString(value));
+  }
+  if (puleDsIsArray(value)) {
+    return puleDsArrayCloneRecursively(value, allocator);
+  }
+  if (puleDsIsObject(value)) {
+    return puleDsObjectCloneRecursively(value, allocator);
+  }
+  return { 0 };
+}
+
+PuleDsValue puleDsAssignObjectMember(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 ) {
   auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
-  ::pdsObjectAdd(object, memberLabel, valueToEmplace);
+  ::pdsObjectAdd(object, memberLabel, valueToEmplace, false);
+  return puleDsObjectMember(objectValue, memberLabel.contents);
+}
+
+PuleDsValue puleDsOverwriteObjectMember(
+  PuleDsValue const objectValue,
+  PuleStringView const memberLabel,
+  PuleDsValue const valueToEmplace
+) {
+  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
+  ::pdsObjectAdd(object, memberLabel, valueToEmplace, true);
+  return puleDsObjectMember(objectValue, memberLabel.contents);
 }
 
 } // C

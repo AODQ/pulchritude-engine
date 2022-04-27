@@ -1,5 +1,6 @@
 #include <pulchritude-log/log.h>
 
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -73,4 +74,5 @@ void puleLogError(char const * const formatCStr, ...) {
   va_start(args, formatCStr);
   logger(LogType_error, formatCStr, args);
   va_end(args);
+  //raise(SIGSEGV);
 }

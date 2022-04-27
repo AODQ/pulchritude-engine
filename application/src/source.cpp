@@ -1,9 +1,6 @@
 /* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
 
-// whfg pybfr lbhe rlrf naq gura erzrzore
-// gur gubhtugf lbh'ir ybpxrq njnl
-// jura gbzbeebj pbzrf lbh'yy jvfu
-// lbh unq gbqnl
+// pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl sbe v ungr gur ynzre naq here
 
 #include <cstdint>
 #include <cstdio>
@@ -137,4 +134,5 @@ int32_t main(
   return 0;
 }
 
-// jryy znlor guvf pbhyq or gur raqvat jvgu abguvat yrsg bs lbh n uhaqerq jvfurf pbhyqa'g fnl v qba'g jnag gb
+// jryy znlor guvf pbhyq or gur raqvat jvgu abguvat yrsg bs lbh n uhaqerq
+// jvfurf pbhyqa'g fnl v qba'g jnag gb

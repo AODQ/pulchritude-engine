@@ -55,6 +55,10 @@ Plugin::~Plugin() {
 }
 
 void * Plugin::loadFunction(char const * label, bool shouldError) {
+  if (label == 0) {
+    puleLogError("trying to load function with null label");
+    return nullptr;
+  }
   void * fn = nullptr;
   #if defined(__unix__) || defined(__APPLE__)
     fn = ::dlsym(this->data, label);

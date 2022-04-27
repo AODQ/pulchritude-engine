@@ -1,9 +1,11 @@
 #pragma once
 
-#include <pulchritude-array/array.h>
 #include <pulchritude-core/core.h>
+
+#include <pulchritude-array/array.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-stream/stream.h>
+#include <pulchritude-string/string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +33,7 @@ typedef struct {
   uint64_t id;
 } PuleFile;
 
+// -- files
 PULE_exportFn PuleFile puleFileOpen(
   char const * const filename,
   PuleFileDataMode const dataMode,
@@ -38,9 +41,8 @@ PULE_exportFn PuleFile puleFileOpen(
   PuleError * const error
 );
 PULE_exportFn void puleFileClose(PuleFile const file);
-
 PULE_exportFn bool puleFileIsDone(PuleFile const file);
-
+PULE_exportFn PuleStringView puleFilePath(PuleFile const file);
 PULE_exportFn uint8_t puleFileReadByte(PuleFile const file);
 PULE_exportFn size_t puleFileReadBytes(
   PuleFile const file,
@@ -82,6 +84,14 @@ PULE_exportFn PuleStreamWrite puleFileStreamWrite(
   PuleFile const file,
   PuleArrayViewMutable const intermediateBuffer
 );
+
+// -- filesystem
+PULE_exportFn bool puleFileCopy(
+  PuleStringView const sourcePath,
+  PuleStringView const destinationPath
+);
+PULE_exportFn bool puleFileRemove(PuleStringView const filePath);
+PULE_exportFn void puleFileDirectoryCreate(PuleStringView const path);
 
 #ifdef __cplusplus
 }

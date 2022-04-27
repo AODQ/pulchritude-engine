@@ -22,7 +22,10 @@ target_link_libraries(
     pulchritude-allocator
     pulchritude-data-serializer
     pulchritude-error
+    pulchritude-file
     pulchritude-stream
+    pulchritude-string
+    pulchritude-time
 )
 
 install(

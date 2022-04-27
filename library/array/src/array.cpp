@@ -8,7 +8,6 @@ size_t bytesPerElement(PuleArray const & array) {
       : array.elementByteLength
   );
 }
-
 }
 
 extern "C" {

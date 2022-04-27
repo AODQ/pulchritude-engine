@@ -4,6 +4,7 @@
 //   it's from a file, network, buffer, etc)
 
 #include <pulchritude-core/core.h>
+#include <pulchritude-string/string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +22,10 @@ PULE_exportFn uint8_t puleStreamReadByte(PuleStreamRead const stream);
 PULE_exportFn uint8_t puleStreamPeekByte(PuleStreamRead const stream);
 PULE_exportFn bool puleStreamReadIsDone(PuleStreamRead const stream);
 PULE_exportFn void puleStreamReadDestroy(PuleStreamRead const stream);
+
+PULE_exportFn PuleStreamRead puleStreamReadFromString(
+  PuleStringView const stringView
+);
 
 typedef struct {
   void * userdata;

@@ -40,3 +40,7 @@ uint32_t puleErrorConsume(PuleError * const error) {
   }
   return error->id;
 }
+
+bool puleErrorExists(PuleError * const error) {
+  return error->id != 0;
+}
