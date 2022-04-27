@@ -6,6 +6,7 @@
 
 #include <cstdio>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -68,17 +69,14 @@ LocalCommandInfo getLocalCommands(PuleDsValue const commandsFileValue) {
   return localCommand;
 }
 
-} // C
-
-extern "C" {
-
-void undotreeUndo(
+void applyRedoUndo(
+  bool const trueForwardFalseRewind,
   PuleAllocator const allocator,
   PuleDsValue const main,
   PuleDsValue const input,
   PuleError * const error
 ) {
-  int64_t const levels = puleDsAsI64(puleDsObjectMember(input, "levels"));
+  int64_t levels = puleDsAsI64(puleDsObjectMember(input, "levels"));
   if (levels < 0) {
     PULE_error(1, "levels must be positive");
     return;
@@ -89,7 +87,22 @@ void undotreeUndo(
     puleAssetPdsLoadFromFile(allocator, "./editor/commands.pds", error)
   );
   if (puleErrorExists(error)) { return; }
+
+  // get a 'slice' of the actions (from 0 to current to branch head)
   LocalCommandInfo const localCommand = getLocalCommands(commandsFileValue);
+  PULE_assert(localCommand.currentHeadIdsIdx >= 0);
+
+  // clamp levels to slice (ex it's okay if the user wants --level 99999)
+  levels = (
+    std::clamp(
+      levels,
+      localCommand.currentHeadIdsIdx,
+      (
+        static_cast<int64_t>(localCommand.ids.size())
+        - localCommand.currentHeadIdsIdx
+      )
+    )
+  );
 
   { // apply undos, store undos to main
     PuleDsValueArray const commandsAsArray = (
@@ -105,10 +118,13 @@ void undotreeUndo(
     puleDsAssignObjectMember(
       main,
       puleStringViewCStr("command-true-forward-false-rewind"),
-      puleDsCreateI64(false)
+      puleDsCreateI64(trueForwardFalseRewind)
     );
     for (int64_t levelIdx = 0; levelIdx < levels; ++ levelIdx) {
-      int64_t const itHeadsIdIdx = localCommand.currentHeadIdsIdx + levelIdx;
+      int64_t const itHeadsIdIdx = (
+        localCommand.currentHeadIdsIdx
+        + (trueForwardFalseRewind ? (-levelIdx-1) : levelIdx)
+      );
       PuleDsValue const commandValue = (
         commandsAsArray.values[localCommand.ids[itHeadsIdIdx]]
       );
@@ -138,11 +154,12 @@ void undotreeUndo(
     int64_t newCurrentHeadIdsIdx = -1;
     {
       // undo goes 'forward' in ids (because they are recorded backwards)
-      newCurrentHeadIdsIdx = localCommand.currentHeadIdsIdx + levels;
-      if (newCurrentHeadIdsIdx < 0) {
-        newCurrentHeadIdsIdx = 0;
-      }
+      newCurrentHeadIdsIdx = (
+        localCommand.currentHeadIdsIdx
+        + (trueForwardFalseRewind ? -(levels) : levels)
+      );
     }
+    PULE_assert(newCurrentHeadIdsIdx >= 0);
     PULE_assert(
       newCurrentHeadIdsIdx < static_cast<int64_t>(localCommand.ids.size())
     );
@@ -159,18 +176,27 @@ void undotreeUndo(
   puleDsDestroy(commandsFileValue);
 }
 
+} // C
+
+extern "C" {
+
+void undotreeUndo(
+  PuleAllocator const allocator,
+  PuleDsValue const main,
+  PuleDsValue const input,
+  PuleError * const error
+) {
+  applyRedoUndo(false, allocator, main, input, error);
+}
+
 void undotreeRedo(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
   PuleDsValue const input,
   PuleError * const error
 ) {
-  (void)allocator;
-  int64_t const levels = puleDsAsI64(puleDsObjectMember(input, "levels"));
-  if (levels < 0) {
-    PULE_error(1, "levels must be positive");
-  }
-  std::vector<size_t> localCommandIt;
+
+  applyRedoUndo(true, allocator, main, input, error);
 }
 
 void undotreeShow(
