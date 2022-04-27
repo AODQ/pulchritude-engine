@@ -49,7 +49,6 @@ LocalCommandInfo getLocalCommands(PuleDsValue const commandsFileValue) {
     PuleDsValue const commandValue = commandsAsArray.values[itHeadIdx];
 
     // store index into localCommands for current command
-    puleLog("it head idx: %d || currentheadidx: %d", itHeadIdx, currentHeadIdx);
     if (itHeadIdx == currentHeadIdx) {
       localCommand.currentHeadIdsIdx = localCommand.ids.size();
     }
@@ -138,11 +137,6 @@ void undotreeUndo(
   { // write new current idx
     int64_t newCurrentHeadIdsIdx = -1;
     {
-      puleLog(
-        "current headsididx %d :: levels %d",
-        localCommand.currentHeadIdsIdx,
-        levels
-      );
       // undo goes 'forward' in ids (because they are recorded backwards)
       newCurrentHeadIdsIdx = localCommand.currentHeadIdsIdx + levels;
       if (newCurrentHeadIdsIdx < 0) {
@@ -152,8 +146,6 @@ void undotreeUndo(
     PULE_assert(
       newCurrentHeadIdsIdx < static_cast<int64_t>(localCommand.ids.size())
     );
-
-    puleLog("new head idx: %lld", localCommand.ids[newCurrentHeadIdsIdx]);
 
     puleDsOverwriteObjectMember(
       commandsFileValue,

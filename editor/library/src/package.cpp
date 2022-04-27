@@ -24,6 +24,10 @@ PuleDsValue puldRegisterCommands(
         label: "asset-info",
         apply-label: "assetInfo",
       },
+      {
+        label: "asset-list",
+        apply-label: "assetList",
+      },
     ],
   );
 
@@ -47,6 +51,7 @@ PuleDsValue puldRegisterCLICommands(
       show: [ { label: "all", type: "bool", default-value: false, }, ],
     },
     asset: {
+      list: [],
       add: [
         { label: "source", type: "url", },
       ],

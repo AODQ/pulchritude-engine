@@ -116,6 +116,22 @@ void assetAddRewind(
   }
 }
 
+void assetList(
+  PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  [[maybe_unused]] PuleDsValue const input,
+  PuleError * const error
+) {
+  PuleDsValue const assetValue = (
+    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
+  );
+  if (puleErrorExists(error)) {
+    return;
+  }
+  puleAssetPdsWriteToStdout(assetValue);
+  puleDsDestroy(assetValue);
+}
+
 void assetInfo(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
