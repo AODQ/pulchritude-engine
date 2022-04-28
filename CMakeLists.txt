@@ -19,9 +19,9 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 if(PULCHRITUDE_PLATFORM STREQUAL "Linux")
   set(CMAKE_INSTALL_RPATH "$ORIGIN/plugins/:$ORIGIN/")
+  set(CMAKE_EXE_LINKER_FLAGS "-Wl,--disable-new-dtags")
 elseif(PULCHRITUDE_PLATFORM STREQUAL "macOS")
   set(CMAKE_INSTALL_RPATH "@loader_path/plugins/;@loader_path")
-
 endif()
 
 # silence OpenGL legacy warning
