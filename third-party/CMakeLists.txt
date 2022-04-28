@@ -2,11 +2,14 @@
 #   target library
 
 # glfw
-set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "")
-set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "")
-set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "")
-set(GLFW_INSTALL ON CACHE INTERNAL "")
-add_subdirectory(glfw)
+find_package(glfw3) 
+if(NOT glfw3_FOUND)
+  set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "")
+  set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "")
+  set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "")
+  set(GLFW_INSTALL ON CACHE INTERNAL "")
+  add_subdirectory(glfw)
+endif()
 
 # flecs
 set(FLECS_PIC ON CACHE INTERNAL "")
