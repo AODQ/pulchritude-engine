@@ -2,7 +2,7 @@
 #   target library
 
 # glfw
-find_package(glfw3) 
+#find_package(glfw3)
 if(NOT glfw3_FOUND)
   set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "")
   set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "")

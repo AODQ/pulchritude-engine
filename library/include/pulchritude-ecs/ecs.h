@@ -60,6 +60,9 @@ PULE_exportFn PuleEcsEntity * puleEcsIteratorQueryEntities(
   PuleEcsIterator const iterator
 );
 PULE_exportFn PuleEcsWorld puleEcsIteratorWorld(PuleEcsIterator const iterator);
+PULE_exportFn PuleEcsSystem puleEcsIteratorSystem(
+  PuleEcsIterator const iterator
+);
 PULE_exportFn void * puleEcsIteratorUserData(PuleEcsIterator const iterator);
 
 typedef enum {
@@ -88,6 +91,8 @@ PULE_exportFn void puleEcsSystemAdvance(
   void * const userdata
 );
 
+PULE_exportFn void * puleEcsSystemUserData();
+
 PULE_exportFn PuleEcsEntity puleEcsEntityCreate(PuleEcsWorld const world);
 PULE_exportFn void puleEcsEntityDestroy(
   PuleEcsWorld const world,
@@ -99,6 +104,8 @@ PULE_exportFn void puleEcsEntityAttachComponent(
  PuleEcsComponent const component,
  void * const nullableInitialData
 );
+
+// TODO destroy entities and systems
 
 #ifdef __cplusplus
 }

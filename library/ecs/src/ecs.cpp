@@ -91,6 +91,13 @@ PuleEcsWorld puleEcsIteratorWorld(
   return { reinterpret_cast<uint64_t>(iter->world) };
 }
 
+PuleEcsSystem puleEcsIteratorSystem(
+  PuleEcsIterator const iterator
+) {
+  auto iter = reinterpret_cast<ecs_iter_t *>(iterator.data);
+  return { reinterpret_cast<uint64_t>(iter->system) };
+}
+
 void * puleEcsIteratorUserData(PuleEcsIterator const iterator) {
   auto iter = reinterpret_cast<ecs_iter_t *>(iterator.data);
   return iter->param;

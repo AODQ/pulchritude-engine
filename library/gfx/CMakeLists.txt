@@ -28,7 +28,7 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulchritude-gfx pulchritude-error pulchritude-log glfw)
+target_link_libraries(pulchritude-gfx pulchritude-error pulchritude-log)
 
 install(
   TARGETS pulchritude-gfx

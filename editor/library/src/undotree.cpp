@@ -10,17 +10,7 @@
 #include <string>
 #include <vector>
 
-extern "C" { // mind
-
-PuleDsValue puldRegisterCommands(
-  PuleAllocator const allocator,
-  PuleError * const err
-);
-PuleDsValue puldRegisterCLICommands(
-  PuleAllocator const allocator,
-  PuleError * const err
-);
-void puldGuiUpdate();
+namespace {
 
 struct LocalCommandInfo {
   std::vector<size_t> ids;
@@ -68,6 +58,20 @@ LocalCommandInfo getLocalCommands(PuleDsValue const commandsFileValue) {
 
   return localCommand;
 }
+
+} // namespace
+
+extern "C" { // mind
+
+PuleDsValue puldRegisterCommands(
+  PuleAllocator const allocator,
+  PuleError * const err
+);
+PuleDsValue puldRegisterCLICommands(
+  PuleAllocator const allocator,
+  PuleError * const err
+);
+void puldGuiUpdate();
 
 void applyRedoUndo(
   bool const trueForwardFalseRewind,
