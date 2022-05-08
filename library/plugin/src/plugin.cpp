@@ -129,17 +129,26 @@ void Plugin::open() {
   // grab name
   {
     for (
-      char const * pluginNameIt = this->filepath.c_str();
-      pluginNameIt[0] != '\0';
+      #if defined(__MINGW32__) || defined(_MSC_VER)
+        wchar_t const * pluginNameIt = this->filepath.c_str();
+      #else
+        char const * pluginNameIt = this->filepath.c_str();
+      #endif
+      pluginNameIt[0] != TEXT('\0');
       ++ pluginNameIt
     ) {
       if (
-            (pluginNameIt[0] == '/' || pluginNameIt[0] == '\\')
-         && pluginNameIt[1] == 'l'
-         && pluginNameIt[2] == 'i'
-         && pluginNameIt[3] == 'b'
+            (pluginNameIt[0] == TEXT('/') || pluginNameIt[0] ==  TEXT('\\'))
+         && pluginNameIt[1] ==  TEXT('l')
+         && pluginNameIt[2] ==  TEXT('i')
+         && pluginNameIt[3] ==  TEXT('b')
       ) {
-        this->pluginName = std::string{pluginNameIt+4};
+        #if defined(__MINGW32__) || defined(_MSC_VER)
+          std::wstring tmp = std::wstring{pluginNameIt+4};
+          this->pluginName = std::string(tmp.begin(), tmp.end());
+        #else
+          this->pluginName = std::string{pluginNameIt+4};
+        #endif
         this->pluginName = (
           this->pluginName.substr(
             0,

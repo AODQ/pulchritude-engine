@@ -1,0 +1,776 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						4,
+						24
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "application",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-application-Debug-0dd7087d67f780563707.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "application",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "editor",
+					"childIndexes" : 
+					[
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-editor-Debug-544fa231d80416b0cd40.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "editor",
+					"targetIndexes" : 
+					[
+						11
+					]
+				},
+				{
+					"build" : "editor/library",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-editor.library-Debug-73ca71c2c46e8adcd4b7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "editor/library",
+					"targetIndexes" : 
+					[
+						12
+					]
+				},
+				{
+					"build" : "library",
+					"childIndexes" : 
+					[
+						5,
+						6,
+						7,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library-Debug-73c165fbd1f03fdab753.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "library"
+				},
+				{
+					"build" : "library/allocator",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.allocator-Debug-7b82fd5c7477216ab6de.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/allocator",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "library/array",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.array-Debug-d47965b8b322072df504.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/array",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "library/asset",
+					"childIndexes" : 
+					[
+						8,
+						9,
+						10
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.asset-Debug-1c360d890d00ee5a72ad.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/asset"
+				},
+				{
+					"build" : "library/asset/image",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.asset.image-Debug-cd378a99ab34085cab23.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 7,
+					"projectIndex" : 0,
+					"source" : "library/asset/image",
+					"targetIndexes" : 
+					[
+						5,
+						6
+					]
+				},
+				{
+					"build" : "library/asset/tiled",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.asset.tiled-Debug-0e6ac6cf917500043435.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 7,
+					"projectIndex" : 0,
+					"source" : "library/asset/tiled",
+					"targetIndexes" : 
+					[
+						8
+					]
+				},
+				{
+					"build" : "library/asset/pds",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.asset.pds-Debug-589f335e8c361502ba25.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 7,
+					"projectIndex" : 0,
+					"source" : "library/asset/pds",
+					"targetIndexes" : 
+					[
+						7
+					]
+				},
+				{
+					"build" : "library/data-serializer",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.data-serializer-Debug-dd2a6cbbdaa6d0f7cb41.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/data-serializer",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
+					"build" : "library/ecs",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.ecs-Debug-8a064aa2b131b37fa32f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/ecs",
+					"targetIndexes" : 
+					[
+						10
+					]
+				},
+				{
+					"build" : "library/error",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.error-Debug-90f762f752ffa1d8e246.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/error",
+					"targetIndexes" : 
+					[
+						13
+					]
+				},
+				{
+					"build" : "library/file",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.file-Debug-d1d7569ecf9199310b74.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/file",
+					"targetIndexes" : 
+					[
+						14
+					]
+				},
+				{
+					"build" : "library/gfx",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.gfx-Debug-8611d718b94d70b641ca.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/gfx",
+					"targetIndexes" : 
+					[
+						15
+					]
+				},
+				{
+					"build" : "library/imgui",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.imgui-Debug-8671c539a580e93d8a53.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/imgui",
+					"targetIndexes" : 
+					[
+						16
+					]
+				},
+				{
+					"build" : "library/log",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.log-Debug-ce9ee66193d28939eb60.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/log",
+					"targetIndexes" : 
+					[
+						17
+					]
+				},
+				{
+					"build" : "library/math",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.math-Debug-01ca909066e7b3c3dd2e.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/math",
+					"targetIndexes" : 
+					[
+						18
+					]
+				},
+				{
+					"build" : "library/platform",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.platform-Debug-724d6b7ba7c2ca4611ed.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/platform",
+					"targetIndexes" : 
+					[
+						19
+					]
+				},
+				{
+					"build" : "library/plugin",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.plugin-Debug-cf4cfb35ab2af4c6bedb.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/plugin",
+					"targetIndexes" : 
+					[
+						20
+					]
+				},
+				{
+					"build" : "library/stream",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.stream-Debug-2b266016123df59f5ebe.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/stream",
+					"targetIndexes" : 
+					[
+						21
+					]
+				},
+				{
+					"build" : "library/string",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.string-Debug-8288d7ba3b935cb3f139.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/string",
+					"targetIndexes" : 
+					[
+						22
+					]
+				},
+				{
+					"build" : "library/time",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-library.time-Debug-f7e95a3de1dfb962cd79.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 0,
+					"source" : "library/time",
+					"targetIndexes" : 
+					[
+						23
+					]
+				},
+				{
+					"build" : "third-party",
+					"childIndexes" : 
+					[
+						25,
+						27
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-third-party-Debug-e0173681ee52afc17f98.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "third-party"
+				},
+				{
+					"build" : "third-party/glfw",
+					"childIndexes" : 
+					[
+						26
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-third-party.glfw-Debug-dd30bbbb83433e04b671.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.4"
+					},
+					"parentIndex" : 24,
+					"projectIndex" : 1,
+					"source" : "third-party/glfw",
+					"targetIndexes" : 
+					[
+						24
+					]
+				},
+				{
+					"build" : "third-party/glfw/src",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-third-party.glfw.src-Debug-70d7872a8e55259a7607.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.4"
+					},
+					"parentIndex" : 25,
+					"projectIndex" : 1,
+					"source" : "third-party/glfw/src",
+					"targetIndexes" : 
+					[
+						1,
+						25
+					]
+				},
+				{
+					"build" : "third-party/flecs",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-third-party.flecs-Debug-61d87e57898e29cafaf7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 24,
+					"projectIndex" : 2,
+					"source" : "third-party/flecs",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24
+					],
+					"name" : "pulchritude-engine",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						25,
+						26
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						24,
+						25
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						27
+					],
+					"name" : "flecs",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 27,
+					"id" : "flecs_static::@6f137e0539c14d7fc47f",
+					"jsonFile" : "target-flecs_static-Debug-2269c25c6ba195b92eec.json",
+					"name" : "flecs_static",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "glfw::@281570e8f3ee925e5575",
+					"jsonFile" : "target-glfw-Debug-fda2edbf044f3c24d8b6.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "pulchritude-allocator::@e1a5507092816551fe8f",
+					"jsonFile" : "target-pulchritude-allocator-Debug-1cf18f8f0db9224d9c13.json",
+					"name" : "pulchritude-allocator",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "pulchritude-application::@8badf0d542dc2e21c899",
+					"jsonFile" : "target-pulchritude-application-Debug-ec9eee23ad89d708af54.json",
+					"name" : "pulchritude-application",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "pulchritude-array::@cf88700df7416c9d042c",
+					"jsonFile" : "target-pulchritude-array-Debug-fbfc9ce5e70a3645424d.json",
+					"name" : "pulchritude-array",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "pulchritude-asset-image::@7889ff0339f40acd831b",
+					"jsonFile" : "target-pulchritude-asset-image-Debug-49d27256c43ba1c927b5.json",
+					"name" : "pulchritude-asset-image",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "pulchritude-asset-image-spng::@7889ff0339f40acd831b",
+					"jsonFile" : "target-pulchritude-asset-image-spng-Debug-f0ea8c02303384f92ed0.json",
+					"name" : "pulchritude-asset-image-spng",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "pulchritude-asset-pds::@305b333631809256a4ca",
+					"jsonFile" : "target-pulchritude-asset-pds-Debug-b389425436bf7df6e33b.json",
+					"name" : "pulchritude-asset-pds",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "pulchritude-asset-tiled::@484eb32b5e3ae137d695",
+					"jsonFile" : "target-pulchritude-asset-tiled-Debug-95d82946b8ce5d77adc4.json",
+					"name" : "pulchritude-asset-tiled",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 11,
+					"id" : "pulchritude-data-serializer::@3bbe6ef0b094b196042e",
+					"jsonFile" : "target-pulchritude-data-serializer-Debug-6ec0b56b920ece7965fc.json",
+					"name" : "pulchritude-data-serializer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 12,
+					"id" : "pulchritude-ecs::@6357f5d074707861ef54",
+					"jsonFile" : "target-pulchritude-ecs-Debug-ad4f3233fa030e45fa51.json",
+					"name" : "pulchritude-ecs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "pulchritude-editor::@ed37844f285895dce70e",
+					"jsonFile" : "target-pulchritude-editor-Debug-10c769cc493e8d76a409.json",
+					"name" : "pulchritude-editor",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "pulchritude-editor-core::@7a62cf4b76ae9a685d52",
+					"jsonFile" : "target-pulchritude-editor-core-Debug-fe3a7a39f0ce316e2119.json",
+					"name" : "pulchritude-editor-core",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "pulchritude-error::@f4d8a06d0099dc9ac2fb",
+					"jsonFile" : "target-pulchritude-error-Debug-6cc737b8100863323ee3.json",
+					"name" : "pulchritude-error",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 14,
+					"id" : "pulchritude-file::@cdfa2d768621d6d53e57",
+					"jsonFile" : "target-pulchritude-file-Debug-e094e2ee3f2149be0695.json",
+					"name" : "pulchritude-file",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 15,
+					"id" : "pulchritude-gfx::@92952078852427e9f1c8",
+					"jsonFile" : "target-pulchritude-gfx-Debug-bf1890a9f97ce3000ef8.json",
+					"name" : "pulchritude-gfx",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "pulchritude-imgui::@9f754596240c46f1dd42",
+					"jsonFile" : "target-pulchritude-imgui-Debug-a840aa18a89ee33535a6.json",
+					"name" : "pulchritude-imgui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 17,
+					"id" : "pulchritude-log::@6867d7081e706d540817",
+					"jsonFile" : "target-pulchritude-log-Debug-88ca64b72b464dbfd4f5.json",
+					"name" : "pulchritude-log",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "pulchritude-math::@57564f533c66caba2137",
+					"jsonFile" : "target-pulchritude-math-Debug-bdb45e61eb784729c432.json",
+					"name" : "pulchritude-math",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 19,
+					"id" : "pulchritude-platform::@4a94ce692b98529bece0",
+					"jsonFile" : "target-pulchritude-platform-Debug-6422a68c720e1b0e7d22.json",
+					"name" : "pulchritude-platform",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 20,
+					"id" : "pulchritude-plugin::@45aba361fa005c1d5057",
+					"jsonFile" : "target-pulchritude-plugin-Debug-c22c70b74fac01eed414.json",
+					"name" : "pulchritude-plugin",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 21,
+					"id" : "pulchritude-stream::@11bd653bce5455ffb31c",
+					"jsonFile" : "target-pulchritude-stream-Debug-e0df5ed70ce49c8f411b.json",
+					"name" : "pulchritude-stream",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 22,
+					"id" : "pulchritude-string::@da0c00c4603a6eaadf8b",
+					"jsonFile" : "target-pulchritude-string-Debug-8176f585b8ad847fff08.json",
+					"name" : "pulchritude-string",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 23,
+					"id" : "pulchritude-time::@a29b76f24d3695246c4b",
+					"jsonFile" : "target-pulchritude-time-Debug-6ab3e806800b0cb83839.json",
+					"name" : "pulchritude-time",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 25,
+					"id" : "uninstall::@556c92c420f14367ed0b",
+					"jsonFile" : "target-uninstall-Debug-15a7247c2b945a70ee74.json",
+					"name" : "uninstall",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "update_mappings::@281570e8f3ee925e5575",
+					"jsonFile" : "target-update_mappings-Debug-ec8a6fd45e0d59f1f07e.json",
+					"name" : "update_mappings",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/msys64/home/ic2000/pulchritude-engine/build",
+		"source" : "C:/msys64/home/ic2000/pulchritude-engine"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

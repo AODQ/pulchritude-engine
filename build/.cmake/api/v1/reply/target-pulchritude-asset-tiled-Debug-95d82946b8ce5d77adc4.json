@@ -1,0 +1,319 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "library/asset/tiled/libpulchritude-asset-tiled.dll"
+		},
+		{
+			"path" : "library/asset/tiled/libpulchritude-asset-tiled.dll.a"
+		},
+		{
+			"path" : "library/asset/tiled/libpulchritude-asset-tiled.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"install",
+			"target_link_libraries",
+			"target_include_directories",
+			"target_sources"
+		],
+		"files" : 
+		[
+			"library/asset/tiled/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 1,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 29,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 19,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 3,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 4,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-march=x86-64 -g"
+				},
+				{
+					"fragment" : "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef"
+				},
+				{
+					"fragment" : "-std=c++20"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "pulchritude_asset_tiled_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/asset/tiled/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/log/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/error/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/string/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/stream/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/file/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/array/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/time/../include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					1
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-allocator::@e1a5507092816551fe8f"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-array::@cf88700df7416c9d042c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-asset-image-spng::@7889ff0339f40acd831b"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-asset-image::@7889ff0339f40acd831b"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-asset-pds::@305b333631809256a4ca"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-data-serializer::@3bbe6ef0b094b196042e"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-error::@f4d8a06d0099dc9ac2fb"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-file::@cdfa2d768621d6d53e57"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-log::@6867d7081e706d540817"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-string::@da0c00c4603a6eaadf8b"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-stream::@11bd653bce5455ffb31c"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-time::@a29b76f24d3695246c4b"
+		}
+	],
+	"id" : "pulchritude-asset-tiled::@484eb32b5e3ae137d695",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "bin/plugins"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "/home/ic2000/pulchritude-engine/install"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\asset\\pds\\libpulchritude-asset-pds.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\data-serializer\\libpulchritude-data-serializer.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\file\\libpulchritude-file.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\asset\\image\\libpulchritude-asset-image.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\asset\\image\\libpulchritude-asset-image-spng.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lz",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\error\\libpulchritude-error.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\array\\libpulchritude-array.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\stream\\libpulchritude-stream.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\string\\libpulchritude-string.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\allocator\\libpulchritude-allocator.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\log\\libpulchritude-log.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\time\\libpulchritude-time.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "pulchritude-asset-tiled",
+	"nameOnDisk" : "libpulchritude-asset-tiled.dll",
+	"paths" : 
+	{
+		"build" : "library/asset/tiled",
+		"source" : "library/asset/tiled"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "library/asset/tiled/src/asset-tiled-read.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

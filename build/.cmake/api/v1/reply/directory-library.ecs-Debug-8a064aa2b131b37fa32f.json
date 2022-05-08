@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"library/ecs/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 24,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "plugin",
+			"destination" : "bin/plugins",
+			"paths" : 
+			[
+				"library/ecs/libpulchritude-ecs.dll"
+			],
+			"targetId" : "pulchritude-ecs::@6357f5d074707861ef54",
+			"targetIndex" : 10,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "library/ecs",
+		"source" : "library/ecs"
+	}
+}

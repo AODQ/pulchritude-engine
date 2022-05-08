@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"library/plugin/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 21,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "plugin",
+			"destination" : "bin/plugins",
+			"paths" : 
+			[
+				"library/plugin/libpulchritude-plugin.dll"
+			],
+			"targetId" : "pulchritude-plugin::@45aba361fa005c1d5057",
+			"targetIndex" : 20,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "library/plugin",
+		"source" : "library/plugin"
+	}
+}

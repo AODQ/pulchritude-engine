@@ -1,0 +1,312 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "library/imgui/libpulchritude-imgui.dll"
+		},
+		{
+			"path" : "library/imgui/libpulchritude-imgui.dll.a"
+		},
+		{
+			"path" : "library/imgui/libpulchritude-imgui.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"install",
+			"target_link_libraries",
+			"target_include_directories",
+			"target_sources"
+		],
+		"files" : 
+		[
+			"library/imgui/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 2,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 35,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 30,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 4,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 15,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-march=x86-64 -g"
+				},
+				{
+					"fragment" : "-Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
+				},
+				{
+					"fragment" : "-std=c++20"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "pulchritude_imgui_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/error/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/log/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/string/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/platform/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/library/math/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					1
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-allocator::@e1a5507092816551fe8f"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-error::@f4d8a06d0099dc9ac2fb"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-gfx::@92952078852427e9f1c8"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-log::@6867d7081e706d540817"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-math::@57564f533c66caba2137"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-platform::@4a94ce692b98529bece0"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "pulchritude-string::@da0c00c4603a6eaadf8b"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "glfw::@281570e8f3ee925e5575"
+		}
+	],
+	"id" : "pulchritude-imgui::@9f754596240c46f1dd42",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "bin/plugins"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "/home/ic2000/pulchritude-engine/install"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\gfx\\libpulchritude-gfx.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\platform\\libpulchritude-platform.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "library\\error\\libpulchritude-error.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\math\\libpulchritude-math.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\string\\libpulchritude-string.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\allocator\\libpulchritude-allocator.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "library\\log\\libpulchritude-log.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "third-party\\glfw\\src\\libglfw3.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "pulchritude-imgui",
+	"nameOnDisk" : "libpulchritude-imgui.dll",
+	"paths" : 
+	{
+		"build" : "library/imgui",
+		"source" : "library/imgui"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "library/imgui/src/imgui.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "third-party/imgui/imgui/imgui.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "third-party/imgui/imgui/imgui_demo.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "third-party/imgui/imgui/imgui_draw.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "third-party/imgui/imgui/imgui_tables.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 5,
+			"compileGroupIndex" : 0,
+			"path" : "third-party/imgui/imgui/imgui_widgets.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

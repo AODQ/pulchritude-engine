@@ -78,7 +78,7 @@ void applyRedoUndo(
 ) {
   int64_t levels = puleDsAsI64(puleDsObjectMember(input, "levels"));
   if (levels < 0) {
-    PULE_error(1, "levels must be positive");
+    PULE_error(1, "levels must be positive", "");
     return;
   }
 

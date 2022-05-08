@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"library/data-serializer/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 27,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "plugin",
+			"destination" : "bin/plugins",
+			"paths" : 
+			[
+				"library/data-serializer/libpulchritude-data-serializer.dll"
+			],
+			"targetId" : "pulchritude-data-serializer::@3bbe6ef0b094b196042e",
+			"targetIndex" : 9,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "library/data-serializer",
+		"source" : "library/data-serializer"
+	}
+}

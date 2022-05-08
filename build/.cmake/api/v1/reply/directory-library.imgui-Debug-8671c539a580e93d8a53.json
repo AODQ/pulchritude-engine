@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"library/imgui/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 35,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "plugin",
+			"destination" : "bin/plugins",
+			"paths" : 
+			[
+				"library/imgui/libpulchritude-imgui.dll"
+			],
+			"targetId" : "pulchritude-imgui::@9f754596240c46f1dd42",
+			"targetIndex" : 16,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "library/imgui",
+		"source" : "library/imgui"
+	}
+}

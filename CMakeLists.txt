@@ -3,7 +3,7 @@ cmake_policy(VERSION 3.0)
 
 if (PULCHRITUDE_PLATFORM STREQUAL "Win64")
   message("*-- compiling for Windows 64-bit platform")
-  include(CMakeModules/win64.cmake)
+  # include(CMakeModules/win64.cmake)
 elseif (PULCHRITUDE_PLATFORM STREQUAL "Linux")
   message("*-- compiling for Linux 64-bit platform")
 elseif (PULCHRITUDE_PLATFORM STREQUAL "macOS")
@@ -66,7 +66,8 @@ if (
 )
   set(CMAKE_CXX_FLAGS "-march=x86-64")
 elseif (PULCHRITUDE_PLATFORM STREQUAL "Win64" OR PULCHRITUDE_PLATFORM STREQUAL "Win32")
-  set(CMAKE_CXX_FLAGS "-march=x86-64 -gstabs")
+  set(CMAKE_CXX_FLAGS "-march=x86-64")
+  #set(CMAKE_CXX_FLAGS "-march=x86-64 -gstabs")
 endif()
 
 # requires out of source builds

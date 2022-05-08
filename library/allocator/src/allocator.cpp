@@ -5,15 +5,32 @@
 #include <cstdlib>
 #include <cstring>
 
+#if defined(__MINGW32__) || defined(_MSC_VER)
+  #define allocator_malloc(size) _aligned_malloc(size, sizeof(size_t));
+  #define allocator_calloc win_allocator_calloc
+  #define aligned_alloc _aligned_malloc
+  #define allocator_free _aligned_free
+
+  static inline void * win_allocator_calloc(size_t num, size_t size) {
+    void * mem = allocator_malloc(num * size);
+    memset(mem, 0, num * size);
+    return mem;
+  }
+#else
+  #define allocator_malloc malloc
+  #define allocator_calloc calloc
+  #define allocator_free free
+#endif
+
 namespace {
 
 void * releaseAllocate(void * const, PuleAllocateInfo const info) {
   void * allocatedMemory = nullptr;
   if (info.alignment == 0) {
     if (info.zeroOut) {
-      allocatedMemory = calloc(info.numBytes, 1);
+      allocatedMemory = allocator_calloc(info.numBytes, 1);
     } else {
-      allocatedMemory = malloc(info.numBytes);
+      allocatedMemory = allocator_malloc(info.numBytes);
     }
   } else {
     allocatedMemory = aligned_alloc(info.numBytes, info.alignment);
@@ -34,7 +51,7 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
        info.alignment > 0
     && reinterpret_cast<size_t>(reallocatedMemory) % info.alignment != 0
   ) {
-    free(reallocatedMemory);
+    allocator_free(reallocatedMemory);
     reallocatedMemory = aligned_alloc(info.numBytes, info.alignment);
   }
 
@@ -42,7 +59,7 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
 }
 
 void releaseDeallocate(void * const, void * const allocationNullable) {
-  free(allocationNullable);
+  allocator_free(allocationNullable);
 }
 
 } // namespace

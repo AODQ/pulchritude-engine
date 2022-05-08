@@ -19,7 +19,7 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulchritude-asset-image-spng ${ZLIB_LIBRARIES})
+target_link_libraries(pulchritude-asset-image-spng  ${ZLIB_LIBRARIES})
 
 # build asset image
 add_library(pulchritude-asset-image SHARED)

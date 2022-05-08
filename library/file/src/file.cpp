@@ -11,6 +11,13 @@
 // TODO:
 //   - add buffering (configurable, like 256 bytes)
 
+#if defined(__MINGW32__) || defined(_MSC_VER)
+  #define flockfile(handle)
+  #define funlockfile(handle)
+  inline int getc_unlocked(FILE * fileHandle) { return getc(fileHandle); }
+  inline int putc_unlocked(int ch, FILE * fileHandle) { return putc(ch, fileHandle); }
+#endif
+
 namespace {
 struct OpenFileInfo {
   std::string path;

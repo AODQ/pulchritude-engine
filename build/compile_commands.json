@@ -1,0 +1,592 @@
+[
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -IC:/msys64/home/ic2000/pulchritude-engine/library/plugin/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o application\\CMakeFiles\\pulchritude-application.dir\\src\\source.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\application\\src\\source.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\application\\src\\source.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/library/plugin/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o editor\\CMakeFiles\\pulchritude-editor.dir\\src\\source.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\src\\source.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\src\\source.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_editor_core_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/library/plugin/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o editor\\library\\CMakeFiles\\pulchritude-editor-core.dir\\src\\asset.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\library\\src\\asset.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\library\\src\\asset.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_editor_core_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/library/plugin/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o editor\\library\\CMakeFiles\\pulchritude-editor-core.dir\\src\\undotree.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\library\\src\\undotree.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\library\\src\\undotree.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_editor_core_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/library/plugin/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o editor\\library\\CMakeFiles\\pulchritude-editor-core.dir\\src\\package.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\library\\src\\package.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\editor\\library\\src\\package.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_allocator_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\allocator\\CMakeFiles\\pulchritude-allocator.dir\\src\\allocator.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\allocator\\src\\allocator.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\allocator\\src\\allocator.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_array_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\array\\CMakeFiles\\pulchritude-array.dir\\src\\array.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\array\\src\\array.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\array\\src\\array.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../../../third-party/libspng/spng -g -o library\\asset\\image\\CMakeFiles\\pulchritude-asset-image-spng.dir\\__\\__\\__\\third-party\\libspng\\spng\\spng.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\libspng\\spng\\spng.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\libspng\\spng\\spng.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_asset_image_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../../../third-party/libspng/spng -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\asset\\image\\CMakeFiles\\pulchritude-asset-image.dir\\src\\asset-image.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\image\\src\\asset-image.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\image\\src\\asset-image.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_asset_tiled_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/tiled/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\asset\\tiled\\CMakeFiles\\pulchritude-asset-tiled.dir\\src\\asset-tiled-read.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\tiled\\src\\asset-tiled-read.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\tiled\\src\\asset-tiled-read.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_asset_pds_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\asset\\pds\\CMakeFiles\\pulchritude-asset-pds.dir\\src\\asset-pds-read.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\pds\\src\\asset-pds-read.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\pds\\src\\asset-pds-read.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_asset_pds_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/pds/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\asset\\pds\\CMakeFiles\\pulchritude-asset-pds.dir\\src\\asset-pds-write.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\pds\\src\\asset-pds-write.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\asset\\pds\\src\\asset-pds-write.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_data_serializer_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/data-serializer/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/asset/image/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\data-serializer\\CMakeFiles\\pulchritude-data-serializer.dir\\src\\data-serializer.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\data-serializer\\src\\data-serializer.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\data-serializer\\src\\data-serializer.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dflecs_STATIC -Dpulchritude_ecs_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/ecs/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wformat=2 -Wundef -std=c++20 -o library\\ecs\\CMakeFiles\\pulchritude-ecs.dir\\src\\ecs.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\ecs\\src\\ecs.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\ecs\\src\\ecs.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dpulchritude_error_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -o library\\error\\CMakeFiles\\pulchritude-error.dir\\src\\error.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\error\\src\\error.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\error\\src\\error.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_file_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/file/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/array/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\file\\CMakeFiles\\pulchritude-file.dir\\src\\file.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\file\\src\\file.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\file\\src\\file.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\glad\\glad.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\glad\\glad.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\glad\\glad.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\commands.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\commands.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\commands.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\barrier.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\barrier.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\barrier.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\gfx.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\gfx.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\gfx.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\image.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\image.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\image.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\pipeline.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\pipeline.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\pipeline.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\shader-module.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\shader-module.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\shader-module.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_gfx_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\gfx\\CMakeFiles\\pulchritude-gfx.dir\\src\\util.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\util.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\gfx\\src\\util.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_imgui_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o library\\imgui\\CMakeFiles\\pulchritude-imgui.dir\\src\\imgui.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\imgui\\src\\imgui.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\imgui\\src\\imgui.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_imgui_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o library\\imgui\\CMakeFiles\\pulchritude-imgui.dir\\__\\__\\third-party\\imgui\\imgui\\imgui.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_imgui_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o library\\imgui\\CMakeFiles\\pulchritude-imgui.dir\\__\\__\\third-party\\imgui\\imgui\\imgui_demo.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_demo.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_demo.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_imgui_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o library\\imgui\\CMakeFiles\\pulchritude-imgui.dir\\__\\__\\third-party\\imgui\\imgui\\imgui_draw.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_draw.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_draw.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_imgui_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o library\\imgui\\CMakeFiles\\pulchritude-imgui.dir\\__\\__\\third-party\\imgui\\imgui\\imgui_tables.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_tables.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_tables.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_imgui_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/imgui/../../third-party/imgui -IC:/msys64/home/ic2000/pulchritude-engine/library/gfx/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef -std=c++20 -o library\\imgui\\CMakeFiles\\pulchritude-imgui.dir\\__\\__\\third-party\\imgui\\imgui\\imgui_widgets.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_widgets.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\imgui\\imgui\\imgui_widgets.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dpulchritude_log_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -o library\\log\\CMakeFiles\\pulchritude-log.dir\\src\\log.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\log\\src\\log.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\log\\src\\log.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_math_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\math\\CMakeFiles\\pulchritude-math.dir\\src\\math.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\math\\src\\math.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\math\\src\\math.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_platform_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/platform/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/error/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/math/../include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\platform\\CMakeFiles\\pulchritude-platform.dir\\src\\platform.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\platform\\src\\platform.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\platform\\src\\platform.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_plugin_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/plugin/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\plugin\\CMakeFiles\\pulchritude-plugin.dir\\src\\plugin.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\plugin\\src\\plugin.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\plugin\\src\\plugin.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dpulchritude_stream_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/stream/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -o library\\stream\\CMakeFiles\\pulchritude-stream.dir\\src\\stream.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\stream\\src\\stream.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\stream\\src\\stream.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -Dpulchritude_string_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/string/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/allocator/../include -IC:/msys64/home/ic2000/pulchritude-engine/library/log/../include -march=x86-64 -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -std=c++20 -o library\\string\\CMakeFiles\\pulchritude-string.dir\\src\\string.cpp.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\string\\src\\string.cpp",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\string\\src\\string.cpp"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dpulchritude_time_EXPORTS -IC:/msys64/home/ic2000/pulchritude-engine/library/time/../include -g -Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic          -Wundef -o library\\time\\CMakeFiles\\pulchritude-time.dir\\src\\time.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\time\\src\\time.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\library\\time\\src\\time.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\context.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\context.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\context.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\init.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\init.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\init.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\input.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\input.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\input.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\monitor.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\monitor.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\monitor.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\platform.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\platform.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\platform.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\vulkan.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\vulkan.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\vulkan.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\window.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\window.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\window.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\egl_context.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\egl_context.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\egl_context.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\osmesa_context.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\osmesa_context.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\osmesa_context.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\null_init.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_init.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_init.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\null_monitor.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_monitor.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_monitor.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\null_window.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_window.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_window.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\null_joystick.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_joystick.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\null_joystick.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_module.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_module.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_module.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_time.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_time.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_time.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_thread.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_thread.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_thread.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_init.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_init.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_init.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_joystick.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_joystick.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_joystick.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_monitor.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_monitor.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_monitor.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_window.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_window.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\win32_window.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/include -IC:/msys64/home/ic2000/pulchritude-engine/third-party/glfw/src -IC:/msys64/home/ic2000/pulchritude-engine/build/third-party/glfw/src -g -Wall -std=c99 -o third-party\\glfw\\src\\CMakeFiles\\glfw.dir\\wgl_context.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\wgl_context.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\glfw\\src\\wgl_context.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\app.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\app.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\app.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\coredoc.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\coredoc.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\coredoc.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\deprecated.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\deprecated.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\deprecated.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\doc.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\doc.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\doc.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\expr\\deserialize.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\expr\\deserialize.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\expr\\deserialize.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\expr\\serialize.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\expr\\serialize.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\expr\\serialize.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\expr\\strutil.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\expr\\strutil.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\expr\\strutil.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\flecs_cpp.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\flecs_cpp.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\flecs_cpp.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\http.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\http.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\http.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\json\\deserialize.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\deserialize.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\deserialize.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\json\\json.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\json.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\json.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\json\\serialize.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\serialize.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\serialize.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\json\\serialize_type_info.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\serialize_type_info.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\json\\serialize_type_info.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\log.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\log.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\log.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\meta\\api.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\api.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\api.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\meta\\cursor.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\cursor.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\cursor.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\meta\\meta.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\meta.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\meta.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\meta\\serialized.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\serialized.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta\\serialized.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\meta_c.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta_c.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\meta_c.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\module.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\module.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\module.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\os_api_impl\\os_api_impl.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\os_api_impl\\os_api_impl.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\os_api_impl\\os_api_impl.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\parser.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\parser.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\parser.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\pipeline\\pipeline.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\pipeline\\pipeline.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\pipeline\\pipeline.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\pipeline\\worker.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\pipeline\\worker.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\pipeline\\worker.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\plecs.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\plecs.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\plecs.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\rest.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\rest.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\rest.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\rules.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\rules.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\rules.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\snapshot.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\snapshot.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\snapshot.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\stats.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\stats.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\stats.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\system\\system.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\system\\system.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\system\\system.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\timer.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\timer.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\timer.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\addons\\units.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\units.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\addons\\units.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\bootstrap.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\bootstrap.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\bootstrap.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\bitset.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\bitset.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\bitset.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\hash.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\hash.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\hash.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\hashmap.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\hashmap.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\hashmap.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\map.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\map.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\map.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\name_index.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\name_index.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\name_index.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\qsort.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\qsort.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\qsort.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\sparse.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\sparse.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\sparse.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\strbuf.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\strbuf.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\strbuf.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\switch_list.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\switch_list.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\switch_list.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\datastructures\\vector.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\vector.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\datastructures\\vector.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\entity.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\entity.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\entity.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\filter.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\filter.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\filter.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\hierarchy.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\hierarchy.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\hierarchy.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\iter.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\iter.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\iter.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\misc.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\misc.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\misc.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\observable.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\observable.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\observable.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\observer.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\observer.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\observer.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\os_api.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\os_api.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\os_api.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\poly.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\poly.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\poly.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\query.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\query.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\query.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\search.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\search.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\search.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\stage.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\stage.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\stage.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\table.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\table.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\table.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\table_cache.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\table_cache.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\table_cache.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\table_graph.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\table_graph.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\table_graph.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\trigger.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\trigger.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\trigger.c"
+},
+{
+  "directory": "C:/msys64/home/ic2000/pulchritude-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\clang.exe -Dflecs_STATIC -IC:/msys64/home/ic2000/pulchritude-engine/third-party/flecs/include -g -fvisibility=hidden -std=gnu99 -o third-party\\flecs\\CMakeFiles\\flecs_static.dir\\src\\world.c.obj -c C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\world.c",
+  "file": "C:\\msys64\\home\\ic2000\\pulchritude-engine\\third-party\\flecs\\src\\world.c"
+}
+]
