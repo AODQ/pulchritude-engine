@@ -35,6 +35,9 @@
 //    Array: '[' WS Value* WS ']
 //    StringCharacter: '\"'
 //    String: '"' (StringCharacter / !'"' .)* '"'
+//    Buffer: '*' String
+//
+// Buffers could be in any form, base implementation is base64
 //
 // multiline strings are handled such that
 //   myAmazingStory:
@@ -87,24 +90,34 @@ typedef struct {
   size_t length;
 } PuleDsValueObject;
 
+// arrays store PDS values, which will reference the data through a layer of
+//   indirection (PuleDsValue)
+// buffers just store raw data, there is no additional indirection.
+typedef struct {
+  uint8_t const * data;
+  size_t length;
+} PuleDsValueBuffer;
+
 PULE_exportFn int64_t puleDsAsI64(PuleDsValue const value);
 PULE_exportFn double puleDsAsF64(PuleDsValue const value);
 PULE_exportFn bool puleDsAsBool(PuleDsValue const value);
 PULE_exportFn PuleStringView puleDsAsString(PuleDsValue const value);
 PULE_exportFn PuleDsValueArray puleDsAsArray(PuleDsValue const value);
 PULE_exportFn PuleDsValueObject puleDsAsObject(PuleDsValue const value);
+PULE_exportFn PuleDsValueBuffer puleDsAsBuffer(PuleDsValue const value);
 
 // below are just convenient type conversions of (T)puleDsAsI64
 PULE_exportFn int32_t puleDsAsI32(PuleDsValue const value);
 PULE_exportFn size_t puleDsAsUSize(PuleDsValue const value);
 PULE_exportFn uint64_t puleDsAsU64(PuleDsValue const value);
-PULE_exportFn uint64_t puleDsAsU32(PuleDsValue const value);
+PULE_exportFn uint32_t puleDsAsU32(PuleDsValue const value);
 
 PULE_exportFn bool puleDsIsI64(PuleDsValue const value);
 PULE_exportFn bool puleDsIsF64(PuleDsValue const value);
 PULE_exportFn bool puleDsIsString(PuleDsValue const value);
 PULE_exportFn bool puleDsIsArray(PuleDsValue const value);
 PULE_exportFn bool puleDsIsObject(PuleDsValue const value);
+PULE_exportFn bool puleDsIsBuffer(PuleDsValue const value);
 
 // recursive destroy
 PULE_exportFn void puleDsDestroy(PuleDsValue const value);
@@ -115,6 +128,10 @@ PULE_exportFn PuleDsValue puleDsCreateF64(double const value);
 PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);
 PULE_exportFn PuleDsValue puleDsCreateArray(PuleAllocator const allocator);
 PULE_exportFn PuleDsValue puleDsCreateObject(PuleAllocator const allocator);
+PULE_exportFn PuleDsValue puleDsCreateBuffer(
+  PuleAllocator const allocator,
+  PuleArrayView const data
+);
 
 PULE_exportFn PuleDsValue puleDsAppendArray(
   PuleDsValue const array,

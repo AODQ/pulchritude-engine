@@ -315,4 +315,8 @@ void puleGfxCommandListSubmit(
   }
 }
 
+void puleGfxCommandListDump(PuleGfxCommandList const ) {
+  
 }
+
+} // extern C

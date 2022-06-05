@@ -9,7 +9,7 @@
 namespace {
 int32_t imageFormatToSpng(PuleAssetImageFormat const fmt) {
   switch (fmt) {
-    default: PULE_assert(false);
+    default: PULE_assert(false); return 0;
     case PuleAssetImageFormat_rgbaU8:  return SPNG_FMT_RGBA8;
     case PuleAssetImageFormat_rgbaU16: return SPNG_FMT_RGBA16;
     case PuleAssetImageFormat_rgbU8:   return SPNG_FMT_RGB8;

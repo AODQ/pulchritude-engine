@@ -167,6 +167,8 @@ PULE_exportFn void puleGfxCommandListSubmit(
   PuleError * const error
 );
 
+PULE_exportFn void puleGfxCommandListDump(PuleGfxCommandList const commandList);
+
 #ifdef __cplusplus
 } // C
 #endif

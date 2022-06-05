@@ -2,6 +2,7 @@
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
+#include <pulchritude-math/math.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,6 +107,14 @@ PULE_exportFn void puleEcsEntityAttachComponent(
 );
 
 // TODO destroy entities and systems
+
+// -- these are universal / global / default entities
+//    to override these is kind of impossible
+
+PULE_exportFn void puleEcsAddDefaultComponents(PuleEcsWorld const world);
+
+typedef PuleF32v3 PuleEcsComponentOriginF32v3;
+PuleEcsComponent puleEcsComponentOriginF32v3();
 
 #ifdef __cplusplus
 }

@@ -79,8 +79,8 @@ def extractType(typeArray, isReturnOrStructUnionFieldType, symbolLabelForDebug):
       # needs to be fixed by actually checking the enum exists
       string += (
         re.sub(
-          "([a-z0-9A-Z]+)_End([^a-z0-9A-Z_])",
-          "@enumToInt(\\1.End)\\2",
+          "([a-z0-9A-Z]+)_(End|Size)([^a-z0-9A-Z_])",
+          "@enumToInt(\\1.\\2)\\3",
           param
         )
       );

@@ -93,7 +93,7 @@ execute_process(
   RESULT_VARIABLE processFinished
 )
 if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate json bindings")
+  message(WARNING "could not generate json bindings")
 endif()
 
 execute_process(
@@ -107,5 +107,5 @@ execute_process(
   RESULT_VARIABLE processFinished
 )
 if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate zig bindings")
+  message(WARNING "could not generate zig bindings")
 endif()

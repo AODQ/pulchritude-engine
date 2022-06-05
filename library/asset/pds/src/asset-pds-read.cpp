@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string.h>
+#include <vector>
 
 namespace {
 PuleDsValue pdsParseValue(
@@ -11,6 +12,43 @@ PuleDsValue pdsParseValue(
 } // namespace
 
 namespace {
+
+static char const * const base64Chars = (
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+);
+
+[[maybe_unused]]
+size_t base64DecodedSize(PuleStringView const stringView) {
+  size_t len = stringView.len/4 * 3;
+  // account for '=' padding
+  for (int32_t it = stringView.len-1; -- it > 0;) {
+    if (stringView.contents[it] != '=') {
+      break;
+    }
+    len -= 1;
+  }
+  return len;
+}
+
+static constexpr int32_t base64CharOffset = '+';
+
+void base64GenerateDecodeTable(int32_t charToCode[80]) {
+  memset(charToCode, -1, 80);
+  // fill table with correct mappings
+  for (size_t it = 0; it < 79; ++ it) {
+    charToCode[base64Chars[it]-base64CharOffset] = static_cast<uint32_t>(it);
+  }
+}
+
+[[maybe_unused]]
+bool base64IsValid(char const c) {
+  return(
+       (c >= '0' && c <= '9')
+    || (c >= 'a' && c <= 'z')
+    || (c >= 'A' && c <= 'Z')
+    || (c == '+' || c == '/' || c == '=')
+  );
+}
 
 const std::string whitespaceAsString = " \n\r\t\f\v";
 bool isWhitespace(char const character) {
@@ -149,9 +187,50 @@ int64_t parseDec(std::string const & value) {
   return sign*dec;
 }
 
-PuleDsValue parseBase64(std::string const & value) {
-  puleLogError("base 64 encoding not yet implemented: '%s'", value.c_str());
-  return { 0 };
+PuleDsValue parseBuffer(
+  PuleAllocator const allocator,
+  PuleStringView const stringView
+) {
+  std::vector<uint8_t> buffer;
+
+  // -- decode base64
+  static int32_t charToCode[80];
+  static bool hasInstantiatedDecodeTable = false;
+  if (!hasInstantiatedDecodeTable) {
+    base64GenerateDecodeTable(charToCode);
+    hasInstantiatedDecodeTable = true;
+  }
+
+  PULE_assert(stringView.len % 4 == 0);
+
+  for (size_t it = 0; it < stringView.len; ++ it) {
+    int32_t value = 0;
+    for (size_t baseIt = 0; baseIt < 4; ++ baseIt) {
+      value = (
+        stringView.contents[it] == '='
+        ? (value << 6)
+        : (
+          (value << 6) | charToCode[stringView.contents[it] - base64CharOffset]
+        )
+      );
+      ++ it;
+    }
+
+    buffer.emplace_back((value >> 16) & 0xFF);
+    buffer.emplace_back((value >>  8) & 0xFF);
+    buffer.emplace_back((value >>  0) & 0xFF);
+  }
+
+  return (
+    puleDsCreateBuffer(
+      allocator,
+      PuleArrayView{
+        .data = buffer.data(),
+        .elementStride = sizeof(uint8_t),
+        .elementCount = buffer.size(),
+      }
+    )
+  );
 }
 
 PuleDsValue pdsParseArray(
@@ -299,7 +378,7 @@ PuleDsValue pdsParseValue(
     return puleDsCreateI64(value == "true");
   }
 
-  // example, "" "asdf"
+  // parse string, example, "", "asdf"
   if (value.size() > 1 && value[0] == '"' && value[value.size()-1] == '"') {
     value = value.substr(1, value.size()-2);
     auto str = puleDsCreateString(
@@ -308,24 +387,28 @@ PuleDsValue pdsParseValue(
     return str;
   }
 
-  // example, 0x0 0x00fE30
+  // parse hex, example, 0x0, 0x00fE30
   if (value.size() > 2 && value[0] == '0' && value[1] == 'x') {
     return puleDsCreateI64(parseHex(value.substr(2, value.size())));
   }
 
-  // example, 0b00, 0b001000
+  // parse binary, example, 0b00, 0b001000
   if (value.size() > 2 && value[0] == '0' && value[1] == 'b') {
     return puleDsCreateI64(parseBin(value.substr(2, value.size())));
   }
 
-  // example, 64xY38zWxs
-  if (
-    value.size() > 3 && value[0] == '6' && value[1] == '4' && value[2] == 'x'
-  ) {
-    return parseBase64(value.substr(2, value.size()));
+  // parse buffer, example, *"ABC"
+  if (value.size() > 1 && value[0] == '*') {
+    PULE_assert(value.size() > 3);
+    return (
+      parseBuffer(
+        allocator,
+        PuleStringView{.contents = value.c_str()+2, .len = value.size()-3,}
+      )
+    );
   }
 
-  // example, 0.0 3238.238230
+  // parse float, example, 0.0 3238.238230
   if (value.find_first_of('.') != std::string::npos) {
     return puleDsCreateF64(std::stod(value));
   }

@@ -16,8 +16,7 @@
 #endif
 
 // gives the size of a static array; T[40] will work, T* will NOT work
-#define PULE_arraySize(ARR) \
-  ((int32_t)(sizeof(ARR) / sizeof(*(ARR))))
+#define PULE_arraySize(ARR) ((int32_t)(sizeof(ARR) / sizeof(*(ARR))))
 
 // allows multiline strings to work in C/C++ by converting the entire inputted
 //   symbol to a string

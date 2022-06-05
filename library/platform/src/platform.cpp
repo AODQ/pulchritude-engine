@@ -98,7 +98,7 @@ PulePlatform pulePlatformCreate(
   PULE_errorAssert(window, PuleErrorWindow_windowCreationFailed, {});
 
   PulePlatform platform;
-  platform.data = reinterpret_cast<void *>(window);
+  platform.id = reinterpret_cast<uint64_t>(window);
   glfwMakeContextCurrent(window);
 
   switch (info.vsyncMode) {
@@ -124,11 +124,11 @@ PulePlatform pulePlatformCreate(
 }
 
 void pulePlatformDestroy(PulePlatform const platform) {
-  glfwDestroyWindow(reinterpret_cast<GLFWwindow *>(platform.data));
+  glfwDestroyWindow(reinterpret_cast<GLFWwindow *>(platform.id));
 }
 
 bool pulePlatformShouldExit(PulePlatform const platform) {
-  return glfwWindowShouldClose(reinterpret_cast<GLFWwindow *>(platform.data));
+  return glfwWindowShouldClose(reinterpret_cast<GLFWwindow *>(platform.id));
 }
 
 void pulePlatformPollEvents([[maybe_unused]] PulePlatform const platform) {
@@ -136,7 +136,7 @@ void pulePlatformPollEvents([[maybe_unused]] PulePlatform const platform) {
 }
 
 void pulePlatformSwapFramebuffer(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   glfwSwapBuffers(glfwWindow);
 }
 
@@ -145,14 +145,14 @@ void * pulePlatformGetProcessAddress() {
 }
 
 PuleI32v2 pulePlatformWindowSize(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   PuleI32v2 dim;
   glfwGetWindowSize(glfwWindow, &dim.x, &dim.y);
   return dim;
 }
 
 PuleI32v2 pulePlatformFramebufferSize(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   PuleI32v2 dim;
   glfwGetFramebufferSize(glfwWindow, &dim.x, &dim.y);
   return dim;
@@ -163,11 +163,11 @@ double pulePlatformGetTime() {
 }
 
 bool pulePlatformNull(PulePlatform const platform) {
-  return platform.data != nullptr;
+  return platform.id != 0;
 }
 
 bool pulePlatformFocused(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   return glfwGetWindowAttrib(glfwWindow, GLFW_FOCUSED) != 0;
 }
 
@@ -175,7 +175,7 @@ void pulePlatformMouseOriginSet(
   PulePlatform const platform,
   PuleI32v2 const origin
 ) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   glfwSetCursorPos(
     glfwWindow,
     static_cast<double>(origin.x), static_cast<double>(origin.y)
@@ -183,7 +183,7 @@ void pulePlatformMouseOriginSet(
 }
 
 PuleI32v2 pulePlatformMouseOrigin(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   double mousex, mousey;
   glfwGetCursorPos(glfwWindow, &mousex, &mousey);
   return (
@@ -192,17 +192,17 @@ PuleI32v2 pulePlatformMouseOrigin(PulePlatform const platform) {
 }
 
 bool pulePlatformCursorEnabled(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   return glfwGetInputMode(glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_DISABLED;
 }
 
 void pulePlatformCursorHide(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
 void pulePlatformCursorShow(PulePlatform const platform) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
@@ -493,7 +493,7 @@ static int32_t mouseWheel;
 extern "C" {
 
 bool puleInputKey(PulePlatform const platform, PuleInputKey const key) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   return glfwGetKey(glfwWindow, keyToGlfw(key)) == GLFW_PRESS;
 }
 
@@ -525,7 +525,7 @@ PULE_exportFn PuleInputKeyModifier puleInputKeyModifiers(
 );
 
 bool puleInputMouse(PulePlatform const platform, PuleInputMouse const key) {
-  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.data);
+  auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   return glfwGetMouseButton(glfwWindow, mouseKeyToGlfw(key)) == GLFW_PRESS;
 }
 

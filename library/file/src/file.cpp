@@ -32,7 +32,7 @@ PuleFile puleFileOpen(
     default: PULE_assert(false);
     case PuleFileDataMode_text:
       switch (openMode) {
-        default: PULE_assert(false);
+        default: PULE_assert(false); return {};
         case PuleFileOpenMode_read: fileMode = "r"; break;
         case PuleFileOpenMode_writeOverwrite: fileMode = "w"; break;
         case PuleFileOpenMode_writeAppend: fileMode = "a+"; break;
@@ -42,7 +42,7 @@ PuleFile puleFileOpen(
     break;
     case PuleFileDataMode_binary:
       switch (openMode) {
-        default: PULE_assert(false);
+        default: PULE_assert(false); return {};
         case PuleFileOpenMode_read: fileMode = "rb"; break;
         case PuleFileOpenMode_writeOverwrite: fileMode = "wb"; break;
         case PuleFileOpenMode_writeAppend: fileMode = "a+b"; break;

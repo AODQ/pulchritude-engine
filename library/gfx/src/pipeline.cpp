@@ -112,7 +112,7 @@ void puleGfxPipelineUpdate(
     glVertexArrayAttribBinding(utilPipeline.attributeDescriptorHandle, it, it);
   }
 
-  // TODO element binding
+  // element binding
   if (info->layout->bufferElementBinding.id != 0) {
     glVertexArrayElementBuffer(
       utilPipeline.attributeDescriptorHandle,

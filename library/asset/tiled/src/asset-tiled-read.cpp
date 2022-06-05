@@ -80,7 +80,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
   PuleAssetTiledMapLoadCreateInfo const info,
   PuleError * error
 ) {
-  PuleDsValue head = (
+  PuleDsValue const head = (
     puleAssetPdsLoadFromStream(info.allocator, info.mapSource, error)
   );
   if (puleErrorConsume(error)) {

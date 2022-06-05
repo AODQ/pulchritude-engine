@@ -9,7 +9,12 @@ namespace {
     size_t byteLength;
   };
 
+  struct DefaultWorldComponents {
+    PuleEcsComponent originF32v3;
+  };
+
   std::unordered_map<uint64_t, ComponentInfo> componentInfos;
+  std::unordered_map<uint64_t, DefaultWorldComponents> worldDefaultComponents;
 }
 
 extern "C" {
@@ -170,6 +175,28 @@ void puleEcsEntityAttachComponent(
     reinterpret_cast<ecs_world_t *>(world.id),
     entity.id, component.id,
     componentInfo.byteLength, nullableInitialData
+  );
+}
+
+} // C
+
+
+extern "C" {
+
+void puleEcsAddDefaultComponents(PuleEcsWorld const world) {
+  worldDefaultComponents.emplace(
+    world.id,
+    DefaultWorldComponents {
+        .originF32v3 = (
+          puleEcsComponentCreate(
+            world, {
+              .label = "PuleOriginF32v3",
+              .byteLength = sizeof(PuleEcsComponentOriginF32v3),
+              .byteAlignment = alignof(PuleEcsComponentOriginF32v3),
+            }
+          )
+        ),
+      }
   );
 }
 

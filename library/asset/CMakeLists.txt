@@ -1,3 +1,4 @@
 add_subdirectory(image)
-add_subdirectory(tiled)
+add_subdirectory(model)
 add_subdirectory(pds)
+add_subdirectory(tiled)

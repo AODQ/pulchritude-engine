@@ -62,13 +62,13 @@ PULE_exportFn void puleAssetPdsWriteToStdout(PuleDsValue const head);
 
 // can parse command line arguments from the given PDS
 // "help" will be inserted if the user requested help flag `--help`
-struct PuleAssetPdsCommandLineArgumentsInfo {
+typedef struct {
   PuleAllocator allocator;
   PuleDsValue layout;
   int32_t argumentLength;
   char const * const * arguments;
   bool * userRequestedHelpOutNullable;
-};
+} PuleAssetPdsCommandLineArgumentsInfo;
 PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleAssetPdsCommandLineArgumentsInfo const info,
   PuleError * const error

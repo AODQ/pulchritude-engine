@@ -13,6 +13,7 @@ namespace {
 struct PdsObject {
   std::unordered_map<size_t, PuleDsValue> values = {};
   std::unordered_map<size_t, std::string> labels = {};
+  std::unordered_map<size_t, std::vector<uint8_t>> buffers = {};
   // this provides memory backing to the labels
   std::vector<std::string> linearLabels;
   std::vector<PuleDsValue> linearValues;
@@ -23,6 +24,10 @@ struct PdsObject {
 
 struct PdsString {
   std::string value;
+};
+
+struct PdsBuffer {
+  std::vector<uint8_t> value;
 };
 
 void pdsObjectAdd(
@@ -84,7 +89,8 @@ using PdsValue = std::variant<
   double,
   PdsString,
   PdsArray,
-  PdsObject
+  PdsObject,
+  PdsBuffer
 >;
 
 std::unordered_map<uint64_t, PdsValue> pdsValues;
@@ -107,6 +113,7 @@ PdsArray * getArrayElement(PuleDsValue const arrayValue) {
 template <typename T>
 uint64_t pdsValueAdd(T const value) {
   pdsValues.emplace(pdsValueIt, value);
+  printf("adding value at: %zu\n", pdsValueIt);
   return pdsValueIt ++;
 }
 
@@ -136,7 +143,7 @@ uint64_t puleDsAsU64(PuleDsValue const value) {
     static_cast<uint64_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
   );
 }
-uint64_t puleDsAsU32(PuleDsValue const value) {
+uint32_t puleDsAsU32(PuleDsValue const value) {
   return (
     static_cast<uint32_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
   );
@@ -204,6 +211,27 @@ PuleDsValueObject puleDsAsObject(PuleDsValue const value) {
     .length = object.linearValues.size(),
   };
 }
+PuleDsValueBuffer puleDsAsBuffer(PuleDsValue const bufferValue) {
+  auto const bufferValuePtr = ::pdsValues.find(bufferValue.id);
+  if (bufferValuePtr == ::pdsValues.end()) {
+    PULE_assert(false && "not a known pds value");
+    puleLogError("pds value '%zu' is not being tracked", bufferValue.id);
+    return { .data = nullptr, .length = 0, };
+  }
+  auto const asBuffer = std::get_if<PdsBuffer>(&bufferValuePtr->second);
+  if (!asBuffer) {
+    PULE_assert(false && "not a buffer");
+    puleLogError("pds value '%zu' is not a buffer", bufferValue.id);
+    return { .data = nullptr, .length = 0, };
+  }
+  return (
+    PuleDsValueBuffer {
+      .data = asBuffer->value.size() > 0 ? asBuffer->value.data() : nullptr,
+      .length = asBuffer->value.size(),
+    }
+  );
+}
+
 
 //------------------------------------------------------------------------------
 bool puleDsIsI64(PuleDsValue const value) {
@@ -220,6 +248,9 @@ bool puleDsIsArray(PuleDsValue const value) {
 }
 bool puleDsIsObject(PuleDsValue const value) {
   return std::get_if<PdsObject>(&::pdsValues.at(value.id)) != nullptr;
+}
+bool puleDsIsBuffer(PuleDsValue const value) {
+  return std::get_if<PdsBuffer>(&::pdsValues.at(value.id)) != nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -258,6 +289,17 @@ void puleDsDestroy(PuleDsValue const value) {
   }
 
   ::pdsValues.erase(value.id);
+}
+PuleDsValue puleDsCreateBuffer(
+  PuleAllocator const allocator,
+  PuleArrayView const data
+) {
+  (void)allocator;
+  std::vector<uint8_t> contents;
+  for (size_t it = 0; it < data.elementCount; ++ it) {
+    contents.emplace_back(data.data[data.elementStride*it]);
+  }
+  return {::pdsValueAdd(PdsBuffer{.value = std::move(contents)})};
 }
 
 //------------------------------------------------------------------------------

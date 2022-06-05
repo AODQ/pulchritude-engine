@@ -40,10 +40,6 @@ typedef enum {
 } PuleErrorGfx;
 
 typedef struct {
-  void * implementation;
-} PuleGfxContext;
-
-typedef struct {
   uint64_t id;
 } PuleGfxGpuBuffer;
 

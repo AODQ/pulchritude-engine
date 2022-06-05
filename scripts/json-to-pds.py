@@ -22,7 +22,7 @@ outputFile = inputFile[:inputFile.rfind(".")] + ".pds"
 if "output" in inputArgs and inputArgs["output"] != None:
   outputFile = inputArgs["output"]
 
-print(f"converting '{inputFile}' -> '{outputFile}'")
+#print(f"converting '{inputFile}' -> '{outputFile}'")
 
 fileRead = open(inputFile, 'r')
 inputJson = json.load(fileRead)

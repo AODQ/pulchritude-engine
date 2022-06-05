@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 #include <pulchritude-core/core.h>
 #include <pulchritude-string/string.h>
 
@@ -51,11 +53,12 @@ PULE_exportFn bool puleErrorExists(PuleError * const error);
   }
 
 // irrecoverable assert, should only be on for relwithdebinfo builds i guess
-#define PULE_assert(X) \
+#define PULE_assert(X) { \
   if (!(X)) { \
     puleLogError("assertion failed; %s", #X); \
-    exit(-1); \
-  }
+    abort(); \
+  } \
+}
 
 #ifdef __cplusplus
 } // extern C

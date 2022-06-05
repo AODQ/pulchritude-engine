@@ -33,7 +33,7 @@ typedef struct {
 } PulePlatformCreateInfo;
 
 typedef struct {
-  void * data; // TODO use uint64
+  uint64_t id;
 } PulePlatform;
 
 PULE_exportFn void pulePlatformInitialize(PuleError * const error);
