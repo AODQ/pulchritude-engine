@@ -4,13 +4,14 @@
 #include <pulchritude-error/error.h>
 #include <pulchritude-gfx/image.h>
 #include <pulchritude-math/math.h>
+#include <pulchritude-platform/platform.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-PULE_exportFn void puleGfxDebugInitialize();
-PULE_exportFn void puleGfxShutdown();
+PULE_exportFn void puleGfxDebugInitialize(PulePlatform const platform);
+PULE_exportFn void puleGfxDebugShutdown();
 
 PULE_exportFn void puleGfxDebugRenderLine(
   PuleF32v3 const originStart,

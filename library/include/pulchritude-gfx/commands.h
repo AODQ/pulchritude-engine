@@ -33,6 +33,8 @@ typedef enum {
   PuleGfxAction_pushConstants,
 } PuleGfxAction;
 
+PULE_exportFn PuleStringView puleGfxActionToString(PuleGfxAction const action);
+
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_bindPipeline
   PuleGfxPipeline pipeline;
@@ -133,9 +135,13 @@ typedef struct { uint64_t id; } PuleGfxCommandList;
 typedef struct { uint64_t id; } PuleGfxCommandListRecorder;
 
 PULE_exportFn PuleGfxCommandList puleGfxCommandListCreate(
-  PuleAllocator const allocator
+  PuleAllocator const allocator,
+  PuleStringView const label
 );
 PULE_exportFn void puleGfxCommandListDestroy(
+  PuleGfxCommandList const commandList
+);
+PULE_exportFn PuleStringView puleGfxCommandListName(
   PuleGfxCommandList const commandList
 );
 

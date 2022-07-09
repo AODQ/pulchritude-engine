@@ -25,26 +25,33 @@ bool * puleLogDebugEnabled() {
   return &debugEnabled;
 }
 
-static void logger(LogType logType, char const * const formatCStr, va_list args) {
+static void logger(
+  LogType logType,
+  bool standardFormatting,
+  char const * const formatCStr,
+  va_list args
+) {
   // TODO lock thread
 
   if (logType == LogType_debug && !debugEnabled) {
     return;
   }
 
-  switch (logType) {
-    case LogType_debug:
-      if (!debugEnabled) {
-        return;
-      }
-      printf("["COLOR_CODE_CYN"DBG"COLOR_CODE_WHT"] ");
-    break;
-    case LogType_normal:
-      printf("["COLOR_CODE_GRN"NOR"COLOR_CODE_WHT"] ");
-    break;
-    case LogType_error:
-      printf("["COLOR_CODE_RED"ERR"COLOR_CODE_WHT"] ");
-    break;
+  if (standardFormatting) {
+    switch (logType) {
+      case LogType_debug:
+        if (!debugEnabled) {
+          return;
+        }
+        printf("["COLOR_CODE_CYN"DBG"COLOR_CODE_WHT"] ");
+      break;
+      case LogType_normal:
+        printf("["COLOR_CODE_GRN"NOR"COLOR_CODE_WHT"] ");
+      break;
+      case LogType_error:
+        printf("["COLOR_CODE_RED"ERR"COLOR_CODE_WHT"] ");
+      break;
+    }
   }
 
 #pragma GCC diagnostic push
@@ -52,27 +59,37 @@ static void logger(LogType logType, char const * const formatCStr, va_list args)
   vprintf (formatCStr, args);
 #pragma GCC diagnostic pop
 
-  printf("\n");
+  if (standardFormatting) {
+    printf("\n");
+  }
 }
 
 void puleLog(char const * const formatCStr, ...) {
   va_list args;
   va_start(args, formatCStr);
-  logger(LogType_normal, formatCStr, args);
+  logger(LogType_normal, true, formatCStr, args);
   va_end(args);
 }
 
 void puleLogDebug(char const * const formatCStr, ...) {
   va_list args;
   va_start(args, formatCStr);
-  logger(LogType_debug, formatCStr, args);
+  logger(LogType_debug, true, formatCStr, args);
   va_end(args);
 }
 
 void puleLogError(char const * const formatCStr, ...) {
   va_list args;
   va_start(args, formatCStr);
-  logger(LogType_error, formatCStr, args);
+  logger(LogType_error, true, formatCStr, args);
+  va_end(args);
+  //raise(SIGSEGV);
+}
+
+void puleLogLn(char const * const formatCStr, ...) {
+  va_list args;
+  va_start(args, formatCStr);
+  logger(LogType_normal, false, formatCStr, args);
   va_end(args);
   //raise(SIGSEGV);
 }

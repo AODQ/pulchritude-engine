@@ -1,5 +1,10 @@
 #include <pulchritude-gfx-debug/gfx-debug.h>
 
+#include <pulchritude-gfx/barrier.h>
+#include <pulchritude-gfx/commands.h>
+#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gfx/shader-module.h>
+
 namespace {
 
 struct ShapeRenderer {
@@ -8,31 +13,36 @@ struct ShapeRenderer {
   size_t requestedDraws = 0;
 };
 
+struct MappedLine {
+  PuleF32v3 start;
+  PuleF32v3 color;
+  PuleF32v3 end;
+  PuleF32v3 reserved;
+};
+
 struct Context {
+  PulePlatform platform;
   PuleGfxGpuBuffer mappedBuffer { 0 };
   uint8_t * mappedBufferContents = nullptr;
   size_t bufferByteLength { 0 };
-  size_t lineCountCurrent { 0 };
-  size_t lineCountRequested { 0 };
-  size_t lineCountMax { 0 };
   ShapeRenderer lineRenderer { 0 };
   PuleGfxCommandList commandList { 0 };
 };
 Context ctx { };
 
 void refreshContext(
-  PuleGfxFramebuffer const framebuffer,
-  PuleF32m44 const transform,
+  [[maybe_unused]] PuleGfxFramebuffer const framebuffer,
+  [[maybe_unused]] PuleF32m44 const transform,
   PuleError * const err
 ) {
   { // line pipeline layout
     auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
     descriptorSetLayout.bufferAttributeBindings[0] = {
       .buffer = ctx.mappedBuffer,
-      .numComponents = 2,
+      .numComponents = 3,
       .dataType = PuleGfxAttributeDataType_float,
       .normalizeFixedDataTypeToNormalizedFloating = false,
-      .stridePerElement = sizeof(float)*2,
+      .stridePerElement = sizeof(PuleF32v3)*2,
       .offsetIntoBuffer = 0,
     };
 
@@ -44,9 +54,9 @@ void refreshContext(
         .blendEnabled = false,
         .scissorTestEnabled = false,
         .viewportUl = PuleI32v2 { 0, 0, },
-        .viewportLr = puleGfxFramebufferDimensions(1, 1),
-        .scissorUL = PuleI32v2 { 0, 0, },
-        .scissorLr = puleGfxFramebufferDimensions(1, 1),
+        .viewportLr = pulePlatformWindowSize(ctx.platform),
+        .scissorUl = PuleI32v2 { 0, 0, },
+        .scissorLr = pulePlatformWindowSize(ctx.platform),
       },
     };
     puleGfxPipelineDestroy(ctx.lineRenderer.pipeline);
@@ -56,8 +66,14 @@ void refreshContext(
     }
   }
 
+
   puleGfxCommandListDestroy(ctx.commandList);
-  ctx.commandList = puleGfxCommandListCreate(puleAllocateDefault());
+  ctx.commandList = (
+    puleGfxCommandListCreate(
+      puleAllocateDefault(),
+      puleStringViewCStr("pule-gfx-debug")
+    )
+  );
   { // record command list
     auto commandListRecorder = puleGfxCommandListRecorder(ctx.commandList);
 
@@ -69,7 +85,7 @@ void refreshContext(
       PuleGfxCommand {
         .bindPipeline = {
           .action = PuleGfxAction_bindPipeline,
-          .pipeline = context.pipeline,
+          .pipeline = ctx.lineRenderer.pipeline,
         },
       }
     );
@@ -105,44 +121,48 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
       PuleGfxGpuBufferVisibilityFlag_hostWritable
     )
   );
+  ctx.mappedBufferContents = nullptr;
   ctx.mappedBufferContents = (
-    puleGfxGpuBufferMap( PuleGfxGpuBufferMapRange {
-      .buffer = ctx.mappedBuffer,
-      .access = PuleGfxGpuBufferMapAccess_hostWritable,
-      .byteOffset = 0,
-      .byteLength = ctx.bufferByteLength,
-    })
+    reinterpret_cast<uint8_t *>(
+      puleGfxGpuBufferMap( PuleGfxGpuBufferMapRange {
+        .buffer = ctx.mappedBuffer,
+        .access = PuleGfxGpuBufferMapAccess_hostWritable,
+        .byteOffset = 0,
+        .byteLength = ctx.bufferByteLength,
+      })
+    )
   );
+  puleLog("mapped buffer %p", ctx.mappedBufferContents);
 
   char const * const vertexShaderSource = (
+    "#version 460 core\n" \
     PULE_multilineString(
-      uniform layout(binding = 0) mat4 transform;
+      uniform layout(location = 0) mat4 transform;
       in layout(location = 0) vec2 attributeOrigin;
       out layout(location = 0) flat int outVertexId;
       void main() {
-        gl_Position = transform * vec4(attributeOrigin.xy, 0.0f, 1.0f);
+        gl_Position = vec4(attributeOrigin.xy, 0.0f, 1.0f);
         outVertexId = gl_VertexID;
       }
-    ),
+    )
+  );
+
+  char const * const fragmentShaderSource = (
+    "#version 460 core\n" \
+    PULE_multilineString(
+      in layout(location = 0) flat int inVertexId;
+      out layout(location = 0) vec4 outColor;
+      void main() {
+        outColor = vec4(1.0f);
+      }
+    )
   );
 
   PuleError err = puleError();
 
   { // line renderer
     ctx.lineRenderer.shaderModule = (
-      puleGfxShaderModuleCreate(
-        vertexShaderSource,
-        PULE_multilineString(
-          layout(std430, binding = 0) buffer Attributes {
-            vec4 colors[];
-          };
-          in layout(location = 0) flat int inVertexId;
-          out layout(location = 0) vec4 outColor;
-          void main() {
-            outColor = colors[inVertexId/2];
-          }
-        )
-      )
+      puleGfxShaderModuleCreate(vertexShaderSource, fragmentShaderSource, &err)
     );
     if (puleErrorConsume(&err) > 0) {
       return;
@@ -150,19 +170,25 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
   }
 }
 
-void puleGfxShutdown() {
+void puleGfxDebugShutdown() {
 }
 
-PULE_exportFn void puleGfxDebugRender(
+void puleGfxDebugFrameStart() {
+  ctx.lineRenderer.requestedDraws = 0;
+}
+
+void puleGfxDebugRender(
   PuleGfxFramebuffer const framebuffer,
   PuleF32m44 const transform
 ) {
+  // update GPU info
   puleGfxGpuBufferMappedFlush({
     .buffer = ctx.mappedBuffer,
     .byteOffset = 0,
-    .byteLength = ctx.lineCountCurrent*sizeof(float)*2,
+    .byteLength = ctx.lineRenderer.requestedDraws*sizeof(MappedLine),
   });
   puleGfxMemoryBarrier(PuleGfxMemoryBarrierFlag_bufferUpdate);
+
   PuleError err = puleError();
   refreshContext(framebuffer, transform, &err);
   if (puleErrorConsume(&err) > 0) {
@@ -179,6 +205,24 @@ PULE_exportFn void puleGfxDebugRender(
   if (puleErrorConsume(&err) > 0) {
     return;
   }
+}
+
+void puleGfxDebugRenderLine(
+  PuleF32v3 const originStart,
+  PuleF32v3 const originEnd,
+  [[maybe_unused]] PuleF32v3 const color
+) {
+  MappedLine & mappedLine = *(
+    reinterpret_cast<MappedLine *>(
+      ctx.mappedBufferContents
+      + (
+        sizeof(MappedLine)*ctx.lineRenderer.requestedDraws
+      )
+    )
+  );
+  mappedLine.start = originStart;
+  mappedLine.end = originEnd;
+  ctx.lineRenderer.requestedDraws += 1;
 }
 
 } // C

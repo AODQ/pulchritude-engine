@@ -31,8 +31,25 @@ PULE_exportFn bool puleImguiSliderZu(
   size_t const min, size_t const max
 );
 
+PULE_exportFn void puleImguiText(char const * const format, ...);
+
 PULE_exportFn bool puleImguiToggle(char const * const label, bool * const data);
 PULE_exportFn bool puleImguiButton(char const * const label);
+
+// usually this isn't necessary, but since everything is so heavily
+//   module-based, it's easier to register callbacks to display information
+//   from many different callbacks
+typedef struct { uint64_t id; } PuleImguiCallbackRegistry;
+typedef struct {
+  void (*callback)();
+} PuleImguiCallback;
+PULE_exportFn PuleImguiCallbackRegistry puleImguiCallbackRegister(
+  PuleImguiCallback const callback
+);
+PULE_exportFn void puleImguiCallbackUnregister(
+  PuleImguiCallbackRegistry const registry
+);
+PULE_exportFn void puleImguiCallbackShowAll();
 
 #ifdef __cplusplus
 } // extern C

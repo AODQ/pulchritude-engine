@@ -148,7 +148,6 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
 ) {
   GLuint buffer;
   glCreateBuffers(1, &buffer);
-  puleLogDebug("buffer: %u", buffer);
   glNamedBufferStorage(
     buffer, byteLength, optionalInitialData, bufferVisibilityToGl(visibility)
   );
@@ -206,6 +205,12 @@ void puleGfxGpuBufferMappedFlush(
     range.byteOffset,
     range.byteLength
   );
+}
+
+#include <pulchritude-imgui/imgui.h>
+
+void puleGfxDebugPrint() {
+  util::printCommandsDebug();
 }
 
 } // extern C

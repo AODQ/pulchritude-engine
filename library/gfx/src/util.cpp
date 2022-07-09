@@ -23,10 +23,8 @@ util::Pipeline * util::pipeline(size_t const id) {
 uint64_t util::createPipeline() {
   uint64_t const prevPipelineIdx = ::pipelineIdx;
   ::pipelineIdx += 1;
-  puleLogDebug("incrementing pipeline idx now: %lu", ::pipelineIdx);
   util::Pipeline utilPipeline = {};
   ::pipelines.emplace(prevPipelineIdx, utilPipeline);
-  puleLogDebug("new pipeline idex to return is %lu", prevPipelineIdx);
   return prevPipelineIdx;
 }
 

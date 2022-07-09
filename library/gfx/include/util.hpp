@@ -35,4 +35,6 @@ namespace util {
   Pipeline * pipeline(uint64_t const id);
   uint64_t createPipeline();
   void destroyPipeline(uint64_t const id);
+
+  void printCommandsDebug();
 }

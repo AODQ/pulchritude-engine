@@ -5,8 +5,31 @@
 #include <glad/glad.h>
 
 #include <cstring>
+#include <string>
 #include <unordered_map>
 #include <vector>
+
+//------------------------------------------------------------------------------
+//-- ACTIONS -------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+PuleStringView puleGfxActionToString(PuleGfxAction const action) {
+  switch (action) {
+    default: return puleStringViewCStr("unknown");
+    case PuleGfxAction_bindPipeline:
+      return puleStringViewCStr("bind-pipeline");
+    case PuleGfxAction_clearFramebufferColor:
+      return puleStringViewCStr("clear-framebuffer-color");
+    case PuleGfxAction_clearFramebufferDepth:
+      return puleStringViewCStr("clear-framebuffer-depth");
+    case PuleGfxAction_dispatchRender:
+      return puleStringViewCStr("dispatch-render");
+    case PuleGfxAction_dispatchRenderElements:
+      return puleStringViewCStr("dispatch-render-elements");
+    case PuleGfxAction_pushConstants:
+      return puleStringViewCStr("push-constants");
+  }
+}
 
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
@@ -15,9 +38,10 @@
 namespace {
   struct CommandList {
     PuleAllocator allocator;
-    // TODO use allocator instead of vector lol
+    // TODO use allocator instead of vector
     std::vector<PuleGfxCommand> actions;
     std::vector<uint8_t> constantData;
+    std::string label;
   };
   std::unordered_map<uint64_t, CommandList> commandLists;
   uint64_t commandListsIt = 1;
@@ -48,7 +72,10 @@ namespace {
 
 extern "C" {
 
-PuleGfxCommandList puleGfxCommandListCreate(PuleAllocator const allocator) {
+PuleGfxCommandList puleGfxCommandListCreate(
+  PuleAllocator const allocator,
+  PuleStringView const label
+) {
   PuleGfxCommandList commandList = {
     .id = commandListsIt,
   };
@@ -58,6 +85,7 @@ PuleGfxCommandList puleGfxCommandListCreate(PuleAllocator const allocator) {
       .allocator = allocator,
       .actions = {},
       .constantData = {},
+      .label = label.contents,
     }
   );
   commandListsIt += 1;
@@ -69,9 +97,17 @@ void puleGfxCommandListDestroy(PuleGfxCommandList const commandList) {
   ::commandLists.erase(commandList.id);
 }
 
+PuleStringView puleGfxCommandListName(
+  PuleGfxCommandList const commandListId
+) {
+  auto & commandList = ::commandLists.at(commandListId.id);
+  return puleStringViewCStr(commandList.label.c_str());
+}
+
 PuleGfxCommandListRecorder puleGfxCommandListRecorder(
   PuleGfxCommandList const commandList
 ) {
+  // TODO just need to check that it's not already being recorded to
   return { commandList.id };
 }
 
@@ -316,7 +352,56 @@ void puleGfxCommandListSubmit(
 }
 
 void puleGfxCommandListDump(PuleGfxCommandList const ) {
-  
+
 }
 
 } // extern C
+
+//------------------------------------------------------------------------------
+//-- DEBUG ---------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+void util::printCommandsDebug() {
+  puleLog(
+    "-------------------- command lists "
+    "--------------------"
+  );
+  for (auto const & commandListIter : ::commandLists) {
+    ::CommandList const & commandList = commandListIter.second;
+    puleLog(">>> %s", commandList.label.c_str());
+    puleLog("\t> actions [%zu total]", commandList.actions.size());
+    for (PuleGfxCommand const & command : commandList.actions) {
+      puleLog("\t\t> %s", puleGfxActionToString(command.action));
+      switch (command.action) {
+        default: break;
+        case PuleGfxAction_bindPipeline:
+          puleLog("\t\t\tpipeline: %u", command.bindPipeline.pipeline);
+        break;
+        case PuleGfxAction_dispatchRender:
+          puleLog(
+            "\t\t\tdispatch render: vertex offset %zu num vertices %zu",
+            command.dispatchRender.vertexOffset,
+            command.dispatchRender.numVertices
+          );
+        break;
+      }
+    }
+    puleLogLn(
+      "\t> constant data [%zu total]\n\t\t",
+      commandList.constantData.size()
+    );
+    size_t constantIter = 0;
+    for (uint8_t const & constant : commandList.constantData) {
+      if (constantIter ++ > 40) {
+        constantIter += 1;
+        puleLogLn("\n");
+      }
+      puleLogLn("%x", constant);
+    }
+    puleLogLn("\n");
+  }
+  puleLog(
+    "-----------------------------------"
+    "--------------------"
+  );
+}

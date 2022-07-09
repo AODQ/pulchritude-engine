@@ -1,6 +1,10 @@
 add_library(pulchritude-platform SHARED)
 
-target_include_directories(pulchritude-platform PUBLIC "../include/")
+target_include_directories(
+  pulchritude-platform
+  PUBLIC "../include/"
+  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/glfw/include/"
+)
 target_sources(
   pulchritude-platform
   PRIVATE

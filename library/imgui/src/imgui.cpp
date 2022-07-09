@@ -13,6 +13,8 @@
 #include <imgui/imgui.h>
 #pragma GCC diagnostic pop
 
+#include <unordered_map>
+
 #define PULCHRITUDE_SHADER(...) \
   "#version 460 core\n" \
   #__VA_ARGS__
@@ -331,7 +333,12 @@ void renderDrawData(ImDrawData * const drawData) {
       );
       puleErrorConsume(&err);
 
-      auto commandList = puleGfxCommandListCreate(puleAllocateDefault());
+      auto commandList = (
+        puleGfxCommandListCreate(
+          puleAllocateDefault(),
+          puleStringViewCStr("pule-imgui")
+        )
+      );
       {
         auto commandListRecorder = puleGfxCommandListRecorder(commandList);
 
@@ -803,12 +810,59 @@ bool puleImguiSliderZu(
   return ret;
 }
 
+void puleImguiText(char const * const format, ...) {
+  va_list args;
+  va_start(args, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+  ImGui::Text(format, args);
+#pragma GCC diagnostic pop
+  va_end(args);
+}
+
 bool puleImguiToggle(char const * const label, bool * const data) {
   return ImGui::Checkbox(label, data);
 }
 
 bool puleImguiButton(char const * const label) {
   return ImGui::Button(label);
+}
+
+} // C
+
+// -- callback registry --------------------------------------------------------
+
+namespace {
+  std::unordered_map<uint64_t, PuleImguiCallback> registries;
+  uint64_t registryCounter = 0;
+} // namespace
+
+extern "C" {
+
+PuleImguiCallbackRegistry puleImguiCallbackRegister(
+  PuleImguiCallback const callback
+) {
+  ::registries.emplace(::registryCounter, callback);
+  return {.id = ::registryCounter ++};
+}
+
+void puleImguiCallbackUnregister(
+  PuleImguiCallbackRegistry const registry
+) {
+  if (::registries.find(registry.id) == ::registries.end()) {
+    puleLogError(
+      "Trying to unregister unknown imgui callback registry %d\n",
+      registry.id
+    );
+    return;
+  }
+  ::registries.erase(registry.id);
+}
+
+void puleImguiCallbackShowAll() {
+  for (auto & registry : registries) {
+    registry.second.callback();
+  }
 }
 
 } // C
