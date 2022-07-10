@@ -29,27 +29,27 @@ typedef struct { int32_t x; int32_t y; } PuleU32v2;
 typedef struct { int32_t x; int32_t y; int32_t z; } PuleU32v3;
 typedef struct { int32_t x; int32_t y; int32_t z; int32_t w; } PuleU32v4;
 
-PULE_exportFn PuleF32v2 pulef32v2(float const identity);
-PULE_exportFn PuleF32v3 pulef32v2Ptr(float const * const values);
+PULE_exportFn PuleF32v2 puleF32v2(float const identity);
+PULE_exportFn PuleF32v2 puleF32v2Ptr(float const * const values);
 //PuleF32v2 pulef32v2Add(pulef32v2 const a, pulef32v2 const b);
 //PuleF32v2 pulef32v2Sub(pulef32v2 const a, pulef32v2 const b);
 //PuleF32v2 pulef32v2Mul(pulef32v2 const a, pulef32v2 const b);
 //PuleF32v2 pulef32v2Div(pulef32v2 const a, pulef32v2 const b);
 //PuleF32v2 pulef32v2Dot(pulef32v2 const a, pulef32v2 const b);
 //
-PULE_exportFn PuleF32v3 pulef32v3(float const identity);
-PULE_exportFn PuleF32v3 pulef32v3Ptr(float const * const values);
-PULE_exportFn PuleF32v3 pulef32v3Add(PuleF32v3 const a, PuleF32v3 const b);
-PULE_exportFn PuleF32v3 pulef32v3Sub(PuleF32v3 const a, PuleF32v3 const b);
-PULE_exportFn PuleF32v3 pulef32v3Neg(PuleF32v3 const a);
-PULE_exportFn PuleF32v3 pulef32v3Mul(PuleF32v3 const a, PuleF32v3 const b);
-PULE_exportFn PuleF32v3 pulef32v3Div(PuleF32v3 const a, PuleF32v3 const b);
-PULE_exportFn float pulef32v3Dot(PuleF32v3 const a, PuleF32v3 const b);
-PULE_exportFn float pulef32v3Length(PuleF32v3 const a);
-PULE_exportFn PuleF32v3 pulef32v3Normalize(PuleF32v3 const b);
-PULE_exportFn PuleF32v3 pulef32v3Cross(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 puleF32v3(float const identity);
+PULE_exportFn PuleF32v3 puleF32v3Ptr(float const * const values);
+PULE_exportFn PuleF32v3 puleF32v3Add(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 puleF32v3Sub(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 puleF32v3Neg(PuleF32v3 const a);
+PULE_exportFn PuleF32v3 puleF32v3Mul(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 puleF32v3Div(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn float puleF32v3Dot(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn float puleF32v3Length(PuleF32v3 const a);
+PULE_exportFn PuleF32v3 puleF32v3Normalize(PuleF32v3 const b);
+PULE_exportFn PuleF32v3 puleF32v3Cross(PuleF32v3 const a, PuleF32v3 const b);
 
-PULE_exportFn PuleF32v4 pulef32v4(float const identity);
+PULE_exportFn PuleF32v4 puleF32v4(float const identity);
 /* PuleF32v4 pulef32v4Add(pulef32v4 const a, pulef32v4 const b); */
 /* PuleF32v4 pulef32v4Sub(pulef32v4 const a, pulef32v4 const b); */
 /* PuleF32v4 pulef32v4Mul(pulef32v4 const a, pulef32v4 const b); */

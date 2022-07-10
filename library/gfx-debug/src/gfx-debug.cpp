@@ -225,4 +225,24 @@ void puleGfxDebugRenderLine(
   ctx.lineRenderer.requestedDraws += 1;
 }
 
+void puleGfxDebugRenderRectOutline(
+  PuleF32v3 const originCenter,
+  PuleF32v2 const dimensions,
+  PuleF32v3 const color
+) {
+  PuleF32v3 const bounds[4] = {
+    PuleF32v3{-dimensions.x, -dimensions.y, 0.0f},
+    PuleF32v3{ dimensions.x, -dimensions.y, 0.0f},
+    PuleF32v3{ dimensions.x,  dimensions.y, 0.0f},
+    PuleF32v3{-dimensions.x,  dimensions.y, 0.0f},
+  };
+  for (size_t it = 0; it < 4; ++ it) {
+    puleGfxDebugRenderLine(
+      puleF32v3Add(originCenter, bounds[it]),
+      puleF32v3Add(originCenter, bounds[(it+1)%4]),
+      color
+    );
+  }
+}
+
 } // C

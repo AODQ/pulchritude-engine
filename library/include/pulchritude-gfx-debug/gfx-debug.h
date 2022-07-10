@@ -19,17 +19,17 @@ PULE_exportFn void puleGfxDebugRenderLine(
   PuleF32v3 const color
 );
 
-PULE_exportFn void puleGfxDebugRenderRect(
-  PuleF32v3 const originUl,
-  PuleF32v3 const originLr,
-  PuleF32v3 const color,
-  bool const outline
+PULE_exportFn void puleGfxDebugRenderRectOutline(
+  PuleF32v3 const originCenter,
+  PuleF32v2 const dimensions,
+  PuleF32v3 const color
 );
 
 PULE_exportFn void puleGfxDebugRenderCircle(
   PuleF32v3 const origin,
   float const radius,
-  PuleF32v3 const color
+  PuleF32v3 const colorSurface,
+  PuleF32v3 const colorInner
 );
 
 PULE_exportFn void puleGfxDebugRenderPoint(
