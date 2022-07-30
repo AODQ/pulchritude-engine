@@ -44,7 +44,7 @@ PULE_exportFn void puleFileClose(PuleFile const file);
 PULE_exportFn bool puleFileIsDone(PuleFile const file);
 PULE_exportFn PuleStringView puleFilePath(PuleFile const file);
 PULE_exportFn uint8_t puleFileReadByte(PuleFile const file);
-PULE_exportFn size_t puleFileReadBytes(
+PULE_exportFn size_t puleFileReadBytes( // greedy
   PuleFile const file,
   PuleArrayViewMutable const destination
 );
@@ -85,7 +85,7 @@ PULE_exportFn PuleStreamWrite puleFileStreamWrite(
   PuleArrayViewMutable const intermediateBuffer
 );
 
-// -- filesystem
+// -- filesystem -- TODO probably rename ot puleFilesystem or puleFs
 PULE_exportFn bool puleFileCopy(
   PuleStringView const sourcePath,
   PuleStringView const destinationPath

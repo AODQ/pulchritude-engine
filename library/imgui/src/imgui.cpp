@@ -1,11 +1,13 @@
 #include <pulchritude-imgui/imgui.h>
 
+#include <pulchritude-allocator/allocator.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-gfx/commands.h>
 #include <pulchritude-gfx/gfx.h>
 #include <pulchritude-gfx/image.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-platform/platform.h>
+#include <pulchritude-string/string.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -281,7 +283,7 @@ void renderDrawData(ImDrawData * const drawData) {
         .buffer = bd.vertexBuffer,
         .numComponents = 2,
         .dataType = PuleGfxAttributeDataType_float,
-        .normalizeFixedDataTypeToNormalizedFloating = false,
+        .convertFixedDataTypeToNormalizedFloating = false,
         .stridePerElement = sizeof(ImDrawVert),
         .offsetIntoBuffer = offsetof(ImDrawVert, pos),
       };
@@ -289,7 +291,7 @@ void renderDrawData(ImDrawData * const drawData) {
         .buffer = bd.vertexBuffer,
         .numComponents = 2,
         .dataType = PuleGfxAttributeDataType_float,
-        .normalizeFixedDataTypeToNormalizedFloating = false,
+        .convertFixedDataTypeToNormalizedFloating = false,
         .stridePerElement = sizeof(ImDrawVert),
         .offsetIntoBuffer = offsetof(ImDrawVert, uv),
       };
@@ -297,7 +299,7 @@ void renderDrawData(ImDrawData * const drawData) {
         .buffer = bd.vertexBuffer,
         .numComponents = 4,
         .dataType = PuleGfxAttributeDataType_unsignedByte,
-        .normalizeFixedDataTypeToNormalizedFloating = true,
+        .convertFixedDataTypeToNormalizedFloating = true,
         .stridePerElement = sizeof(ImDrawVert),
         .offsetIntoBuffer = offsetof(ImDrawVert, col),
       };

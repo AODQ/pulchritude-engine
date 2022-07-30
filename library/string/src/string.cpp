@@ -34,13 +34,11 @@ PuleString puleStringDefault(char const * const baseContents) {
   return puleString(puleAllocateDefault(), baseContents);
 }
 
-void puleStringDeallocate(PuleString * const stringInout) {
-  puleDeallocate(stringInout->allocator, stringInout->contents);
-  stringInout->contents = NULL;
-  stringInout->len = 0;
+void puleStringDeallocate(PuleString const stringInout) {
+  puleDeallocate(stringInout.allocator, stringInout.contents);
 }
 
-static PuleString puleStringFormatVargs(
+PuleString puleStringFormatVargs(
   PuleAllocator const allocator,
   char const * const format,
   va_list args

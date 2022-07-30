@@ -25,7 +25,7 @@ typedef struct {
   PuleGfxGpuBuffer buffer;
   size_t numComponents;
   PuleGfxAttributeDataType dataType;
-  bool normalizeFixedDataTypeToNormalizedFloating;
+  bool convertFixedDataTypeToNormalizedFloating;
   size_t stridePerElement; // zero implies same element; does not pack for you
   size_t offsetIntoBuffer;
 } PuleGfxPipelineAttributeDescriptorBinding;

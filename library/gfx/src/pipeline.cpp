@@ -105,7 +105,7 @@ void puleGfxPipelineUpdate(
       it,
       descriptorAttributeBinding.numComponents,
       attributeDataType,
-      descriptorAttributeBinding.normalizeFixedDataTypeToNormalizedFloating,
+      descriptorAttributeBinding.convertFixedDataTypeToNormalizedFloating,
       0
       //descriptorAttributeBinding.stridePerElement
     );

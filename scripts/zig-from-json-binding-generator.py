@@ -92,7 +92,7 @@ def extractField(symbol, isStructOrUnion):
   string = ""
   if (symbol["meta-type"] == "fn-ptr"):
     string += "  " + keywordRename(symbol["label"]) + ": "
-    string += "* const fn("
+    string += "?* const fn("
     for parameter in symbol["parameters"]:
       string += parameter[-1] + ": "
       string += extractType(parameter[:-1], False, parameter[-1])

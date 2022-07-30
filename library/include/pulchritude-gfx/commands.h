@@ -87,9 +87,9 @@ typedef union {
   PuleF32v3 constantF32v3;
   PuleF32v4 constantF32v4;
   int32_t constantI32;
-  int32_t constantI32v2;
-  int32_t constantI32v3;
-  int32_t constantI32v4;
+  PuleI32v2 constantI32v2;
+  PuleI32v3 constantI32v3;
+  PuleI32v4 constantI32v4;
   PuleF32m44 constantF32m44;
 } PuleGfxConstantValue;
 

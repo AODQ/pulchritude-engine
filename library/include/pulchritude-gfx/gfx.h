@@ -92,8 +92,7 @@ PULE_exportFn void puleGfxFrameStart();
 PULE_exportFn void puleGfxFrameEnd();
 
 // prints all debug information
-// TODO this should just stream out or something
-//      maybe serialize
+// TODO this should just stream out or something maybe serialize
 PULE_exportFn void puleGfxDebugPrint();
 
 #ifdef __cplusplus

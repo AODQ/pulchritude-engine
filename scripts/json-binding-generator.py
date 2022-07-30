@@ -103,12 +103,19 @@ def exportJsonFromFile(contents):
       fnName = returnType[-1]
       returnType = returnType[:-1]
 
-      exportedSymbols += [{
-        "type": "function",
-        "return-type": returnType,
-        "label": fnName,
-        "parameters": parameters,
-      }]
+      # don't export va_list and maybe some others
+      exportableFunction = True
+      for param in parameters:
+        if (len(param["type"]) > 0 and param["type"][0] == "va_list"):
+          exportableFunction = False
+
+      if (exportableFunction):
+        exportedSymbols += [{
+          "type": "function",
+          "return-type": returnType,
+          "label": fnName,
+          "parameters": parameters,
+        }]
     elif (strCmp(contents[it:], "typedef enum")):
       enums = []
       while (contents[it] != "{"):

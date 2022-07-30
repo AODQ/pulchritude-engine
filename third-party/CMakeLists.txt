@@ -17,3 +17,13 @@ set(FLECS_STATIC_LIBS ON CACHE INTERNAL "")
 set(FLECS_SHARED_LIBS OFF CACHE INTERNAL "")
 set(FLECS_DEVELOPER_WARNINGS OFF CACHE INTERNAL "")
 add_subdirectory(flecs)
+
+# schrift (font)
+add_library(schrift STATIC)
+target_include_directories(schrift PUBLIC "libschrift")
+target_sources(
+  schrift
+  PRIVATE
+    libschrift/schrift.c
+)
+target_link_libraries(schrift)

@@ -41,7 +41,7 @@ void refreshContext(
       .buffer = ctx.mappedBuffer,
       .numComponents = 3,
       .dataType = PuleGfxAttributeDataType_float,
-      .normalizeFixedDataTypeToNormalizedFloating = false,
+      .convertFixedDataTypeToNormalizedFloating = false,
       .stridePerElement = sizeof(PuleF32v3)*2,
       .offsetIntoBuffer = 0,
     };
@@ -164,7 +164,7 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
     ctx.lineRenderer.shaderModule = (
       puleGfxShaderModuleCreate(vertexShaderSource, fragmentShaderSource, &err)
     );
-    if (puleErrorConsume(&err) > 0) {
+    if (puleErrorConsume(&err)) {
       return;
     }
   }
@@ -191,7 +191,7 @@ void puleGfxDebugRender(
 
   PuleError err = puleError();
   refreshContext(framebuffer, transform, &err);
-  if (puleErrorConsume(&err) > 0) {
+  if (puleErrorConsume(&err)) {
     return;
   }
   puleGfxCommandListSubmit(
@@ -202,7 +202,7 @@ void puleGfxDebugRender(
     },
     &err
   );
-  if (puleErrorConsume(&err) > 0) {
+  if (puleErrorConsume(&err)) {
     return;
   }
 }

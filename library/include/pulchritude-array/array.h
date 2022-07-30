@@ -43,6 +43,14 @@ PULE_exportFn void * puleArrayElementAt(
   size_t const idx
 );
 
+// Buffer views let you view the contents of an array, without having ownership
+//   of data, but have no indication on its stride, element count, etc. Useful
+//   for raw binary data
+typedef struct {
+  uint8_t * data;
+  size_t byteLength;
+} PuleBufferView;
+
 // Array views let you view the contents of an array, without modifying the
 //   contents nor modifying it's allocation.
 typedef struct {

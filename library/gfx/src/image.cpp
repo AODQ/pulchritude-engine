@@ -87,6 +87,8 @@ namespace { // image
         return GL_RGBA8;
       case PuleGfxImageByteFormat_rgb8U:
         return GL_RGB8;
+      case PuleGfxImageByteFormat_r8U:
+        return GL_R8;
     }
   }
 
@@ -99,6 +101,8 @@ namespace { // image
         return GL_RGBA;
       case PuleGfxImageByteFormat_rgb8U:
         return GL_RGB;
+      case PuleGfxImageByteFormat_r8U:
+        return GL_RED;
     }
   }
 
@@ -109,6 +113,7 @@ namespace { // image
         return GL_UNSIGNED_BYTE;
       case PuleGfxImageByteFormat_rgb8U:
       case PuleGfxImageByteFormat_rgba8U:
+      case PuleGfxImageByteFormat_r8U:
         return GL_UNSIGNED_BYTE;
     }
   }

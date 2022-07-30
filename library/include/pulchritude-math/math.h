@@ -25,17 +25,18 @@ typedef struct { int32_t x; int32_t y; } PuleI32v2;
 typedef struct { int32_t x; int32_t y; int32_t z; } PuleI32v3;
 typedef struct { int32_t x; int32_t y; int32_t z; int32_t w; } PuleI32v4;
 
-typedef struct { int32_t x; int32_t y; } PuleU32v2;
-typedef struct { int32_t x; int32_t y; int32_t z; } PuleU32v3;
-typedef struct { int32_t x; int32_t y; int32_t z; int32_t w; } PuleU32v4;
+typedef struct { uint32_t x; uint32_t y; } PuleU32v2;
+typedef struct { uint32_t x; uint32_t y; uint32_t z; } PuleU32v3;
+typedef struct { uint32_t x; uint32_t y; uint32_t z; uint32_t w; } PuleU32v4;
 
 PULE_exportFn PuleF32v2 puleF32v2(float const identity);
 PULE_exportFn PuleF32v2 puleF32v2Ptr(float const * const values);
-//PuleF32v2 pulef32v2Add(pulef32v2 const a, pulef32v2 const b);
-//PuleF32v2 pulef32v2Sub(pulef32v2 const a, pulef32v2 const b);
-//PuleF32v2 pulef32v2Mul(pulef32v2 const a, pulef32v2 const b);
-//PuleF32v2 pulef32v2Div(pulef32v2 const a, pulef32v2 const b);
-//PuleF32v2 pulef32v2Dot(pulef32v2 const a, pulef32v2 const b);
+PULE_exportFn PuleF32v2 puleF32v2Add(PuleF32v2 const a, PuleF32v2 const b);
+PULE_exportFn PuleF32v2 puleF32v2Sub(PuleF32v2 const a, PuleF32v2 const b);
+PULE_exportFn PuleF32v2 puleF32v2Abs(PuleF32v2 const a);
+//PULE_exportFn PuleF32v2 puleF32v2Mul(PuleF32v2 const a, PuleF32v2 const b);
+//PULE_exportFn PuleF32v2 puleF32v2Div(PuleF32v2 const a, PuleF32v2 const b);
+//PULE_exportFn PuleF32v2 puleF32v2Dot(PuleF32v2 const a, PuleF32v2 const b);
 //
 PULE_exportFn PuleF32v3 puleF32v3(float const identity);
 PULE_exportFn PuleF32v3 puleF32v3Ptr(float const * const values);

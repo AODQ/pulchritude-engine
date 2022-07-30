@@ -155,7 +155,7 @@ void puleAssetPdsWriteToFile(
       error
     )
   );
-  if (puleErrorConsume(error) > 0) {
+  if (puleErrorConsume(error)) {
     PULE_error(PuleErrorAssetPds_decode, "failed to open file");
     return;
   }

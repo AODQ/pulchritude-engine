@@ -44,6 +44,7 @@ typedef struct {
 typedef enum {
   PuleGfxImageByteFormat_rgba8U,
   PuleGfxImageByteFormat_rgb8U,
+  PuleGfxImageByteFormat_r8U,
 } PuleGfxImageByteFormat;
 
 typedef enum {

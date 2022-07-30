@@ -11,6 +11,16 @@ PuleF32v2 puleF32v2(float const identity) {
 PuleF32v2 puleF32v2Ptr(float const * const value) {
   return PuleF32v2 { .x = *value, .y = *(value+1) };
 }
+PuleF32v2 puleF32v2Add(PuleF32v2 const a, PuleF32v2 const b) {
+  return PuleF32v2 { .x = a.x+b.x, .y = a.y+b.y };
+}
+PuleF32v2 puleF32v2Sub(PuleF32v2 const a, PuleF32v2 const b) {
+  return PuleF32v2 { .x = a.x-b.x, .y = a.y-b.y };
+}
+PuleF32v2 puleF32v2Abs(PuleF32v2 const a) {
+  return PuleF32v2 { .x = abs(a.x), .y = abs(a.y) };
+}
+
 PuleF32v3 puleF32v3(float const identity) {
   return PuleF32v3 {
     .x = identity, .y = identity, .z = identity,

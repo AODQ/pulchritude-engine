@@ -5,6 +5,8 @@
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-log/log.h>
 
+#include <stdarg.h>
+
 // provides string tools. This might not be necessary for many
 //   languages/environments beyond just passing strings between plugins
 
@@ -39,7 +41,7 @@ PULE_exportFn PuleString puleString(
   char const * const baseContents
 );
 
-PULE_exportFn void puleStringDeallocate(PuleString * const puleStringInout);
+PULE_exportFn void puleStringDeallocate(PuleString const puleStringInout);
 
 PULE_exportFn void puleStringAppend(
   PuleString * const stringInout,
@@ -48,13 +50,17 @@ PULE_exportFn void puleStringAppend(
 
 // formats given string, using C specifier notations
 // simple usage is;
-//   PuleString str = puleStringFormatDefault("age: %d", 5);
-//   puleErrorConsume(puleStringFormat(&str, age))
+//   PuleString const str = puleStringFormatDefault("age: %d", 5);
+//   ...
+//   puleStringDeallocate(str);
 PULE_exportFn PuleString puleStringFormat(
   PuleAllocator const allocator, char const * const format, ...
 );
 PULE_exportFn PuleString puleStringFormatDefault(
   char const * const format, ...
+);
+PULE_exportFn PuleString puleStringFormatVargs(
+  PuleAllocator const allocator, char const * const format, va_list args
 );
 
 PULE_exportFn PuleStringView puleStringView(PuleString const string);
