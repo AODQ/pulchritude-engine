@@ -156,6 +156,9 @@ bool puleDsAsBool(PuleDsValue const value) {
 double puleDsAsF64(PuleDsValue const value) {
   return *std::get_if<double>(&::pdsValues.at(value.id));
 }
+float puleDsAsF32(PuleDsValue const value) {
+  return static_cast<float>(*std::get_if<double>(&::pdsValues.at(value.id)));
+}
 PuleStringView puleDsAsString(PuleDsValue const value) {
   auto valuePtr = ::pdsValues.find(value.id);
   if (valuePtr == ::pdsValues.end()) {
@@ -255,20 +258,25 @@ bool puleDsIsBuffer(PuleDsValue const value) {
 
 //------------------------------------------------------------------------------
 PuleDsValue puleDsCreateI64(int64_t const value) {
+  puleLogDebug("creating i64 at %zu", pdsValueIt);
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateF64(double const value) {
+  puleLogDebug("creating f64 at %zu", pdsValueIt);
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
-  std::string contents = std::string(stringView.contents, stringView.len);
+  puleLogDebug("creating string at %zu", pdsValueIt);
+  std::string const contents = std::string(stringView.contents, stringView.len);
   return {::pdsValueAdd(PdsString{.value = contents})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
+  puleLogDebug("creating array at %zu", pdsValueIt);
   (void)allocator;
   return {::pdsValueAdd(PdsArray{})};
 }
 PuleDsValue puleDsCreateObject(PuleAllocator const allocator) {
+  puleLogDebug("creating object at %zu", pdsValueIt);
   (void)allocator;
   return {::pdsValueAdd(PdsObject{})};
 }
@@ -307,6 +315,10 @@ PuleDsValue puleDsAppendArray(
   PuleDsValue const arrayValue,
   PuleDsValue const value
 ) {
+  if (arrayValue.id == value.id) {
+    puleLogError("trying to append array %zu to self", arrayValue.id);
+    return {.id = 0,};
+  }
   PdsArray * asArray = getArrayElement(arrayValue);
   if (!asArray) { return { 0 }; }
   asArray->emplace_back(value);
@@ -364,7 +376,7 @@ PuleDsValue puleDsObjectMember(
     return { 0 };
   }
   auto const & object = *objectPtr;
-  auto const hash = puleStringViewHash(puleStringViewCStr(memberLabel));
+  auto const hash = puleStringViewHash(puleCStr(memberLabel));
   auto member = object.values.find(hash);
   if (member == object.values.end()) {
     return { 0 };
@@ -434,7 +446,23 @@ PuleDsValue puleDsAssignObjectMember(
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 ) {
-  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
+  if (objectValue.id == valueToEmplace.id) {
+    puleLogError("trying to assign object %zu to self", objectValue.id);
+    return {.id = 0,};
+  }
+  auto valPtr = ::pdsValues.find(objectValue.id);
+  if (valPtr == ::pdsValues.end()) {
+    puleLogError("value %zu does not exist", objectValue.id);
+    exit(1);
+    return {.id = 0,};
+  }
+  auto objPtr = std::get_if<PdsObject>(&valPtr->second);
+  if (!objPtr) {
+    puleLogError("value %zu is not an object", objectValue.id);
+    exit(1);
+    return {.id = 0,};
+  }
+  auto & object = *objPtr;
   ::pdsObjectAdd(object, memberLabel, valueToEmplace, false);
   return puleDsObjectMember(objectValue, memberLabel.contents);
 }
@@ -444,7 +472,21 @@ PuleDsValue puleDsOverwriteObjectMember(
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 ) {
-  auto & object = *std::get_if<PdsObject>(&::pdsValues.at(objectValue.id));
+  if (objectValue.id == valueToEmplace.id) {
+    puleLogError("trying to assign object %zu to self", objectValue.id);
+    return {.id = 0,};
+  }
+  auto valPtr = ::pdsValues.find(objectValue.id);
+  if (valPtr == ::pdsValues.end()) {
+    puleLogError("value %zu does not exist", objectValue.id);
+    return {.id = 0,};
+  }
+  auto objPtr = std::get_if<PdsObject>(&valPtr->second);
+  if (!objPtr) {
+    puleLogError("value %zu is not an object", objectValue.id);
+    return {.id = 0,};
+  }
+  auto & object = *objPtr;
   ::pdsObjectAdd(object, memberLabel, valueToEmplace, true);
   return puleDsObjectMember(objectValue, memberLabel.contents);
 }

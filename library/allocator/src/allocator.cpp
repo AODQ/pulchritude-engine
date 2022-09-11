@@ -26,7 +26,9 @@ void * releaseAllocate(void * const, PuleAllocateInfo const info) {
 
 void * releaseReallocate(void * const, PuleReallocateInfo const info) {
   void * reallocatedMemory = nullptr;
+  puleLogDebug("old allocation address: %p", info.allocation);
   reallocatedMemory = realloc(info.allocation, info.numBytes);
+  puleLogDebug("new allocation address: %p", reallocatedMemory);
 
   // check reallocated memory is aligned if requested, as otherwise need to
   // free/alloc
@@ -67,11 +69,6 @@ void * puleAllocate(
     return nullptr;
   }
 
-  puleLogDebug(
-    "allocating %zu bytes (%zu alignment): ",
-    info.numBytes,
-    info.alignment
-  );
   return allocator.allocate(allocator.implementation, info);
 }
 
@@ -97,10 +94,9 @@ void puleDeallocate(
   void * const allocationNullable
 ) {
   if (allocator.deallocate == nullptr) {
-    puleLogError("null deallocator!");
     return;
   }
-  puleLogDebug("deallocating %p", allocationNullable);
+  /* puleLogDebug("deallocating %p", allocationNullable); */
   return allocator.deallocate(allocator.implementation, allocationNullable);
 }
 

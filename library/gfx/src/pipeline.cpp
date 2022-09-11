@@ -6,8 +6,6 @@
 
 #include <glad/glad.h>
 
-#include <cstring>
-
 namespace {
   GLenum attributeDataTypeToGl(
     PuleGfxAttributeDataType const dataType,

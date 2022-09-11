@@ -2,8 +2,6 @@
 
 #include <pulchritude-plugin/plugin.h>
 
-#include <cstdint>
-#include <cstring>
 #include <filesystem>
 #include <string>
 #include <vector>

@@ -109,8 +109,8 @@ void initializeRenderData() {
   PuleError err = puleError();
   bd.shaderModule = (
     puleGfxShaderModuleCreate(
-      vertexShaderSource,
-      fragmentShaderSource,
+      puleCStr(vertexShaderSource),
+      puleCStr(fragmentShaderSource),
       &err
     )
   );
@@ -338,7 +338,7 @@ void renderDrawData(ImDrawData * const drawData) {
       auto commandList = (
         puleGfxCommandListCreate(
           puleAllocateDefault(),
-          puleStringViewCStr("pule-imgui")
+          puleCStr("pule-imgui")
         )
       );
       {
@@ -812,13 +812,35 @@ bool puleImguiSliderZu(
   return ret;
 }
 
+void puleImguiBeginWindow(
+  char const * const label,
+  bool * const openNullable
+) {
+  ImGui::Begin(label, openNullable);
+}
+
+void puleImguiEndWindow() {
+  ImGui::End();
+}
+
+bool puleImguiBeginSection(char const * const label) {
+  return ImGui::TreeNode(label);
+}
+void puleImguiEndSection() {
+  ImGui::TreePop();
+}
+
 void puleImguiText(char const * const format, ...) {
   va_list args;
   va_start(args, format);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-  ImGui::Text(format, args);
-#pragma GCC diagnostic pop
+  PuleString const formatStr = (
+    puleStringFormatVargs(
+      puleAllocateDefault(),
+      format, args
+    )
+  );
+  ImGui::Text("%s", formatStr.contents);
+  puleStringDeallocate(formatStr);
   va_end(args);
 }
 

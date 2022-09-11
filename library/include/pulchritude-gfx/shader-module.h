@@ -13,8 +13,8 @@ typedef struct {
 } PuleGfxShaderModule;
 
 PULE_exportFn PuleGfxShaderModule puleGfxShaderModuleCreate(
-  char const * const vertexShaderSource,
-  char const * const fragmentShaderSource,
+  PuleStringView const vertexShaderSource,
+  PuleStringView const fragmentShaderSource,
   PuleError * const error
 );
 PULE_exportFn void puleGfxShaderModuleDestroy(

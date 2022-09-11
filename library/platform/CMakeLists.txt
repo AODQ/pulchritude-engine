@@ -23,6 +23,7 @@ set_target_properties(
 target_link_libraries(
   pulchritude-platform
     pulchritude-error pulchritude-math
+
     glfw
 )
 

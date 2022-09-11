@@ -5,14 +5,18 @@
 
 // common C types such as uint64_t, bool, etc
 #ifdef __cplusplus
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #else
+#include <math.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 // gives the size of a static array; T[40] will work, T* will NOT work

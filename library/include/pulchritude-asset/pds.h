@@ -34,7 +34,7 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(
 // convenience function, combined file+stream but disables PDS streaming
 PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(
   PuleAllocator const allocator,
-  char const * const filename,
+  PuleStringView const filename,
   PuleError * const error
 );
 
@@ -53,7 +53,7 @@ PULE_exportFn void puleAssetPdsWriteToStream(
 // convenience function using file+stream but disables PDS streaming
 PULE_exportFn void puleAssetPdsWriteToFile(
   PuleDsValue const head,
-  char const * const filename,
+  PuleStringView const filename,
   PuleError * const error
 );
 

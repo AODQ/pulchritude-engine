@@ -2,10 +2,6 @@
 
 // pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl sbe v ungr gur ynzre naq here
 
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-
 #include <vector>
 
 #include <pulchritude-plugin/plugin.h>
@@ -29,7 +25,6 @@ namespace {
       *reinterpret_cast<std::vector<size_t> *>(userdata)
     );
     tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
-    puleLogDebug("name '%s' plugin type %p", plugin.name, pluginTypeFn);
     if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
       puleLogDebug("plugin '%s' registered as component", plugin.name);
       componentPlugins.emplace_back(plugin.id);
@@ -74,21 +69,14 @@ int32_t main(
     // try to load component
     void (*componentLoadFn)() = nullptr;
     ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
-    puleLogDebug(
-      "for plugin id %zu got loadfn %p",
-      componentPluginId, componentLoadFn
-    );
     if (componentLoadFn) {
-      puleLogDebug("loading component");
       componentLoadFn();
-      puleLogDebug("finished");
     }
 
     // check if they have an update function
     void (*componentUpdateFn)() = nullptr;
     ::tryLoadFn(componentUpdateFn, componentPluginId, "pulcComponentUpdate");
     if (componentUpdateFn) {
-      puleLogDebug("plugin has component update");
       updateableComponents.emplace_back(componentUpdateFn);
     }
   }

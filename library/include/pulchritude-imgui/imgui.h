@@ -31,6 +31,15 @@ PULE_exportFn bool puleImguiSliderZu(
   size_t const min, size_t const max
 );
 
+PULE_exportFn void puleImguiBeginWindow(
+  char const * const labelFormat,
+  bool * const openNullable
+);
+PULE_exportFn void puleImguiEndWindow();
+
+PULE_exportFn bool puleImguiBeginSection(char const * const label);
+PULE_exportFn void puleImguiEndSection();
+
 PULE_exportFn void puleImguiText(char const * const format, ...);
 
 PULE_exportFn bool puleImguiToggle(char const * const label, bool * const data);

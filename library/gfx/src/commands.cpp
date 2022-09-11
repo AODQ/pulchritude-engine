@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 
-#include <cstring>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -15,19 +14,19 @@
 
 PuleStringView puleGfxActionToString(PuleGfxAction const action) {
   switch (action) {
-    default: return puleStringViewCStr("unknown");
+    default: return puleCStr("unknown");
     case PuleGfxAction_bindPipeline:
-      return puleStringViewCStr("bind-pipeline");
+      return puleCStr("bind-pipeline");
     case PuleGfxAction_clearFramebufferColor:
-      return puleStringViewCStr("clear-framebuffer-color");
+      return puleCStr("clear-framebuffer-color");
     case PuleGfxAction_clearFramebufferDepth:
-      return puleStringViewCStr("clear-framebuffer-depth");
+      return puleCStr("clear-framebuffer-depth");
     case PuleGfxAction_dispatchRender:
-      return puleStringViewCStr("dispatch-render");
+      return puleCStr("dispatch-render");
     case PuleGfxAction_dispatchRenderElements:
-      return puleStringViewCStr("dispatch-render-elements");
+      return puleCStr("dispatch-render-elements");
     case PuleGfxAction_pushConstants:
-      return puleStringViewCStr("push-constants");
+      return puleCStr("push-constants");
   }
 }
 
@@ -101,7 +100,7 @@ PuleStringView puleGfxCommandListName(
   PuleGfxCommandList const commandListId
 ) {
   auto & commandList = ::commandLists.at(commandListId.id);
-  return puleStringViewCStr(commandList.label.c_str());
+  return puleCStr(commandList.label.c_str());
 }
 
 PuleGfxCommandListRecorder puleGfxCommandListRecorder(

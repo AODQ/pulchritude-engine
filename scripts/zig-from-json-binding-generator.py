@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 # Parses json generated from json-binding-generator.py and outputs the
-#   corresponding zig bindings
+#   corresponding zig bindings. Emits
+#
+# Emits to zig/pulchritude.zig
 
 import argparse
 import json
@@ -97,7 +99,7 @@ def extractField(symbol, isStructOrUnion):
       string += parameter[-1] + ": "
       string += extractType(parameter[:-1], False, parameter[-1])
       string += ", "
-    string += ") "
+    string += ") callconv(.C) "
     string += extractType(symbol["return-type"], isStructOrUnion, "")
     string += ",\n"
   elif (symbol["meta-type"] == "standard"):

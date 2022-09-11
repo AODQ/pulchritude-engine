@@ -6,6 +6,7 @@
 #include <pulchritude-error/error.h>
 #include <pulchritude-stream/stream.h>
 #include <pulchritude-string/string.h>
+#include <pulchritude-time/time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +36,7 @@ typedef struct {
 
 // -- files
 PULE_exportFn PuleFile puleFileOpen(
-  char const * const filename,
+  PuleStringView const filename,
   PuleFileDataMode const dataMode,
   PuleFileOpenMode const openMode,
   PuleError * const error
@@ -86,12 +87,50 @@ PULE_exportFn PuleStreamWrite puleFileStreamWrite(
 );
 
 // -- filesystem -- TODO probably rename ot puleFilesystem or puleFs
+PULE_exportFn bool puleFilesystemExists(PuleStringView const path);
 PULE_exportFn bool puleFileCopy(
   PuleStringView const sourcePath,
   PuleStringView const destinationPath
 );
 PULE_exportFn bool puleFileRemove(PuleStringView const filePath);
 PULE_exportFn void puleFileDirectoryCreate(PuleStringView const path);
+
+// returns 0 on error; sometimes this might happen if the file is being written
+//   to, even if `puleFilesystemExists` returns true, in which case you might
+//   need to check at a later point
+PULE_exportFn PuleTimestamp puleFilesystemTimestamp(PuleStringView const path);
+
+#ifdef __cplusplus
+}
+#endif
+
+//-- file watch ----------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// will watch files on the filesystem for you, with user-provided callbacks.
+//   the file-check only happens with 'puleFileWatchCheckAll()', and is not
+//   currently thread-safe
+
+typedef struct { uint64_t id; } PuleFileWatcher;
+typedef struct {
+  void (*fileUpdatedCallback)(
+    PuleStringView const filename,
+    void * const userdata
+  );
+  void (*deallocateUserdataCallback)(void * const userdata);
+  PuleStringView filename;
+  void * userdata;
+} PuleFileWatchCreateInfo;
+PULE_exportFn PuleFileWatcher puleFileWatch(
+  PuleFileWatchCreateInfo const createinfo
+);
+// returns true if any files changed
+bool puleFileWatchCheckAll();
+// TODO return a filewatch list of changed files since last check
+// TODO filewatch destroy
+
 
 #ifdef __cplusplus
 }

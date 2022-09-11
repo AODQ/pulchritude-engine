@@ -47,7 +47,7 @@ struct FileStream {
     puleLogDebug("opening: '%s'", url.contents);
     self.file = (
       puleFileOpen(
-        url.contents, PuleFileDataMode_text, PuleFileOpenMode_read, err
+        url, PuleFileDataMode_text, PuleFileOpenMode_read, err
       )
     );
     if (puleErrorConsume(err)) {
@@ -92,12 +92,12 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
 
   PULE_assert(puleDsIsObject(head));
   tilemap.info.dimInTiles = {
-    puleDsAsI32(puleDsObjectMember(head, "width")),
-    puleDsAsI32(puleDsObjectMember(head, "height")),
+    puleDsAsU32(puleDsObjectMember(head, "width")),
+    puleDsAsU32(puleDsObjectMember(head, "height")),
   };
   tilemap.info.tileDimInPixels = {
-    puleDsAsI32(puleDsObjectMember(head, "tilewidth")),
-    puleDsAsI32(puleDsObjectMember(head, "tileheight")),
+    puleDsAsU32(puleDsObjectMember(head, "tilewidth")),
+    puleDsAsU32(puleDsObjectMember(head, "tileheight")),
   };
 
   PuleDsValueArray tilesets = (
@@ -117,7 +117,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
     auto tilesetSource = (
       FileStream::open(
         info.allocator,
-        puleStringViewCStr(tilesetAbsFilepath.c_str()),
+        puleCStr(tilesetAbsFilepath.c_str()),
         error
       )
     );
@@ -154,7 +154,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
       auto const spritesheetSource = (
         FileStream::open(
           info.allocator,
-          puleStringViewCStr(imageAbsFilepath.c_str()),
+          puleCStr(imageAbsFilepath.c_str()),
           error
         )
       );
@@ -195,8 +195,8 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
       .spritesheet = image,
       .tileLength = puleDsAsUSize(puleDsObjectMember(tilesetHead, "tilecount")),
       .tileDim = {
-        .x = puleDsAsI32(puleDsObjectMember(tilesetHead, "tilewidth")),
-        .y = puleDsAsI32(puleDsObjectMember(tilesetHead, "tileheight")),
+        .x = puleDsAsU32(puleDsObjectMember(tilesetHead, "tilewidth")),
+        .y = puleDsAsU32(puleDsObjectMember(tilesetHead, "tileheight")),
       },
       .spritesheetStartingGlobalId = (
         puleDsAsUSize(puleDsObjectMember(tilesetObj, "firstgid"))
@@ -258,8 +258,8 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
           .tileIds = tilemap.tileIds.data() + relativeOffset,
           .tileIdsLength = ids.length,
           .dim = PuleU32v2 {
-            .x = puleDsAsI32(puleDsObjectMember(layerObj, "width")),
-            .y = puleDsAsI32(puleDsObjectMember(layerObj, "height")),
+            .x = puleDsAsU32(puleDsObjectMember(layerObj, "width")),
+            .y = puleDsAsU32(puleDsObjectMember(layerObj, "height")),
           },
         };
       } break;
@@ -276,8 +276,8 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
           tilemap.objects.emplace_back( PuleAssetTiledObject {
             .globalId = puleDsAsUSize(puleDsObjectMember(object, "gid")),
             .originInPixels = {
-              .x = puleDsAsI32(puleDsObjectMember(object, "x")),
-              .y = puleDsAsI32(puleDsObjectMember(object, "y")),
+              .x = puleDsAsU32(puleDsObjectMember(object, "x")),
+              .y = puleDsAsU32(puleDsObjectMember(object, "y")),
             },
             .name = {
               .contents = tilemap.objectNames.back().c_str(),
@@ -329,7 +329,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromFile(
     puleAssetTiledMapLoadFromStream(
       PuleAssetTiledMapLoadCreateInfo {
         .allocator = info.allocator,
-        .baseUrl = puleStringViewCStr(baseUrl.c_str()),
+        .baseUrl = puleCStr(baseUrl.c_str()),
         .mapSource = fileStream.stream,
         .requestedImageFormat = info.requestedImageFormat,
       },

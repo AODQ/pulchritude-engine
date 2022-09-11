@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 
-#include <cstring>
 #include <unordered_map>
 
 namespace { // sampler

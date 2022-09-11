@@ -17,6 +17,7 @@ set_target_properties(
 target_link_libraries(
   pulchritude-ecs
     pulchritude-error
+    pulchritude-data-serializer
     pulchritude-log
     flecs_static
 )

@@ -6,6 +6,7 @@
 import argparse
 import os
 import json
+import re
 
 parser = argparse.ArgumentParser("Parses json to zig")
 parser.add_argument("--output", "-o", default="bindings/json/bindings.json")
@@ -29,7 +30,7 @@ def comment_remover(text):
   )
   return re.sub(pattern, replacer, text)
 
-def exportJsonFromFile(contents):
+def exportJsonFromFile(contents, modulename):
   contents = comment_remover(contents)
   exportedSymbols = []
 
@@ -115,6 +116,7 @@ def exportJsonFromFile(contents):
           "return-type": returnType,
           "label": fnName,
           "parameters": parameters,
+          "module": modulename,
         }]
     elif (strCmp(contents[it:], "typedef enum")):
       enums = []
@@ -182,6 +184,7 @@ def exportJsonFromFile(contents):
         "type": "enum",
         "label": label,
         "values": enums,
+        "module": modulename,
       }]
     elif (
       strCmp(contents[it:], "typedef struct")
@@ -234,6 +237,7 @@ def exportJsonFromFile(contents):
         "type": "struct" if isStructNotUnion else "union",
         "label": label,
         "fields": fields,
+        "module": modulename,
       }]
     else:
       it += 1
@@ -241,6 +245,7 @@ def exportJsonFromFile(contents):
   return exportedSymbols
 
 exportJson = []
+modulePattern = re.compile(r'.+pulchritude-([\w\d\-]+)')
 for subdir, dirs, files in os.walk(inputArgs["input"]):
   for filename in files:
     if (not filename.endswith(".h")):
@@ -249,8 +254,12 @@ for subdir, dirs, files in os.walk(inputArgs["input"]):
     if (filename == "core.h"):
       continue
 
+    modulename = modulePattern.match(subdir).group(1)
+    if (modulename == 'asset'):
+      modulename += '-' + filename.replace('.h', '')
+
     file = open(subdir + "/" + filename)
-    exportJson += exportJsonFromFile(file.read())
+    exportJson += exportJsonFromFile(file.read(), modulename)
     file.close()
 
 # transform function pointers in structs & functions

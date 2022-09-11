@@ -6,7 +6,6 @@
 #include <pulchritude-log/log.h>
 #include <pulchritude-platform/platform.h>
 
-#include <cstring>
 #include <functional>
 #include <string>
 #include <unordered_set>

@@ -5,7 +5,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <cstring>
 #include <vector>
 
 extern "C" {
@@ -87,14 +86,17 @@ PulePlatform pulePlatformCreate(
     );
   }
 
-  puleLogDebug("creating window '%s'", info.name.contents);
-
   GLFWwindow * window = (
     glfwCreateWindow(
       windowWidth, windowHeight, info.name.contents, nullptr, nullptr
     )
   );
-
+  if (!window) {
+    PULE_error(
+      PuleErrorWindow_windowCreationFailed,
+      "Could not create GLFW window; have you called pulePlatformInitialize?"
+    );
+  }
   PULE_errorAssert(window, PuleErrorWindow_windowCreationFailed, {});
 
   PulePlatform platform;

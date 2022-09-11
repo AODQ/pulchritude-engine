@@ -467,7 +467,7 @@ PuleDsValue puleAssetPdsLoadFromRvalStream(
 
 PuleDsValue puleAssetPdsLoadFromFile(
   PuleAllocator const allocator,
-  char const * const filename,
+  PuleStringView const filename,
   PuleError * const error
 ) {
   PuleFile const file = (
@@ -531,7 +531,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleDsValue emitCommandValue = (
     puleDsAssignObjectMember(
       emitValue,
-      puleStringViewCStr("command"),
+      puleCStr("command"),
       puleDsCreateArray(info.allocator)
     )
   );
@@ -539,7 +539,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleDsValue emitParametersValue = (
     puleDsAssignObjectMember(
       emitValue,
-      puleStringViewCStr("parameters"),
+      puleCStr("parameters"),
       puleDsCreateObject(info.allocator)
     )
   );
@@ -574,7 +574,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
     }
     layoutIt = arg;
     puleDsAppendArray(
-      emitCommandValue, puleDsCreateString(puleStringViewCStr(argument))
+      emitCommandValue, puleDsCreateString(puleCStr(argument))
     );
     if (puleDsIsObject(arg)) {
       continue;
@@ -668,7 +668,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         puleDsAssignObjectMember(
           emitParametersValue,
           objLabel,
-          puleDsCreateString(puleStringViewCStr(info.arguments[argumentIt+1]))
+          puleDsCreateString(puleCStr(info.arguments[argumentIt+1]))
         );
         argumentIt += 1;
       }

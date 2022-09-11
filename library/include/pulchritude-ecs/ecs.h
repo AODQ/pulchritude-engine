@@ -1,12 +1,18 @@
 #pragma once
 
 #include <pulchritude-core/core.h>
+#include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-math/math.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum {
+  PuleErrorEcs_none,
+  PuleErrorEcs_queryFailed,
+} PuleErrorEcs;
 
 typedef struct {
   uint64_t id;
@@ -35,6 +41,21 @@ typedef struct {
   char const * label;
   size_t byteLength;
   size_t byteAlignment;
+  void (*imguiOverviewCallbackOptional)();
+  void (*imguiEntityCallbackOptional)(PuleEcsEntity const entity);
+  void (*serializeComponentCallback)(
+    PuleEcsEntity const entity,
+    void const * const componentData,
+    PuleDsValue const writeObjectPds,
+    PuleAllocator const allocator
+  );
+  void (*deserializeComponentCallback)(
+    PuleEcsWorld const world,
+    PuleEcsEntity const entity,
+    PuleEcsComponent const component,
+    PuleDsValue const readObjectPds,
+    PuleAllocator const allocator
+  );
 } PuleEcsComponentCreateInfo;
 
 PULE_exportFn PuleEcsComponent puleEcsComponentCreate(
@@ -42,8 +63,72 @@ PULE_exportFn PuleEcsComponent puleEcsComponentCreate(
   PuleEcsComponentCreateInfo const info
 );
 
+// this is a relatively expensive operation that should only be done
+//   during one-off cases (like serializing, debugging, etc)
 typedef struct {
-  void * data;
+  PuleEcsWorld world;
+  PuleEcsEntity entity;
+  void * userdata;
+  void (*callback)(PuleEcsComponent const component, void * const userdata);
+} PuleEcsEntityIterateComponentsInfo;
+PULE_exportFn void puleEcsEntityIterateComponents(
+  PuleEcsEntityIterateComponentsInfo const info
+);
+
+PULE_exportFn PuleEcsComponent puleEcsComponentFetchByLabel(
+  PuleEcsWorld const world,
+  PuleStringView const label
+);
+
+PULE_exportFn PuleStringView puleEcsComponentLabel(
+  PuleEcsWorld const world,
+  PuleEcsComponent const component
+);
+
+typedef struct {
+  void (*serializeComponentCallback)(
+    PuleEcsEntity const entity,
+    void const * const componentData,
+    PuleDsValue const writeObjectPds,
+    PuleAllocator const allocator
+  );
+  void (*deserializeComponentCallback)(
+    PuleEcsWorld const world,
+    PuleEcsEntity const entity,
+    PuleEcsComponent const component,
+    PuleDsValue const readObjectPds,
+    PuleAllocator const allocator
+  );
+} PuleEcsComponentSerializer;
+PULE_exportFn PuleEcsComponentSerializer puleEcsComponentSerializer(
+  PuleEcsWorld const world,
+  PuleEcsComponent const component
+);
+
+typedef struct {
+  PuleStringView label;
+  size_t byteLength;
+  void (*imguiOverviewCallback)();
+  void (*imguiEntityCallback)(PuleEcsEntity const entity);
+} PuleEcsComponentInfo;
+
+PULE_exportFn PuleEcsComponentInfo puleEcsComponentInfo(
+  PuleEcsWorld const world,
+  PuleEcsComponent const component
+);
+
+typedef struct {
+  PuleEcsWorld world;
+  void * userdata;
+  void (*fn)(PuleEcsComponent const component, void * const userdata);
+} PuleEcsComponentIterateAllCallback;
+
+PULE_exportFn void puleEcsComponentIterateAll(
+  PuleEcsComponentIterateAllCallback const callback
+);
+
+typedef struct {
+  uint64_t id;
 } PuleEcsIterator;
 
 PULE_exportFn size_t puleEcsIteratorEntityCount(
@@ -92,18 +177,65 @@ PULE_exportFn void puleEcsSystemAdvance(
   void * const userdata
 );
 
-PULE_exportFn void * puleEcsSystemUserData();
-
-PULE_exportFn PuleEcsEntity puleEcsEntityCreate(PuleEcsWorld const world);
+PULE_exportFn PuleEcsEntity puleEcsEntityCreate(
+  PuleEcsWorld const world,
+  PuleStringView const label
+);
+PULE_exportFn PuleStringView puleEcsEntityName(
+  PuleEcsWorld const world,
+  PuleEcsEntity const entity
+);
 PULE_exportFn void puleEcsEntityDestroy(
   PuleEcsWorld const world,
   PuleEcsEntity const entity
 );
+
 PULE_exportFn void puleEcsEntityAttachComponent(
  PuleEcsWorld const world,
  PuleEcsEntity const entity,
  PuleEcsComponent const component,
- void * const nullableInitialData
+ void const * const nullableInitialData
+);
+
+// fetches the underlying-data for the component of an entity
+PULE_exportFn void const * puleEcsEntityComponentData(
+  PuleEcsWorld const world,
+  PuleEcsEntity const entity,
+  PuleEcsComponent const component
+);
+
+typedef struct {
+  uint64_t id;
+} PuleEcsQuery;
+
+PULE_exportFn PuleEcsQuery puleEcsQueryByComponent(
+  PuleEcsWorld const world,
+  PuleEcsComponent * const componentList,
+  size_t const componentListSize,
+  PuleError * const error
+);
+
+// these below are very silly, just can't think of a better way for serializing
+PULE_exportFn PuleEcsQuery puleEcsQueryAllEntities(
+  PuleEcsWorld const world,
+  PuleError * const error
+);
+
+PULE_exportFn void puleEcsQueryDestroy(PuleEcsQuery const query);
+
+typedef struct {
+  uint64_t id;
+} PuleEcsQueryIterator;
+PULE_exportFn PuleEcsQueryIterator puleEcsQueryIterator(
+  PuleEcsWorld const world,
+  PuleEcsQuery const query
+);
+// returns .id=0 if finished
+PULE_exportFn PuleEcsIterator puleEcsQueryIteratorNext(
+  PuleEcsQueryIterator const iter
+);
+PULE_exportFn void puleEcsQueryIteratorDestroy(
+  PuleEcsQueryIterator const iter
 );
 
 // TODO destroy entities and systems

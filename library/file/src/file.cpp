@@ -1,12 +1,16 @@
 #include <pulchritude-file/file.h>
 
+#include <pulchritude-time/time.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
-#include <string>
+#include <sys/file.h>
 
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 // TODO:
 //   - add buffering (configurable, like 256 bytes)
@@ -22,7 +26,7 @@ std::unordered_map<uint64_t, OpenFileInfo> openFiles;
 extern "C" {
 
 PuleFile puleFileOpen(
-  char const * const filename,
+  PuleStringView const filename,
   PuleFileDataMode const dataMode,
   PuleFileOpenMode const openMode,
   PuleError * const error
@@ -51,18 +55,26 @@ PuleFile puleFileOpen(
       }
     break;
   }
-  FILE * const file = fopen(filename, fileMode);
+  // null terminate the filename
+  std::string const filenameStr = std::string(filename.contents, filename.len);
+  FILE * const file = fopen(filenameStr.c_str(), fileMode);
   if (!file) {
+    auto const strerrorcp = std::string(strerror(errno));
+    // in C11 there is nice strerrorlen_s and strerror_s, but not in C++
+    // TODO but this doesnt seem to work, possibly bug in my code. Try to fix
+    //std::vector<char> strerrorcopy;
+    //strerrorcopy.resize(1024);
+    //strerror_r(errno, strerrorcopy.data(), 1024);
     PULE_error(
       PuleErrorFile_fileOpen,
-      "failed to open file '%s' (%s)", filename, strerror(errno)
+      "failed to open file '%s'", filename
     );
     return { 0 };
   }
   uint64_t const id = reinterpret_cast<uint64_t>(file);
   ::openFiles.emplace(
     id,
-    OpenFileInfo { .path = std::string(filename), .file = file, }
+    OpenFileInfo { .path = filenameStr, .file = file, }
   );
   return {id};
 }
@@ -95,7 +107,8 @@ uint8_t puleFileReadByte(PuleFile const file) {
 
 size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
   auto const fileHandle = ::openFiles.at(file.id).file;
-  flockfile(fileHandle);
+  flock(fileno(fileHandle), LOCK_EX); // lock file for process
+  flockfile(fileHandle); // lock file for this thread
   uint8_t * data = reinterpret_cast<uint8_t *>(dst.data);
   size_t bytesWritten = 0;
   for (; bytesWritten < dst.elementCount; ++ bytesWritten) {
@@ -104,7 +117,8 @@ size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
     if (character == EOF) { break; }
     data[bytesWritten*dst.elementStride] = static_cast<uint8_t>(character);
   }
-  funlockfile(fileHandle);
+  funlockfile(fileHandle); // unlock for thread
+  flock(fileno(fileHandle), LOCK_UN); // unlock for process
 
   return bytesWritten;
 }
@@ -318,6 +332,25 @@ PuleStreamWrite puleFileStreamWrite(
 
 extern "C" {
 
+bool puleFilesystemExists(
+  PuleStringView const path
+) {
+  std::error_code errorCode;
+  bool const exists = (
+    std::filesystem::exists(
+      std::filesystem::path(std::string_view(path.contents, path.len))
+    )
+  );
+  if (errorCode) {
+    puleLogError(
+      "could not check if file exists for '%s': %s",
+      path.contents,
+      errorCode.message().c_str()
+    );
+  }
+  return exists;
+}
+
 bool puleFileCopy(
   PuleStringView const srcPath,
   PuleStringView const dstPath
@@ -355,6 +388,91 @@ bool puleFileRemove(PuleStringView const filePath) {
     return false;
   }
   return true;
+}
+
+PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
+  if (!puleFilesystemExists(path)) {
+    return {.value=0,};
+  }
+  std::error_code errorcode;
+  auto const filetime = std::filesystem::last_write_time(
+    std::filesystem::path(std::string_view(path.contents, path.len)),
+    errorcode
+  );
+  if (errorcode) {
+    return {.value=0,};
+  }
+  return {
+    .value = (
+      static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+          filetime.time_since_epoch()
+        ).count()
+      )
+    ),
+  };
+}
+
+} // C
+
+//-- file watch ----------------------------------------------------------------
+
+namespace {
+  struct FileWatcher {
+    void (*fileUpdatedCallback)(
+      PuleStringView const filename,
+      void * const userdata
+    );
+    std::string filename;
+    void * userdata;
+    PuleTimestamp lastUpdated;
+  };
+
+  std::unordered_map<uint64_t, FileWatcher> fileWatchers;
+  size_t fileWatcherHashIt = 1;
+}
+
+extern "C" {
+
+PuleFileWatcher puleFileWatch(
+  PuleFileWatchCreateInfo const ci
+) {
+  auto const filename = std::string(ci.filename.contents, ci.filename.len);
+
+  auto const watcher = FileWatcher {
+    .fileUpdatedCallback = ci.fileUpdatedCallback,
+    .filename = filename,
+    .userdata = ci.userdata,
+    .lastUpdated = puleFilesystemTimestamp(ci.filename),
+  };
+
+  ::fileWatchers.emplace(::fileWatcherHashIt, watcher);
+  return {.id = ::fileWatcherHashIt++,};
+}
+
+bool puleFileWatchCheckAll() {
+  bool anyFilesChanged = false;
+  for (auto & filewatchPair : ::fileWatchers) {
+    auto & filewatch = std::get<1>(filewatchPair);
+    auto const timestamp = (
+      puleFilesystemTimestamp(puleCStr(filewatch.filename.c_str()))
+    );
+    if (filewatch.lastUpdated.value < timestamp.value) {
+      anyFilesChanged = true;
+      filewatch.lastUpdated = timestamp;
+      if (filewatch.fileUpdatedCallback) {
+        puleLogDebug("filename: %s", filewatch.filename.c_str());
+        filewatch.fileUpdatedCallback(
+          PuleStringView {
+            .contents=filewatch.filename.c_str(),
+            .len=filewatch.filename.size(),
+          },
+          filewatch.userdata
+        );
+      }
+    }
+  }
+  return anyFilesChanged;
 }
 
 } // C

@@ -31,7 +31,11 @@ void assetAddForward(
     puleDsAsString(puleDsObjectMember(input, "source"))
   );
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./editor/assets.pds"),
+      error
+    )
   );
   if (puleErrorExists(error)) {
     return;
@@ -58,14 +62,14 @@ void assetAddForward(
   { // append file reference
     PuleDsValue fileObj = puleDsCreateObject(allocator);
     puleDsAssignObjectMember(
-      fileObj, puleStringViewCStr("path"), puleDsCreateString(source)
+      fileObj, puleCStr("path"), puleDsCreateString(source)
     );
     puleDsAssignObjectMember(
-      fileObj, puleStringViewCStr("tracking"), puleDsCreateI64(false)
+      fileObj, puleCStr("tracking"), puleDsCreateI64(false)
     );
     puleDsAppendArray(filesValue, fileObj);
   }
-  puleAssetPdsWriteToFile(assetValue, "editor/assets.pds", error);
+  puleAssetPdsWriteToFile(assetValue, puleCStr("editor/assets.pds"), error);
   puleDsDestroy(assetValue);
   if (puleErrorExists(error)) {
     return;
@@ -84,7 +88,11 @@ void assetAddRewind(
   puleLog("removing resource at '%s'", source.contents);
 
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./editor/assets.pds"),
+      error
+    )
   );
   if (puleErrorExists(error)) {
     return;
@@ -108,7 +116,7 @@ void assetAddRewind(
       puleLogError("failed to find the file reference to remove");
     }
   }
-  puleAssetPdsWriteToFile(assetValue, "editor/assets.pds", error);
+  puleAssetPdsWriteToFile(assetValue, puleCStr("editor/assets.pds"), error);
   puleDsDestroy(assetValue);
 
   if (puleErrorExists(error)) {
@@ -123,7 +131,11 @@ void assetList(
   PuleError * const error
 ) {
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./editor/assets.pds"),
+      error
+    )
   );
   if (puleErrorExists(error)) {
     return;
@@ -143,7 +155,11 @@ void assetInfo(
   );
 
   PuleDsValue const assetValue = (
-    puleAssetPdsLoadFromFile(allocator, "./editor/assets.pds", error)
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./editor/assets.pds"),
+      error
+    )
   );
   if (puleErrorExists(error)) {
     return;

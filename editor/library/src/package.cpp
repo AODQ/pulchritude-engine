@@ -34,7 +34,7 @@ PuleDsValue puldRegisterCommands(
   return (
     puleAssetPdsLoadFromRvalStream(
       allocator,
-      puleStreamReadFromString(puleStringViewCStr(commandRegisterCStr)),
+      puleStreamReadFromString(puleCStr(commandRegisterCStr)),
       error
     )
   );
@@ -64,7 +64,7 @@ PuleDsValue puldRegisterCLICommands(
   return (
     puleAssetPdsLoadFromRvalStream(
       allocator,
-      puleStreamReadFromString(puleStringViewCStr(CLIRegisterCStr)),
+      puleStreamReadFromString(puleCStr(CLIRegisterCStr)),
       error
     )
   );

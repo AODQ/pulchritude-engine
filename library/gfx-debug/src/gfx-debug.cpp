@@ -71,7 +71,7 @@ void refreshContext(
   ctx.commandList = (
     puleGfxCommandListCreate(
       puleAllocateDefault(),
-      puleStringViewCStr("pule-gfx-debug")
+      puleCStr("pule-gfx-debug")
     )
   );
   { // record command list
@@ -162,7 +162,11 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
 
   { // line renderer
     ctx.lineRenderer.shaderModule = (
-      puleGfxShaderModuleCreate(vertexShaderSource, fragmentShaderSource, &err)
+      puleGfxShaderModuleCreate(
+        puleCStr(vertexShaderSource),
+        puleCStr(fragmentShaderSource),
+        &err
+      )
     );
     if (puleErrorConsume(&err)) {
       return;

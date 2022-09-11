@@ -113,7 +113,7 @@ PuleStringView puleStringView(PuleString const string) {
   return str;
 }
 
-PuleStringView puleStringViewCStr(char const * const cstr) {
+PuleStringView puleCStr(char const * const cstr) {
   PuleStringView str = {
     .contents = cstr,
     .len = strlen(cstr),

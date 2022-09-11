@@ -144,7 +144,7 @@ void puleAssetPdsWriteToStream(
 
 void puleAssetPdsWriteToFile(
   PuleDsValue const head,
-  char const * const filename,
+  PuleStringView const filename,
   PuleError * const error
 ) {
   PuleFile const file = (

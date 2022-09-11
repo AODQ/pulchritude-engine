@@ -4,8 +4,6 @@
 
 #include <glad/glad.h>
 
-#include <cstring>
-
 namespace {
   GLenum memoryBarrierFlagToGl(PuleGfxMemoryBarrierFlag const barrier) {
     switch (barrier) {

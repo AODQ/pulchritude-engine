@@ -64,7 +64,9 @@ PULE_exportFn PuleString puleStringFormatVargs(
 );
 
 PULE_exportFn PuleStringView puleStringView(PuleString const string);
-PULE_exportFn PuleStringView puleStringViewCStr(char const * const cstr);
+// equivalent of puleStringViewCStr but it's used so heavily that
+//   I decided to shorten it
+PULE_exportFn PuleStringView puleCStr(char const * const cstr);
 
 PULE_exportFn bool puleStringViewEq(
   PuleStringView const v0,

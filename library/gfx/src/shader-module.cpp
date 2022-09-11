@@ -20,9 +20,9 @@ namespace {
   bool compileShader(
     GLuint const handle,
     char const * const label,
-    char const * const source
+    PuleStringView const source
   ) {
-    glShaderSource(handle, 1, &source, nullptr);
+    glShaderSource(handle, 1, &source.contents, nullptr);
     glCompileShader(handle);
     GLint compilationSuccess = false;
     glGetShaderiv(handle, GL_COMPILE_STATUS, &compilationSuccess);
@@ -41,8 +41,8 @@ namespace {
 }
 
 PuleGfxShaderModule puleGfxShaderModuleCreate(
-  char const * const vertexShaderSource,
-  char const * const fragmentShaderSource,
+  PuleStringView const vertexShaderSource,
+  PuleStringView const fragmentShaderSource,
   PuleError * const error
 ) {
   GLuint const vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER);

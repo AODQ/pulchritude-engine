@@ -51,6 +51,15 @@ plugin. This allows for even the most central part of the engine, such as the
 logger or default memory allocator, to be replaced. In other words, the only
 irreplacable part of Pulchritude is the cohesive interfaces between plugins.
 
+Some plugins in some cases are harder to replace than others and might require
+  changing underlying assets. For example, the default scripting in Pulchritude
+  is Lua, and to change that mid-project would obviously require porting a lot
+  of Lua code. As well, shading languages might need to be ported if switching
+  the underlying graphics API. The same might apply to image assets, font
+  assets, etc. Some assets have custom backend implementations, like the data
+  serializer and 3D model representation, which should make writing these plugin
+  replacements a bit simpler.
+
 ---
 
 ### requirements

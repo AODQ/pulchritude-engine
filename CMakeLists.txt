@@ -56,6 +56,7 @@ project(
   DESCRIPTION "pulchritude engine | github.com/aodq/pulchritude-engine"
 )
 
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -80,6 +81,12 @@ add_subdirectory(third-party)
 add_subdirectory(application)
 add_subdirectory(editor)
 add_subdirectory(library)
+
+function(watchfile)
+  set_property(
+    DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ARGV}
+  )
+endfunction()
 
 # perform binding generation
 execute_process(
@@ -109,3 +116,29 @@ execute_process(
 if (NOT processFinished STREQUAL "0")
   message(WARNING "could not generate zig bindings")
 endif()
+
+execute_process(
+  COMMAND
+    python3
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
+    "--input"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
+    "--output"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua"
+    "--source"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+  RESULT_VARIABLE processFinished
+)
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not generate lua bindings")
+endif()
+
+watchfile(
+  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
+)
+watchfile(
+  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
+)
+watchfile(
+  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
+)

@@ -18,7 +18,7 @@ PuleF32v2 puleF32v2Sub(PuleF32v2 const a, PuleF32v2 const b) {
   return PuleF32v2 { .x = a.x-b.x, .y = a.y-b.y };
 }
 PuleF32v2 puleF32v2Abs(PuleF32v2 const a) {
-  return PuleF32v2 { .x = abs(a.x), .y = abs(a.y) };
+  return PuleF32v2 { .x = fabsf(a.x), .y = fabsf(a.y) };
 }
 
 PuleF32v3 puleF32v3(float const identity) {

@@ -3,10 +3,6 @@
 // ubj pna v erpbyyrpg fbzrbar jub fnlf nyy v unir fgbccrq yvfgravat bapr erireg
 // lbh jnagrq gb pbqr lbh jnagrq gb pbqr lbh jnagrq gb pbqr lbh ner nyybjrq gb
 
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -102,7 +98,7 @@ void parseArguments(
   }
 
   size_t const userCommandHash = (
-    puleStringViewHash(puleStringViewCStr(userCommandJoined.c_str()))
+    puleStringViewHash(puleCStr(userCommandJoined.c_str()))
   );
   auto const command = commandRegistry.find(userCommandHash);
   if (command == commandRegistry.end()) {
@@ -133,7 +129,11 @@ void parseArguments(
     }
     // TODO after command succeeds, add to commands list
     PuleDsValue const commandsFileValue = (
-      puleAssetPdsLoadFromFile(allocator, "./editor/commands.pds", &err)
+      puleAssetPdsLoadFromFile(
+        allocator,
+        puleCStr("./editor/commands.pds"),
+        &err
+      )
     );
     if (puleErrorConsume(&err)) { return; }
 
@@ -153,13 +153,13 @@ void parseArguments(
 
     puleDsOverwriteObjectMember(
       commandsFileValue,
-      puleStringViewCStr("branch-head-idx"),
+      puleCStr("branch-head-idx"),
       puleDsCreateI64(commandsAsArray.length)
     );
 
     puleDsOverwriteObjectMember(
       commandsFileValue,
-      puleStringViewCStr("current-head-idx"),
+      puleCStr("current-head-idx"),
       puleDsCreateI64(commandsAsArray.length)
     );
 
@@ -175,12 +175,12 @@ void parseArguments(
       PuleDsValue const newCommand = puleDsCreateObject(allocator);
       puleDsAssignObjectMember(
         newCommand,
-        puleStringViewCStr("parent"),
+        puleCStr("parent"),
         puleDsCreateI64(parentHeadIdx)
       );
       puleDsAssignObjectMember(
         newCommand,
-        puleStringViewCStr("command"),
+        puleCStr("command"),
         puleDsValueCloneRecursively(
           puleDsObjectMember(userArguments, "command"),
           allocator
@@ -188,7 +188,7 @@ void parseArguments(
       );
       puleDsAssignObjectMember(
         newCommand,
-        puleStringViewCStr("parameters"),
+        puleCStr("parameters"),
         puleDsValueCloneRecursively(
           puleDsObjectMember(userArguments, "parameters"),
           allocator
@@ -196,7 +196,7 @@ void parseArguments(
       );
       puleDsAssignObjectMember(
         newCommand,
-        puleStringViewCStr("children"),
+        puleCStr("children"),
         puleDsCreateArray(allocator)
       );
 
@@ -204,7 +204,11 @@ void parseArguments(
     }
 
     if (applyToActionHistory == ApplyToActionHistory::Yes) {
-      puleAssetPdsWriteToFile(commandsFileValue, "editor/commands.pds", &err);
+      puleAssetPdsWriteToFile(
+        commandsFileValue,
+        puleCStr("editor/commands.pds"),
+        &err
+      );
     }
     puleDsDestroy(commandsFileValue);
     if (puleErrorConsume(&err)) { return; }

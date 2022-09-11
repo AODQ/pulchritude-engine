@@ -55,10 +55,9 @@ PULE_exportFn bool puleErrorExists(PuleError * const error);
 // irrecoverable assert, should only be on for relwithdebinfo builds i guess
 #define PULE_assert(X) { \
   if (!(X)) { \
-    puleLogError("assertion failed; %s", #X); \
+    puleLogError("assertion failed; %s @ %s:%d", #X, __FILE__, __LINE__); \
     abort(); \
-  } \
-}
+  }
 
 #ifdef __cplusplus
 } // extern C

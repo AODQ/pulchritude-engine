@@ -88,7 +88,11 @@ void applyRedoUndo(
 
   // get command info
   PuleDsValue const commandsFileValue = (
-    puleAssetPdsLoadFromFile(allocator, "./editor/commands.pds", error)
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./editor/commands.pds"),
+      error
+    )
   );
   if (puleErrorExists(error)) { return; }
 
@@ -115,13 +119,13 @@ void applyRedoUndo(
     PuleDsValue const commandToApplyValue = (
       puleDsAssignObjectMember(
         main,
-        puleStringViewCStr("commands-to-apply"),
+        puleCStr("commands-to-apply"),
         puleDsCreateArray(allocator)
       )
     );
     puleDsAssignObjectMember(
       main,
-      puleStringViewCStr("command-true-forward-false-rewind"),
+      puleCStr("command-true-forward-false-rewind"),
       puleDsCreateI64(trueForwardFalseRewind)
     );
     for (int64_t levelIdx = 0; levelIdx < levels; ++ levelIdx) {
@@ -137,7 +141,7 @@ void applyRedoUndo(
       );
       puleDsAssignObjectMember(
         itValue,
-        puleStringViewCStr("command"),
+        puleCStr("command"),
         puleDsValueCloneRecursively(
           puleDsObjectMember(commandValue, "command"),
           allocator
@@ -145,7 +149,7 @@ void applyRedoUndo(
       );
       puleDsAssignObjectMember(
         itValue,
-        puleStringViewCStr("parameters"),
+        puleCStr("parameters"),
         puleDsValueCloneRecursively(
           puleDsObjectMember(commandValue, "parameters"),
           allocator
@@ -170,12 +174,14 @@ void applyRedoUndo(
 
     puleDsOverwriteObjectMember(
       commandsFileValue,
-      puleStringViewCStr("current-head-idx"),
+      puleCStr("current-head-idx"),
       puleDsCreateI64(localCommand.ids[newCurrentHeadIdsIdx])
     );
   }
 
-  puleAssetPdsWriteToFile(commandsFileValue, "editor/commands.pds", error);
+  puleAssetPdsWriteToFile(
+    commandsFileValue, puleCStr("editor/commands.pds"), error
+  );
   // fallthrough to destructor
   puleDsDestroy(commandsFileValue);
 }
@@ -217,7 +223,11 @@ void undotreeShow(
   );
 
   PuleDsValue const commandsFileValue = (
-    puleAssetPdsLoadFromFile(allocator, "./editor/commands.pds", error)
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./editor/commands.pds"),
+      error
+    )
   );
   if (puleErrorExists(error)) {
     return;

@@ -13,3 +13,9 @@
 [submodule "third-party/flecs"]
 	path = third-party/flecs
 	url = https://github.com/SanderMertens/flecs
+[submodule "third-party/daScript"]
+	path = third-party/daScript
+	url = https://github.com/GaijinEntertainment/daScript
+[submodule "third-party/lua"]
+	path = third-party/lua
+	url = https://github.com/lubgr/lua-cmake

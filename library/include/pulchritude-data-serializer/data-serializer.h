@@ -106,6 +106,9 @@ PULE_exportFn PuleDsValueArray puleDsAsArray(PuleDsValue const value);
 PULE_exportFn PuleDsValueObject puleDsAsObject(PuleDsValue const value);
 PULE_exportFn PuleDsValueBuffer puleDsAsBuffer(PuleDsValue const value);
 
+// below is convenient type conversion for puleDsAsF64
+PULE_exportFn float puleDsAsF32(PuleDsValue const value);
+
 // below are just convenient type conversions of (T)puleDsAsI64
 PULE_exportFn int32_t puleDsAsI32(PuleDsValue const value);
 PULE_exportFn size_t puleDsAsUSize(PuleDsValue const value);
