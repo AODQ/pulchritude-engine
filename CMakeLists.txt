@@ -100,7 +100,7 @@ execute_process(
   RESULT_VARIABLE processFinished
 )
 if (NOT processFinished STREQUAL "0")
-  message(WARNING "could not generate json bindings")
+  message(FATAL_ERROR "could not generate json bindings")
 endif()
 
 execute_process(
@@ -114,7 +114,7 @@ execute_process(
   RESULT_VARIABLE processFinished
 )
 if (NOT processFinished STREQUAL "0")
-  message(WARNING "could not generate zig bindings")
+  message(FATAL_ERROR "could not generate zig bindings")
 endif()
 
 execute_process(
@@ -141,4 +141,7 @@ watchfile(
 )
 watchfile(
   "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
+)
+watchfile(
+  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-ecs-components-from-json-binding-generator.py"
 )

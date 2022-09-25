@@ -11,7 +11,11 @@ namespace {
     std::string label;
     size_t byteLength;
     void (*imguiOverviewCallback)();
-    void (*imguiEntityCallback)(PuleEcsEntity const entity);
+    void (*imguiEntityCallback)(
+      PuleEcsWorld const world,
+      PuleEcsEntity const entity,
+      PuleEcsComponent const component
+    );
     void (*serializeComponentCallback)(
       PuleEcsEntity const entity,
       void const * const componentData,
@@ -102,7 +106,11 @@ PuleEcsComponent puleEcsComponentCreate(
       .deserializeComponentCallback = info.deserializeComponentCallback,
     }
   );
-  puleLogDebug("> creating component entity %zu", componentEntity);
+  puleLogDebug(
+    "> creating component entity %zu: %s",
+    componentEntity,
+    info.label
+  );
   return { componentEntity };
 }
 
@@ -123,7 +131,6 @@ void puleEcsEntityIterateComponents(
     ecs_id_t const id = typeIds[it];
     ecs_entity_t const component = ecs_get_typeid(world, id);
     if ((id & ECS_PAIR) == ECS_PAIR || component == 0) continue;
-    puleLogDebug(">> component %zu", component);
     info.callback(PuleEcsComponent{.id=component,}, info.userdata);
   }
 }
@@ -255,7 +262,7 @@ PuleEcsWorld puleEcsIteratorWorld(
 PuleEcsSystem puleEcsIteratorSystem(
   PuleEcsIterator const iterator
 ) {
-  auto iter = reinterpret_cast<ecs_iter_t *>(iterator.data);
+  auto iter = reinterpret_cast<ecs_iter_t *>(iterator.id);
   return { reinterpret_cast<uint64_t>(iter->system) };
 }
 
@@ -477,20 +484,20 @@ void puleEcsQueryDestroy(PuleEcsQuery const puQuery) {
 extern "C" {
 
 void puleEcsAddDefaultComponents(PuleEcsWorld const world) {
-  worldDefaultComponents.emplace(
-    world.id,
-    DefaultWorldComponents {
-        .originF32v3 = (
-          puleEcsComponentCreate(
-            world, {
-              .label = "PuleOriginF32v3",
-              .byteLength = sizeof(PuleEcsComponentOriginF32v3),
-              .byteAlignment = alignof(PuleEcsComponentOriginF32v3),
-            }
-          )
-        ),
-      }
-  );
+  /* worldDefaultComponents.emplace( */
+  /*   world.id, */
+  /*   DefaultWorldComponents { */
+  /*       .originF32v3 = ( */
+  /*         puleEcsComponentCreate( */
+  /*           world, { */
+  /*             .label = "PuleOriginF32v3", */
+  /*             .byteLength = sizeof(PuleEcsComponentOriginF32v3), */
+  /*             .byteAlignment = alignof(PuleEcsComponentOriginF32v3), */
+  /*           } */
+  /*         ) */
+  /*       ), */
+  /*     } */
+  /* ); */
 }
 
 } // C

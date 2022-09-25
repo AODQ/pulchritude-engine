@@ -12,6 +12,7 @@
 namespace {
 
 PuleEcsComponent focusedComponent = { .id = 0, };
+PuleEcsEntity focusedEntity = { .id = 0, };
 
 void displayEcsComponent(
   PuleEcsComponent const component,
@@ -21,7 +22,7 @@ void displayEcsComponent(
   PuleEcsComponentInfo const componentInfo = (
     puleEcsComponentInfo(info.world, component)
   );
-  if (!puleImguiBeginSection(componentInfo.label.contents)) {
+  if (!puleImguiSectionBegin(componentInfo.label.contents)) {
     return;
   }
 
@@ -29,12 +30,58 @@ void displayEcsComponent(
     focusedComponent = component;
   }
 
+  puleImguiSectionEnd();
+}
 
-  if (componentInfo.imguiOverviewCallback) {
-    componentInfo.imguiOverviewCallback();
+struct FocusedEntityComponentCallbackInfo {
+  PuleEcsWorld world;
+  PuleEcsEntity entity;
+};
+
+void displayEcsFocusedEntityComponentCallback(
+  PuleEcsComponent const component,
+  void const * const userdata
+) {
+  auto const info = (
+    *reinterpret_cast<FocusedEntityComponentCallbackInfo const *>(userdata)
+  );
+  PuleEcsComponentInfo const componentInfo = (
+    puleEcsComponentInfo(info.world, component)
+  );
+  if (componentInfo.imguiEntityCallback) {
+    componentInfo.imguiEntityCallback(
+      info.world,
+      info.entity,
+      component
+    );
+  }
+}
+
+void displayEcsFocusedEntity(PuleImguiEngineDisplayInfo const info) {
+  if (focusedEntity.id == 0) {
+    return;
+  }
+  bool opened = true;
+  puleImguiWindowBegin("entity", &opened);
+  if (!opened) {
+    puleImguiWindowEnd();
+    focusedEntity.id = 0;
+    return;
   }
 
-  puleImguiEndSection();
+  auto const callbackInfo = FocusedEntityComponentCallbackInfo {
+    .world = info.world,
+    .entity = focusedEntity,
+  };
+
+  puleEcsEntityIterateComponents( PuleEcsEntityIterateComponentsInfo {
+    .world = info.world,
+    .entity = focusedEntity,
+    .userdata = &callbackInfo,
+    .callback = &displayEcsFocusedEntityComponentCallback,
+  });
+
+  puleImguiWindowEnd();
 }
 
 void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
@@ -54,12 +101,13 @@ void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
         "entity list for '%s'", focusedComponentInfo.label.contents
       )
     );
-    puleImguiBeginWindow(windowBegin.contents, &opened);
+    puleImguiWindowBegin(windowBegin.contents, &opened);
     puleStringDeallocate(windowBegin);
   }
 
   if (!opened) {
     focusedComponent.id = 0;
+    puleImguiWindowEnd();
     return;
   }
 
@@ -70,6 +118,7 @@ void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
   );
   if (puleErrorConsume(&err)) {
     focusedComponent.id = 0;
+    puleImguiWindowEnd();
     return;
   }
 
@@ -84,6 +133,10 @@ void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
     size_t const entityCount = puleEcsIteratorEntityCount(iter);
     PuleEcsEntity * const entities = puleEcsIteratorQueryEntities(iter);
     for (size_t it = 0; it < entityCount; ++ it) {
+      if (puleImguiButton("o")) {
+        focusedEntity = entities[it];
+      }
+      puleImguiJoinNext();
       puleImguiText(
         "entity %zu name '%s'",
         entities[it].id,
@@ -93,10 +146,11 @@ void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
   }
   puleEcsQueryIteratorDestroy(queryIter);
   puleEcsQueryDestroy(query);
+  puleImguiWindowEnd();
 }
 
 void displayEcsComponentList(PuleImguiEngineDisplayInfo const info) {
-  puleImguiBeginWindow("ecs component list", nullptr);
+  puleImguiWindowBegin("ecs component list", nullptr);
   puleEcsComponentIterateAll(
     PuleEcsComponentIterateAllCallback {
       .world = info.world,
@@ -105,7 +159,7 @@ void displayEcsComponentList(PuleImguiEngineDisplayInfo const info) {
     }
   );
 
-  puleImguiEndWindow();
+  puleImguiWindowEnd();
 }
 
 } // namespace
@@ -115,6 +169,7 @@ extern "C" {
 void puleImguiEngineDisplay(PuleImguiEngineDisplayInfo const info) {
   displayEcsComponentList(info);
   displayEcsEntityList(info);
+  displayEcsFocusedEntity(info);
 }
 
 } // C

@@ -3,15 +3,25 @@
 # Parses Pulchritude's C headers, extracts exported symbols (structs, enums,
 #   consts and functions), then places them into a JSON array and writes them out
 
+# this is extremely ugly, I would like if there were some sort of Python module
+#   that could import C headers (even with heavy restrictions, which I have to
+#   to already anyway), but unfortunately parsing like an idiot is the only
+#   solution I can find or think of
+
 import argparse
 import os
 import json
 import re
 
-parser = argparse.ArgumentParser("Parses json to zig")
+parser = argparse.ArgumentParser("Parses C headers to JSON")
 parser.add_argument("--output", "-o", default="bindings/json/bindings.json")
 parser.add_argument("--input", "-i", default="library/include/")
 inputArgs = vars(parser.parse_args())
+
+print(" --- ", inputArgs['output'])
+def pprint(label):
+  if ("rts-game" in inputArgs['output']):
+    print(label)
 
 def strCmp(contents, y):
   if (len(contents) < len(y)):
@@ -118,6 +128,46 @@ def exportJsonFromFile(contents, modulename):
           "parameters": parameters,
           "module": modulename,
         }]
+    elif (strCmp(contents[it:], "using")): # TODO support C's "using" I guess
+      # using +([^ =]+) *= *([^ ;]+) *;
+      # 'using'
+      while (not contents[it].isspace()):
+        it += 1
+      # \s*
+      while (contents[it].isspace()):
+        it += 1;
+      # [^ =]+
+      ulabel = ""
+      while (not contents[it].isspace() and contents[it] != "="):
+        ulabel += contents[it]
+        it += 1;
+      assert(ulabel != "")
+      # \s*
+      while (contents[it].isspace()):
+        it += 1;
+      # =
+      assert(contents[it] == "=")
+      it += 1
+      # \s*
+      while (contents[it].isspace()):
+        it += 1;
+      # [^ ;]+
+      utype = ""
+      while (not contents[it].isspace() and contents[it] != ";"):
+        utype += contents[it]
+        it += 1
+      # \s*
+      while (contents[it].isspace()):
+        it += 1
+      # ;
+      assert(contents[it] == ";")
+      it += 1
+
+      exportedSymbols += [{
+        "type": "using",
+        "label": ulabel,
+        "typelabel": utype,
+      }]
     elif (strCmp(contents[it:], "typedef enum")):
       enums = []
       while (contents[it] != "{"):
@@ -127,9 +177,11 @@ def exportJsonFromFile(contents, modulename):
       enumVal = 0
       # --- enum list end
       while (contents[it] != "}"):
+        # \s*
         while (contents[it].isspace()):
           it += 1
         e = ""
+        # [^\s,}=]
         while (
           not contents[it].isspace()
           and contents[it] != "," and contents[it] != "}"
@@ -137,11 +189,8 @@ def exportJsonFromFile(contents, modulename):
         ):
           e += contents[it]
           it += 1
-        while (
-          contents[it].isspace()
-          and contents[it] != "," and contents[it] != "}"
-          and contents[it] != "="
-        ):
+        # \s
+        while (contents[it].isspace()):
           it += 1
         if (contents[it] == "="): # get the puleenum_val = >>value<<
           it += 1
@@ -246,7 +295,7 @@ def exportJsonFromFile(contents, modulename):
 
 exportJson = []
 modulePattern = re.compile(r'.+pulchritude-([\w\d\-]+)')
-for subdir, dirs, files in os.walk(inputArgs["input"]):
+for subdir, dirs, files in os.walk(inputArgs['input']):
   for filename in files:
     if (not filename.endswith(".h")):
       continue
@@ -259,6 +308,7 @@ for subdir, dirs, files in os.walk(inputArgs["input"]):
       modulename += '-' + filename.replace('.h', '')
 
     file = open(subdir + "/" + filename)
+    pprint(f"file open: {file}")
     exportJson += exportJsonFromFile(file.read(), modulename)
     file.close()
 
@@ -387,6 +437,7 @@ for objkey, obj in enumerate(exportJson):
 # interesting, now before I stamp these papers, make sure this information is
 #   correct
 for symbol in exportJson:
+  pprint(f"symbol: {symbol}")
   def symAssertStr(member, label):
     if (label not in member or member[label] == ""):
       print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");

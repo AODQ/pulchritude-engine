@@ -54,10 +54,10 @@ struct SerializeEntityPerComponentInfo {
 // iterated over by puleEcsEntityIterateComponents
 void serializeEntityPerComponent(
   PuleEcsComponent const component,
-  void * const userdata
+  void const * const userdata
 ) {
-  SerializeEntityPerComponentInfo const info = (
-    *reinterpret_cast<SerializeEntityPerComponentInfo *>(userdata)
+  auto const info = (
+    *reinterpret_cast<SerializeEntityPerComponentInfo const *>(userdata)
   );
 
   PuleDsValue const componentValue = puleDsCreateObject(info.allocator);

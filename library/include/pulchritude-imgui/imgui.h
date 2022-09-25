@@ -18,6 +18,7 @@ PULE_exportFn void puleImguiShutdown();
 PULE_exportFn void puleImguiNewFrame();
 PULE_exportFn void puleImguiRender();
 
+PULE_exportFn void puleImguiJoinNext();
 
 PULE_exportFn bool puleImguiSliderF32(
   char const * const label,
@@ -31,14 +32,14 @@ PULE_exportFn bool puleImguiSliderZu(
   size_t const min, size_t const max
 );
 
-PULE_exportFn void puleImguiBeginWindow(
+PULE_exportFn void puleImguiWindowBegin(
   char const * const labelFormat,
   bool * const openNullable
 );
-PULE_exportFn void puleImguiEndWindow();
+PULE_exportFn void puleImguiWindowEnd();
 
-PULE_exportFn bool puleImguiBeginSection(char const * const label);
-PULE_exportFn void puleImguiEndSection();
+PULE_exportFn bool puleImguiSectionBegin(char const * const label);
+PULE_exportFn void puleImguiSectionEnd();
 
 PULE_exportFn void puleImguiText(char const * const format, ...);
 

@@ -148,6 +148,26 @@ uint32_t puleDsAsU32(PuleDsValue const value) {
     static_cast<uint32_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
   );
 }
+uint16_t puleDsAsU16(PuleDsValue const value) {
+  return (
+    static_cast<uint16_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
+int16_t puleDsAsI16(PuleDsValue const value) {
+  return (
+    static_cast<int16_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
+uint8_t puleDsAsU8(PuleDsValue const value) {
+  return (
+    static_cast<uint8_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
+int8_t puleDsAsI8(PuleDsValue const value) {
+  return (
+    static_cast<int8_t>(*std::get_if<int64_t>(&::pdsValues.at(value.id)))
+  );
+}
 bool puleDsAsBool(PuleDsValue const value) {
   return (
     *std::get_if<int64_t>(&::pdsValues.at(value.id)) != 0
@@ -260,6 +280,19 @@ bool puleDsIsBuffer(PuleDsValue const value) {
 PuleDsValue puleDsCreateI64(int64_t const value) {
   puleLogDebug("creating i64 at %zu", pdsValueIt);
   return {::pdsValueAdd(value)};
+}
+PuleDsValue puleDsCreateBoon(bool const value) {
+  puleLogDebug("creating bool at %zu", pdsValueIt);
+  return {::pdsValueAdd(value)};
+}
+PuleDsValue puleDsCreateU64(uint64_t const value) {
+  puleLogDebug("creating u64 at %zu", pdsValueIt);
+  union Convert {
+    uint64_t asu64 = 0;
+    int64_t asi64;
+  };
+  Convert conv; conv.asu64 = value;
+  return {::pdsValueAdd(conv.asi64)};
 }
 PuleDsValue puleDsCreateF64(double const value) {
   puleLogDebug("creating f64 at %zu", pdsValueIt);

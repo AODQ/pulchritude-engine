@@ -57,7 +57,8 @@ PULE_exportFn bool puleErrorExists(PuleError * const error);
   if (!(X)) { \
     puleLogError("assertion failed; %s @ %s:%d", #X, __FILE__, __LINE__); \
     abort(); \
-  }
+  } \
+}
 
 #ifdef __cplusplus
 } // extern C

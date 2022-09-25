@@ -42,7 +42,11 @@ typedef struct {
   size_t byteLength;
   size_t byteAlignment;
   void (*imguiOverviewCallbackOptional)();
-  void (*imguiEntityCallbackOptional)(PuleEcsEntity const entity);
+  void (*imguiEntityCallbackOptional)(
+    PuleEcsWorld const world,
+    PuleEcsEntity const entity,
+    PuleEcsComponent const component
+  );
   void (*serializeComponentCallback)(
     PuleEcsEntity const entity,
     void const * const componentData,
@@ -68,8 +72,11 @@ PULE_exportFn PuleEcsComponent puleEcsComponentCreate(
 typedef struct {
   PuleEcsWorld world;
   PuleEcsEntity entity;
-  void * userdata;
-  void (*callback)(PuleEcsComponent const component, void * const userdata);
+  void const * userdata;
+  void (*callback)(
+    PuleEcsComponent const component,
+    void const * const userdata
+  );
 } PuleEcsEntityIterateComponentsInfo;
 PULE_exportFn void puleEcsEntityIterateComponents(
   PuleEcsEntityIterateComponentsInfo const info
@@ -108,8 +115,15 @@ PULE_exportFn PuleEcsComponentSerializer puleEcsComponentSerializer(
 typedef struct {
   PuleStringView label;
   size_t byteLength;
+  // callback for an overview of the component metadata
   void (*imguiOverviewCallback)();
-  void (*imguiEntityCallback)(PuleEcsEntity const entity);
+
+  // callback to display information on the specified entity's component
+  void (*imguiEntityCallback)(
+    PuleEcsWorld const world,
+    PuleEcsEntity const entity,
+    PuleEcsComponent const component
+  );
 } PuleEcsComponentInfo;
 
 PULE_exportFn PuleEcsComponentInfo puleEcsComponentInfo(

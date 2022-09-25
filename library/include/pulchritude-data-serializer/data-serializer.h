@@ -114,6 +114,10 @@ PULE_exportFn int32_t puleDsAsI32(PuleDsValue const value);
 PULE_exportFn size_t puleDsAsUSize(PuleDsValue const value);
 PULE_exportFn uint64_t puleDsAsU64(PuleDsValue const value);
 PULE_exportFn uint32_t puleDsAsU32(PuleDsValue const value);
+PULE_exportFn uint16_t puleDsAsU16(PuleDsValue const value);
+PULE_exportFn int16_t puleDsAsI16(PuleDsValue const value);
+PULE_exportFn uint8_t puleDsAsU8(PuleDsValue const value);
+PULE_exportFn int8_t puleDsAsI8(PuleDsValue const value);
 
 PULE_exportFn bool puleDsIsI64(PuleDsValue const value);
 PULE_exportFn bool puleDsIsF64(PuleDsValue const value);
@@ -126,6 +130,9 @@ PULE_exportFn bool puleDsIsBuffer(PuleDsValue const value);
 PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 
 PULE_exportFn PuleDsValue puleDsCreateI64(int64_t const value);
+PULE_exportFn PuleDsValue puleDsCreateBool(bool const value);
+// this creates I64 but preserves the U64 bits
+PULE_exportFn PuleDsValue puleDsCreateU64(uint64_t const value);
 PULE_exportFn PuleDsValue puleDsCreateF64(double const value);
 // TODO this needs to pass in an allocator
 PULE_exportFn PuleDsValue puleDsCreateString(PuleStringView const stringView);

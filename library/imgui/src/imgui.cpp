@@ -779,11 +779,12 @@ void puleImguiNewFrame() {
 }
 
 void puleImguiRender() {
-  static bool show = true;
-  ImGui::ShowDemoWindow(&show);
-
   ImGui::Render();
   renderDrawData(ImGui::GetDrawData());
+}
+
+void puleImguiJoinNext() {
+  ImGui::SameLine();
 }
 
 bool puleImguiSliderF32(
@@ -812,21 +813,21 @@ bool puleImguiSliderZu(
   return ret;
 }
 
-void puleImguiBeginWindow(
+void puleImguiWindowBegin(
   char const * const label,
   bool * const openNullable
 ) {
   ImGui::Begin(label, openNullable);
 }
 
-void puleImguiEndWindow() {
+void puleImguiWindowEnd() {
   ImGui::End();
 }
 
-bool puleImguiBeginSection(char const * const label) {
+bool puleImguiSectionBegin(char const * const label) {
   return ImGui::TreeNode(label);
 }
-void puleImguiEndSection() {
+void puleImguiSectionEnd() {
   ImGui::TreePop();
 }
 

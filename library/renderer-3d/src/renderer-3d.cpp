@@ -93,6 +93,10 @@ PuleRenderer3D puleRenderer3DCreate(
         .label = "Renderer3DModelInstance",
         .byteLength = sizeof(InternalModelInstance),
         .byteAlignment = alignof(InternalModelInstance),
+        .imguiOverviewCallbackOptional = nullptr,
+        .imguiEntityCallbackOptional = nullptr,
+        .serializeComponentCallback = nullptr,
+        .deserializeComponentCallback = nullptr,
       }
     )
   );
@@ -116,7 +120,7 @@ PuleRenderer3D puleRenderer3DCreate(
     PuleError err = puleError();
     shaderModule = (
       puleGfxShaderModuleCreate(
-        "#version 450 core\n" // VERTEX
+        puleCStr("#version 450 core\n" // VERTEX
         PULE_multilineString(
           struct Attribute {
             vec4 origin;
@@ -130,15 +134,15 @@ PuleRenderer3D puleRenderer3DCreate(
             outUvcoord = origin.xy;
             gl_Position = origin;
           }
-        ),
-        "#version 450 core\n" // FRAGMENT
+        )),
+        puleCStr("#version 450 core\n" // FRAGMENT
         PULE_multilineString(
           in layout(location = 0) vec2 inUvcoord;
           out layout(location = 0) vec4 outColor;
           void main() {
             outColor = vec4(inUvcoord, 0.5f, 1.0f);
           }
-        ),
+        )),
         &err
       )
     );
@@ -330,7 +334,12 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
 
   auto modelInstance = InternalModelInstance {
     .pipeline = PuleGfxPipeline { .id = 0 },
-    .commandList = puleGfxCommandListCreate(puleAllocateDefault()),
+    .commandList = (
+      puleGfxCommandListCreate(
+        puleAllocateDefault(),
+        puleCStr("model-instance")
+      )
+    ),
   };
 
   {

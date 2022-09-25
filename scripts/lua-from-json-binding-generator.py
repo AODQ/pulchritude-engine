@@ -4,9 +4,9 @@
 #   corresponding lua bindings.
 #
 # This emits into three separate files:
-# lua/binding-includes.h
-# lua/binding-functions.h
-# lua/binding-states.h
+# ./binding-includes.h
+# ./binding-functions.h
+# ./binding-states.h
 #
 # the idea being to include these in your C code to enable Lua integration
 # look at library/script/src/setup.cpp for reference
@@ -333,6 +333,10 @@ def extractReturnField(rt, fnCall):
 
 outFile = open(f"{inputArgs['output']}/binding-functions.h", "w+")
 outFile.write(cheader)
+outFile.write(
+  "#pragma GCC diagnostic push\n"
+  "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n"
+)
 for symbol in inputJson:
   modulename = (
     f"PULCHRITUDE_SCRIPT_BIND_"
@@ -568,6 +572,7 @@ for symbol in inputJson:
       outFile.write(enumPushValueToGlobal(value))
     outFile.write(f"#endif\n")
 outFile.write("#undef luaPushFunc\n")
+outFile.write("#pragma GCC diagnostic pop")
 outFile.close()
 
 inputJsonFile.close()
