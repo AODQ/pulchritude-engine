@@ -461,7 +461,6 @@ bool puleFileWatchCheckAll() {
       anyFilesChanged = true;
       filewatch.lastUpdated = timestamp;
       if (filewatch.fileUpdatedCallback) {
-        puleLogDebug("filename: %s", filewatch.filename.c_str());
         filewatch.fileUpdatedCallback(
           PuleStringView {
             .contents=filewatch.filename.c_str(),

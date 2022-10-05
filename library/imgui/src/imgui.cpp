@@ -128,7 +128,6 @@ void initializeRenderData() {
   };
 
   bd.pipeline = puleGfxPipelineCreate(&pipelineCI, &err);
-  puleLogDebug("new pipeline at: %d", bd.pipeline);
   if (puleErrorConsume(&err)) { return; }
 }
 
@@ -746,7 +745,6 @@ void puleImguiWindowNewFrame() {
 extern "C" {
 
 void puleImguiInitialize(PulePlatform const window) {
-  puleLogDebug("** puleImguiInitialize");
   ImGui::CreateContext();
   ImGuiIO & io = ImGui::GetIO();
   if (io.BackendRendererUserData != nullptr) {
@@ -757,7 +755,6 @@ void puleImguiInitialize(PulePlatform const window) {
   io.BackendRendererName = "pulchritude_impl";
   ::initializeRenderData();
   ::initWindowing(window);
-  puleLogDebug("-- puleImguiInitialize");
 }
 
 void puleImguiShutdown() {

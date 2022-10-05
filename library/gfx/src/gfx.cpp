@@ -42,7 +42,8 @@ static void GLAPIENTRY errorMessageCallback(
     case GL_DEBUG_SEVERITY_LOW:
     case GL_DEBUG_SEVERITY_NOTIFICATION:
     default:
-      puleLogDebug("OpenGL message [0x%x]: %s", type, message);
+      if (type != 0x8251) // ignore shader stats
+        puleLogDebug("OpenGL message [0x%x]: %s", type, message);
     break;
   }
   loggedErrorMessages.emplace(messageStr);
@@ -89,7 +90,6 @@ namespace {
         return 0;
       break;
       case PuleGfxGpuBufferUsage_bufferAttribute:
-        puleLogDebug("GL_ARRAY_BUFFER");
         return GL_ARRAY_BUFFER;
       break;
       case PuleGfxGpuBufferUsage_bufferElement:
@@ -145,7 +145,7 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   [[maybe_unused]] PuleGfxGpuBufferUsage const usage,
   PuleGfxGpuBufferVisibilityFlag const visibility
 ) {
-  GLuint buffer;
+  GLuint buffer = 0;
   glCreateBuffers(1, &buffer);
   glNamedBufferStorage(
     buffer, byteLength, optionalInitialData, bufferVisibilityToGl(visibility)

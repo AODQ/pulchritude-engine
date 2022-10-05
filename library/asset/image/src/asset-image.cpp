@@ -81,11 +81,6 @@ PuleAssetImage puleAssetImageLoadFromStream(
     return { 0 };
   }
 
-  puleLogDebug(
-    "loading image with length: %zu, with resolution: %ux%u",
-    imageLength, ihdr.width, ihdr.height
-  );
-
   void * data = (
     puleAllocate(
       allocator,

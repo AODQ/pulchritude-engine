@@ -44,7 +44,6 @@ struct FileStream {
         }
       )
     );
-    puleLogDebug("opening: '%s'", url.contents);
     self.file = (
       puleFileOpen(
         url, PuleFileDataMode_text, PuleFileOpenMode_read, err
@@ -236,11 +235,6 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
 
     // get object/tiles
     PuleAssetTiledLayerTaggedUnion layerUnion;
-
-    puleLogDebug(
-      "loading object layer: %s",
-      puleDsAsString(puleDsObjectMember(layerObj, "name")).contents
-    );
 
     switch (layerType) {
       case PuleAssetTiledLayerType_tiles: {

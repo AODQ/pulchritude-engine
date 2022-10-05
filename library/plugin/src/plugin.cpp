@@ -155,17 +155,17 @@ void Plugin::open() {
     }
   }
 
-  puleLogDebug(
-    "opened '%s' @ %p | path %s",
-    this->pluginName.c_str(),
-    this->data, this->filepath.c_str()
-  );
+  /* puleLogDebug( */
+  /*   "opened '%s' @ %p | path %s", */
+  /*   this->pluginName.c_str(), */
+  /*   this->data, this->filepath.c_str() */
+  /* ); */
 
   // check if handle already exists in plugins, as each plugin must be unique
   for (auto & plugin : ::plugins) {
     if (&*plugin == this) { continue; }
     if (plugin->data == this->data) {
-      puleLogDebug("plugin %s already loaded", this->filepath.c_str());
+      /* puleLogDebug("plugin %s already loaded", this->filepath.c_str()); */
       break;
     }
   }

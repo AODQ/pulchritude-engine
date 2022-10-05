@@ -26,6 +26,7 @@ extern "C" {
 //   refer to any specific unique index of a queue
 typedef enum {
   PuleGfxAction_bindPipeline,
+  PuleGfxAction_bindAttribute,
   PuleGfxAction_clearFramebufferColor,
   PuleGfxAction_clearFramebufferDepth,
   PuleGfxAction_dispatchRender,
@@ -39,6 +40,15 @@ typedef struct {
   PuleGfxAction action; // PuleGfxAction_bindPipeline
   PuleGfxPipeline pipeline;
 } PuleGfxActionBindPipeline;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_bindAttribute
+  PuleGfxPipeline pipeline;
+  size_t bindingIndex;
+  PuleGfxGpuBuffer buffer;
+  size_t offset;
+  size_t stride;
+} PuleGfxActionBindAttribute;
 
 typedef enum {
   PuleGfxDrawPrimitive_triangle,
@@ -120,6 +130,7 @@ typedef struct {
 typedef union {
   PuleGfxAction action;
   PuleGfxActionBindPipeline bindPipeline;
+  PuleGfxActionBindAttribute bindAttribute;
   PuleGfxActionClearFramebufferColor clearFramebufferColor;
   PuleGfxActionClearFramebufferDepth clearFramebufferDepth;
   PuleGfxActionDispatchRender dispatchRender;

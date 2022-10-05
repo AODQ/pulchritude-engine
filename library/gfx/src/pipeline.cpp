@@ -73,7 +73,9 @@ void puleGfxPipelineUpdate(
         info->layout->bufferAttributeBindings[it]
       )
     ;
-    if (descriptorAttributeBinding.buffer.id == 0) {
+    bool const usesBuffer = descriptorAttributeBinding.buffer.id > 0;
+    // if there are no components, this binding is disabled
+    if (descriptorAttributeBinding.numComponents == 0) {
       glDisableVertexArrayAttrib(utilPipeline.attributeDescriptorHandle, it);
       continue;
     }
@@ -90,13 +92,15 @@ void puleGfxPipelineUpdate(
       PuleErrorGfx_invalidDescriptorSet,
     );
 
-    glVertexArrayVertexBuffer(
-      utilPipeline.attributeDescriptorHandle,
-      it,
-      descriptorAttributeBinding.buffer.id,
-      descriptorAttributeBinding.offsetIntoBuffer,
-      descriptorAttributeBinding.stridePerElement
-    );
+    if (usesBuffer) {
+      glVertexArrayVertexBuffer(
+        utilPipeline.attributeDescriptorHandle,
+        it,
+        descriptorAttributeBinding.buffer.id,
+        descriptorAttributeBinding.offsetIntoBuffer,
+        descriptorAttributeBinding.stridePerElement
+      );
+    }
     glEnableVertexArrayAttrib(utilPipeline.attributeDescriptorHandle, it);
     glVertexArrayAttribFormat(
       utilPipeline.attributeDescriptorHandle,

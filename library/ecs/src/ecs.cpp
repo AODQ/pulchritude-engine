@@ -106,11 +106,6 @@ PuleEcsComponent puleEcsComponentCreate(
       .deserializeComponentCallback = info.deserializeComponentCallback,
     }
   );
-  puleLogDebug(
-    "> creating component entity %zu: %s",
-    componentEntity,
-    info.label
-  );
   return { componentEntity };
 }
 

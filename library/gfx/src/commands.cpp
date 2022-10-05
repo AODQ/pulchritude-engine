@@ -17,6 +17,8 @@ PuleStringView puleGfxActionToString(PuleGfxAction const action) {
     default: return puleCStr("unknown");
     case PuleGfxAction_bindPipeline:
       return puleCStr("bind-pipeline");
+    case PuleGfxAction_bindAttribute:
+      return puleCStr("bind-attribute");
     case PuleGfxAction_clearFramebufferColor:
       return puleCStr("clear-framebuffer-color");
     case PuleGfxAction_clearFramebufferDepth:
@@ -255,6 +257,22 @@ void puleGfxCommandListSubmit(
             break;
           }
         }
+      } break;
+      case PuleGfxAction_bindAttribute: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
+        );
+        util::Pipeline const & pipeline = *util::pipeline(action.pipeline.id);
+        GLuint const bufferId = static_cast<GLuint>(action.buffer.id);
+        GLintptr const offset = static_cast<GLintptr>(action.offset);
+        GLsizei const stride = static_cast<GLsizei>(action.stride);
+
+        util::verifyIsBuffer(bufferId);
+        glVertexArrayVertexBuffer(
+          static_cast<GLuint>(pipeline.attributeDescriptorHandle),
+          action.bindingIndex,
+          bufferId, offset, stride
+        );
       } break;
       case PuleGfxAction_bindPipeline: {
         auto const action = (

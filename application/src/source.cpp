@@ -26,7 +26,6 @@ namespace {
     );
     tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
     if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
-      puleLogDebug("plugin '%s' registered as component", plugin.name);
       componentPlugins.emplace_back(plugin.id);
     }
   }
@@ -55,7 +54,6 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-  puleLogDebug("hello. loading plugins now");
   pulePluginsLoad();
 
   std::vector<size_t> componentPluginIds;
@@ -90,7 +88,6 @@ int32_t main(
   //                        \_____/ \___/  \___/ \_|                           *
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  puleLogDebug("entering loop");
   bool hasUpdate = updateableComponents.size() > 0;
   while (hasUpdate) {
     for (auto const componentUpdateFn : updateableComponents) {
@@ -117,7 +114,6 @@ int32_t main(
     }
   }
 
-  ::puleLogDebug("unloading plugins now. bye");
   pulePluginsFree();
   return 0;
 }

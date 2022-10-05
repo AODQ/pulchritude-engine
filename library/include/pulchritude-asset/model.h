@@ -13,12 +13,13 @@
   [file]/[stream] || contains filedata
     -> [pds value] || contains many buffers
     -> [asset model] || contains single buffer, ordered like it was in pds
-    -> [gpu upload] || probably where data gets sorted to fit GPU buffer correctly
+    -> [gpu upload] || probably where data gets sorted to fit GPU buffer
+                       correctly
 
-  the 'retain dynamic buffers' part is a bit interesting because all that needs to really
-    be retained is the meta-data required for the renderer, as assumingly each time a new
-    instance of the model/mesh is created then a new dynamic buffer needs to be
-    allocated/uploaded
+  the 'retain dynamic buffers' part is a bit interesting because all that needs
+  to really be retained is the meta-data required for the renderer, as
+  assumingly each time a new instance of the model/mesh is created then a new
+  dynamic buffer needs to be allocated/uploaded
 */
 
 // PDS model is very similar to glTF

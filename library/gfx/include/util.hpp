@@ -37,4 +37,7 @@ namespace util {
   void destroyPipeline(uint64_t const id);
 
   void printCommandsDebug();
+
+  // (very) simple way to track resources
+  void verifyIsBuffer(uint32_t const);
 }

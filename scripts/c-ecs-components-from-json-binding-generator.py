@@ -71,7 +71,6 @@ out.write("")
 for subdir, dirs, files in os.walk(inputArgs['input_source']):
   for filename in files:
     if (not filename.endswith(".h")):
-
       continue
     filenameprepend = (
       re.sub(inputArgs['source_directory']+"/*", '', inputArgs['input_source'])
@@ -185,24 +184,28 @@ def componentSymbolSerialize(symbol):
   out.tab()
   out.write(f"[[maybe_unused]] PuleEcsEntity const entity,")
   out.write(f"void const * const componentData,")
-  out.write(f"PuleDsValue const writeObjectPds,")
+  out.write(f"[[maybe_unused]] PuleDsValue const writeObjectPds,")
   out.write(f"[[maybe_unused]] PuleAllocator const allocator")
   out.untab()
   out.write(f") {{")
 
   out.tab()
-  out.write(f"auto const & data = (")
-  out.write(f"  *reinterpret_cast<{label} const *>(componentData)")
-  out.write(f");")
   if (symbol['type'] == "struct" or symbol['type'] == "using"):
+    out.write(f"[[maybe_unused]] auto const & data = (")
+    out.write(f"  *reinterpret_cast<{label} const *>(componentData)")
+    out.write(f");")
     for field in symbol['fields']:
       if (field['meta-type'] != "standard"):
         print(f"unhandled ECS component type {field}")
         continue
+      serializedField = serializeField(field)
+      if (serializedField == None):
+        out.write(f"// unhandled {field}")
+        continue
       out.write(f"puleDsAssignObjectMember(")
       out.write(f"  writeObjectPds,")
       out.write(f"  puleCStr(\"{field['label']}\"),")
-      out.write(f"  {serializeField(field)}")
+      out.write(f"  {serializedField}")
       out.write(f");")
 
   out.untab()
@@ -255,20 +258,25 @@ def componentSymbolDeserialize(symbol):
   out.write(f"PuleEcsWorld const world,")
   out.write(f"PuleEcsEntity const entity,")
   out.write(f"PuleEcsComponent const component,")
-  out.write(f"PuleDsValue const readObjectPds,")
+  out.write(f"[[maybe_unused]] PuleDsValue const readObjectPds,")
   out.write(f"[[maybe_unused]] PuleAllocator const allocator")
   out.untab()
   out.write(f") {{")
   out.tab()
   out.write(f"{label} data;")
+  out.write(f"memset(&data, 0, sizeof(data));")
   for field in symbol['fields']:
     if (field['meta-type'] != "standard"):
       print(f"unhandled ECS component type {field}")
       continue
+    deserializedField = deserializeField(field)
+    if (deserializedField == None):
+      out.write(f"// unhandled {field}")
+      continue
     # data.x = puleDsAsF32(puleDsObjectMember(readObjectPds, "x"))
     out.write(f"data.{field['label']} = (")
     out.tab()
-    out.write(f"{deserializeField(field)}(")
+    out.write(f"{deserializedField}(")
     out.write(f"  puleDsObjectMember(readObjectPds, \"{field['label']}\")")
     out.write(f")")
     out.untab()
@@ -339,7 +347,7 @@ def formatTextField(field):
   elif (isBool(fieldtype)):
     out.write(f"puleImguiText(\"{fieldlabel}: %b\", data.{fieldlabel});")
   elif (isStruct(fieldtype)):
-    out.write(f"struct {fieldtype} unhandled")
+    out.write(f"// struct {fieldtype} unhandled")
   else:
     print(f"unhandled ECS component type {field}")
 
@@ -354,7 +362,7 @@ def componentImguiEntityCallback(symbol):
   out.write(f") {{")
   out.tab()
   out.write(f"if (!puleImguiSectionBegin(\"{label}\")) return;")
-  out.write(f"auto const & data = (")
+  out.write(f"[[maybe_unused]] auto const & data = (")
   out.write(f"  *reinterpret_cast<{symbol['label']} const *>(")
   out.write(f"    puleEcsEntityComponentData(world, entity, component)")
   out.write(f"  )")
@@ -393,7 +401,7 @@ for symbol in inputJson:
   labelEcs = labelEcsStrip(label)
   out.write(f"{{ // {label}")
   out.tab()
-  out.write(f"auto const id = mod{label}Create(world);")
+  out.write(f"[[maybe_unused]] auto const id = mod{label}Create(world);")
   out.write(f"if (registerComponentCallback) {{")
   out.tab()
   out.write(f"registerComponentCallback(puleCStr(\"{labelEcs}\"), id);")

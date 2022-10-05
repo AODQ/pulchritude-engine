@@ -22,7 +22,7 @@ typedef enum {
 } PuleGfxAttributeDataType;
 
 typedef struct {
-  PuleGfxGpuBuffer buffer;
+  PuleGfxGpuBuffer buffer; // optional, set to .id=0 to assign later
   size_t numComponents;
   PuleGfxAttributeDataType dataType;
   bool convertFixedDataTypeToNormalizedFloating;

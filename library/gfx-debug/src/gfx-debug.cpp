@@ -35,6 +35,16 @@ void refreshContext(
   [[maybe_unused]] PuleF32m44 const transform,
   PuleError * const err
 ) {
+  // have to do this because pipelines depend on viewports, but they really
+  // shouldn't
+  static int32_t prevWidth = 0, prevHeight = 0;
+  auto const windowSize = pulePlatformWindowSize(ctx.platform);
+  if (prevWidth == windowSize.x && prevHeight == windowSize.y) {
+    return;
+  }
+  prevWidth = windowSize.x;
+  prevHeight = windowSize.y;
+
   { // line pipeline layout
     auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
     descriptorSetLayout.bufferAttributeBindings[0] = {
@@ -65,7 +75,6 @@ void refreshContext(
       return;
     }
   }
-
 
   puleGfxCommandListDestroy(ctx.commandList);
   ctx.commandList = (

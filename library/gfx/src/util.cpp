@@ -6,6 +6,7 @@
 #pragma GCC diagnostic pop
 
 #include <unordered_map>
+#include <unordered_set>
 
 namespace {
   std::unordered_map<uint64_t, util::Pipeline> pipelines;
@@ -36,4 +37,11 @@ void util::destroyPipeline(uint64_t const id) {
     glDeleteVertexArrays(1, &handle);
   }
   ::pipelines.erase(id);
+}
+
+void util::verifyIsBuffer(uint32_t const resource) {
+  if (!glIsBuffer(resource)) {
+    puleLogError("Unknown buffer: %d", resource);
+    throw -1;
+  }
 }

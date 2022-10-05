@@ -113,7 +113,6 @@ PdsArray * getArrayElement(PuleDsValue const arrayValue) {
 template <typename T>
 uint64_t pdsValueAdd(T const value) {
   pdsValues.emplace(pdsValueIt, value);
-  printf("adding value at: %zu\n", pdsValueIt);
   return pdsValueIt ++;
 }
 
@@ -278,15 +277,12 @@ bool puleDsIsBuffer(PuleDsValue const value) {
 
 //------------------------------------------------------------------------------
 PuleDsValue puleDsCreateI64(int64_t const value) {
-  puleLogDebug("creating i64 at %zu", pdsValueIt);
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateBoon(bool const value) {
-  puleLogDebug("creating bool at %zu", pdsValueIt);
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateU64(uint64_t const value) {
-  puleLogDebug("creating u64 at %zu", pdsValueIt);
   union Convert {
     uint64_t asu64 = 0;
     int64_t asi64;
@@ -295,21 +291,17 @@ PuleDsValue puleDsCreateU64(uint64_t const value) {
   return {::pdsValueAdd(conv.asi64)};
 }
 PuleDsValue puleDsCreateF64(double const value) {
-  puleLogDebug("creating f64 at %zu", pdsValueIt);
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateString(PuleStringView const stringView) {
-  puleLogDebug("creating string at %zu", pdsValueIt);
   std::string const contents = std::string(stringView.contents, stringView.len);
   return {::pdsValueAdd(PdsString{.value = contents})};
 }
 PuleDsValue puleDsCreateArray(PuleAllocator const allocator) {
-  puleLogDebug("creating array at %zu", pdsValueIt);
   (void)allocator;
   return {::pdsValueAdd(PdsArray{})};
 }
 PuleDsValue puleDsCreateObject(PuleAllocator const allocator) {
-  puleLogDebug("creating object at %zu", pdsValueIt);
   (void)allocator;
   return {::pdsValueAdd(PdsObject{})};
 }
