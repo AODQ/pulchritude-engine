@@ -250,7 +250,7 @@ PuleDsValue pdsParseArray(
     if (puleStreamPeekByte(stream) == ']') {
       break;
     }
-    puleDsAppendArray(object, pdsParseValue(allocator, stream));
+    puleDsArrayAppend(object, pdsParseValue(allocator, stream));
   }
 
   // consume ]
@@ -292,7 +292,7 @@ PuleDsValue pdsParseObject(
       break;
     }
     std::string memberLabel = pdsParseLabel(stream);
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       object,
       PuleStringView {
         .contents = memberLabel.c_str(),
@@ -436,7 +436,7 @@ PuleDsValue puleAssetPdsLoadFromStream(
     }
     if (puleStreamReadIsDone(stream)) { break; }
     std::string memberLabel = pdsParseLabel(stream);
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       defaultObject,
       PuleStringView {
         .contents = memberLabel.c_str(),
@@ -529,7 +529,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleDsValue const emitValue = puleDsCreateObject(info.allocator);
 
   PuleDsValue emitCommandValue = (
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       emitValue,
       puleCStr("command"),
       puleDsCreateArray(info.allocator)
@@ -537,7 +537,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   );
 
   PuleDsValue emitParametersValue = (
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       emitValue,
       puleCStr("parameters"),
       puleDsCreateObject(info.allocator)
@@ -573,7 +573,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       return { 0 };
     }
     layoutIt = arg;
-    puleDsAppendArray(
+    puleDsArrayAppend(
       emitCommandValue, puleDsCreateString(puleCStr(argument))
     );
     if (puleDsIsObject(arg)) {
@@ -665,7 +665,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
           return { 0 };
         }
 
-        puleDsAssignObjectMember(
+        puleDsObjectMemberAssign(
           emitParametersValue,
           objLabel,
           puleDsCreateString(puleCStr(info.arguments[argumentIt+1]))
@@ -676,16 +676,17 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       if (puleStringViewEqCStr(objType, "bool")) {
         bool isTrue = true;
         if (argumentIt+1 < info.argumentLength) {
-          if (strcmp(info.arguments[argumentIt+1], "true")) {
+          if (strcmp(info.arguments[argumentIt+1], "true") == 0) {
             argumentIt += 1;
           }
           else
-          if (strcmp(info.arguments[argumentIt+1], "false")) {
+          if (strcmp(info.arguments[argumentIt+1], "false") == 0) {
             isTrue = false;
             argumentIt += 1;
           }
         }
-        puleDsAssignObjectMember(
+        puleLogDebug("Assigning %b to %s", isTrue, objLabel.contents);
+        puleDsObjectMemberAssign(
           emitParametersValue,
           objLabel,
           puleDsCreateI64(isTrue)
@@ -702,7 +703,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
           return { 0 };
         }
 
-        puleDsAssignObjectMember(
+        puleDsObjectMemberAssign(
           emitParametersValue,
           objLabel,
           puleDsCreateI64(parseDec(std::string(info.arguments[argumentIt+1])))
@@ -749,7 +750,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
     }
 
     // clone object into the emit values
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       emitParametersValue,
       objLabel,
       puleDsValueCloneRecursively(defaultValue, info.allocator)

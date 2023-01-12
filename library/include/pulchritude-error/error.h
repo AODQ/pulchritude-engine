@@ -28,7 +28,7 @@ PULE_exportFn bool puleErrorExists(PuleError * const error);
 
 // errors out with message, storing the error ID to error as well
 #define PULE_error(ErrorId, message, ...) \
-  *error = { \
+  *error = PuleError { \
     .description = puleStringFormatDefault(message __VA_OPT__(,) __VA_ARGS__), \
     .id = ErrorId, \
     .sourceLocationNullable = __FILE__, \

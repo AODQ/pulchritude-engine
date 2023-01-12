@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+
 typedef struct {
   uint8_t zeroOut; // if the allocated memory should be zeroed out
   size_t numBytes; // minimum number of bytes that need to be allocated
@@ -58,6 +59,13 @@ PULE_exportFn void * puleReallocate(
 PULE_exportFn void puleDeallocate(
   PuleAllocator const allocator, void * const allocationNullable
 );
+
+/* typedef struct { */
+/*   typeof(puleAllocateDefault) * allocateDefault; */
+/*   typeof(puleAllocate) * allocate; */
+/*   typeof(puleReallocate) * reallocate; */
+/*   typeof(puleDeallocate) * deallocate; */
+/* } PuleAllocate; */
 
 #ifdef __cplusplus
 } // extern c

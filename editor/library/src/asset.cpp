@@ -61,13 +61,13 @@ void assetAddForward(
 
   { // append file reference
     PuleDsValue fileObj = puleDsCreateObject(allocator);
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       fileObj, puleCStr("path"), puleDsCreateString(source)
     );
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       fileObj, puleCStr("tracking"), puleDsCreateI64(false)
     );
-    puleDsAppendArray(filesValue, fileObj);
+    puleDsArrayAppend(filesValue, fileObj);
   }
   puleAssetPdsWriteToFile(assetValue, puleCStr("editor/assets.pds"), error);
   puleDsDestroy(assetValue);

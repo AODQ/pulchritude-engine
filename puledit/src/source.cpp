@@ -1,16 +1,17 @@
 /* pulchritude editor | github.com/aodq/pulchritude-engine | aodq.net */
 
-// ubj pna v erpbyyrpg fbzrbar jub fnlf nyy v unir fgbccrq yvfgravat bapr erireg
-// lbh jnagrq gb pbqr lbh jnagrq gb pbqr lbh jnagrq gb pbqr lbh ner nyybjrq gb
+#include <pulchritude-allocator/allocator.h>
+#include <pulchritude-asset/pds.h>
+#include <pulchritude-data-serializer/data-serializer.h>
+#include <pulchritude-error/error.h>
+#include <pulchritude-file/file.h>
+#include <pulchritude-log/log.h>
+#include <pulchritude-plugin/plugin.h>
+#include <pulchritude-tui/tui.h>
 
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-plugin/plugin.h>
 
 namespace { // error
 PuleError err = { {}, 0, nullptr, 0 };
@@ -25,19 +26,19 @@ void tryLoadFn(T & fn, size_t const pluginId, char const * const label) {
 
 struct CommandRegistry {
   std::string label;
-  void (*forward)(
+  bool (*forward)(
     PuleAllocator const,
     PuleDsValue const,
     PuleDsValue const,
     PuleError * const
   );
-  void (*rewind)(
+  bool (*rewind)(
     PuleAllocator const,
     PuleDsValue const,
     PuleDsValue const,
     PuleError * const
   );
-  void (*apply)(
+  bool (*apply)(
     PuleAllocator const,
     PuleDsValue const,
     PuleDsValue const,
@@ -109,35 +110,41 @@ void parseArguments(
   PuleAllocator const allocator = puleAllocateDefault();
 
   if (command->second.forward) {
+    bool result = true;
     if (actionDirection == ActionDirection::Forward) {
-      command->second.forward(
+      result = command->second.forward(
         allocator,
         PuleDsValue { 0 },
         puleDsObjectMember(userArguments, "parameters"),
         &err
       );
     } else {
-      command->second.rewind(
+      result = command->second.rewind(
         allocator,
         PuleDsValue { 0 },
         puleDsObjectMember(userArguments, "parameters"),
         &err
       );
     }
-    if (puleErrorConsume(&err)) {
+    if (puleErrorConsume(&err) || !result) {
+      puleLogError(
+        "failed to %s action '%s'",
+        actionDirection == ActionDirection::Forward ? "forward" : "reverse",
+        command->second.label.c_str()
+      );
       return;
     }
     // TODO after command succeeds, add to commands list
     PuleDsValue const commandsFileValue = (
       puleAssetPdsLoadFromFile(
         allocator,
-        puleCStr("./editor/commands.pds"),
+        puleCStr("./puldata/commands.pds"),
         &err
       )
     );
     if (puleErrorConsume(&err)) { return; }
 
-    puleLogDebug("----- editor/commands.pds ------");
+    puleLogDebug("----- puldata/commands.pds ------");
     if (*puleLogDebugEnabled()) {
       puleAssetPdsWriteToStdout(commandsFileValue);
     }
@@ -151,13 +158,13 @@ void parseArguments(
       puleDsAsI64(puleDsObjectMember(commandsFileValue, "current-head-idx"))
     );
 
-    puleDsOverwriteObjectMember(
+    puleDsObjectMemberOverwrite(
       commandsFileValue,
       puleCStr("branch-head-idx"),
       puleDsCreateI64(commandsAsArray.length)
     );
 
-    puleDsOverwriteObjectMember(
+    puleDsObjectMemberOverwrite(
       commandsFileValue,
       puleCStr("current-head-idx"),
       puleDsCreateI64(commandsAsArray.length)
@@ -165,7 +172,7 @@ void parseArguments(
 
     // append the command to the children of current, if we have any command
     if (commandsAsArray.length != 0) {
-      puleDsAppendArray(
+      puleDsArrayAppend(
         puleDsObjectMember(commandsAsArray.values[parentHeadIdx], "children"),
         puleDsCreateI64(commandsAsArray.length)
       );
@@ -173,12 +180,12 @@ void parseArguments(
 
     { // create new command and append to commands list
       PuleDsValue const newCommand = puleDsCreateObject(allocator);
-      puleDsAssignObjectMember(
+      puleDsObjectMemberAssign(
         newCommand,
         puleCStr("parent"),
         puleDsCreateI64(parentHeadIdx)
       );
-      puleDsAssignObjectMember(
+      puleDsObjectMemberAssign(
         newCommand,
         puleCStr("command"),
         puleDsValueCloneRecursively(
@@ -186,7 +193,7 @@ void parseArguments(
           allocator
         )
       );
-      puleDsAssignObjectMember(
+      puleDsObjectMemberAssign(
         newCommand,
         puleCStr("parameters"),
         puleDsValueCloneRecursively(
@@ -194,19 +201,19 @@ void parseArguments(
           allocator
         )
       );
-      puleDsAssignObjectMember(
+      puleDsObjectMemberAssign(
         newCommand,
         puleCStr("children"),
         puleDsCreateArray(allocator)
       );
 
-      puleDsAppendArray(commandsValue, newCommand);
+      puleDsArrayAppend(commandsValue, newCommand);
     }
 
     if (applyToActionHistory == ApplyToActionHistory::Yes) {
       puleAssetPdsWriteToFile(
         commandsFileValue,
-        puleCStr("editor/commands.pds"),
+        puleCStr("puldata/commands.pds"),
         &err
       );
     }
@@ -216,12 +223,20 @@ void parseArguments(
   else
   if (command->second.apply) {
     PuleDsValue const mainValue = puleDsCreateObject(allocator);
-    command->second.apply(
+    bool result = command->second.apply(
       allocator,
       mainValue,
       puleDsObjectMember(userArguments, "parameters"),
       &err
     );
+
+    if (puleErrorConsume(&err) || !result) {
+      puleLogError(
+        "failed to apply action '%s'",
+        command->second.label.c_str()
+      );
+      return;
+    }
 
     // if the user requests to apply more actions, (ex undo/redo), apply them
     PuleDsValue const commandsToApply = (
@@ -260,7 +275,10 @@ void parseArguments(
 
 extern "C" {
 
-void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
+void loadEditorDataFromPlugins(
+  PulePluginInfo const plugin,
+  void * const userdata
+) {
   (void)userdata;
   auto const cliArgumentLayout = (
     *reinterpret_cast<PuleDsValue const *>(userdata)
@@ -268,16 +286,23 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
 
   PuleError error = puleError();
 
+  // register editor commands from plugins
   PuleDsValue (*registerCommandsFn)(
     PuleAllocator const,
     PuleError * const
   ) = nullptr;
   ::tryLoadFn(registerCommandsFn, plugin.id, "puldRegisterCommands");
   if (registerCommandsFn) {
+    puleLogDebug("Registering editor commands from plugin '%s'", plugin.name);
     PuleDsValue const registeredCommands = (
       registerCommandsFn(puleAllocateDefault(), &error)
     );
     if (!puleErrorConsume(&error) && registeredCommands.id != 0) {
+      puleLogDebug("Registry info: ");
+      if (puleLogDebugEnabled()) {
+        puleAssetPdsWriteToStdout(registeredCommands);
+        printf("\n");
+      }
       PuleDsValueArray commands = (
         puleDsAsArray(puleDsObjectMember(registeredCommands, "commands"))
       );
@@ -317,10 +342,6 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
             puleDsAsString(applyLabel).contents
           );
         }
-        puleLogDebug(
-          "label: '%s' forward: %p rewind: %p apply: %p",
-          label.contents, registry.forward, registry.rewind, registry.apply
-        );
         if (
              static_cast<bool>(registry.forward)
           != static_cast<bool>(registry.rewind)
@@ -369,7 +390,7 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
         PULE_assert(
           puleDsObjectMember(cliArgumentLayout, label.contents).id == 0
         );
-        puleDsAssignObjectMember(
+        puleDsObjectMemberAssign(
           cliArgumentLayout,
           label,
           puleDsValueCloneRecursively(value, puleAllocateDefault())
@@ -383,18 +404,29 @@ void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
 } // C
 
 int32_t main(
-  int32_t const userArgumentLength,
-  char const * const * const userArguments
+  [[maybe_unused]] int32_t const userArgumentLength,
+  [[maybe_unused]] char const * const * const userArguments
 ) {
-  pulePluginsLoad();
-  /* *puleLogDebugEnabled() = true; */
+  *puleLogDebugEnabled() = true;
+  { // load plugins
+    PuleString const path = (
+      puleFilesystemExecutablePath(puleAllocateDefault())
+    );
+    PuleString pathPlugin = (
+      puleStringFormatDefault("%s/plugins/", path.contents)
+    );
+    PuleStringView const pathView = puleStringView(pathPlugin);
+    pulePluginsLoad(&pathView, 1);
+    puleStringDestroy(path);
+    puleStringDestroy(pathPlugin);
+  }
 
   // TODO parse plugins
   PuleDsValue const cliArgumentLayout = (
     puleDsCreateObject(puleAllocateDefault())
   );
   puleIteratePlugins(
-    ::iteratePlugins,
+    ::loadEditorDataFromPlugins,
     const_cast<PuleDsValue *>(&cliArgumentLayout)
   );
 
@@ -430,7 +462,58 @@ int32_t main(
   puleDsDestroy(userArgs);
 
   pulePluginsFree();
+
+  return 0;
 }
 
+// ubj pna v erpbyyrpg fbzrbar jub fnlf nyy v unir fgbccrq yvfgravat bapr erireg
 // genfu guvf genfu gung nofgenpg njnl nyy nznytbhf jbeevrf juvpu rire unir orra
 // v nethr va snvgu ybat ybat fvtu jungrire vg gnxrf qevsg njnl qevsg qevsg fvtu
+
+// below is for TUI at some point
+  /* // if no input then request */
+  /* //PuleTuiWindow const window = puleTuiInitialize(); */
+  /* //auto const winDim = puleTuiWindowDim(window); */
+  /* bool const hadInputValue = inputValue != ""; */
+  /* while (!hadInputValue) { */
+  /*   // -- render */
+  /*   puleTuiClear(window); */
+  /*   puleTuiMoveCursor(window, PuleI32v2{10, winDim.y-1}); */
+  /*   puleTuiRenderString( */
+  /*     window, puleCStr("Command: "), PuleF32v3(0.9f, 0.2f, 0.2f) */
+  /*   ); */
+  /*   puleTuiRenderString( */
+  /*     window, puleCStr(inputValue.c_str()), PuleF32v3(0.9f, 0.2f, 0.2f) */
+  /*   ); */
+  /*   renderAutocompletion(window, inputValue); */
+
+  /*   // -- parse input */
+  /*   puleTuiRefresh(window); */
+  /*   int32_t c = puleTuiReadInputCharacterBlocking(window); */
+
+  /*   // exit on ctrl-c */
+  /*   if (c == ('c' & 0x1f)) { */
+  /*     exit(0); */
+  /*   } */
+  /*   // ignore on backspace, and remove previous input */
+  /*   if (c == 0407 || c == 127 || c == '\b') { */
+  /*     if (inputValue.size() > 0) { */
+  /*       inputValue.resize(inputValue.size()-1); */
+  /*     } */
+  /*     continue; */
+  /*   } */
+
+  /*   // on ctrl-u clear input */
+  /*   if (c == ('u' & 0x1f)) { */
+  /*     inputValue = ""; */
+  /*     continue; */
+  /*   } */
+
+  /*   // submit command on new line */
+  /*   if (c == '\n' || c == '\r') { */
+  /*     break; */
+  /*   } */
+
+  /*   // parse as valid input */
+  /*   inputValue += static_cast<char>(c); */
+  /* } */

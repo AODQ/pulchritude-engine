@@ -129,6 +129,7 @@ PULE_exportFn bool puleDsIsBuffer(PuleDsValue const value);
 // recursive destroy
 PULE_exportFn void puleDsDestroy(PuleDsValue const value);
 
+// TODO all these need to be puleDs[I64,Bool,...]Create
 PULE_exportFn PuleDsValue puleDsCreateI64(int64_t const value);
 PULE_exportFn PuleDsValue puleDsCreateBool(bool const value);
 // this creates I64 but preserves the U64 bits
@@ -143,7 +144,7 @@ PULE_exportFn PuleDsValue puleDsCreateBuffer(
   PuleArrayView const data
 );
 
-PULE_exportFn PuleDsValue puleDsAppendArray(
+PULE_exportFn PuleDsValue puleDsArrayAppend(
   PuleDsValue const array,
   PuleDsValue const value
 );
@@ -170,16 +171,39 @@ PULE_exportFn PuleDsValue puleDsValueCloneRecursively(
   PuleAllocator const allocator
 );
 
-PULE_exportFn PuleDsValue puleDsAssignObjectMember(
+PULE_exportFn PuleDsValue puleDsObjectMemberAssign(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
 );
 
-PULE_exportFn PuleDsValue puleDsOverwriteObjectMember(
+PULE_exportFn PuleDsValue puleDsObjectMemberOverwrite(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
+);
+
+// -- utility
+PULE_exportFn int64_t puleDsMemberAsI64(
+  PuleDsValue const obj, char const * const label
+);
+PULE_exportFn double puleDsMemberAsF64(
+  PuleDsValue const object, char const * const memberLabel
+);
+PULE_exportFn bool puleDsMemberAsBool(
+  PuleDsValue const object, char const * const memberLabel
+);
+PULE_exportFn PuleStringView puleDsMemberAsString(
+  PuleDsValue const object, char const * const memberLabel
+);
+PULE_exportFn PuleDsValueArray puleDsMemberAsArray(
+  PuleDsValue const object, char const * const memberLabel
+);
+PULE_exportFn PuleDsValueObject puleDsMemberAsObject(
+  PuleDsValue const object, char const * const memberLabel
+);
+PULE_exportFn PuleDsValueBuffer puleDsMemberAsBuffer(
+  PuleDsValue const object, char const * const memberLabel
 );
 
 #ifdef __cplusplus

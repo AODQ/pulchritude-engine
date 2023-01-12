@@ -6,12 +6,12 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
-static int32_t getLuaLineNumber(lua_State * const state) {
-  lua_Debug debug;
-  lua_getstack(state, 1, &debug);
-  lua_getinfo(state, "nSl", &debug);
-  return debug.currentline;
-}
+/* static int32_t getLuaLineNumber(lua_State * const state) { */
+/*   lua_Debug debug; */
+/*   lua_getstack(state, 1, &debug); */
+/*   lua_getinfo(state, "nSl", &debug); */
+/*   return debug.currentline; */
+/* } */
 
 static void dumpLuaStack(
   lua_State * const state,
@@ -104,14 +104,14 @@ static void dumpLuaStack(
   return 0
 
 
-// This is an automatically generated file that imports all necessary includes
-#include "../../../bindings/lua/binding-includes.h"
-
-#include "../../../bindings/lua/binding-functions.h"
-
-void puleScriptContextSetup(PuleScriptContext const ctx) {
-  lua_State * state = (lua_State *)(ctx.id);
-
-  #include "../../../bindings/lua/binding-states.h"
-}
-
+//// This is an automatically generated file that imports all necessary includes
+//#include "../../../bindings/lua/binding-includes.h"
+//
+//#include "../../../bindings/lua/binding-functions.h"
+//
+//void puleScriptContextSetup(PuleScriptContext const ctx) {
+//  lua_State * state = (lua_State *)(ctx.id);
+//
+//  #include "../../../bindings/lua/binding-states.h"
+//}
+//

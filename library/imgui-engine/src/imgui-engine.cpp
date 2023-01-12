@@ -102,7 +102,7 @@ void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
       )
     );
     puleImguiWindowBegin(windowBegin.contents, &opened);
-    puleStringDeallocate(windowBegin);
+    puleStringDestroy(windowBegin);
   }
 
   if (!opened) {

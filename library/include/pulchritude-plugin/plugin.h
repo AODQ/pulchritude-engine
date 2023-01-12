@@ -1,12 +1,8 @@
 #pragma once
 
 #include <pulchritude-core/core.h>
-
-#ifdef __cplusplus
-#include <cstddef>
-#else
-#include <stddef.h>
-#endif
+#include <pulchritude-plugin/plugin-payload.h>
+#include <pulchritude-string/string.h>
 
 typedef enum {
   PulePluginType_library,
@@ -23,7 +19,10 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-PULE_exportFn void pulePluginsLoad();
+PULE_exportFn void pulePluginsLoad(
+  PuleStringView const * const paths,
+  size_t const pathsLength
+);
 PULE_exportFn void pulePluginsFree();
 PULE_exportFn void pulePluginsReload();
 PULE_exportFn size_t pulePluginIdFromName(char const * const pluginNameCStr);

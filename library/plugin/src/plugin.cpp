@@ -1,6 +1,8 @@
-#include <pulchritude-log/log.h>
-
 #include <pulchritude-plugin/plugin.h>
+
+#include <pulchritude-file/file.h>
+#include <pulchritude-log/log.h>
+#include <pulchritude-string/string.h>
 
 #include <filesystem>
 #include <string>
@@ -85,7 +87,7 @@ void Plugin::reload() {
 void Plugin::close() {
   if (!this->data) { return; }
   #if defined(__unix__) || defined(__APPLE__)
-    puleLogDebug("closing plugin %p %s", this->data, this->filepath.c_str());
+    //puleLogDebug("closing plugin %p %s", this->data, this->filepath.c_str());
     if (::dlclose(this->data)) {
       puleLogError(
         "failed to close plugin '%s': %s",
@@ -172,6 +174,7 @@ void Plugin::open() {
 }
 
 void loadPluginFromFile(std::filesystem::path path) {
+  puleLogDebug("Loading plugin %s", path.c_str());
   ::plugins.emplace_back(std::make_unique<::Plugin>(path));
   auto & pluginEnd = ::plugins.back();
 
@@ -200,11 +203,17 @@ void loadPluginsFromDirectory(char const * const label) {
 
 } // -- anon namespace
 
+#include <filesystem>
+
 extern "C" {
 
-void pulePluginsLoad() {
-  // load plugins directory
-  loadPluginsFromDirectory("plugins/");
+void pulePluginsLoad(
+  PuleStringView const * const paths,
+  size_t const pathsLength
+) {
+  for (size_t it = 0; it < pathsLength; ++ it) {
+    loadPluginsFromDirectory(paths[it].contents);
+  }
 }
 
 void pulePluginsFree() {

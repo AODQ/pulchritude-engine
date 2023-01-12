@@ -213,7 +213,7 @@ PulePluginType pulcPluginType() {
   return PulePluginType_component;
 }
 
-void pulcComponentLoad() {
+void pulcComponentLoad(PulePluginPayload const payload) {
   puleLog("hello from test application");
 }
 

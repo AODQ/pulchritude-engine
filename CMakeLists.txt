@@ -19,7 +19,7 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 if(PULCHRITUDE_PLATFORM STREQUAL "Linux")
   set(CMAKE_INSTALL_RPATH "$ORIGIN/plugins/:$ORIGIN/")
-  set(CMAKE_EXE_LINKER_FLAGS "-Wl,--disable-new-dtags")
+  set(CMAKE_EXE_LINKER_FLAGS "-Wl,--disable-new-dtags,-z,origin")
 elseif(PULCHRITUDE_PLATFORM STREQUAL "macOS")
   set(CMAKE_INSTALL_RPATH "@loader_path/plugins/;@loader_path")
 endif()
@@ -81,6 +81,13 @@ add_subdirectory(third-party)
 add_subdirectory(application)
 add_subdirectory(editor)
 add_subdirectory(library)
+add_subdirectory(puledit)
+
+# install engine headers
+install(
+  DIRECTORY library/include/
+  DESTINATION ${CMAKE_INSTALL_BINDIR}/engine-include
+)
 
 function(watchfile)
   set_property(
@@ -103,45 +110,45 @@ if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not generate json bindings")
 endif()
 
-execute_process(
-  COMMAND
-    python3
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
-    "--input"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-    "--output"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/zig/pulchritude.zig"
-  RESULT_VARIABLE processFinished
-)
-if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate zig bindings")
-endif()
+#execute_process(
+#  COMMAND
+#    python3
+#    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
+#    "--input"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
+#    "--output"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/zig/pulchritude.zig"
+#  RESULT_VARIABLE processFinished
+#)
+#if (NOT processFinished STREQUAL "0")
+#  message(FATAL_ERROR "could not generate zig bindings")
+#endif()
+#
+#execute_process(
+#  COMMAND
+#    python3
+#    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
+#    "--input"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
+#    "--output"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua"
+#    "--source"
+#    "${CMAKE_CURRENT_SOURCE_DIR}"
+#  RESULT_VARIABLE processFinished
+#)
+#if (NOT processFinished STREQUAL "0")
+#  message(FATAL_ERROR "could not generate lua bindings")
+#endif()
 
-execute_process(
-  COMMAND
-    python3
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
-    "--input"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-    "--output"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua"
-    "--source"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-  RESULT_VARIABLE processFinished
-)
-if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate lua bindings")
-endif()
-
-watchfile(
-  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
-)
-watchfile(
-  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
-)
-watchfile(
-  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
-)
-watchfile(
-  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-ecs-components-from-json-binding-generator.py"
-)
+#watchfile(
+#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
+#)
+#watchfile(
+#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
+#)
+#watchfile(
+#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
+#)
+#watchfile(
+#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-ecs-components-from-json-binding-generator.py"
+#)

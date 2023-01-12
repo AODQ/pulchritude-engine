@@ -306,6 +306,7 @@ void puleScriptModuleExecute(
   // call function
   if (functionLabel.len != 0) {
     int type = lua_getglobal(state, functionLabel.contents);
+    (void)type;
     /* switch (type) { */
     /*   case LUA_TNUMBER: puleLogDebug("NUMBER"); break; */
     /*   case LUA_TSTRING: puleLogDebug("LUA_TSTRING"); break; */
@@ -425,6 +426,8 @@ void puleScriptArrayF32Remove(
   PuleScriptArrayF32 const arr,
   size_t const index
 ) {
+  (void)arr;
+  (void)index;
   puleLogDebug("MEH,'puleScriptArrayF32Remove' not implemented yet"); 
 }
 float puleScriptArrayF32At(PuleScriptArrayF32 const arr, size_t const index) {
@@ -436,6 +439,7 @@ size_t puleScriptArrayF32Length(PuleScriptArrayF32 const arr) {
   return array->actualLength;
 }
 size_t puleScriptArrayF32ElementByteSize(PuleScriptArrayF32 const arr) {
+  (void)arr;
   return sizeof(float);
 }
 

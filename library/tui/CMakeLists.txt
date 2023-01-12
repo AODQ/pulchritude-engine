@@ -1,15 +1,16 @@
-add_library(pulchritude-plugin SHARED)
+add_library(pulchritude-tui SHARED)
 
-target_include_directories(pulchritude-plugin PUBLIC "../include/")
+find_package(Curses REQUIRED)
+
+target_include_directories(pulchritude-tui PUBLIC "../include/" ${CURSES_INCLUDE_DIR})
 target_sources(
-  pulchritude-plugin
+  pulchritude-tui
   PRIVATE
-    src/plugin.cpp
-    src/plugin-payload.cpp
+    src/tui.cpp
 )
 
 set_target_properties(
-  pulchritude-plugin
+  pulchritude-tui
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
@@ -17,10 +18,10 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(pulchritude-plugin pulchritude-log)
+target_link_libraries(pulchritude-tui ncurses ${CURSES_LIBRARIES})
 
 install(
-  TARGETS pulchritude-plugin
+  TARGETS pulchritude-tui
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

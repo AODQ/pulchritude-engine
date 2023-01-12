@@ -202,7 +202,7 @@ def componentSymbolSerialize(symbol):
       if (serializedField == None):
         out.write(f"// unhandled {field}")
         continue
-      out.write(f"puleDsAssignObjectMember(")
+      out.write(f"puleDsObjectMemberAssign(")
       out.write(f"  writeObjectPds,")
       out.write(f"  puleCStr(\"{field['label']}\"),")
       out.write(f"  {serializedField}")

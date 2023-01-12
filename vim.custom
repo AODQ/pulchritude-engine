@@ -1,4 +1,4 @@
 function! MakeprgRelease()
-  let &makeprg = 'ninja -C ../build/ install'
-  make
+  let &makeprg = 'ninja -C ../build-pulchritude-engine/ install'
+  make!
 endfunction

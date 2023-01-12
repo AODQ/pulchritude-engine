@@ -838,7 +838,7 @@ void puleImguiText(char const * const format, ...) {
     )
   );
   ImGui::Text("%s", formatStr.contents);
-  puleStringDeallocate(formatStr);
+  puleStringDestroy(formatStr);
   va_end(args);
 }
 

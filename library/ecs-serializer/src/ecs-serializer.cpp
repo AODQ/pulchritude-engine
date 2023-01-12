@@ -61,9 +61,9 @@ void serializeEntityPerComponent(
   );
 
   PuleDsValue const componentValue = puleDsCreateObject(info.allocator);
-  puleDsAppendArray(info.writeArrayPds, componentValue);
+  puleDsArrayAppend(info.writeArrayPds, componentValue);
 
-  puleDsAssignObjectMember(
+  puleDsObjectMemberAssign(
     componentValue,
     puleCStr("component-label"),
     puleDsCreateString(puleEcsComponentLabel(info.world, component))
@@ -96,7 +96,7 @@ PuleDsValue puleEcsSerializeWorld(PuleEcsSerializeWorldInfo const info) {
   }
 
   PuleDsValue const entityListValue = puleDsCreateArray(info.allocator);
-  puleDsAssignObjectMember(
+  puleDsObjectMemberAssign(
     serializedWorld,
     puleCStr("entity-list"),
     entityListValue
@@ -114,8 +114,8 @@ PuleDsValue puleEcsSerializeWorld(PuleEcsSerializeWorldInfo const info) {
     PuleEcsEntity * const entities = puleEcsIteratorQueryEntities(iter);
     for (size_t it = 0; it < entityCount; ++ it) {
       PuleDsValue const entityValue = puleDsCreateObject(info.allocator);
-      puleDsAppendArray(entityListValue, entityValue);
-      puleDsAssignObjectMember(
+      puleDsArrayAppend(entityListValue, entityValue);
+      puleDsObjectMemberAssign(
         entityValue,
         puleCStr("label"),
         puleDsCreateString(puleEcsEntityName(info.world, entities[it]))
@@ -124,7 +124,7 @@ PuleDsValue puleEcsSerializeWorld(PuleEcsSerializeWorldInfo const info) {
       PuleDsValue const entityComponentListValue = (
         puleDsCreateArray(info.allocator)
       );
-      puleDsAssignObjectMember(
+      puleDsObjectMemberAssign(
         entityValue,
         puleCStr("components"),
         entityComponentListValue

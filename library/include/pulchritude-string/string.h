@@ -41,7 +41,7 @@ PULE_exportFn PuleString puleString(
   char const * const baseContents
 );
 
-PULE_exportFn void puleStringDeallocate(PuleString const puleStringInout);
+PULE_exportFn void puleStringDestroy(PuleString const puleStringInout);
 
 PULE_exportFn void puleStringAppend(
   PuleString * const stringInout,
@@ -52,7 +52,7 @@ PULE_exportFn void puleStringAppend(
 // simple usage is;
 //   PuleString const str = puleStringFormatDefault("age: %d", 5);
 //   ...
-//   puleStringDeallocate(str);
+//   puleStringDestroy(str);
 PULE_exportFn PuleString puleStringFormat(
   PuleAllocator const allocator, char const * const format, ...
 );

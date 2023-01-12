@@ -34,7 +34,7 @@ PuleString puleStringDefault(char const * const baseContents) {
   return puleString(puleAllocateDefault(), baseContents);
 }
 
-void puleStringDeallocate(PuleString const stringInout) {
+void puleStringDestroy(PuleString const stringInout) {
   puleDeallocate(stringInout.allocator, stringInout.contents);
 }
 

@@ -279,7 +279,7 @@ bool puleDsIsBuffer(PuleDsValue const value) {
 PuleDsValue puleDsCreateI64(int64_t const value) {
   return {::pdsValueAdd(value)};
 }
-PuleDsValue puleDsCreateBoon(bool const value) {
+PuleDsValue puleDsCreateBool(bool const value) {
   return {::pdsValueAdd(value)};
 }
 PuleDsValue puleDsCreateU64(uint64_t const value) {
@@ -336,7 +336,7 @@ PuleDsValue puleDsCreateBuffer(
 }
 
 //------------------------------------------------------------------------------
-PuleDsValue puleDsAppendArray(
+PuleDsValue puleDsArrayAppend(
   PuleDsValue const arrayValue,
   PuleDsValue const value
 ) {
@@ -421,7 +421,7 @@ static PuleDsValue puleDsObjectCloneRecursively(
   PuleDsValueObject const oldObj = puleDsAsObject(object);
   for (size_t it = 0; it < oldObj.length; ++ it) {
     PuleDsValue const value = oldObj.values[it];
-    puleDsAssignObjectMember(
+    puleDsObjectMemberAssign(
       newObj,
       oldObj.labels[it],
       puleDsValueCloneRecursively(value, allocator)
@@ -438,7 +438,7 @@ static PuleDsValue puleDsArrayCloneRecursively(
   PuleDsValueArray const oldArr = puleDsAsArray(array);
   for (size_t it = 0; it < oldArr.length; ++ it) {
     PuleDsValue const value = oldArr.values[it];
-    puleDsAppendArray(newArr, puleDsValueCloneRecursively(value, allocator));
+    puleDsArrayAppend(newArr, puleDsValueCloneRecursively(value, allocator));
   }
   return newArr;
 }
@@ -466,7 +466,7 @@ PuleDsValue puleDsValueCloneRecursively(
   return { 0 };
 }
 
-PuleDsValue puleDsAssignObjectMember(
+PuleDsValue puleDsObjectMemberAssign(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
@@ -492,7 +492,7 @@ PuleDsValue puleDsAssignObjectMember(
   return puleDsObjectMember(objectValue, memberLabel.contents);
 }
 
-PuleDsValue puleDsOverwriteObjectMember(
+PuleDsValue puleDsObjectMemberOverwrite(
   PuleDsValue const objectValue,
   PuleStringView const memberLabel,
   PuleDsValue const valueToEmplace
@@ -514,6 +514,42 @@ PuleDsValue puleDsOverwriteObjectMember(
   auto & object = *objPtr;
   ::pdsObjectAdd(object, memberLabel, valueToEmplace, true);
   return puleDsObjectMember(objectValue, memberLabel.contents);
+}
+
+int64_t puleDsMemberAsI64(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsI64(puleDsObjectMember(obj, label));
+}
+double puleDsMemberAsF64(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsF64(puleDsObjectMember(obj, label));
+}
+bool puleDsMemberAsBool(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsBool(puleDsObjectMember(obj, label));
+}
+PuleStringView puleDsMemberAsString(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsString(puleDsObjectMember(obj, label));
+}
+PuleDsValueArray puleDsMemberAsArray(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsArray(puleDsObjectMember(obj, label));
+}
+PuleDsValueObject puleDsMemberAsObject(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsObject(puleDsObjectMember(obj, label));
+}
+PuleDsValueBuffer puleDsMemberAsBuffer(
+  PuleDsValue const obj, char const * const label
+) {
+  return puleDsAsBuffer(puleDsObjectMember(obj, label));
 }
 
 } // C

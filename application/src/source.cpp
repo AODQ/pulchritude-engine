@@ -2,10 +2,12 @@
 
 // pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl sbe v ungr gur ynzre naq here
 
-#include <vector>
-
 #include <pulchritude-plugin/plugin.h>
 #include <pulchritude-log/log.h>
+
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 // loading plugins
 namespace {
@@ -33,15 +35,64 @@ namespace {
 
 // update components
 namespace {
-  std::vector<void(*)()> updateableComponents;
+  std::vector<void(*)(PulePluginPayload const)> updateableComponents;
 }
+
+struct ParameterInfo {
+  std::string label;
+  std::string content;
+};
+
+struct KnownParameterInfo {
+  bool hasParameter = false;
+};
+
+std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
+  { "--plugin-path", {.hasParameter = true,} },
+  { "--debug", {.hasParameter = false,} },
+};
+std::vector<ParameterInfo> programParameters;
 
 int32_t main(
   [[maybe_unused]] int32_t const argumentLength,
   [[maybe_unused]] char const * const * const arguments
 ) {
-  if (argumentLength >= 2 && strcmp(arguments[1], "debug") == 0) {
-    *puleLogDebugEnabled() = true;
+  //-* parse parameters/pds files -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+  // parse into parameters
+  for (int32_t argumentIt = 1; argumentIt < argumentLength; ++ argumentIt) {
+    auto const label = std::string(arguments[argumentIt]);
+    std::string content = "";
+    // this breaks into application parameters
+    if (label == "--") {
+      break;
+    }
+    auto knownInfo = knownProgramParameters.find(label);
+    if (knownInfo == knownProgramParameters.end()) {
+      puleLogError("Unknown parameter '%s'", label.c_str());
+      return 1;
+    }
+    if (knownInfo->second.hasParameter) {
+      if (argumentIt+1 >= argumentLength) {
+        puleLogError("Expecting parameter for '%s", label.c_str());
+        return 1;
+      }
+      content = std::string(arguments[argumentIt+1]);
+      argumentIt += 1;
+    }
+    programParameters.emplace_back(ParameterInfo {
+      .label = label,
+      .content = content,
+    });
+  }
+
+  std::vector<PuleStringView> pluginPaths;
+  for (auto const & param : programParameters) {
+    if (param.label == "--plugin-path") {
+      pluginPaths.emplace_back(puleCStr(param.content.c_str()));
+    } else if (param.label == "--debug") {
+      *puleLogDebugEnabled() = true;
+      puleLogDebug("Debug enabled");
+    }
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -54,7 +105,7 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-  pulePluginsLoad();
+  pulePluginsLoad(pluginPaths.data(), pluginPaths.size());
 
   std::vector<size_t> componentPluginIds;
   puleIteratePlugins(
@@ -62,17 +113,23 @@ int32_t main(
     reinterpret_cast<void *>(&componentPluginIds)
   );
 
+  PulePluginPayload const payload = (
+    pulePluginPayloadCreate(puleAllocateDefault())
+  );
+
   // initiate all plugins
+   puleLogDebug("initializing plugins");
   for (size_t const componentPluginId : componentPluginIds) {
     // try to load component
-    void (*componentLoadFn)() = nullptr;
+    void (*componentLoadFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
     if (componentLoadFn) {
-      componentLoadFn();
+      puleLogDebug("Loading function");
+      componentLoadFn(payload);
     }
 
     // check if they have an update function
-    void (*componentUpdateFn)() = nullptr;
+    void (*componentUpdateFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentUpdateFn, componentPluginId, "pulcComponentUpdate");
     if (componentUpdateFn) {
       updateableComponents.emplace_back(componentUpdateFn);
@@ -91,7 +148,7 @@ int32_t main(
   bool hasUpdate = updateableComponents.size() > 0;
   while (hasUpdate) {
     for (auto const componentUpdateFn : updateableComponents) {
-      componentUpdateFn();
+      componentUpdateFn(payload);
     }
   }
 
@@ -107,13 +164,14 @@ int32_t main(
 
   // try to unload components
   for (size_t const componentPluginId : componentPluginIds) {
-    void (*componentUnloadFn)() = nullptr;
+    void (*componentUnloadFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentUnloadFn, componentPluginId, "pulcComponentUnload");
     if (componentUnloadFn) {
-      componentUnloadFn();
+      componentUnloadFn(payload);
     }
   }
 
+  pulePluginPayloadDestroy(payload);
   pulePluginsFree();
   return 0;
 }

@@ -311,7 +311,7 @@ PuleRenderer3DModel puleRenderer3DPrepareModel(
     )
   );
 
-  auto const retModel = PuleRenderer3DModel {.id = system.internalModelCount};
+  auto const retModel = PuleRenderer3DModel {.id = ++system.internalModelCount};
   system.internalModels.emplace(retModel.id, model);
   puleLog("internal model :: %zu", retModel.id);
   return retModel;

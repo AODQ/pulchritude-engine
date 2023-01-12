@@ -124,6 +124,7 @@ size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
 }
 
 void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
+  PULE_assert(file.id);
   if (src.elementCount == 0) { return; }
   auto const fileHandle = ::openFiles.at(file.id).file;
   flockfile(fileHandle);
@@ -132,6 +133,18 @@ void puleFileWriteBytes(PuleFile const file, PuleArrayView const src) {
     putc_unlocked(data[it*src.elementStride], fileHandle);
   }
   funlockfile(fileHandle);
+}
+
+void puleFileWriteString(PuleFile const file, PuleStringView const source) {
+  PULE_assert(file.id);
+  puleFileWriteBytes(
+      file,
+      PuleArrayView {
+        .data = reinterpret_cast<uint8_t const *>(source.contents),
+        .elementStride = 1,
+        .elementCount = source.len,
+      }
+  );
 }
 
 uint64_t puleFileSize(PuleFile const file) {
@@ -332,7 +345,7 @@ PuleStreamWrite puleFileStreamWrite(
 
 extern "C" {
 
-bool puleFilesystemExists(
+bool puleFilesystemPathExists(
   PuleStringView const path
 ) {
   std::error_code errorCode;
@@ -390,8 +403,110 @@ bool puleFileRemove(PuleStringView const filePath) {
   return true;
 }
 
+bool puleFileRemoveRecursive(PuleStringView const filePath) {
+  std::error_code errorCode;
+  std::filesystem::remove_all(
+    std::filesystem::path(std::string_view(filePath.contents, filePath.len)),
+    errorCode
+  );
+  if (errorCode) {
+    puleLogError(
+      "could not remove file at '%s'\n\t-> %s",
+      filePath.contents, errorCode.message().c_str()
+    );
+    return false;
+  }
+  return true;
+}
+
+bool puleFileDirectoryCreate(PuleStringView const path) {
+  std::error_code errorCode;
+  std::filesystem::create_directory(
+    std::filesystem::path(std::string_view(path.contents, path.len)),
+    errorCode
+  );
+  if (errorCode) {
+    puleLogError(
+      "could not create directory at '%s'\n\t-> %s",
+      path.contents, errorCode.message().c_str()
+    );
+    return false;
+  }
+  return true;
+}
+
+bool puleFileDirectoryCreateRecursive(PuleStringView const path) {
+  puleLogDebug("creating recursive directories '%s'", path.contents);
+  std::error_code errorCode;
+  std::filesystem::create_directories(
+    std::filesystem::path(std::string_view(path.contents, path.len)),
+    errorCode
+  );
+  if (errorCode) {
+    puleLogError(
+      "could not create directory at '%s'\n\t-> %s",
+      path.contents, errorCode.message().c_str()
+    );
+    return false;
+  }
+  return true;
+}
+
+PuleString puleFilesystemExecutablePath(PuleAllocator const allocator) {
+  // TODO[crossplatform] isn't compatible with windows or MacOS.
+  auto path = std::filesystem::canonical("/proc/self/exe").remove_filename();
+  // remove the last
+  return puleString(allocator, path.string().c_str());
+}
+
+PuleString puleFilesystemCurrentPath(PuleAllocator const allocator) {
+  std::error_code errorCode;
+  auto path = std::filesystem::current_path(errorCode);
+  if (errorCode) {
+    puleLogError(
+      "could not fetch current path: %s",
+      errorCode.message().c_str()
+    );
+    return PuleString{.contents = nullptr, .len = 0, .allocator = allocator,};
+  }
+  return puleString(allocator, path.string().c_str());
+}
+
+bool puleFilesystemSymlinkCreate(
+  PuleStringView const target,
+  PuleStringView const linkDst
+) {
+  puleLogDebug(
+    "creating symlink '%s' -> '%s'",
+    target.contents,
+    linkDst.contents
+  );
+  std::error_code errorCode;
+  std::filesystem::create_symlink(
+    std::string_view(target.contents, target.len),
+    std::string_view(linkDst.contents, linkDst.len),
+    errorCode
+  );
+  if (errorCode) {
+    auto const currentPath = puleFilesystemCurrentPath(puleAllocateDefault());
+    puleLogError(
+      "could not create symlink:\n\t'%s'\n\t-> '%s%s%s'\n\t"
+      "[%s (current path %s)]",
+      target.contents,
+      // determine if relative path
+      (target.contents[0] == '/' ? "" : currentPath.contents),
+      (target.contents[0] == '/' ? "" : "/"),
+      linkDst.contents, errorCode.message().c_str(),
+      currentPath.contents
+    );
+    puleStringDestroy(currentPath);
+    return false;
+  }
+  return true;
+}
+
 PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
-  if (!puleFilesystemExists(path)) {
+  if (!puleFilesystemPathExists(path)) {
     return {.value=0,};
   }
   std::error_code errorcode;

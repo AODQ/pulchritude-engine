@@ -2,12 +2,13 @@
 
 #include <pulchritude-core/core.h>
 
+
+#include <pulchritude-allocator/allocator.h>
 #include <pulchritude-array/array.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-stream/stream.h>
 #include <pulchritude-string/string.h>
 #include <pulchritude-time/time.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,6 +58,10 @@ PULE_exportFn void puleFileWriteBytes(
   PuleFile const file,
   PuleArrayView const source
 );
+PULE_exportFn void puleFileWriteString(
+  PuleFile const file,
+  PuleStringView const source
+);
 PULE_exportFn uint64_t puleFileSize(PuleFile const file);
 PULE_exportFn void puleFileAdvanceFromStart(
   PuleFile const file,
@@ -87,17 +92,32 @@ PULE_exportFn PuleStreamWrite puleFileStreamWrite(
 );
 
 // -- filesystem -- TODO probably rename ot puleFilesystem or puleFs
-PULE_exportFn bool puleFilesystemExists(PuleStringView const path);
+PULE_exportFn bool puleFilesystemPathExists(PuleStringView const path);
 PULE_exportFn bool puleFileCopy(
   PuleStringView const sourcePath,
   PuleStringView const destinationPath
 );
 PULE_exportFn bool puleFileRemove(PuleStringView const filePath);
-PULE_exportFn void puleFileDirectoryCreate(PuleStringView const path);
+PULE_exportFn bool puleFileRemoveRecursive(PuleStringView const filePath);
+PULE_exportFn bool puleFileDirectoryCreate(PuleStringView const path);
+PULE_exportFn bool puleFileDirectoryCreateRecursive(PuleStringView const path);
+
+PULE_exportFn PuleString puleFilesystemExecutablePath(
+  PuleAllocator const allocator
+);
+
+PULE_exportFn PuleString puleFilesystemCurrentPath(
+  PuleAllocator const allocator
+);
+
+PULE_exportFn bool puleFilesystemSymlinkCreate(
+  PuleStringView const target,
+  PuleStringView const linkDst
+);
 
 // returns 0 on error; sometimes this might happen if the file is being written
-//   to, even if `puleFilesystemExists` returns true, in which case you might
-//   need to check at a later point
+//   to, even if `puleFilesystemPathExists` returns true, in which case you
+//   might need to check at a later point
 PULE_exportFn PuleTimestamp puleFilesystemTimestamp(PuleStringView const path);
 
 #ifdef __cplusplus

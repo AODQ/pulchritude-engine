@@ -73,7 +73,7 @@ PuleDsValue puldRegisterCLICommands(
 );
 void puldGuiUpdate();
 
-void applyRedoUndo(
+bool applyRedoUndo(
   bool const trueForwardFalseRewind,
   PuleAllocator const allocator,
   PuleDsValue const main,
@@ -83,7 +83,7 @@ void applyRedoUndo(
   int64_t levels = puleDsAsI64(puleDsObjectMember(input, "levels"));
   if (levels < 0) {
     PULE_error(1, "levels must be positive");
-    return;
+    return false;
   }
 
   // get command info
@@ -94,7 +94,7 @@ void applyRedoUndo(
       error
     )
   );
-  if (puleErrorExists(error)) { return; }
+  if (puleErrorExists(error)) { return false; }
 
   // get a 'slice' of the actions (from 0 to current to branch head)
   LocalCommandInfo const localCommand = getLocalCommands(commandsFileValue);
@@ -184,32 +184,33 @@ void applyRedoUndo(
   );
   // fallthrough to destructor
   puleDsDestroy(commandsFileValue);
+  return true;
 }
 
 } // C
 
 extern "C" {
 
-void undotreeUndo(
+bool editorUndotreeUndo(
   PuleAllocator const allocator,
   PuleDsValue const main,
   PuleDsValue const input,
   PuleError * const error
 ) {
-  applyRedoUndo(false, allocator, main, input, error);
+  return applyRedoUndo(false, allocator, main, input, error);
 }
 
-void undotreeRedo(
+bool editorUndotreeRedo(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
   PuleDsValue const input,
   PuleError * const error
 ) {
 
-  applyRedoUndo(true, allocator, main, input, error);
+  return applyRedoUndo(true, allocator, main, input, error);
 }
 
-void undotreeShow(
+bool editorUndotreeShow(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
   PuleDsValue const input,
@@ -230,7 +231,7 @@ void undotreeShow(
     )
   );
   if (puleErrorExists(error)) {
-    return;
+    return false;
   }
 
   PuleDsValue const commandsValue = (
@@ -240,7 +241,7 @@ void undotreeShow(
 
   if (commandsAsArray.length == 0) {
     printf("no history found\n");
-    return;
+    return false;
   }
 
   int64_t const currentHeadIdx = (
@@ -376,6 +377,7 @@ void undotreeShow(
   PULE_assert(localCommandCurrentHeadIdx != -1ul);
 
   puleDsDestroy(commandsFileValue);
+  return true;
 }
 
 } // C

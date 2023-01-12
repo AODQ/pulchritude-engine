@@ -36,7 +36,7 @@ uint32_t puleErrorConsume(PuleError * const error) {
     } else {
       puleLogError("[%zu]: %s", error->id, error->description.contents);
     }
-    puleStringDeallocate(error->description);
+    puleStringDestroy(error->description);
     *error = puleError();
   }
   return error->id;
