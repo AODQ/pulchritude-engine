@@ -25,6 +25,7 @@ namespace util {
     uint64_t shaderModuleHandle = 0;
 
     bool blendEnabled = false;
+    bool depthTestEnabled = false;
     bool scissorTestEnabled = false;
     PuleI32v2 viewportUl = PuleI32v2 { 0, 0 }; // default 0, 0
     PuleI32v2 viewportLr = PuleI32v2 { 1, 1 }; // default 1, 1

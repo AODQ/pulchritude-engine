@@ -18,11 +18,6 @@ PULE_exportFn void * pulePluginPayloadFetch(
   PuleStringView const handle
 );
 
-PULE_exportFn void * pulePluginPayloadFetch(
-  PulePluginPayload const payload,
-  PuleStringView const handle
-);
-
 PULE_exportFn uint64_t pulePluginPayloadFetchU64(
   PulePluginPayload const payload,
   PuleStringView const handle

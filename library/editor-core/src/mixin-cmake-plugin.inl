@@ -22,7 +22,7 @@ set_target_properties(                                                        \n
   %plugin-name                                                                \n
   PROPERTIES                                                                  \n
     COMPILE_FLAGS                                                             \n
-    "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef" \n
+    "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"            \n
   POSITION_INDEPENDENT_CODE ON                                                \n
 )                                                                             \n
                                                                               \n

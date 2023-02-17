@@ -35,6 +35,13 @@ typedef struct {
   uint64_t id;
 } PuleGfxGpuBuffer;
 
+typedef  struct {
+  uint32_t vertexCount;
+  uint32_t instanceCount;
+  uint32_t vertexOffset;
+  uint32_t instanceOffset;
+} PuleGfxDrawIndirectArrays;
+
 // this should be a bitfield in the future (this only tells us what the buffer
 //   may be bound to for use in the future);
 typedef enum {

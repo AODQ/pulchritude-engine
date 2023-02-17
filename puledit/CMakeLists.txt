@@ -10,7 +10,7 @@ set_target_properties(
   puledit
   PROPERTIES
     COMPILE_FLAGS
-      "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
+      "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
 )
 
 target_link_libraries(

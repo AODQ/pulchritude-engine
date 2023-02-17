@@ -67,12 +67,12 @@ void parseArguments(
   ActionDirection const actionDirection,
   ApplyToActionHistory const applyToActionHistory
 ) {
-  if (*puleLogDebugEnabled()) {
-    puleLogDebug("--- cli argument layout ---");
-    puleAssetPdsWriteToStdout(cliArgumentLayout);
-    puleLogDebug("------ user arguments -----");
-    puleAssetPdsWriteToStdout(userArguments);
-  }
+  /* if (*puleLogDebugEnabled()) { */
+  /*   puleLogDebug("--- cli argument layout ---"); */
+  /*   puleAssetPdsWriteToStdout(cliArgumentLayout); */
+  /*   puleLogDebug("------ user arguments -----"); */
+  /*   puleAssetPdsWriteToStdout(userArguments); */
+  /* } */
   // if we get here we can assume the command is correct and any validation is
   //   redundant
   PuleDsValueArray const userCommand = (
@@ -298,11 +298,11 @@ void loadEditorDataFromPlugins(
       registerCommandsFn(puleAllocateDefault(), &error)
     );
     if (!puleErrorConsume(&error) && registeredCommands.id != 0) {
-      puleLogDebug("Registry info: ");
-      if (puleLogDebugEnabled()) {
-        puleAssetPdsWriteToStdout(registeredCommands);
-        printf("\n");
-      }
+      /* puleLogDebug("Registry info: "); */
+      /* if (puleLogDebugEnabled()) { */
+      /*   puleAssetPdsWriteToStdout(registeredCommands); */
+      /*   printf("\n"); */
+      /* } */
       PuleDsValueArray commands = (
         puleDsAsArray(puleDsObjectMember(registeredCommands, "commands"))
       );
@@ -408,6 +408,7 @@ int32_t main(
   [[maybe_unused]] char const * const * const userArguments
 ) {
   *puleLogDebugEnabled() = true;
+  *puleLogErrorSegfaultsEnabled() = true;
   { // load plugins
     PuleString const path = (
       puleFilesystemExecutablePath(puleAllocateDefault())

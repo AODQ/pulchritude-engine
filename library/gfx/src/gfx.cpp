@@ -42,14 +42,15 @@ static void GLAPIENTRY errorMessageCallback(
     case GL_DEBUG_SEVERITY_LOW:
     case GL_DEBUG_SEVERITY_NOTIFICATION:
     default:
-      if (type != 0x8251) // ignore shader stats
-        puleLogDebug("OpenGL message [0x%x]: %s", type, message);
+      puleLogDebug("OpenGL message [0x%x]: %s", type, message);
     break;
   }
   loggedErrorMessages.emplace(messageStr);
 }
 
 void puleGfxInitialize(PuleError * const error) {
+  // TODO check platform even exists;
+  //  i should pass in platform here as insurance of this
   PULE_errorAssert(
     gladLoadGLLoader(
       reinterpret_cast<GLADloadproc>(pulePlatformGetProcessAddress())
@@ -58,18 +59,20 @@ void puleGfxInitialize(PuleError * const error) {
   );
 
   glEnable(GL_SCISSOR_TEST);
-  glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(errorMessageCallback, nullptr);
+  glEnable(GL_DEBUG_OUTPUT); // fast asynchronous errors
 
   glDisable(GL_PRIMITIVE_RESTART);
   glDisable(GL_BLEND);
-  glDisable(GL_CULL_FACE);
+  glDisable(GL_CULL_FACE); // TODO configure
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_MULTISAMPLE);
   glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
   glDisable(GL_SAMPLE_ALPHA_TO_ONE);
   glDisable(GL_SAMPLE_COVERAGE);
   glDisable(GL_STENCIL_TEST);
+
+  glFrontFace(GL_CW);
 }
 
 void puleGfxShutdown() {
@@ -88,16 +91,10 @@ namespace {
       default:
         puleLogError("usage is invalid with renderer: %d", usage);
         return 0;
-      break;
-      case PuleGfxGpuBufferUsage_bufferAttribute:
-        return GL_ARRAY_BUFFER;
-      break;
-      case PuleGfxGpuBufferUsage_bufferElement:
-        return GL_ELEMENT_ARRAY_BUFFER;
-      break;
-      case PuleGfxGpuBufferUsage_bufferUniform:
-        return GL_UNIFORM_BUFFER;
-      break;
+      case PuleGfxGpuBufferUsage_bufferAttribute: return GL_ARRAY_BUFFER;
+      case PuleGfxGpuBufferUsage_bufferElement: return GL_ELEMENT_ARRAY_BUFFER;
+      case PuleGfxGpuBufferUsage_bufferUniform: return GL_UNIFORM_BUFFER;
+      case PuleGfxGpuBufferUsage_bufferIndirect: return GL_DRAW_INDIRECT_BUFFER;
     }
   }
 
@@ -163,7 +160,7 @@ void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer) {
 }
 
 void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
-  return (
+  void * ptr = (
     glMapNamedBufferRange(
       static_cast<GLuint>(range.buffer.id),
       range.byteOffset,
@@ -171,6 +168,10 @@ void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
       bufferMapAccessToGl(range.access)
     )
   );
+  if (!ptr) {
+    puleLogError("Failed to map pointer to buffer: %d", range.buffer.id);
+  }
+  return ptr;
 }
 
 void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer) {

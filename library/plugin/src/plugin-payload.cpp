@@ -42,12 +42,17 @@ void * pulePluginPayloadFetch(
   }
 
   if (handle.contents == nullptr || handle.len == 0) {
+    puleLogError("Using null/empty handle to fetch from payload");
     return nullptr;
   }
 
   uint64_t const hash = puleStringViewHash(handle);
   auto const dataPtr = payloadPtr->second.hashToData.find(hash);
   if (dataPtr == payloadPtr->second.hashToData.end()) {
+    puleLogError(
+      "handle '%s' does not exist in payload %d",
+      handle.contents, payload.id
+    );
     return nullptr;
   }
   return dataPtr->second;

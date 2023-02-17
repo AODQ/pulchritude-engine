@@ -257,8 +257,6 @@ PULE_exportFn void puleEcsQueryIteratorDestroy(
 // -- these are universal / global / default entities
 //    to override these is kind of impossible
 
-PULE_exportFn void puleEcsAddDefaultComponents(PuleEcsWorld const world);
-
 typedef PuleF32v3 PuleEcsComponentOriginF32v3;
 PuleEcsComponent puleEcsComponentOriginF32v3();
 

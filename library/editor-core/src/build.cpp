@@ -82,7 +82,7 @@ static void generateMasterCmakefile(PuleDsValue const projectValue) {
       subdirs += (
         std::string("add_subdirectory(")
         + puleDsMemberAsString(plugins.values[pluginIt], "path").contents
-        + std::string(")")
+        + std::string(")\n")
       );
     }
   }
@@ -108,9 +108,7 @@ static std::string generateCmakeSourceFiles(PuleDsValueArray const files) {
         && file.substr(file.size()-language.size()) == language
       ) {
         sourceFiles += std::string("${CMAKE_SOURCE_DIR}/") + file;
-        if (fileIt < files.length-1) {
-          sourceFiles += "\n    ";
-        }
+        sourceFiles += "\n    ";
       }
     }
   }
@@ -131,8 +129,10 @@ static void generatePluginCmakefile(PuleDsValue const pluginValue) {
   // replace source-files
   std::string const sourceFiles = (
     generateCmakeSourceFiles(puleDsMemberAsArray(pluginValue, "known-files"))
-    + generateCmakeSourceFiles(
-      puleDsMemberAsArray(pluginValue, "generated-hidden-files")
+    + (
+      generateCmakeSourceFiles(
+        puleDsMemberAsArray(pluginValue, "generated-hidden-files")
+      )
     )
   );
   cmakeContents = (
@@ -174,7 +174,8 @@ static void generatePluginCmakefile(PuleDsValue const pluginValue) {
 }
 
 static bool generateHuskDirectory(PuleDsValue const value) {
-  puleLogDebug("Creating husk directory");
+  puleLogDebug("Creating husk directory for ");
+  puleAssetPdsWriteToStdout(value);
   { // create directory
     PuleString const huskpath = (
       puleStringFormatDefault(
@@ -236,21 +237,7 @@ static bool generateHuskDirectory(PuleDsValue const value) {
       }
     }
   }
-
-  // create symbolic link to include
-  PuleString const exePath = (
-    puleFilesystemExecutablePath(puleAllocateDefault())
-  );
-  std::string includePath = std::string(exePath.contents) + "/engine-include";
-  puleLog("Include path: %s", includePath.c_str());
-  puleStringDestroy(exePath);
-  return (
-      puleFilesystemSymlinkCreate(
-      // TODO get this path from a known relpath
-      puleCStr(includePath.c_str()),
-      puleCStr("build-husk/engine-include")
-    )
-  );
+  return true;
 }
 
 static bool generateBuildHusk() {
@@ -278,11 +265,29 @@ static bool generateBuildHusk() {
   puleFileDirectoryCreate(puleCStr("build-husk/applications"));
   puleFileDirectoryCreate(puleCStr("build-husk/build-install"));
   puleFileDirectoryCreate(puleCStr("build-husk/install"));
+  puleFileDirectoryCreate(puleCStr("build-husk/install/assets"));
   puleFileDirectoryCreate(puleCStr("build-husk/plugins"));
 
   PuleDsValue const buildInfoValue = (
     puleDsObjectMember(projectValue, "build-info")
   );
+
+  // create symbolic link to include
+  PuleString const exePath = (
+    puleFilesystemExecutablePath(puleAllocateDefault())
+  );
+  std::string includePath = std::string(exePath.contents) + "/engine-include";
+  puleLog("Include path: %s", includePath.c_str());
+  puleStringDestroy(exePath);
+  if (
+    !puleFilesystemSymlinkCreate(
+      // TODO get this path from a known relpath
+      puleCStr(includePath.c_str()),
+      puleCStr("build-husk/engine-include")
+    )
+  ) {
+    return false;
+  }
 
   /* { // create applications husk */
   /*   PuleDsValueArray const applications = ( */
@@ -293,11 +298,11 @@ static bool generateBuildHusk() {
   /*   } */
   /* } */
 
-  puleLogDebug("Creating plugins husk");
   { // create plugins husk
     PuleDsValueArray const plugins = (
       puleDsMemberAsArray(buildInfoValue, "plugins")
     );
+    puleLogDebug("Creating plugins husk for %u plugins", plugins.length);
     for (size_t pluginIt = 0; pluginIt < plugins.length; ++ pluginIt) {
       if (!generateHuskDirectory(plugins.values[pluginIt])) {
         return false;
@@ -326,8 +331,8 @@ static bool generateBuildHusk() {
 // a first party plugin, at least for now. However to issue CMake + build
 // commands from just C there aren't many other options
 std::string systemExecute(char const * const command) {
-  puleLogDebug("Executing command: %s", command);
-  std::array<char, 128> buffer;
+  puleLogDebug("Executing command: %s\n", command);
+  std::array<char, 4> buffer;
   std::string result = "";
   FILE * pipe = popen(command, "r");
   if (!pipe) {
@@ -339,9 +344,13 @@ std::string systemExecute(char const * const command) {
   return result;
 }
 
+void systemExecuteInteractive(char const * const command) {
+  system(command);
+}
+
 void systemExecuteLog(char const * const command) {
-  puleLogDebug("Executing command: %s", command);
-  std::array<char, 8> buffer;
+  puleLogDebug("Executing command: %s\n", command);
+  std::array<char, 2> buffer;
   FILE * pipe = popen(command, "r");
   if (!pipe) {
     puleLogError("Failed to run command");
@@ -352,6 +361,21 @@ void systemExecuteLog(char const * const command) {
   }
 }
 
+bool refreshAssets(PuleAllocator const allocator, PuleError * const error) {
+  (void)allocator;
+  (void)error;
+  // TODO strip out unnecessary metadata (like source files)
+  puleFileCopy(
+    puleCStr("project.pds"),
+    puleCStr("build-husk/install/assets/project.pds")
+  );
+  puleFilesystemSymlinkCreate(
+    puleCStr("../../../puldata"),
+    puleCStr("build-husk/install/assets/puldata")
+  );
+  return true;
+}
+
 bool runPuleDataProcessing(
   PuleAllocator const allocator,
   PuleError * const error
@@ -359,6 +383,12 @@ bool runPuleDataProcessing(
   // refresh all data before building
   puleLog("--- Refreshing all pule data");
   if (!refreshEcsMainComponentList(allocator, error)) {
+    return false;
+  }
+  if (!refreshEcsMainSystemList(allocator, error)) {
+    return false;
+  }
+  if (!refreshAssets(allocator, error)) {
     return false;
   }
   return true;
@@ -372,24 +402,34 @@ bool runBuild(
     systemExecute(
       "cd build-husk/build-install;"
       " cmake -G \"Ninja\""
-      " -DCMAKE_BUILD_TYPE=RelWithDebugInfo"
+      " -DCMAKE_BUILD_TYPE=Debug"
       " -DCMAKE_INSTALL_PREFIX=../install"
       " -DCMAKE_c++_COMPILER=/usr/bin/clang++"
       " -DCMAKE_c_COMPILER=/usr/bin/clang"
-      " ../"
+      " ../ 2>&1"
     )
   );
   puleLog("-----cmake:\n%s\n----", cmakeResult.c_str());
+  for (
+    auto const & failStr :
+    std::vector<std::string> { "FAIL", "failed", "CMake Error" }
+  ) {
+    if (cmakeResult.find(failStr) != std::string::npos) {
+      return false;
+    }
+  }
 
   std::string buildResult = (
     systemExecute(
       "cd build-husk/build-install;"
-      " ninja install"
+      " ninja install 2>&1"
     )
   );
   puleLog("-----build:\n%s\n----", buildResult.c_str());
-  if (buildResult.find("FAIL") != std::string::npos) {
-    return false;
+  for (auto const & failStr : std::vector<std::string> { "FAIL", "failed" }) {
+    if (buildResult.find(failStr) != std::string::npos) {
+      return false;
+    }
   }
 
   puleLog("... Build seems to be succesful.");

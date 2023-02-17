@@ -142,6 +142,24 @@ bool puleStringViewEqCStr(PuleStringView const v0, char const * const v1) {
   return true;
 }
 
+bool puleStringViewContains(PuleStringView const v0, PuleStringView const v1) {
+  for (size_t it0 = 0; it0 < v0.len; ++ it0) {
+    // ex {ABC, DEF}, iter checks will be (3<0+3), (3<1+3)
+    if (v0.len < it0 + v1.len) { break; }
+    bool has = true;
+    for (size_t it1 = 0; it1 < v1.len; ++ it1) {
+      if (v0.contents[it0+it1] != v1.contents[it1]) {
+        has = false;
+        break;
+      }
+    }
+    if (has) {
+      return true;
+    }
+  }
+  return false;
+}
+
 size_t puleStringViewHash(PuleStringView const view) {
   auto stringView = std::string_view(view.contents, view.len);
   auto hash = std::hash<std::string_view>{}(stringView);

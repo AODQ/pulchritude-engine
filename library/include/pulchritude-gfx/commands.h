@@ -16,6 +16,19 @@
 extern "C" {
 #endif
 
+typedef struct { uint64_t id; } PuleGfxCommandList;
+typedef struct { uint64_t id; } PuleGfxCommandListRecorder;
+typedef struct {
+  PuleGfxCommandList commandList;
+  // before this command list starts, will wait on this fence to finish,
+  //   will also destroy the fence
+  PuleGfxFence * fenceTargetStart;
+  // at end of command list submission, if this is non-null, a fence will
+  //   be created to this target
+  PuleGfxFence * fenceTargetFinish;
+} PuleGfxCommandListSubmitInfo;
+
+
 //------------------------------------------------------------------------------
 //-- ACTIONS -------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -31,7 +44,9 @@ typedef enum {
   PuleGfxAction_clearFramebufferDepth,
   PuleGfxAction_dispatchRender,
   PuleGfxAction_dispatchRenderElements,
+  PuleGfxAction_dispatchRenderIndirect,
   PuleGfxAction_pushConstants,
+  PuleGfxAction_dispatchCommandList,
 } PuleGfxAction;
 
 PULE_exportFn PuleStringView puleGfxActionToString(PuleGfxAction const action);
@@ -63,6 +78,13 @@ typedef struct {
   size_t vertexOffset;
   size_t numVertices;
 } PuleGfxActionDispatchRender;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_dispatchRenderIndirect
+  PuleGfxDrawPrimitive drawPrimitive;
+  PuleGfxGpuBuffer bufferIndirect;
+  size_t byteOffset;
+} PuleGfxActionDispatchRenderIndirect;
 
 typedef enum {
   PuleGfxElementType_u8,
@@ -127,6 +149,11 @@ typedef struct {
   size_t constantsLength;
 } PuleGfxActionPushConstants;
 
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_dispatchCommandList
+  PuleGfxCommandListSubmitInfo submitInfo;
+} PuleGfxActionDispatchCommandList;
+
 typedef union {
   PuleGfxAction action;
   PuleGfxActionBindPipeline bindPipeline;
@@ -134,16 +161,15 @@ typedef union {
   PuleGfxActionClearFramebufferColor clearFramebufferColor;
   PuleGfxActionClearFramebufferDepth clearFramebufferDepth;
   PuleGfxActionDispatchRender dispatchRender;
+  PuleGfxActionDispatchRenderIndirect dispatchRenderIndirect;
   PuleGfxActionDispatchRenderElements dispatchRenderElements;
   PuleGfxActionPushConstants pushConstants;
+  PuleGfxActionDispatchCommandList dispatchCommandList;
 } PuleGfxCommand;
 
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
 //------------------------------------------------------------------------------
-
-typedef struct { uint64_t id; } PuleGfxCommandList;
-typedef struct { uint64_t id; } PuleGfxCommandListRecorder;
 
 PULE_exportFn PuleGfxCommandList puleGfxCommandListCreate(
   PuleAllocator const allocator,
@@ -162,22 +188,15 @@ PULE_exportFn PuleGfxCommandListRecorder puleGfxCommandListRecorder(
 PULE_exportFn void puleGfxCommandListRecorderFinish(
   PuleGfxCommandListRecorder const commandListRecorder
 );
+PULE_exportFn void puleGfxCommandListRecorderReset(
+  PuleGfxCommandListRecorder const commandListRecorder
+);
 
 // TODO use record/finishrecord
 PULE_exportFn void puleGfxCommandListAppendAction(
   PuleGfxCommandListRecorder const commandListRecorder,
   PuleGfxCommand const action
 );
-
-typedef struct {
-  PuleGfxCommandList commandList;
-  // before this command list starts, will wait on this fence to finish,
-  //   will also destroy the fence
-  PuleGfxFence * fenceTargetStart;
-  // at end of command list submission, if this is non-null, a fence will
-  //   be created to this target
-  PuleGfxFence * fenceTargetFinish;
-} PuleGfxCommandListSubmitInfo;
 
 PULE_exportFn void puleGfxCommandListSubmit(
   PuleGfxCommandListSubmitInfo const info,

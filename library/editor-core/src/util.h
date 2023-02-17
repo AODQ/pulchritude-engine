@@ -20,7 +20,13 @@ bool refreshEcsMainComponentList(
   PuleError * const error
 );
 
+bool refreshEcsMainSystemList(
+  PuleAllocator const allocator,
+  PuleError * const error
+);
+
 void buildClean();
 std::string systemExecute(char const * const command);
 void systemExecuteLog(char const * const command);
+void systemExecuteInteractive(char const * const command);
 void dumpToFile(std::string const & filename, std::string contents);

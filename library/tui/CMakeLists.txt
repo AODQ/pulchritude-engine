@@ -13,8 +13,7 @@ set_target_properties(
   pulchritude-tui
     PROPERTIES
       COMPILE_FLAGS
-        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic \
-         -Wundef"
+        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
     POSITION_INDEPENDENT_CODE ON
 )
 

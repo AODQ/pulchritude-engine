@@ -34,17 +34,43 @@ bool editorBuildRunApplication(
     execute += "/pulchritude-application ";
     execute += " pulchritude-application;";
     // execute with plugin paths + user params
-    execute += "unbuffer ./pulchritude-application ";
+    execute += "";
+    bool const isDebug = puleDsMemberAsBool(input, "debug");
+    bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
+    bool const gdb = puleDsMemberAsBool(input, "gdb");
+    bool const debugLayer = puleDsMemberAsBool(input, "debug-layer");
+    bool const clear = puleDsMemberAsBool(input, "clear");
+    if (clear) {
+      execute += " clear ; ";
+    }
+    execute += "exec ";
+    if (gdb) {
+      execute += "gdb -ex run --args ";
+    }
+    execute += "./pulchritude-application ";
     execute += "--plugin-path " + std::string(exePath.contents) + "/plugins/ ";
     execute += (
       "--plugin-path "
       + std::string(currentPath.contents)
       + "/build-husk/install/bin/plugins/ "
     );
+    execute += (
+      "--asset-path "
+      + std::string(currentPath.contents)
+      + "/build-husk/install/assets/ "
+    );
 
-    if (puleDsObjectMember(input, "debug").id != 0) {
-      execute += "--debug";
+    if (isDebug) {
+      execute += "--debug ";
     }
+    if (isErrorSegfaults) {
+      execute += "--error-segfaults ";
+    }
+    if (debugLayer) {
+      execute += "--plugin-layer debug ";
+    }
+
+    printf("------\n\t%s\n\n--------", execute.c_str());
 
     // cleanup
     puleStringDestroy(filesystemPath);
@@ -52,7 +78,7 @@ bool editorBuildRunApplication(
     puleStringDestroy(currentPath);
   }
   // execute
-  systemExecuteLog(execute.c_str());
+  systemExecuteInteractive(execute.c_str());
   return true;
 }
 }

@@ -60,6 +60,11 @@ PULE_exportFn bool puleErrorExists(PuleError * const error);
   } \
 }
 
+// pretty print error, format start with ("%s")
+#define PULE_prettyError(str, ...) { \
+  puleLogError(str, __PRETTY_FUNCTION__, __VA_ARGS__); \
+}
+
 #ifdef __cplusplus
 } // extern C
 #endif

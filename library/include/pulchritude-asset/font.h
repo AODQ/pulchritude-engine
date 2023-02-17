@@ -8,6 +8,10 @@
 
 // simple font library rendering text into textures
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct { uint64_t id; } PuleAssetFont;
 
 typedef enum {
@@ -40,3 +44,7 @@ PULE_exportFn void puleAssetFontRenderToU8Buffer(
   PuleAssetFontRenderInfo const info,
   PuleError * const error
 );
+
+#ifdef __cplusplus
+} // extern C
+#endif

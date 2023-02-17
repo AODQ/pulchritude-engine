@@ -159,6 +159,7 @@ void puleGfxPipelineUpdate(
   utilPipeline.framebufferHandle  = info->framebuffer.id;
   utilPipeline.shaderModuleHandle = info->shaderModule.id;
   utilPipeline.blendEnabled       = info->config.blendEnabled;
+  utilPipeline.depthTestEnabled   = info->config.depthTestEnabled;
   utilPipeline.scissorTestEnabled = info->config.scissorTestEnabled;
   utilPipeline.viewportUl         = info->config.viewportUl;
   utilPipeline.viewportLr         = info->config.viewportLr;

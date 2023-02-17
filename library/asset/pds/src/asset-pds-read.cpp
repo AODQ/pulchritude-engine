@@ -114,6 +114,13 @@ std::string pdsParseLabel(PuleStreamRead const stream) {
   }
   // get to : in case we hit whitespace
   while (character != ':') {
+    if (!isWhitespace(character)) {
+      puleLogError(
+        "PDS parsing error: expected whitespace after '%s', found '%c'",
+        label.c_str(), character
+      );
+      return label;
+    }
     character = pdsReadByte(stream);
   }
   if (invalidLabel || label == "") {
@@ -614,6 +621,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   // TODO enforce opt=true
   for (; argumentIt < info.argumentLength; ++ argumentIt) {
     argument = info.arguments[argumentIt];
+    size_t const argumentLen = strlen(argument);
 
     if (strcmp(argument, "--help") == 0) {
       printCommandLineParameterHelp(helpPreviousLayoutArgument, layoutIt);
@@ -634,6 +642,8 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       return { 0 };
     }
 
+    puleLogDebug("Working on argument %s", argument);
+
     // find matching parameter in layout
     bool parameterFound = false;
     for (size_t arrIt = 0; arrIt < layoutArray.length; ++ arrIt) {
@@ -643,7 +653,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       );
 
       // if input parameter != layout-iter parameter
-      if (strncmp(objLabel.contents, argument+2, objLabel.len)) {
+      if (strncmp(objLabel.contents, argument+2, argumentLen)) {
         continue;
       }
       parameterFound = true;
@@ -685,7 +695,6 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
             argumentIt += 1;
           }
         }
-        puleLogDebug("Assigning %b to %s", isTrue, objLabel.contents);
         puleDsObjectMemberAssign(
           emitParametersValue,
           objLabel,

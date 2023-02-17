@@ -160,11 +160,13 @@ PULE_exportFn PuleDsValue puleDsArrayElementAt(
   size_t const idx
 );
 
-// object[memberLabel] , returns { 0 } if no member
+// object[memberLabel] , returns a null object if no member
 PULE_exportFn PuleDsValue puleDsObjectMember(
   PuleDsValue const object,
   char const * const memberLabel
 );
+
+PULE_exportFn bool puleDsIsNull(PuleDsValue const object);
 
 PULE_exportFn PuleDsValue puleDsValueCloneRecursively(
   PuleDsValue const object,
@@ -184,24 +186,34 @@ PULE_exportFn PuleDsValue puleDsObjectMemberOverwrite(
 );
 
 // -- utility
+// returns 0 if nonexistent
 PULE_exportFn int64_t puleDsMemberAsI64(
   PuleDsValue const obj, char const * const label
 );
+// returns 0.0f if nonexistent
 PULE_exportFn double puleDsMemberAsF64(
   PuleDsValue const object, char const * const memberLabel
 );
+PULE_exportFn float puleDsMemberAsF32(
+  PuleDsValue const object, char const * const memberLabel
+);
+// returns false if nonexistent
 PULE_exportFn bool puleDsMemberAsBool(
   PuleDsValue const object, char const * const memberLabel
 );
+// returns null string view if nonexistent
 PULE_exportFn PuleStringView puleDsMemberAsString(
   PuleDsValue const object, char const * const memberLabel
 );
+// returns empty array if nonexistent
 PULE_exportFn PuleDsValueArray puleDsMemberAsArray(
   PuleDsValue const object, char const * const memberLabel
 );
+// returns empty object if nonexistent
 PULE_exportFn PuleDsValueObject puleDsMemberAsObject(
   PuleDsValue const object, char const * const memberLabel
 );
+// returns empty buffer if nonexistent
 PULE_exportFn PuleDsValueBuffer puleDsMemberAsBuffer(
   PuleDsValue const object, char const * const memberLabel
 );

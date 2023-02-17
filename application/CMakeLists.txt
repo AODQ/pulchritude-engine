@@ -12,13 +12,18 @@ set_target_properties(
   pulchritude-application
   PROPERTIES
     COMPILE_FLAGS
-      "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
+      "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
 )
 
 target_link_libraries(
   pulchritude-application
   pulchritude-plugin pulchritude-log
-  pulchritude-platform
+  pulchritude-string
+  pulchritude-allocator
+  pulchritude-error
+  pulchritude-asset-pds
+  pulchritude-asset-render-task-graph
+  pulchritude-task-graph
 )
 
 install(

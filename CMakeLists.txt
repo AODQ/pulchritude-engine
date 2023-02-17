@@ -110,6 +110,23 @@ if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not generate json bindings")
 endif()
 
+# perform layer mixin generation
+execute_process(
+  COMMAND
+    python3
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-layer-from-json-binding-generator.py"
+    "--input"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
+    "--output-header"
+    "${CMAKE_CURRENT_SOURCE_DIR}/library/include/pulchritude-plugin/engine.h"
+    "--output-load-mixin"
+    "${CMAKE_CURRENT_SOURCE_DIR}/library/plugin/src/engine-loader-mixin.inl"
+  RESULT_VARIABLE processFinished
+)
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not generate c-layer")
+endif()
+
 #execute_process(
 #  COMMAND
 #    python3

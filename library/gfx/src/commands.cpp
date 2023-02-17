@@ -25,10 +25,14 @@ PuleStringView puleGfxActionToString(PuleGfxAction const action) {
       return puleCStr("clear-framebuffer-depth");
     case PuleGfxAction_dispatchRender:
       return puleCStr("dispatch-render");
+    case PuleGfxAction_dispatchRenderIndirect:
+      return puleCStr("dispatch-render-indirect");
     case PuleGfxAction_dispatchRenderElements:
       return puleCStr("dispatch-render-elements");
     case PuleGfxAction_pushConstants:
       return puleCStr("push-constants");
+    case PuleGfxAction_dispatchCommandList:
+      return puleCStr("dispatch-command-list");
   }
 }
 
@@ -116,6 +120,13 @@ void puleGfxCommandListRecorderFinish(
   [[maybe_unused]] PuleGfxCommandListRecorder const commandListRecorder
 ) {
 }
+void puleGfxCommandListRecorderReset(
+  [[maybe_unused]] PuleGfxCommandListRecorder const commandListRecorder
+) {
+  auto & commandList = ::commandLists.at(commandListRecorder.id);
+  commandList.actions.resize(0);
+  commandList.constantData.resize(0);
+}
 
 void puleGfxCommandListAppendAction(
   PuleGfxCommandListRecorder const commandListRecorder,
@@ -193,6 +204,7 @@ void puleGfxCommandListSubmit(
       );
       puleGfxFenceDestroy(*info.fenceTargetStart);
       info.fenceTargetStart->id = 0;
+      return;
     }
   }
 
@@ -214,6 +226,18 @@ void puleGfxCommandListSubmit(
           static_cast<GLuint>(action.framebuffer.id),
           GL_COLOR, 0,
           &action.color.x
+        );
+      } break;
+      case PuleGfxAction_clearFramebufferDepth: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionClearFramebufferDepth const *>(
+            &command
+          )
+        );
+        glClearNamedFramebufferfv(
+          static_cast<GLuint>(action.framebuffer.id),
+          GL_DEPTH, 0,
+          &action.depth
         );
       } break;
       case PuleGfxAction_pushConstants: {
@@ -317,6 +341,13 @@ void puleGfxCommandListSubmit(
           glDisable(GL_BLEND);
         }
 
+        if (pipeline.depthTestEnabled) {
+          glEnable(GL_DEPTH_TEST);
+          glDepthFunc(GL_LESS);
+        } else {
+          glDisable(GL_DEPTH_TEST);
+        }
+
         (pipeline.scissorTestEnabled ? glEnable : glDisable)(GL_STENCIL_TEST);
 
         glViewport(
@@ -343,6 +374,21 @@ void puleGfxCommandListSubmit(
           action.numVertices
         );
       } break;
+      case PuleGfxAction_dispatchRenderIndirect: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionDispatchRenderIndirect const *>(
+            &command
+          )
+        );
+        glBindBuffer(
+          GL_DRAW_INDIRECT_BUFFER,
+          action.bufferIndirect.id
+        );
+        glDrawArraysIndirect(
+          drawPrimitiveToGl(action.drawPrimitive),
+          reinterpret_cast<void *>(action.byteOffset)
+        );
+      } break;
       case PuleGfxAction_dispatchRenderElements: {
         auto const action = (
           *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(
@@ -356,7 +402,18 @@ void puleGfxCommandListSubmit(
           reinterpret_cast<void const *>(action.elementOffset),
           action.baseVertexOffset
         );
-      }
+      } break;
+      case PuleGfxAction_dispatchCommandList: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
+            &command
+          )
+        );
+        puleGfxCommandListSubmit(action.submitInfo, error);
+        if (puleErrorExists(error)) {
+          return;
+        }
+      } break;
     }
   }
 
@@ -368,8 +425,114 @@ void puleGfxCommandListSubmit(
   }
 }
 
-void puleGfxCommandListDump(PuleGfxCommandList const ) {
+} // extern C
 
+namespace {
+
+void commandListDump(PuleGfxCommandList const commandList, int32_t level=0) {
+  auto const commandListFind = ::commandLists.find(commandList.id);
+  std::string levelStr = "";
+  for (int32_t l = 0; l < level+1; ++ l) levelStr += "|  ";
+  char const * const levelCStr = levelStr.c_str();
+  puleLogDebug(
+    "%sCommand list dump of '%s'",
+    levelCStr, commandListFind->second.label.c_str()
+  );
+  for (auto const command : commandListFind->second.actions) {
+    PuleGfxAction const actionType = (
+      *reinterpret_cast<PuleGfxAction const *>(&command)
+    );
+    switch (actionType) {
+      default:
+        puleLogError("%sunknown action ID %d", levelCStr, actionType);
+      break;
+      case PuleGfxAction_clearFramebufferColor: {
+        puleLogDebug("%sPuleGfxAction_clearFramebufferColor", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionClearFramebufferColor const *>(
+            &command
+          )
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_clearFramebufferDepth: {
+        puleLogDebug("%sPuleGfxAction_clearFramebufferDepth", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionClearFramebufferDepth const *>(
+            &command
+          )
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_pushConstants: {
+        puleLogDebug("%sPuleGfxAction_pushConstants", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionPushConstants const *>(
+            &command
+          )
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_bindAttribute: {
+        puleLogDebug("%sPuleGfxAction_bindAttribute", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_bindPipeline: {
+        puleLogDebug("%sPuleGfxAction_bindPipeline", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_dispatchRender: {
+        puleLogDebug("%sPuleGfxAction_dispatchRender", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_dispatchRenderIndirect: {
+        puleLogDebug("%sPuleGfxAction_dispatchRenderIndirect", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionDispatchRenderIndirect const *>(
+            &command
+          )
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_dispatchRenderElements: {
+        puleLogDebug("%sPuleGfxAction_dispatchRenderElements", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(
+            &command
+          )
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_dispatchCommandList: {
+        puleLogDebug("%sPuleGfxAction_dispatchCommandList", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
+            &command
+          )
+        );
+        commandListDump(action.submitInfo.commandList, level+1);
+      } break;
+    }
+  }
+}
+
+} // namespace
+
+extern "C" {
+
+void puleGfxCommandListDump(PuleGfxCommandList const commandList) {
+  puleLogDebug("-------------------------------------------------");
+  commandListDump(commandList);
+  puleLogDebug("-------------------------------------------------");
 }
 
 } // extern C

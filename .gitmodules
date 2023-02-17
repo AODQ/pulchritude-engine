@@ -19,3 +19,6 @@
 [submodule "third-party/lua"]
 	path = third-party/lua
 	url = https://github.com/lubgr/lua-cmake
+[submodule "third-party/libschrift"]
+	path = third-party/libschrift
+	url = https://github.com/tomolt/libschrift

@@ -29,7 +29,10 @@ static void scrollCallback(
 }
 
 void pulePlatformInitialize(PuleError * const error) {
-  PULE_errorAssert(glfwInit(), PuleErrorWindow_windowCreationFailed, );
+  PULE_errorAssert(
+    glfwInit() && "Have you set DISPLAY?",
+    PuleErrorWindow_windowCreationFailed,
+  );
 }
 
 void pulePlatformShutdown() {
@@ -40,9 +43,7 @@ PulePlatform pulePlatformCreate(
   PulePlatformCreateInfo const info,
   PuleError * const error
 ) {
-
   // TODO glfwSetErrorCallback
-
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -96,8 +97,8 @@ PulePlatform pulePlatformCreate(
       PuleErrorWindow_windowCreationFailed,
       "Could not create GLFW window; have you called pulePlatformInitialize?"
     );
+    return {.id = 0,};
   }
-  PULE_errorAssert(window, PuleErrorWindow_windowCreationFailed, {});
 
   PulePlatform platform;
   platform.id = reinterpret_cast<uint64_t>(window);

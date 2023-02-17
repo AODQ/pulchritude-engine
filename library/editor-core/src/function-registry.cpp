@@ -45,7 +45,13 @@ PuleDsValue puldRegisterCLICommands(
       show: [ { label: "all", type: "bool", default-value: false, }, ],
     },
     build: [],
-    run: [ { label: "debug", type: "bool", default-value: false, }, ],
+    run: [
+      { label: "debug", type: "bool", default-value: false, },
+      { label: "error-segfaults", type: "bool", default-value: false, },
+      { label: "debug-layer", type: "bool", default-value: false, },
+      { label: "gdb",   type: "bool", default-value: false, },
+      { label: "clear", type: "bool", default-value: false, },
+    ],
     plugin: {
       new: [
         { label: "name", type: "string", opt: false, },

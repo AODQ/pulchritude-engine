@@ -13,7 +13,7 @@ set_target_properties(
   pulchritude-imgui-engine
     PROPERTIES
       COMPILE_FLAGS
-        "-Wshadow -Wall -Wformat=2 -Wextra -Wpedantic -Wundef"
+        "-Wshadow -Wall -Wformat=2 -Wextra -Wundef"
     POSITION_INDEPENDENT_CODE ON
 )
 

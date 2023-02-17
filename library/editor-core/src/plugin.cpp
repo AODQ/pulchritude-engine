@@ -9,6 +9,19 @@
 
 #include <regex>
 
+std::string sanitizeLabel(PuleStringView const str) {
+  std::string label = str.contents;
+  // fix label, such that node-foo.h becomes PulcComponentNodeFoo
+  label[0] = ::toupper(label[0]);
+  for (size_t it = 0; it < label.size()-1; ++ it) {
+    if (label[it+1] == '-') {
+      label.erase(it+1, 1);
+      label[it+1] = ::toupper(label[it+1]);
+    }
+  }
+  return label;
+}
+
 bool refreshEcsMainComponentList(
   PuleAllocator const allocator,
   PuleError * const error
@@ -40,7 +53,6 @@ bool refreshEcsMainComponentList(
     PuleString const pluginsComponentSourcePath = (
       puleStringFormatDefault(
         "build-husk/plugins/%s/components/module.c",
-
         pluginsObject.labels[pluginIt].contents
       )
     );
@@ -59,9 +71,11 @@ bool refreshEcsMainComponentList(
       }
       std::string content = "";
       content += "#include \"pulchritude-ecs/ecs.h\"\n";
-      content += "#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
-      content += "\nvoid pulcRegisterComponents(PuleEcsWorld const world);\n";
-      content += "#ifdef __cplusplus\n}\n#endif\n";
+      content += "#include \"pulchritude-plugin/engine.h\"\n";
+      content += "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
+      content += "\nvoid pulcRegisterComponents(";
+      content += "PuleEngineLayer * layer, PuleEcsWorld const world);";
+      content += "\n\n#ifdef __cplusplus\n}\n#endif\n";
       puleFileWriteString(
         pluginsComponentHeaderFile,
         puleCStr(content.c_str())
@@ -83,6 +97,7 @@ bool refreshEcsMainComponentList(
       }
       std::string content = "";
       // write headers
+      content += "#include \"pulchritude-plugin/engine.h\"\n";
       content += "#include \"pulchritude-ecs/ecs.h\"\n";
       for (size_t compIt = 0; compIt < components.length; ++ compIt) {
         content += "#include \"";
@@ -93,31 +108,28 @@ bool refreshEcsMainComponentList(
       }
       // write registry
       content += (
-        "void pulcRegisterComponents(PuleEcsWorld const world) {\n"
+        "\nvoid pulcRegisterComponents(\n"
+        "  PuleEngineLayer * const pul,\n"
+        "  PuleEcsWorld const world\n"
+        ") {\n"
       );
       for (size_t compIt = 0; compIt < components.length; ++ compIt) {
-        std::string label = (
-          puleDsMemberAsString(components.values[compIt], "name").contents
+        std::string const label = (
+          "PulcComponent" + (
+            sanitizeLabel(
+              puleDsMemberAsString(components.values[compIt], "name")
+            )
+          )
         );
-        // fix label, such that node-foo.h becomes PulcComponentNodeFoo
-        label[0] = ::toupper(label[0]);
-        for (size_t it = 0; it < label.size()-1; ++ it) {
-          if (label[it+1] == '-') {
-            label.erase(it+1, 1);
-            label[it+1] = ::toupper(label[it+1]);
-          }
-        }
-        label = "PulcComponent" + label;
-
         content += (
           "  { // " + label + "\n"
           "    PuleEcsComponentCreateInfo const compInfo = {\n"
-          "        .label = \"" + label + "\",\n"
-          "        .byteLength = sizeof(" + label + "),\n"
-          "        .byteAlignment = _Alignof(" + label + "),\n"
+          "      .label = \"" + label + "\",\n"
+          "      .byteLength = sizeof(" + label + "),\n"
+          "      .byteAlignment = _Alignof(" + label + "),\n"
           "    };\n"
-          "    puleLogDebug(\"Registering component '" + label + "'\");\n"
-          "    puleEcsComponentCreate(world, compInfo);\n"
+          "    pul->logDebug(\"Registering component '" + label + "'\");\n"
+          "    pul->ecsComponentCreate(world, compInfo);\n"
           "  }\n"
         );
       }
@@ -134,6 +146,155 @@ bool refreshEcsMainComponentList(
   return true;
 }
 
+bool refreshEcsMainSystemList(
+  PuleAllocator const allocator,
+  PuleError * const error
+) {
+  PuleDsValue const ecsMainValue = (
+    puleAssetPdsLoadFromFile(
+      allocator,
+      puleCStr("./puldata/ecs.pds"),
+      error
+    )
+  );
+  if (puleErrorExists(error)) { return false; }
+
+  PuleDsValue const plugins = puleDsObjectMember(ecsMainValue, "plugins");
+  PuleDsValueObject const pluginsObject = puleDsAsObject(plugins);
+
+  for (size_t pluginIt = 0; pluginIt < pluginsObject.length; ++ pluginIt) {
+    PuleDsValueArray const systems = (
+      puleDsAsArray(
+        puleDsObjectMember(pluginsObject.values[pluginIt], "systems")
+      )
+    );
+    PuleString const pluginsSystemHeaderPath = (
+      puleStringFormatDefault(
+        "build-husk/plugins/%s/systems/module.h",
+        pluginsObject.labels[pluginIt].contents
+      )
+    );
+    PuleString const pluginsSystemSourcePath = (
+      puleStringFormatDefault(
+        "build-husk/plugins/%s/systems/module.c",
+        pluginsObject.labels[pluginIt].contents
+      )
+    );
+    { // write out header
+      PuleFile const pluginsSystemHeaderFile = (
+        puleFileOpen(
+          puleStringView(pluginsSystemHeaderPath),
+          PuleFileDataMode_text,
+          PuleFileOpenMode_writeOverwrite,
+          error
+        )
+      );
+      if (puleErrorExists(error)) {
+        puleDsDestroy(ecsMainValue);
+         return 0;
+      }
+      std::string content = "";
+      content += "#pragma once\n";
+      content += "#include \"pulchritude-ecs/ecs.h\"\n";
+      content += "#include \"pulchritude-plugin/engine.h\"\n";
+      content += "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
+      // write out the system registry
+      content += "\nvoid pulcRegisterSystems(";
+      content += "PuleEngineLayer * layer, PuleEcsWorld const world);\n";
+      // now write out all the function signatures (user implements, but
+      // we can prototype here as the implementation is in the same plugin)
+      for (size_t systemIt = 0; systemIt < systems.length; ++ systemIt) {
+        auto const systemValue = systems.values[systemIt];
+        std::string const sanitizedLabel = (
+          sanitizeLabel(puleDsMemberAsString(systemValue, "name"))
+        );
+        std::string const callbackLabel = "pulcSystemCallback" + sanitizedLabel;
+        content += (
+          "\nvoid " + callbackLabel + "(PuleEcsIterator const iter);"
+        );
+      }
+      // finish file
+      content += "\n\n#ifdef __cplusplus\n}\n#endif\n";
+      puleFileWriteString(
+        pluginsSystemHeaderFile,
+        puleCStr(content.c_str())
+      );
+      puleFileClose(pluginsSystemHeaderFile);
+    }
+    { // write out source file
+      PuleFile const pluginsSystemSourceFile = (
+        puleFileOpen(
+          puleStringView(pluginsSystemSourcePath),
+          PuleFileDataMode_text,
+          PuleFileOpenMode_writeOverwrite,
+          error
+        )
+      );
+      if (puleErrorExists(error)) {
+        puleDsDestroy(ecsMainValue);
+        return false;
+      }
+      std::string content = "";
+      // write headers
+      content += "#include \"module.h\"\n";
+      content += "#include \"pulchritude-ecs/ecs.h\"\n";
+      content += "#include \"pulchritude-plugin/engine.h\"\n";
+      // write registry
+      content += (
+        "\nvoid pulcRegisterSystems(\n"
+        "  PuleEngineLayer * const pul,\n"
+        "  PuleEcsWorld const world\n"
+        ") {\n"
+      );
+      for (size_t systemIt = 0; systemIt < systems.length; ++ systemIt) {
+        auto const systemValue = systems.values[systemIt];
+        std::string const sanitizedLabel = (
+          sanitizeLabel(puleDsMemberAsString(systemValue, "name"))
+        );
+        std::string const label = "PulcSystem" + sanitizedLabel;
+        std::string const callbackLabel = "pulcSystemCallback" + sanitizedLabel;
+        // create comma separated list of components
+        std::string commaSeparatedComponentList = "";
+        auto componentLabels = puleDsMemberAsArray(systemValue, "components");
+        for (size_t compIt = 0; compIt < componentLabels.length; ++ compIt) {
+          commaSeparatedComponentList += (
+            std::string("PulcComponent") +
+            sanitizeLabel(
+              puleDsAsString(componentLabels.values[compIt])
+            )
+            + std::string(compIt + 1 < componentLabels.length ? ", " : "")
+          );
+        }
+        content += (
+          "  { // " + label + "\n"
+          "    PuleEcsSystemCreateInfo const systemInfo = {\n"
+          "      .label = \"" + label + "\",\n"
+          "      .commaSeparatedComponentLabels = (\n"
+          "        \"" + commaSeparatedComponentList + "\"\n"
+          "      ),\n"
+          "      .callback = &" + callbackLabel + ",\n"
+          "      .callbackFrequency = (\n"
+          "        PuleEcsSystemCallbackFrequency_onUpdate\n" // TODO
+          "      ),\n"
+          "    };\n"
+          "    pul->logDebug(\"Registering system '" + label + "'\");\n"
+          "    pul->ecsSystemCreate(world, systemInfo);\n"
+          "  }\n"
+        );
+      }
+      content += "}";
+      puleFileWriteString(
+        pluginsSystemSourceFile,
+        puleCStr(content.c_str())
+      );
+      puleFileClose(pluginsSystemSourceFile);
+    }
+  }
+
+  puleDsDestroy(ecsMainValue);
+  return true;
+}
+
 namespace {
 bool pluginExists(PuleStringView const pluginName, PuleError * const error) {
   PuleDsValue const projectValue = (
@@ -143,7 +304,7 @@ bool pluginExists(PuleStringView const pluginName, PuleError * const error) {
       error
     )
   );
-  if (puleErrorConsume(error)) { return false; }
+  if (puleErrorExists(error)) { return false; }
 
   PuleDsValue const plugins = (
     puleDsObjectMember(

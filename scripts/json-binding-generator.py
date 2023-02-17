@@ -40,7 +40,7 @@ def comment_remover(text):
   )
   return re.sub(pattern, replacer, text)
 
-def exportJsonFromFile(contents, modulename):
+def exportJsonFromFile(contents, modulename, header):
   contents = comment_remover(contents)
   exportedSymbols = []
 
@@ -127,6 +127,7 @@ def exportJsonFromFile(contents, modulename):
           "label": fnName,
           "parameters": parameters,
           "module": modulename,
+          "header": header,
         }]
     elif (strCmp(contents[it:], "using")): # TODO support C's "using" I guess
       # using +([^ =]+) *= *([^ ;]+) *;
@@ -303,13 +304,16 @@ for subdir, dirs, files in os.walk(inputArgs['input']):
     if (filename == "core.h"):
       continue
 
+    if (filename == "engine.h"):
+      continue
+
     modulename = modulePattern.match(subdir).group(1)
     if (modulename == 'asset'):
       modulename += '-' + filename.replace('.h', '')
 
     file = open(subdir + "/" + filename)
     pprint(f"file open: {file}")
-    exportJson += exportJsonFromFile(file.read(), modulename)
+    exportJson += exportJsonFromFile(file.read(), modulename, filename)
     file.close()
 
 # transform function pointers in structs & functions
@@ -399,6 +403,11 @@ for objkey, obj in enumerate(exportJson):
         param = []
         if (ptr[it] == ","):
           it += 1
+
+    params = list({'meta-type': 'standard', 'type': param} for param in params)
+    for param in params:
+      param['label'] = param['type'][-1]
+      param['type'] = param['type'][:-1]
     exportJson[objkey][fieldsOrPameter][fieldkey] = {
       "label": label,
       "meta-type": "fn-ptr",

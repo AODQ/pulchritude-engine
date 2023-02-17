@@ -61,6 +61,7 @@ void refreshContext(
       .framebuffer = puleGfxFramebufferWindow(),
       .layout = &descriptorSetLayout,
       .config = {
+        .depthTestEnabled = true,
         .blendEnabled = false,
         .scissorTestEnabled = false,
         .viewportUl = PuleI32v2 { 0, 0, },

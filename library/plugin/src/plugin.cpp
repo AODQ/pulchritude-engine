@@ -2,6 +2,7 @@
 
 #include <pulchritude-file/file.h>
 #include <pulchritude-log/log.h>
+#include <pulchritude-plugin/engine.h>
 #include <pulchritude-string/string.h>
 
 #include <filesystem>
@@ -174,7 +175,7 @@ void Plugin::open() {
 }
 
 void loadPluginFromFile(std::filesystem::path path) {
-  puleLogDebug("Loading plugin %s", path.c_str());
+  /* puleLogDebug("Loading plugin %s", path.c_str()); */
   ::plugins.emplace_back(std::make_unique<::Plugin>(path));
   auto & pluginEnd = ::plugins.back();
 
@@ -273,6 +274,95 @@ void puleIteratePlugins(
       userdata
     );
     ++ pluginIt;
+  }
+}
+
+} // extern c
+
+namespace {
+
+void * loadSymbol(
+  char const * name, PuleStringView const layer,
+  bool canLoadDefault = true
+) {
+  if (!canLoadDefault && puleStringViewEqCStr(layer, "default")) {
+    return nullptr;
+  }
+  // transform layer to plugin name relative to layer
+  // ex, 'pulchritude-debug'
+  // ex, 'log' -> 'pulchritude-log' or 'pulchritude-log-debug'
+  auto const layerStr = std::string(layer.contents);
+  auto const correctModuleLabel = std::string("pulchritude-layer-") + layerStr;
+
+  // fetch , TODO use unordered map or something to do direct lookup
+  if (!puleStringViewEqCStr(layer, "default")) {
+    for (auto & plugin : plugins) {
+      if (plugin->pluginName == correctModuleLabel) {
+        auto fn = plugin->loadFunction(name, false);
+        if (fn) { return fn; }
+        break;
+      }
+    }
+
+    puleLogDebug(
+      "symbol '%s' does not exist in module (%s)%s",
+      name, correctModuleLabel.c_str(),
+      canLoadDefault ? ", loading from default" : ""
+    );
+  }
+
+  if (!canLoadDefault) {
+    return nullptr;
+  }
+
+  // fetch from default libraries (ignore layers)
+  for (auto & plugin : plugins) {
+    if (
+      puleStringViewContains(
+        puleCStr(plugin->pluginName.c_str()),
+        puleCStr("pulchritude-layer")
+      )
+    ) {
+      continue;
+    }
+    auto fn = plugin->loadFunction(name, false);
+    if (fn) { return fn; }
+  }
+
+  puleLogDebug(
+    "could not load symbol '%s' from layer %s",
+    name, layer.contents
+  );
+  return nullptr;
+}
+
+} // namespace
+
+extern "C" {
+
+void pulePluginLoadEngineLayer(
+  PuleEngineLayer * layer,
+  PuleStringView const layerName,
+  PuleEngineLayer * layerParentNullable
+) {
+  layer->parent = layerParentNullable;
+  layer->layerName = puleString(puleAllocateDefault(), layerName.contents);
+  puleLog("Loading mixin...");
+#include "engine-loader-mixin.inl"
+  puleLog("Loading layer entry fn...");
+  auto layerEntryFn = (
+    reinterpret_cast<void (*)(PuleEngineLayer * const layer)>(
+      ::loadSymbol("puleEngineLayerEntry", layerName) // TODO chop last
+    )
+  );
+  puleLog("layer entry fn... %p", layerEntryFn);
+  PULE_assert(
+    (!layerParentNullable || layerEntryFn) && "missing layer entry function"
+  );
+  if (layerEntryFn) {
+    puleLogDebug("Loading layer entry function");
+    assert(layerParentNullable); // should have parent (as this is not default)
+    layerEntryFn(layerParentNullable);
   }
 }
 

@@ -52,8 +52,8 @@ void pdsObjectAdd(
       // destroy overwritten value
       puleDsDestroy(oldValue);
     } else {
-      puleLogError(
-        "adding object '%s' which would overwrite existing label",
+      PULE_prettyError(
+        "%s: adding object '%s' which would overwrite existing label",
         label.contents
       );
       return;
@@ -168,15 +168,19 @@ int8_t puleDsAsI8(PuleDsValue const value) {
   );
 }
 bool puleDsAsBool(PuleDsValue const value) {
-  return (
-    *std::get_if<int64_t>(&::pdsValues.at(value.id)) != 0
-  );
+  auto isBool = std::get_if<int64_t>(&::pdsValues.at(value.id));
+  assert(isBool && "value is not bool");
+  return (*isBool) != 0;
 }
 double puleDsAsF64(PuleDsValue const value) {
-  return *std::get_if<double>(&::pdsValues.at(value.id));
+  auto * valuePtr = &::pdsValues.at(value.id);
+  auto asDouble = std::get_if<double>(valuePtr);
+  return (
+    asDouble ? *asDouble : static_cast<double>(*std::get_if<int64_t>(valuePtr))
+  );
 }
 float puleDsAsF32(PuleDsValue const value) {
-  return static_cast<float>(*std::get_if<double>(&::pdsValues.at(value.id)));
+  return static_cast<float>(puleDsAsF64(value));
 }
 PuleStringView puleDsAsString(PuleDsValue const value) {
   auto valuePtr = ::pdsValues.find(value.id);
@@ -195,7 +199,7 @@ PuleStringView puleDsAsString(PuleDsValue const value) {
   );
 }
 PuleDsValueArray puleDsAsArray(PuleDsValue const value) {
-  PdsArray * asArray = getArrayElement(value);
+  PdsArray * const asArray = getArrayElement(value);
   if (!asArray) {
     return { .values = nullptr, .length = 0 };
   }
@@ -402,7 +406,7 @@ PuleDsValue puleDsObjectMember(
   }
   auto const & object = *objectPtr;
   auto const hash = puleStringViewHash(puleCStr(memberLabel));
-  auto member = object.values.find(hash);
+  auto const member = object.values.find(hash);
   if (member == object.values.end()) {
     return { 0 };
   }
@@ -441,6 +445,10 @@ static PuleDsValue puleDsArrayCloneRecursively(
     puleDsArrayAppend(newArr, puleDsValueCloneRecursively(value, allocator));
   }
   return newArr;
+}
+
+bool puleDsIsNull(PuleDsValue const object) {
+  return (object.id == 0);
 }
 
 PuleDsValue puleDsValueCloneRecursively(
@@ -519,37 +527,66 @@ PuleDsValue puleDsObjectMemberOverwrite(
 int64_t puleDsMemberAsI64(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsI64(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return puleDsIsNull(member) ? 0 : puleDsAsI64(member);
 }
 double puleDsMemberAsF64(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsF64(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return puleDsIsNull(member) ? 0.0 : puleDsAsF64(member);
+}
+float puleDsMemberAsF32(
+  PuleDsValue const obj, char const * const label
+) {
+  auto const member = puleDsObjectMember(obj, label);
+  return puleDsIsNull(member) ? 0.0 : puleDsAsF64(member);
 }
 bool puleDsMemberAsBool(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsBool(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return puleDsIsNull(member) ? false : puleDsAsBool(member);
 }
 PuleStringView puleDsMemberAsString(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsString(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return (
+    puleDsIsNull(member)
+    ? PuleStringView{ .contents = nullptr, .len = 0, }
+    : puleDsAsString(member)
+  );
 }
 PuleDsValueArray puleDsMemberAsArray(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsArray(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return (
+    puleDsIsNull(member)
+    ? PuleDsValueArray{ .values = nullptr, .length = 0, }
+    : puleDsAsArray(member)
+  );
 }
 PuleDsValueObject puleDsMemberAsObject(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsObject(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return (
+    puleDsIsNull(member)
+    ? PuleDsValueObject{ .labels = nullptr, .values = nullptr, .length = 0, }
+    : puleDsAsObject(member)
+  );
 }
 PuleDsValueBuffer puleDsMemberAsBuffer(
   PuleDsValue const obj, char const * const label
 ) {
-  return puleDsAsBuffer(puleDsObjectMember(obj, label));
+  auto const member = puleDsObjectMember(obj, label);
+  return (
+    puleDsIsNull(member)
+    ? PuleDsValueBuffer{ .data = nullptr, .length = 0, }
+    : puleDsAsBuffer(member)
+  );
 }
 
 } // C

@@ -15,7 +15,7 @@ typedef struct {
 } PuleTuiWindow;
 
 PULE_exportFn PuleTuiWindow puleTuiInitialize();
-PULE_exportFn void puleTuiDestroy(PuleTuiWindow);
+PULE_exportFn void puleTuiDestroy(PuleTuiWindow const window);
 
 PULE_exportFn void puleTuiClear(PuleTuiWindow const window);
 PULE_exportFn void puleTuiRefresh(PuleTuiWindow const window);
@@ -24,7 +24,7 @@ PULE_exportFn void puleTuiRenderString(
   PuleStringView const content,
   PuleF32v3 const rgb
 );
-PULE_exportFn int32_t puleTuiReadInputCharacter(PuleTuiWindow const window);
+//PULE_exportFn int32_t puleTuiReadInputCharacter(PuleTuiWindow const window);
 PULE_exportFn int32_t puleTuiReadInputCharacterBlocking(
   PuleTuiWindow const window
 );

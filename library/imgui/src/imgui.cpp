@@ -312,6 +312,7 @@ void renderDrawData(ImDrawData * const drawData) {
         .framebuffer = puleGfxFramebufferWindow(),
         .layout = &descriptorSetLayout,
         .config = {
+          .depthTestEnabled = false,
           .blendEnabled = true,
           .scissorTestEnabled = true,
           .viewportUl = PuleI32v2 { 0, 0 },

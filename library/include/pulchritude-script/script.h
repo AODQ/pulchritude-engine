@@ -107,12 +107,13 @@ PULE_exportFn size_t puleScriptArrayF32ElementByteSize(
 
 // script module file-watching
 // TODO - most likely move this to asset/script?
-#if defined(PULCHRITUDE_SCRIPT_BIND_FILE)
 #include "pulchritude-file/file.h"
 typedef struct {
   PuleScriptModule scriptModule;
   PuleFileWatcher watcher;
 } PuleScriptModuleFileWatchReturn;
+
+#if defined(PULCHRITUDE_SCRIPT_BIND_FILE)
 PULE_exportFn PuleScriptModuleFileWatchReturn puleScriptModuleFileWatch(
   PuleScriptContext const context,
   PuleAllocator const allocator,

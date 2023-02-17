@@ -9,6 +9,7 @@ PuleError puleError() {
 }
 
 uint32_t puleErrorConsume(PuleError * const error) {
+  uint32_t const errorCode = error->id;
   if (error->id != 0) {
     if (error->sourceLocationNullable) {
       #define fileRelLength 6
@@ -39,7 +40,7 @@ uint32_t puleErrorConsume(PuleError * const error) {
     puleStringDestroy(error->description);
     *error = puleError();
   }
-  return error->id;
+  return errorCode;
 }
 
 bool puleErrorExists(PuleError * const error) {

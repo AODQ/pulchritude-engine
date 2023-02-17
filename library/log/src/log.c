@@ -8,9 +8,11 @@ typedef enum {
   LogType_normal,
   LogType_debug,
   LogType_error,
+  LogType_raw,
 } LogType;
 
-static bool debugEnabled;
+static bool debugEnabled = false;
+static bool errorSegfaultsEnabled = false;
 
 #define COLOR_CODE_BLK "\033[0;30m"
 #define COLOR_CODE_RED "\033[0;31m"
@@ -23,6 +25,10 @@ static bool debugEnabled;
 
 bool * puleLogDebugEnabled() {
   return &debugEnabled;
+}
+
+bool * puleLogErrorSegfaultsEnabled() {
+  return &errorSegfaultsEnabled;
 }
 
 static void logger(
@@ -51,6 +57,7 @@ static void logger(
       case LogType_error:
         printf("["COLOR_CODE_RED"ERR"COLOR_CODE_WHT"] ");
       break;
+      case LogType_raw: break;
     }
   }
 
@@ -83,7 +90,9 @@ void puleLogError(char const * const formatCStr, ...) {
   va_start(args, formatCStr);
   logger(LogType_error, true, formatCStr, args);
   va_end(args);
-  //raise(SIGSEGV);
+  if (errorSegfaultsEnabled) {
+    raise(SIGSEGV);
+  }
 }
 
 void puleLogLn(char const * const formatCStr, ...) {
@@ -91,5 +100,11 @@ void puleLogLn(char const * const formatCStr, ...) {
   va_start(args, formatCStr);
   logger(LogType_normal, false, formatCStr, args);
   va_end(args);
-  //raise(SIGSEGV);
+}
+
+void puleLogRaw(char const * const formatCStr, ...) {
+  va_list args;
+  va_start(args, formatCStr);
+  logger(LogType_raw, false, formatCStr, args);
+  va_end(args);
 }

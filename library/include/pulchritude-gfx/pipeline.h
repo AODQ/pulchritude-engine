@@ -47,8 +47,10 @@ PULE_exportFn PuleGfxPipelineDescriptorSetLayout
   puleGfxPipelineDescriptorSetLayout();
 
 typedef struct {
+  bool depthTestEnabled;
   bool blendEnabled;
   bool scissorTestEnabled;
+  // TODO viewport/scissor like this shouldn't be in a viewport
   PuleI32v2 viewportUl; // default 0, 0
   PuleI32v2 viewportLr; // default 1, 1
   PuleI32v2 scissorUl; // default 0, 0

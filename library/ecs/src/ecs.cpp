@@ -31,10 +31,6 @@ namespace {
     );
   };
 
-  struct DefaultWorldComponents {
-    PuleEcsComponent originF32v3;
-  };
-
   std::unordered_map<uint64_t, ComponentInfo> componentInfos;
 
   // this tag gets attached to every entity to allow for queries
@@ -134,7 +130,7 @@ PuleEcsComponent puleEcsComponentFetchByLabel(
   PuleEcsWorld const puWorld,
   PuleStringView const label
 ) {
-  // TODO create a hash-string map, instead of iterating like a dumbass
+  // TODO create a hash-string map, instead of iterating
   for (auto const & componentIt : ::componentInfos) {
     ecs_world_t * const world = reinterpret_cast<ecs_world_t *>(puWorld.id);
     if (
@@ -147,6 +143,7 @@ PuleEcsComponent puleEcsComponentFetchByLabel(
     }
     return {.id = componentIt.first,};
   }
+  puleLogError("failed to find component '%s'", label.contents);
   return { .id = 0, };
 }
 
@@ -317,6 +314,7 @@ PuleEcsEntity puleEcsEntityCreate(
 ) {
   ecs_world_t * const world = reinterpret_cast<ecs_world_t *>(puWorld.id);
   ecs_entity_t const entity = ecs_new_id(world);
+  // TODO verify name doesn't already exist...
   ecs_set_name(world, entity, label.contents);
 
   if (::puEntityTag == 0) {
@@ -340,9 +338,10 @@ void puleEcsEntityAttachComponent(
   PuleEcsComponent const component,
   void const * const nullableInitialData
 ) {
+  ecs_world_t * const worldEcs = reinterpret_cast<ecs_world_t *>(world.id);
   auto const componentInfo = ::componentInfos.at(component.id);
   ecs_set_id(
-    reinterpret_cast<ecs_world_t *>(world.id),
+    worldEcs,
     entity.id, component.id,
     componentInfo.byteLength, nullableInitialData
   );
@@ -474,26 +473,3 @@ void puleEcsQueryDestroy(PuleEcsQuery const puQuery) {
 }
 
 } // C
-
-
-extern "C" {
-
-void puleEcsAddDefaultComponents(PuleEcsWorld const world) {
-  /* worldDefaultComponents.emplace( */
-  /*   world.id, */
-  /*   DefaultWorldComponents { */
-  /*       .originF32v3 = ( */
-  /*         puleEcsComponentCreate( */
-  /*           world, { */
-  /*             .label = "PuleOriginF32v3", */
-  /*             .byteLength = sizeof(PuleEcsComponentOriginF32v3), */
-  /*             .byteAlignment = alignof(PuleEcsComponentOriginF32v3), */
-  /*           } */
-  /*         ) */
-  /*       ), */
-  /*     } */
-  /* ); */
-}
-
-} // C
-
