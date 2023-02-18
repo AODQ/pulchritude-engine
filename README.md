@@ -1,5 +1,8 @@
 # Pulchritude
 
+<p align="center"> <img src="documents/pulchritude-logo.png"> </p>
+<p align="center"> <img src="documents/pulchritude-logo.gif"> </p>
+
 ### summary
 Pulchritude is a [lingua franca](https://en.wikipedia.org/wiki/Lingua_franca)
 type of game engine that ties together a lot of libraries and exposes them to
