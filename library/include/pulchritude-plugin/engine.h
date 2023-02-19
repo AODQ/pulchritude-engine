@@ -54,6 +54,11 @@ typedef struct PuleEngineLayer {
   PuleF32v2 (* f32v2Add)(PuleF32v2 const, PuleF32v2 const);
   PuleF32v2 (* f32v2Sub)(PuleF32v2 const, PuleF32v2 const);
   PuleF32v2 (* f32v2Abs)(PuleF32v2 const);
+  PuleI32v2 (* i32v2)(float const);
+  PuleI32v2 (* i32v2Ptr)(float const * const);
+  PuleI32v2 (* i32v2Add)(PuleI32v2 const, PuleI32v2 const);
+  PuleI32v2 (* i32v2Sub)(PuleI32v2 const, PuleI32v2 const);
+  PuleI32v2 (* i32v2Abs)(PuleI32v2 const);
   PuleF32v3 (* f32v3)(float const);
   PuleF32v3 (* f32v3Ptr)(float const * const);
   PuleF32v3 (* f32v3Add)(PuleF32v3 const, PuleF32v3 const);
@@ -208,6 +213,7 @@ typedef struct PuleEngineLayer {
   void (* imguiText)(char const * const, ...);
   void (* imguiImage)(PuleGfxGpuImage const, PuleF32v2 const, PuleF32v2 const, PuleF32v2 const, PuleF32v4 const);
   bool (* imguiLastItemHovered)();
+  PuleI32v2 (* imguiCurrentOrigin)();
   bool (* imguiToggle)(char const * const, bool * const);
   bool (* imguiButton)(char const * const);
   PuleImguiCallbackRegistry (* imguiCallbackRegister)(PuleImguiCallback const);

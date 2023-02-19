@@ -869,6 +869,11 @@ bool puleImguiLastItemHovered() {
   return ImGui::IsItemHovered();
 }
 
+PuleI32v2 puleImguiCurrentOrigin() {
+  ImVec2 const o = ImGui::GetCursorScreenPos();
+  return PuleI32v2 { (int32_t)o.x, (int32_t)o.y };
+}
+
 bool puleImguiToggle(char const * const label, bool * const data) {
   return ImGui::Checkbox(label, data);
 }

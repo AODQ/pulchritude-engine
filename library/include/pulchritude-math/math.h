@@ -38,6 +38,13 @@ PULE_exportFn PuleF32v2 puleF32v2Abs(PuleF32v2 const a);
 //PULE_exportFn PuleF32v2 puleF32v2Div(PuleF32v2 const a, PuleF32v2 const b);
 //PULE_exportFn PuleF32v2 puleF32v2Dot(PuleF32v2 const a, PuleF32v2 const b);
 //
+
+PULE_exportFn PuleI32v2 puleI32v2(int32_t const identity);
+PULE_exportFn PuleI32v2 puleI32v2Ptr(int32_t const * const values);
+PULE_exportFn PuleI32v2 puleI32v2Add(PuleI32v2 const a, PuleI32v2 const b);
+PULE_exportFn PuleI32v2 puleI32v2Sub(PuleI32v2 const a, PuleI32v2 const b);
+PULE_exportFn PuleI32v2 puleI32v2Abs(PuleI32v2 const a);
+
 PULE_exportFn PuleF32v3 puleF32v3(float const identity);
 PULE_exportFn PuleF32v3 puleF32v3Ptr(float const * const values);
 PULE_exportFn PuleF32v3 puleF32v3Add(PuleF32v3 const a, PuleF32v3 const b);

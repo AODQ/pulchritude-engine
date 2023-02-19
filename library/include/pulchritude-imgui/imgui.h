@@ -53,6 +53,7 @@ PULE_exportFn void puleImguiImage(
 );
 
 PULE_exportFn bool puleImguiLastItemHovered();
+PULE_exportFn PuleI32v2 puleImguiCurrentOrigin();
 
 PULE_exportFn bool puleImguiToggle(char const * const label, bool * const data);
 PULE_exportFn bool puleImguiButton(char const * const label);

@@ -60,6 +60,31 @@
       ::loadSymbol("puleF32v2Abs", layerName)
     )
   );
+  layer->i32v2 = (
+    reinterpret_cast<decltype(layer->i32v2)>(
+      ::loadSymbol("puleI32v2", layerName)
+    )
+  );
+  layer->i32v2Ptr = (
+    reinterpret_cast<decltype(layer->i32v2Ptr)>(
+      ::loadSymbol("puleI32v2Ptr", layerName)
+    )
+  );
+  layer->i32v2Add = (
+    reinterpret_cast<decltype(layer->i32v2Add)>(
+      ::loadSymbol("puleI32v2Add", layerName)
+    )
+  );
+  layer->i32v2Sub = (
+    reinterpret_cast<decltype(layer->i32v2Sub)>(
+      ::loadSymbol("puleI32v2Sub", layerName)
+    )
+  );
+  layer->i32v2Abs = (
+    reinterpret_cast<decltype(layer->i32v2Abs)>(
+      ::loadSymbol("puleI32v2Abs", layerName)
+    )
+  );
   layer->f32v3 = (
     reinterpret_cast<decltype(layer->f32v3)>(
       ::loadSymbol("puleF32v3", layerName)
@@ -804,6 +829,11 @@
   layer->imguiLastItemHovered = (
     reinterpret_cast<decltype(layer->imguiLastItemHovered)>(
       ::loadSymbol("puleImguiLastItemHovered", layerName)
+    )
+  );
+  layer->imguiCurrentOrigin = (
+    reinterpret_cast<decltype(layer->imguiCurrentOrigin)>(
+      ::loadSymbol("puleImguiCurrentOrigin", layerName)
     )
   );
   layer->imguiToggle = (
