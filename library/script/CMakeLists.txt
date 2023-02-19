@@ -23,7 +23,14 @@ option(PULCHRITUDE_SCRIPT_BIND_STREAM "bind stream" ON)
 option(PULCHRITUDE_SCRIPT_BIND_SCRIPT "bind script" ON)
 option(PULCHRITUDE_SCRIPT_BIND_TIME "bind time" ON)
 
-target_include_directories(pulchritude-script PUBLIC "../include/" "include")
+find_package(Lua51 REQUIRED)
+target_include_directories(
+  pulchritude-script
+  PUBLIC
+    "../include/"
+    "include"
+    LUA_INCLUDE_DIR
+)
 
 target_sources(
   pulchritude-script
@@ -40,7 +47,6 @@ set_target_properties(
     POSITION_INDEPENDENT_CODE ON
 )
 
-find_package(Lua51 REQUIRED)
 target_link_libraries(
   pulchritude-script
   ${LUA_LIBRARIES}
