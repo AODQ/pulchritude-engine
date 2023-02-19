@@ -29,7 +29,7 @@ target_include_directories(
   PUBLIC
     "../include/"
     "include"
-    LUA_INCLUDE_DIR
+    ${LUA_INCLUDE_DIR}
 )
 
 target_sources(

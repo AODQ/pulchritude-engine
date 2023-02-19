@@ -505,7 +505,7 @@ int32_t main(
   while (hasUpdate) {
     if (platform.id) {
       puleGfxFrameStart();
-      pulePlatforrmPollEvents(platform);
+      pulePlatformPollEvents(platform);
     }
     if (isGuiEditor) {
       pulBase.imguiNewFrame();
