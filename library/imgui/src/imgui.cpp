@@ -122,7 +122,6 @@ void initializeRenderData() {
   auto const tempDescriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
   auto const pipelineCI = PuleGfxPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
-    .framebuffer = puleGfxFramebufferWindow(),
     .layout = &tempDescriptorSetLayout,
     .config = {},
   };
@@ -309,7 +308,6 @@ void renderDrawData(ImDrawData * const drawData) {
 
       auto const pipelineCreateInfo = PuleGfxPipelineCreateInfo {
         .shaderModule = bd.shaderModule,
-        .framebuffer = puleGfxFramebufferWindow(),
         .layout = &descriptorSetLayout,
         .config = {
           .depthTestEnabled = false,
@@ -350,6 +348,16 @@ void renderDrawData(ImDrawData * const drawData) {
             .bindPipeline {
               .action = PuleGfxAction_bindPipeline,
               .pipeline = bd.pipeline,
+            }
+          }
+        );
+
+        puleGfxCommandListAppendAction(
+          commandListRecorder,
+          PuleGfxCommand {
+            .bindFramebuffer {
+              .action = PuleGfxAction_bindFramebuffer,
+              .framebuffer = puleGfxFramebufferWindow(),
             }
           }
         );

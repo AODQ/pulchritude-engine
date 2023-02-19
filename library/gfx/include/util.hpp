@@ -21,7 +21,6 @@ namespace util {
     uint32_t attributeDescriptorHandle = 0;
 
     uint64_t pipelineHandle = 0;
-    uint64_t framebufferHandle = 0;
     uint64_t shaderModuleHandle = 0;
 
     bool blendEnabled = false;

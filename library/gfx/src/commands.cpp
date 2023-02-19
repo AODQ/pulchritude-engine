@@ -303,10 +303,6 @@ void puleGfxCommandListSubmit(
           *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
         );
         util::Pipeline const & pipeline = *util::pipeline(action.pipeline.id);
-        glBindFramebuffer(
-          GL_FRAMEBUFFER,
-          static_cast<GLuint>(pipeline.framebufferHandle)
-        );
         glUseProgram(static_cast<GLuint>(pipeline.shaderModuleHandle));
         glBindVertexArray(
           static_cast<GLuint>(pipeline.attributeDescriptorHandle)

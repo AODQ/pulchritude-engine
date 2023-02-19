@@ -354,7 +354,6 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
 
     auto pipelineInfo = PuleGfxPipelineCreateInfo {
       .shaderModule = system.shaderModule,
-      .framebuffer = puleGfxFramebufferWindow(),
       .layout = &descriptorSetLayout,
       .config = {
         .depthTestEnabled = true,

@@ -58,7 +58,6 @@ void refreshContext(
 
     auto pipelineInfo = PuleGfxPipelineCreateInfo {
       .shaderModule = ctx.lineRenderer.shaderModule,
-      .framebuffer = puleGfxFramebufferWindow(),
       .layout = &descriptorSetLayout,
       .config = {
         .depthTestEnabled = true,

@@ -156,7 +156,6 @@ void puleGfxPipelineUpdate(
   }
 
   utilPipeline.pipelineHandle     = pipeline.id;
-  utilPipeline.framebufferHandle  = info->framebuffer.id;
   utilPipeline.shaderModuleHandle = info->shaderModule.id;
   utilPipeline.blendEnabled       = info->config.blendEnabled;
   utilPipeline.depthTestEnabled   = info->config.depthTestEnabled;

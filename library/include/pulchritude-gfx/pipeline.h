@@ -59,7 +59,6 @@ typedef struct {
 
 typedef struct {
   PuleGfxShaderModule shaderModule;
-  PuleGfxFramebuffer framebuffer;
   PuleGfxPipelineDescriptorSetLayout const * layout;
   PuleGfxPipelineConfig config;
 } PuleGfxPipelineCreateInfo;
