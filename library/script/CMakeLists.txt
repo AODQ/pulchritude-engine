@@ -23,7 +23,7 @@ option(PULCHRITUDE_SCRIPT_BIND_STREAM "bind stream" ON)
 option(PULCHRITUDE_SCRIPT_BIND_SCRIPT "bind script" ON)
 option(PULCHRITUDE_SCRIPT_BIND_TIME "bind time" ON)
 
-find_package(Lua51 REQUIRED)
+find_package(Lua 5.3 REQUIRED)
 target_include_directories(
   pulchritude-script
   PUBLIC
