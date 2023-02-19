@@ -513,7 +513,7 @@ int32_t main(
       recorder,
       PuleGfxCommand {
         .clearFramebufferDepth = {
-          .action = PuleGfxAction_clearFramebufferColor,
+          .action = PuleGfxAction_clearFramebufferDepth,
           .framebuffer = pulBase.gfxFramebufferWindow(),
           .depth = 1.0f,
         },
