@@ -364,6 +364,15 @@ void puleGfxCommandListSubmit(
           static_cast<int32_t>(pipeline.scissorLr.y)
         );
       } break;
+      case PuleGfxAction_bindFramebuffer: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
+        );
+        glBindFramebuffer(
+          GL_FRAMEBUFFER,
+          static_cast<GLuint>(action.framebuffer.id)
+        );
+      } break;
       case PuleGfxAction_dispatchRender: {
         auto const action = (
           *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
@@ -484,6 +493,13 @@ void commandListDump(PuleGfxCommandList const commandList, int32_t level=0) {
         puleLogDebug("%sPuleGfxAction_bindPipeline", levelCStr);
         auto const action = (
           *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_bindFramebuffer: {
+        puleLogDebug("%sPuleGfxAction_bindFramebuffer", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
         );
         (void)action;
       } break;

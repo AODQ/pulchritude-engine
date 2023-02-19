@@ -1,8 +1,14 @@
 #include "util.h"
 
+#include <pulchritude-allocator/allocator.h>
 #include <pulchritude-file/file.h>
+#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-imgui/imgui.h>
+#include <pulchritude-platform/platform.h>
+#include <pulchritude-plugin/plugin.h>
 
 #include <string>
+#include <vector>
 
 extern "C" {
 bool editorBuildRunApplication(
@@ -36,6 +42,7 @@ bool editorBuildRunApplication(
     // execute with plugin paths + user params
     execute += "";
     bool const isDebug = puleDsMemberAsBool(input, "debug");
+    bool const isGuiEditor = puleDsMemberAsBool(input, "gui-editor");
     bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
     bool const gdb = puleDsMemberAsBool(input, "gdb");
     bool const debugLayer = puleDsMemberAsBool(input, "debug-layer");
@@ -63,6 +70,9 @@ bool editorBuildRunApplication(
     if (isDebug) {
       execute += "--debug ";
     }
+    if (isGuiEditor) {
+      execute += "--gui-editor ";
+    }
     if (isErrorSegfaults) {
       execute += "--error-segfaults ";
     }
@@ -81,4 +91,19 @@ bool editorBuildRunApplication(
   systemExecuteInteractive(execute.c_str());
   return true;
 }
+
+bool editorGui(
+  PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  PuleDsValue const input,
+  PuleError * const error
+) {
+  puleDsObjectMemberAssign(
+    input,
+    puleCStr("gui-editor"),
+    puleDsCreateBool(true)
+  );
+  return editorBuildRunApplication(allocator, main, input, error);
 }
+
+} // C

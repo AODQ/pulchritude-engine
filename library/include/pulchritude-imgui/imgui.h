@@ -7,6 +7,8 @@
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
+#include <pulchritude-gfx/image.h>
+#include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
 
 #ifdef __cplusplus
@@ -42,6 +44,15 @@ PULE_exportFn bool puleImguiSectionBegin(char const * const label);
 PULE_exportFn void puleImguiSectionEnd();
 
 PULE_exportFn void puleImguiText(char const * const format, ...);
+
+PULE_exportFn void puleImguiImage(
+  PuleGfxGpuImage const image,
+  PuleF32v2 const size,
+  PuleF32v2 const uvUl, PuleF32v2 const uvLr,
+  PuleF32v4 const borderColor
+);
+
+PULE_exportFn bool puleImguiLastItemHovered();
 
 PULE_exportFn bool puleImguiToggle(char const * const label, bool * const data);
 PULE_exportFn bool puleImguiButton(char const * const label);

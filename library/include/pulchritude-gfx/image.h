@@ -45,6 +45,7 @@ typedef enum {
   PuleGfxImageByteFormat_rgba8U,
   PuleGfxImageByteFormat_rgb8U,
   PuleGfxImageByteFormat_r8U,
+  PuleGfxImageByteFormat_depth16,
 } PuleGfxImageByteFormat;
 
 typedef enum {
@@ -84,8 +85,8 @@ typedef enum {
 } PuleGfxFramebufferAttachment;
 
 typedef enum {
-  renderStorage,
-  imageStorage,
+  PuleGfxFramebufferType_renderStorage,
+  PuleGfxFramebufferType_imageStorage,
 } PuleGfxFramebufferType;
 
 typedef struct {

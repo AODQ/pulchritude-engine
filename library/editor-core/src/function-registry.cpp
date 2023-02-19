@@ -10,6 +10,7 @@ PuleDsValue puldRegisterCommands(
   PuleAllocator const allocator,
   [[maybe_unused]] PuleError * const error
 ) {
+  // all here must also replicate in CLI commands
   char const * const commandRegisterCStr = PULE_multilineString(
     commands: [
       {label: "undo", apply-label: "editorUndotreeUndo",},
@@ -17,6 +18,7 @@ PuleDsValue puldRegisterCommands(
       {label: "undotree-show", apply-label: "editorUndotreeShow",},
       {label: "build", apply-label: "editorBuildInitiate",},
       {label: "run", apply-label: "editorBuildRunApplication",},
+      {label: "gui", apply-label: "editorGui",},
       {
         label: "plugin-new",
         forward-label: "editorPluginNew",
@@ -45,6 +47,13 @@ PuleDsValue puldRegisterCLICommands(
       show: [ { label: "all", type: "bool", default-value: false, }, ],
     },
     build: [],
+    gui: [
+      { label: "debug", type: "bool", default-value: false, },
+      { label: "error-segfaults", type: "bool", default-value: false, },
+      { label: "debug-layer", type: "bool", default-value: false, },
+      { label: "gdb",   type: "bool", default-value: false, },
+      { label: "clear", type: "bool", default-value: false, },
+    ],
     run: [
       { label: "debug", type: "bool", default-value: false, },
       { label: "error-segfaults", type: "bool", default-value: false, },

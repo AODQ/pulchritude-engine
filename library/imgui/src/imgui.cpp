@@ -843,6 +843,24 @@ void puleImguiText(char const * const format, ...) {
   va_end(args);
 }
 
+void puleImguiImage(
+  PuleGfxGpuImage const image,
+  PuleF32v2 const size,
+  PuleF32v2 const uvUl, PuleF32v2 const uvLr,
+  PuleF32v4 const border
+) {
+  ImGui::Image(
+    ImTextureID{reinterpret_cast<void *>(image.id)},
+    ImVec2{size.x, size.y}, ImVec2{uvUl.x, uvUl.y}, ImVec2{uvLr.x, uvLr.y},
+    ImVec4(1,1,1,1), // bg color
+    ImVec4{border.x, border.y, border.z, border.w}
+  );
+}
+
+bool puleImguiLastItemHovered() {
+  return ImGui::IsItemHovered();
+}
+
 bool puleImguiToggle(char const * const label, bool * const data) {
   return ImGui::Checkbox(label, data);
 }

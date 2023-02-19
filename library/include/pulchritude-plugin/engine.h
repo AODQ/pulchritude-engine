@@ -206,6 +206,8 @@ typedef struct PuleEngineLayer {
   bool (* imguiSectionBegin)(char const * const);
   void (* imguiSectionEnd)();
   void (* imguiText)(char const * const, ...);
+  void (* imguiImage)(PuleGfxGpuImage const, PuleF32v2 const, PuleF32v2 const, PuleF32v2 const, PuleF32v4 const);
+  bool (* imguiLastItemHovered)();
   bool (* imguiToggle)(char const * const, bool * const);
   bool (* imguiButton)(char const * const);
   PuleImguiCallbackRegistry (* imguiCallbackRegister)(PuleImguiCallback const);
@@ -355,6 +357,7 @@ typedef struct PuleEngineLayer {
   void (* taskGraphNodeAttributeRemove)(PuleTaskGraphNode const, PuleStringView const);
   void (* taskGraphNodeRelationSet)(PuleTaskGraphNode const, PuleTaskGraphNodeRelation const, PuleTaskGraphNode const);
   void (* taskGraphExecuteInOrder)(PuleTaskGraphExecuteInfo const);
+  bool (* taskGraphNodeExists)(PuleTaskGraphNode const);
   // plugin
   void (* pluginsLoad)(PuleStringView const * const, size_t const);
   void (* pluginsFree)();

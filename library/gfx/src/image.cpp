@@ -82,12 +82,10 @@ namespace { // image
       default:
         puleLogError("unknown byte format: %d", byteFormat);
         return GL_RGBA8;
-      case PuleGfxImageByteFormat_rgba8U:
-        return GL_RGBA8;
-      case PuleGfxImageByteFormat_rgb8U:
-        return GL_RGB8;
-      case PuleGfxImageByteFormat_r8U:
-        return GL_R8;
+      case PuleGfxImageByteFormat_rgba8U: return GL_RGBA8;
+      case PuleGfxImageByteFormat_rgb8U: return GL_RGB8;
+      case PuleGfxImageByteFormat_r8U: return GL_R8;
+      case PuleGfxImageByteFormat_depth16: return GL_DEPTH_COMPONENT16;
     }
   }
 
@@ -102,6 +100,7 @@ namespace { // image
         return GL_RGB;
       case PuleGfxImageByteFormat_r8U:
         return GL_RED;
+      case PuleGfxImageByteFormat_depth16: return GL_DEPTH_COMPONENT;
     }
   }
 
@@ -114,6 +113,8 @@ namespace { // image
       case PuleGfxImageByteFormat_rgba8U:
       case PuleGfxImageByteFormat_r8U:
         return GL_UNSIGNED_BYTE;
+      case PuleGfxImageByteFormat_depth16:
+        return GL_UNSIGNED_SHORT;
     }
   }
 
@@ -225,6 +226,7 @@ PuleGfxFramebuffer puleGfxFramebufferCreate(
       continue;
     }
 
+    puleLog("BINDING FRAMEBUFFER %u", it);
     glNamedFramebufferTexture(
       framebuffer,
       framebufferAttachmenToGl(static_cast<PuleGfxFramebufferAttachment>(it)),

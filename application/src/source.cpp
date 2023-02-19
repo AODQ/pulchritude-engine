@@ -10,6 +10,7 @@
 
 // need struct definitions, but don't call anything from here directly
 #include <pulchritude-gfx/gfx.h>
+#include <pulchritude-imgui/imgui.h>
 #include <pulchritude-platform/platform.h>
 
 #include <string>
@@ -118,8 +119,29 @@ struct KnownParameterInfo {
   bool hasParameter = false;
 };
 
+namespace { // editor
+using GuiEditorFn = void (*)(
+  PuleAllocator const, PulePlatform const, PuleEngineLayer const
+);
+
+void guiPluginLoad(PulePluginInfo const plugin, void * const userdata) {
+  auto & plugins = (
+    *reinterpret_cast<std::vector<GuiEditorFn> *>(userdata)
+  );
+  GuiEditorFn const guiEditorFn = (
+    reinterpret_cast<GuiEditorFn>(
+      puleTryPluginLoadFn(plugin.id, "puldGuiEditor")
+    )
+  );
+  if (guiEditorFn) {
+    plugins.emplace_back(guiEditorFn);
+  }
+}
+} // namespace editor
+
 std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
   { "--asset-path",      {.hasParameter = true,  } },
+  { "--gui-editor",      {.hasParameter = false, } },
   { "--debug",           {.hasParameter = false, } },
   { "--error-segfaults", {.hasParameter = false, } },
   { "--plugin-layer",    {.hasParameter = true,  } },
@@ -159,6 +181,8 @@ int32_t main(
     });
   }
 
+  bool isGuiEditor = false;
+
   std::vector<PuleStringView> pluginPaths;
   std::vector<PuleString> pluginLayers;
   PuleString assetPath;
@@ -177,6 +201,8 @@ int32_t main(
       pluginLayers.emplace_back(
         puleString(puleAllocateDefault(), param.content.c_str())
       );
+    } else if (param.label == "--gui-editor") {
+      isGuiEditor = true;
     }
   }
 
@@ -355,6 +381,7 @@ int32_t main(
             "generate-window-depth-framebuffer"
           )
         );
+        (void)generateWindowDepthFramebuffer;
         /* if(!pulBase.dsMemberAsBool(generateWindowDepthFramebuffer)) { */
         /* } */
       }
@@ -436,6 +463,7 @@ int32_t main(
   // initiate all plugins
   puleLogDebug("initializing plugins");
   for (size_t const componentPluginId : componentPluginIds) {
+    if (isGuiEditor) { break; }
     // try to load component
     void (*componentLoadFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
@@ -452,6 +480,17 @@ int32_t main(
     }
   }
 
+  // load gui editor if requested
+  assert(isGuiEditor ? platform.id : true);
+  std::vector<GuiEditorFn> guiEditorFns;
+  if (isGuiEditor) {
+    puleIteratePlugins(
+      ::guiPluginLoad,
+      reinterpret_cast<void *>(&guiEditorFns)
+    );
+    puleLog("Loaded %u gui editor functions", guiEditorFns.size());
+    pulBase.imguiInitialize(platform);
+  }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   //                         _      _____  _____ ______                        *
@@ -462,9 +501,15 @@ int32_t main(
   //                        \_____/ \___/  \___/ \_|                           *
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  bool hasUpdate = updateableComponents.size() > 0;
+  bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   while (hasUpdate) {
-    if (renderTaskGraph.id != 0) {
+    if (platform.id) {
+      puleGfxFrameStart();
+    }
+    if (isGuiEditor) {
+      pulBase.imguiNewFrame();
+    }
+    if (!isGuiEditor && renderTaskGraph.id != 0) {
       puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo {
         .graph = renderTaskGraph,
         .callback = &renderTaskGraphStartup,
@@ -472,13 +517,19 @@ int32_t main(
         .multithreaded = false,
       });
     }
-    if (ecsWorldAdvance) {
+    if (!isGuiEditor && ecsWorldAdvance) {
       pulBase.ecsWorldAdvance(ecsWorld, 16.0f);
     }
-    for (auto const componentUpdateFn : updateableComponents) {
-      componentUpdateFn(payload);
+    if (isGuiEditor) {
+      for (auto const guiFn : guiEditorFns) {
+        guiFn(puleAllocateDefault(), platform, pulBase);
+      }
+    } else {
+      for (auto const componentUpdateFn : updateableComponents) {
+        componentUpdateFn(payload);
+      }
     }
-    if (renderTaskGraph.id != 0) {
+    if (!isGuiEditor && renderTaskGraph.id != 0) {
       puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo {
         .graph = renderTaskGraph,
         .callback = &renderTaskGraphFinish,
@@ -486,6 +537,9 @@ int32_t main(
         .multithreaded = false,
       });
       debugRenderTaskGraphDump = false;
+    }
+    if (isGuiEditor) {
+      pulBase.imguiRender();
     }
     if (platform.id != 0) {
       pulePlatformSwapFramebuffer(platform);

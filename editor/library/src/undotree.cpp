@@ -71,7 +71,6 @@ PuleDsValue puldRegisterCLICommands(
   PuleAllocator const allocator,
   PuleError * const err
 );
-void puldGuiUpdate();
 
 void applyRedoUndo(
   bool const trueForwardFalseRewind,

@@ -40,6 +40,7 @@ typedef struct {
 typedef enum {
   PuleGfxAction_bindPipeline,
   PuleGfxAction_bindAttribute,
+  PuleGfxAction_bindFramebuffer,
   PuleGfxAction_clearFramebufferColor,
   PuleGfxAction_clearFramebufferDepth,
   PuleGfxAction_dispatchRender,
@@ -64,6 +65,11 @@ typedef struct {
   size_t offset;
   size_t stride;
 } PuleGfxActionBindAttribute;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_bindFramebuffer
+  PuleGfxFramebuffer framebuffer;
+} PuleGfxActionBindFramebuffer;
 
 typedef enum {
   PuleGfxDrawPrimitive_triangle,
@@ -157,6 +163,7 @@ typedef struct {
 typedef union {
   PuleGfxAction action;
   PuleGfxActionBindPipeline bindPipeline;
+  PuleGfxActionBindFramebuffer bindFramebuffer;
   PuleGfxActionBindAttribute bindAttribute;
   PuleGfxActionClearFramebufferColor clearFramebufferColor;
   PuleGfxActionClearFramebufferDepth clearFramebufferDepth;

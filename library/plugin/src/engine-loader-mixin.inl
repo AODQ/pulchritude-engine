@@ -796,6 +796,16 @@
       ::loadSymbol("puleImguiText", layerName)
     )
   );
+  layer->imguiImage = (
+    reinterpret_cast<decltype(layer->imguiImage)>(
+      ::loadSymbol("puleImguiImage", layerName)
+    )
+  );
+  layer->imguiLastItemHovered = (
+    reinterpret_cast<decltype(layer->imguiLastItemHovered)>(
+      ::loadSymbol("puleImguiLastItemHovered", layerName)
+    )
+  );
   layer->imguiToggle = (
     reinterpret_cast<decltype(layer->imguiToggle)>(
       ::loadSymbol("puleImguiToggle", layerName)
@@ -1471,6 +1481,11 @@
   layer->taskGraphExecuteInOrder = (
     reinterpret_cast<decltype(layer->taskGraphExecuteInOrder)>(
       ::loadSymbol("puleTaskGraphExecuteInOrder", layerName)
+    )
+  );
+  layer->taskGraphNodeExists = (
+    reinterpret_cast<decltype(layer->taskGraphNodeExists)>(
+      ::loadSymbol("puleTaskGraphNodeExists", layerName)
     )
   );
   // plugin
