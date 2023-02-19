@@ -483,6 +483,7 @@ int32_t main(
   // load gui editor if requested
   assert(isGuiEditor ? platform.id : true);
   std::vector<GuiEditorFn> guiEditorFns;
+  PuleGfxCommandList guiPrepareRenderCommandList;
   if (isGuiEditor) {
     puleIteratePlugins(
       ::guiPluginLoad,
@@ -490,6 +491,35 @@ int32_t main(
     );
     puleLog("Loaded %u gui editor functions", guiEditorFns.size());
     pulBase.imguiInitialize(platform);
+    guiPrepareRenderCommandList = (
+      pulBase.gfxCommandListCreate(
+        puleAllocateDefault(), puleCStr("pule-gui-prepare-render")
+      )
+    );
+    PuleGfxCommandListRecorder const recorder = (
+      pulBase.gfxCommandListRecorder(guiPrepareRenderCommandList)
+    );
+    pulBase.gfxCommandListAppendAction(
+      recorder,
+      PuleGfxCommand {
+        .clearFramebufferColor = {
+          .action = PuleGfxAction_clearFramebufferColor,
+          .framebuffer = pulBase.gfxFramebufferWindow(),
+          .color = PuleF32v4{0.2f, 0.2f, 0.3f, 1.0f},
+        },
+      }
+    );
+    pulBase.gfxCommandListAppendAction(
+      recorder,
+      PuleGfxCommand {
+        .clearFramebufferDepth = {
+          .action = PuleGfxAction_clearFramebufferColor,
+          .framebuffer = pulBase.gfxFramebufferWindow(),
+          .depth = 1.0f,
+        },
+      }
+    );
+    pulBase.gfxCommandListRecorderFinish(recorder);
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -540,6 +570,15 @@ int32_t main(
       debugRenderTaskGraphDump = false;
     }
     if (isGuiEditor) {
+      PuleError err = puleError();
+      pulBase.gfxCommandListSubmit(
+        PuleGfxCommandListSubmitInfo {
+          .commandList = guiPrepareRenderCommandList,
+          .fenceTargetStart = nullptr, .fenceTargetFinish = nullptr,
+        },
+        &err
+      );
+      puleErrorConsume(&err);
       pulBase.imguiRender();
     }
     if (platform.id != 0) {
