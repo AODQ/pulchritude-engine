@@ -54,8 +54,8 @@ typedef struct PuleEngineLayer {
   PuleF32v2 (* f32v2Add)(PuleF32v2 const, PuleF32v2 const);
   PuleF32v2 (* f32v2Sub)(PuleF32v2 const, PuleF32v2 const);
   PuleF32v2 (* f32v2Abs)(PuleF32v2 const);
-  PuleI32v2 (* i32v2)(float const);
-  PuleI32v2 (* i32v2Ptr)(float const * const);
+  PuleI32v2 (* i32v2)(int32_t const);
+  PuleI32v2 (* i32v2Ptr)(int32_t const * const);
   PuleI32v2 (* i32v2Add)(PuleI32v2 const, PuleI32v2 const);
   PuleI32v2 (* i32v2Sub)(PuleI32v2 const, PuleI32v2 const);
   PuleI32v2 (* i32v2Abs)(PuleI32v2 const);
