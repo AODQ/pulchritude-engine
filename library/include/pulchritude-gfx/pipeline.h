@@ -38,7 +38,7 @@ typedef struct {
   PuleGfxGpuBuffer bufferUniformBindings[16];
   PuleGfxGpuBuffer bufferStorageBindings[16]; // TODO use range
   PuleGfxPipelineAttributeDescriptorBinding bufferAttributeBindings[16];
-  PuleGfxGpuImage textureBindings[8];
+  PuleGfxGpuImage textureBindings[8]; // TODO can store metadata but not texture
   // TODO I guess pair with an optional sampler?
   PuleGfxGpuBuffer bufferElementBinding;
 } PuleGfxPipelineDescriptorSetLayout;

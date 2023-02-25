@@ -85,6 +85,9 @@ PULE_exportFn void pulePlatformMouseOriginSet(
 PULE_exportFn PuleI32v2 pulePlatformMouseOrigin(
   PulePlatform const window
 );
+/* PULE_exportFn PuleI32v2 pulePlatformMouseOriginPrevious( */
+/*   PulePlatform const platform, uint32_t const prevFrame */
+/* ); */
 PULE_exportFn bool pulePlatformCursorEnabled(PulePlatform const window);
 PULE_exportFn void pulePlatformCursorHide(PulePlatform const window);
 PULE_exportFn void pulePlatformCursorShow(PulePlatform const window);

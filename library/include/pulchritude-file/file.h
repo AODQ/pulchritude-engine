@@ -2,7 +2,6 @@
 
 #include <pulchritude-core/core.h>
 
-
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-array/array.h>
 #include <pulchritude-error/error.h>

@@ -194,6 +194,15 @@ PuleI32v2 pulePlatformMouseOrigin(PulePlatform const platform) {
   );
 }
 
+/* PuleI32v2 pulePlatformMouseOriginPrevious( */
+/*   PulePlatform const platform, */
+/*   uint32_t const prevFrame */
+/* ) { */
+/*   auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id); */
+/*   // TODO allocate map properly */
+/*   return PuleI32v2{0,0}; */
+/* } */
+
 bool pulePlatformCursorEnabled(PulePlatform const platform) {
   auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
   return glfwGetInputMode(glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_DISABLED;

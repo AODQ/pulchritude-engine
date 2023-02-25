@@ -306,6 +306,12 @@
       ::loadSymbol("puleInputRawTextCallback", layerName)
     )
   );
+  // raycast
+  layer->raycastTriangles = (
+    reinterpret_cast<decltype(layer->raycastTriangles)>(
+      ::loadSymbol("puleRaycastTriangles", layerName)
+    )
+  );
   // data-serializer
   layer->dsAsI64 = (
     reinterpret_cast<decltype(layer->dsAsI64)>(

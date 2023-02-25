@@ -4,6 +4,7 @@
 #include <pulchritude-log/log.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
+#include <pulchritude-raycast/raycast.h>
 #include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-tui/tui.h>
 #include <pulchritude-ecs-serializer/ecs-serializer.h>
@@ -104,6 +105,8 @@ typedef struct PuleEngineLayer {
   void (* inputKeyCallback)(PuleInputKeyCallbackCreateInfo const);
   void (* inputMouseButtonCallback)(PuleInputMouseButtonCallbackCreateInfo const);
   void (* inputRawTextCallback)(PuleInputRawTextCallbackCreateInfo const);
+  // raycast
+  PuleRaycastTriangleResult (* raycastTriangles)(PuleF32v3 const, PuleF32v3 const, PuleArrayView const);
   // data-serializer
   int64_t (* dsAsI64)(PuleDsValue const);
   double (* dsAsF64)(PuleDsValue const);

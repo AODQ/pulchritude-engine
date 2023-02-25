@@ -39,7 +39,7 @@ typedef struct {
 //   refer to any specific unique index of a queue
 typedef enum {
   PuleGfxAction_bindPipeline,
-  PuleGfxAction_bindAttribute,
+  PuleGfxAction_bindAttribute, // TODO bindBuffer
   PuleGfxAction_bindFramebuffer,
   PuleGfxAction_clearFramebufferColor,
   PuleGfxAction_clearFramebufferDepth,
