@@ -3,7 +3,7 @@
 static const float f32Epsilon = 0.0001f;
 
 bool puleShapeIntersectRayTriangle(
-  PuleF32v3 const rayOri, puleF32v3 const rayDir,
+  PuleF32v3 const rayOri, PuleF32v3 const rayDir,
   PuleF32v3 const tri0, PuleF32v3 const tri1, PuleF32v3 const tri2,
   float * const distTarget, PuleF32v2 * const uvTarget
 ) {
@@ -21,7 +21,7 @@ bool puleShapeIntersectRayTriangle(
   if (u < 0.0f || u > 1.0f) { return false; }
 
   PuleF32v3 const relOriV0v1 = puleF32v3Sub(relOri, v0v1);
-  v = puleF32v3Dot(rayDir, relOriV0v1) * dotInv;
+  float const v = puleF32v3Dot(rayDir, relOriV0v1) * detInv;
   if (v < 0.0f || v > 1.0f) { return false; }
 
   if (distTarget) {
@@ -29,7 +29,7 @@ bool puleShapeIntersectRayTriangle(
   }
 
   if (uvTarget) {
-    *uvTarget = puleF32V2(u, v);
+    *uvTarget = PuleF32v2{u, v};
   }
 
   return true;

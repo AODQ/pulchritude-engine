@@ -18,7 +18,7 @@ set_target_properties(
 target_link_libraries(pulchritude-shape pulchritude-math)
 
 install(
-  TARGETS pulchritude-shpae
+  TARGETS pulchritude-shape
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

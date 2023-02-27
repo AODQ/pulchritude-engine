@@ -1,3 +1,9 @@
+  // gfx-mesh
+  layer->gfxMeshRender = (
+    reinterpret_cast<decltype(layer->gfxMeshRender)>(
+      ::loadSymbol("puleGfxMeshRender", layerName)
+    )
+  );
   // log
   layer->logDebugEnabled = (
     reinterpret_cast<decltype(layer->logDebugEnabled)>(
@@ -1785,5 +1791,101 @@
   layer->gfxMemoryBarrier = (
     reinterpret_cast<decltype(layer->gfxMemoryBarrier)>(
       ::loadSymbol("puleGfxMemoryBarrier", layerName)
+    )
+  );
+  // camera
+  layer->cameraCreate = (
+    reinterpret_cast<decltype(layer->cameraCreate)>(
+      ::loadSymbol("puleCameraCreate", layerName)
+    )
+  );
+  layer->cameraDestroy = (
+    reinterpret_cast<decltype(layer->cameraDestroy)>(
+      ::loadSymbol("puleCameraDestroy", layerName)
+    )
+  );
+  layer->cameraSerialize = (
+    reinterpret_cast<decltype(layer->cameraSerialize)>(
+      ::loadSymbol("puleCameraSerialize", layerName)
+    )
+  );
+  layer->cameraDeserialize = (
+    reinterpret_cast<decltype(layer->cameraDeserialize)>(
+      ::loadSymbol("puleCameraDeserialize", layerName)
+    )
+  );
+  layer->cameraView = (
+    reinterpret_cast<decltype(layer->cameraView)>(
+      ::loadSymbol("puleCameraView", layerName)
+    )
+  );
+  layer->cameraProj = (
+    reinterpret_cast<decltype(layer->cameraProj)>(
+      ::loadSymbol("puleCameraProj", layerName)
+    )
+  );
+  layer->cameraLookAt = (
+    reinterpret_cast<decltype(layer->cameraLookAt)>(
+      ::loadSymbol("puleCameraLookAt", layerName)
+    )
+  );
+  layer->cameraPerspective = (
+    reinterpret_cast<decltype(layer->cameraPerspective)>(
+      ::loadSymbol("puleCameraPerspective", layerName)
+    )
+  );
+  layer->cameraPerspectiveSet = (
+    reinterpret_cast<decltype(layer->cameraPerspectiveSet)>(
+      ::loadSymbol("puleCameraPerspectiveSet", layerName)
+    )
+  );
+  layer->cameraSetCreate = (
+    reinterpret_cast<decltype(layer->cameraSetCreate)>(
+      ::loadSymbol("puleCameraSetCreate", layerName)
+    )
+  );
+  layer->cameraSetDestroy = (
+    reinterpret_cast<decltype(layer->cameraSetDestroy)>(
+      ::loadSymbol("puleCameraSetDestroy", layerName)
+    )
+  );
+  layer->cameraSetAdd = (
+    reinterpret_cast<decltype(layer->cameraSetAdd)>(
+      ::loadSymbol("puleCameraSetAdd", layerName)
+    )
+  );
+  layer->cameraSetRemove = (
+    reinterpret_cast<decltype(layer->cameraSetRemove)>(
+      ::loadSymbol("puleCameraSetRemove", layerName)
+    )
+  );
+  layer->cameraSetArray = (
+    reinterpret_cast<decltype(layer->cameraSetArray)>(
+      ::loadSymbol("puleCameraSetArray", layerName)
+    )
+  );
+  layer->cameraSetGfxUniformBuffer = (
+    reinterpret_cast<decltype(layer->cameraSetGfxUniformBuffer)>(
+      ::loadSymbol("puleCameraSetGfxUniformBuffer", layerName)
+    )
+  );
+  layer->cameraSetRefresh = (
+    reinterpret_cast<decltype(layer->cameraSetRefresh)>(
+      ::loadSymbol("puleCameraSetRefresh", layerName)
+    )
+  );
+  layer->cameraControllerFirstPerson = (
+    reinterpret_cast<decltype(layer->cameraControllerFirstPerson)>(
+      ::loadSymbol("puleCameraControllerFirstPerson", layerName)
+    )
+  );
+  layer->cameraControllerDestroy = (
+    reinterpret_cast<decltype(layer->cameraControllerDestroy)>(
+      ::loadSymbol("puleCameraControllerDestroy", layerName)
+    )
+  );
+  layer->cameraControllerPollEvents = (
+    reinterpret_cast<decltype(layer->cameraControllerPollEvents)>(
+      ::loadSymbol("puleCameraControllerPollEvents", layerName)
     )
   );

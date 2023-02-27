@@ -2,6 +2,8 @@
 
 #include <pulchritude-core/core.h>
 
+#include <pulchritude-data-serializer/data-serializer.h>
+#include <pulchritude-gfx/barrier.h>
 #include <pulchritude-gfx/gfx.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
@@ -18,7 +20,7 @@ PULE_exportFn PuleCamera puleCameraCreate();
 PULE_exportFn void puleCameraDestroy(PuleCamera const);
 
 PULE_exportFn PuleDsValue puleCameraSerialize();
-PULE_exportFn PuleCamera puleCameraDeserialize(PulePdsValue const);
+PULE_exportFn PuleCamera puleCameraDeserialize(PuleDsValue const);
 
 PULE_exportFn PuleF32m44 puleCameraView(PuleCamera const);
 PULE_exportFn PuleF32m44 puleCameraProj(PuleCamera const);
@@ -69,7 +71,9 @@ typedef struct {
 } PuleCameraSetArray;
 PULE_exportFn PuleCameraSetArray puleCameraSetArray(PuleCameraSet const);
 
-PULE_exportFn PuleGfxBuffer puleCameraSetGfxUniformBuffer(PuleCameraSet const);
+PULE_exportFn PuleGfxGpuBuffer puleCameraSetGfxUniformBuffer(
+  PuleCameraSet const
+);
 // must be on main thread in case buffer needs to be reallocated
 PULE_exportFn PuleGfxFence puleCameraSetRefresh(PuleCameraSet const);
 

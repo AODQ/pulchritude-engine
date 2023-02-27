@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pulchritude-array/array.h>
+#include <pulchritude-core/core.h>
 #include <pulchritude-math/math.h>
 
 #ifdef __cplusplus

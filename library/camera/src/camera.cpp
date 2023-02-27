@@ -44,9 +44,9 @@ PuleF32m44 puleCameraView(PuleCamera const pCamera) {
   auto & camera = ::internalCameras.at(pCamera.id);
   return camera.view;
 }
-Pulef32m44 puleCameraProj(PuleCamera const pCamera) {
+PuleF32m44 puleCameraProj(PuleCamera const pCamera) {
   auto & camera = ::internalCameras.at(pCamera.id);
-  return camera.proj;
+  return camera.projection;
 }
 
 void puleCameraLookAt(
@@ -82,7 +82,7 @@ void puleCameraPerspectiveSet(
 struct CameraSet {
   std::string label;
   std::vector<PuleCamera> cameras;
-  PuleGfxBuffer uniformBuffer;
+  PuleGfxGpuBuffer uniformBuffer;
   size_t uniformBufferCapacity;
   void * uniformBufferMemory;
 };
@@ -100,21 +100,23 @@ void puleCameraSetRefreshUniformBuffer(CameraSet & set) {
   if (needsGrow || needsShrink) {
     if (set.uniformBufferMemory) {
       puleGfxGpuBufferUnmap(set.uniformBuffer);
+      set.uniformBufferMemory = nullptr;
     }
-    if (set.uniformBuffer) {
+    if (set.uniformBuffer.id != 0) {
       puleGfxGpuBufferDestroy(set.uniformBuffer);
+      set.uniformBuffer.id = 0;
     }
   }
 
   // set capacity
   if (needsGrow) {
-    set.uniformBufferCapacity = std::min(4, set.cameras.size()*2+1);
+    set.uniformBufferCapacity = std::min(4, (int)set.cameras.size()*2+1);
   } else if (needsShrink) {
     // TODO
   }
 
   // allocate more space (this could be first allocation)
-  if (!set.uniformBuffer) {
+  if (!set.uniformBuffer.id) {
     set.uniformBuffer = (
       puleGfxGpuBufferCreate(
         nullptr,
@@ -156,7 +158,7 @@ PuleCameraSet puleCameraSetCreate(PuleStringView const label) {
 
 void puleCameraSetDestroy(PuleCameraSet const pSet) {
   auto & set = ::internalCameraSets.at(pSet.id);
-  puleGfxGpuBufferUnmap(set.uniformBufferMemory);
+  puleGfxGpuBufferUnmap(set.uniformBuffer);
   puleGfxGpuBufferDestroy(set.uniformBuffer);
    ::internalCameraSets.erase(pSet.id);
 }
@@ -168,8 +170,8 @@ void puleCameraSetAdd(PuleCameraSet const pSet, PuleCamera const pCamera) {
 
 void puleCameraSetRemove(PuleCameraSet const pSet, PuleCamera const pCamera) {
   auto & set = ::internalCameraSets.at(pSet.id);
-  for (size_t it = 0; it < set.camera.size(); ++ it) {
-    if (set.cameras[it] == pCamera) {
+  for (size_t it = 0; it < set.cameras.size(); ++ it) {
+    if (set.cameras[it].id == pCamera.id) {
       set.cameras.erase(set.cameras.begin() + it);
       return;
     }
@@ -186,13 +188,13 @@ PuleCameraSetArray puleCameraSetArray(PuleCameraSet const pSet) {
   );
 }
 
-PuleGfxBuffer puleCameraSetGfxUniformBuffer(PuleCameraSet const pSet) {
-  auto & set = ::internalCameras.at(pSet.id);
+PuleGfxGpuBuffer puleCameraSetGfxUniformBuffer(PuleCameraSet const pSet) {
+  auto & set = ::internalCameraSets.at(pSet.id);
   return set.uniformBuffer;
 }
 
 PuleGfxFence puleCameraSetRefresh(PuleCameraSet const pSet) {
-  auto & set = ::internalCameras.at(pSet.id);
+  auto & set = ::internalCameraSets.at(pSet.id);
   puleCameraSetRefreshUniformBuffer(set);
 
   uint32_t * const uniformBufferSizeMemory = (
@@ -281,9 +283,9 @@ void cameraControllerFpsUpdate(void * const userdata) {
   controller.dirSin += mouseDelta.y * 0.05f;
   controller.forward = (
     puleF32v3Normalize( PuleF32v3 {
-      cos(controller.dirCos),
-      sin(controller.dirSin),
-      sin(controller.dirCos),
+      (float)cos(controller.dirCos),
+      (float)sin(controller.dirSin),
+      (float)sin(controller.dirCos),
     })
   );
   controller.up = PuleF32v3 { 0.0f, 1.0f, 0.0f, };
@@ -300,17 +302,19 @@ PuleCameraController puleCameraControllerFirstPerson(
   PulePlatform const platform,
   PuleCamera const camera
 ) {
-  CameraControllerGeneric controller;
-  controller.cameraData.resize(sizeof(CameraControllerFps));
+  CameraControllerGeneric controllerContainer;
+  controllerContainer.cameraData.resize(sizeof(CameraControllerFps));
   CameraControllerFps & controller = (
-    *reinterpert_cast<CameraControllerFps *>(controller.cameraData.data())
+    *reinterpret_cast<CameraControllerFps *>(
+      controllerContainer.cameraData.data()
+    )
   );
   controller.origin = puleF32v3(1);
   controller.forward = PuleF32v3{1.0f, 0.0f, 1.0f,};
   controller.up = PuleF32v3{0.0f, 1.0f, 0.0f,};
   controller.camera = camera;
   controller.platform = platform;
-  ::cameraControllers.emplace(::cameraControllerIt, controller);
+  ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
   return PuleCameraController { .id=::cameraControllerIt++, };
 }
 PULE_exportFn void puleCameraControllerDestroy(
@@ -322,8 +326,8 @@ PULE_exportFn void puleCameraControllerDestroy(
 
 void puleCamereaControllerPollEvents() {
   for (auto & controller : ::cameraControllers) {
-    if (controller.update) {
-      controller.update(cameraData.data());
+    if (controller.second.update) {
+      controller.second.update(controller.second.cameraData.data());
     }
   }
 }

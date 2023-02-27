@@ -1,5 +1,8 @@
 #include <pulchritude-raycast/raycast.h>
 
+#include <pulchritude-error/error.h>
+#include <pulchritude-shape/shape.h>
+
 extern "C" {
 
 PuleRaycastTriangleResult puleRaycastTriangles(
@@ -7,8 +10,8 @@ PuleRaycastTriangleResult puleRaycastTriangles(
   PuleArrayView const originVerticesF32v3
 ) {
   uint8_t const * itPtr = originVerticesF32v3.data;
-  assert(originVerticesF32v3.elementCount % 3 == 0);
-  float distance;
+  PULE_assert(originVerticesF32v3.elementCount % 3 == 0);
+  float dist;
   PuleF32v2 uv;
   for (size_t it = 0; it < originVerticesF32v3.elementCount/3; ++ it) {
     itPtr += originVerticesF32v3.elementStride;
@@ -19,19 +22,28 @@ PuleRaycastTriangleResult puleRaycastTriangles(
     PuleF32v3 const tri2 = *reinterpret_cast<PuleF32v3 const *>(itPtr);
     if (puleShapeIntersectRayTriangle(ori, dir, tri0, tri1, tri2, &dist, &uv)) {
       PuleF32v3 origin = ori;
-      ori.x += dist*dir.x;
-      ori.y += dist*dir.y;
-      ori.z += dist*dir.z;
+      origin.x += dist*dir.x;
+      origin.y += dist*dir.y;
+      origin.z += dist*dir.z;
       return (
         PuleRaycastTriangleResult {
           .hit = true,
-          .distance = distance,
+          .distance = dist,
           .origin = origin,
           .uv = uv,
         }
       );
     }
   }
+
+  return (
+    PuleRaycastTriangleResult {
+      .hit = false,
+      .distance = -1.0f,
+      .origin = puleF32v3(0.0f),
+      .uv = puleF32v2(-1.0f),
+    }
+  );
 }
 
 }

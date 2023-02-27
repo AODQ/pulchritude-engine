@@ -2,7 +2,10 @@
 
 #include <pulchritude-core/core.h>
 
+#include <pulchritude-gfx/commands.h>
 #include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gfx/image.h>
+#include <pulchritude-gfx/pipeline.h>
 #include <pulchritude-math/math.h>
 
 // Most basic rendering primitive, which can be represented in a single
@@ -30,14 +33,14 @@ typedef enum {
 typedef enum {
   // the attribute won't be used/stored
   PuleGfxMeshVertexAttributeStorage_none = 0x0,
-  
+
   // stores attributes on GPU for rendering,
   // .gpuOnly is incompatible with other GPUs,
   // but all GPU operations compatible with CPU
   PuleGfxMeshVertexAttributeStorage_gpuOnly = 0x1,
   PuleGfxMeshVertexAttributeStorage_gpuWrite = 0x2,
   PuleGfxMeshVertexAttributeStorage_gpuRead = 0x4,
-  
+
   // makes a copy on CPU (for operations like raycasts)
   PuleGfxMeshVertexAttributeStorage_cpuCopy = 0x8,
 } PuleGfxMeshVertexAttributeStorage;
@@ -64,7 +67,7 @@ PULE_exportFn void puleGfxMeshRender(
   PuleGfxFramebuffer const targetFramebuffer,
   PuleGfxCommandListRecorder const recorder
 );
-  
+
 // * TODO * generate descriptor set from mesh
 
 #ifdef __cplusplus

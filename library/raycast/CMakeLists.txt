@@ -17,8 +17,9 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-raycast
-  pulchritude-array
-  pulchritude-math
+    pulchritude-array
+    pulchritude-math
+    pulchritude-shape
 )
 
 install(
