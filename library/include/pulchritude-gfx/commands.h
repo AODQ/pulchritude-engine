@@ -39,7 +39,8 @@ typedef struct {
 //   refer to any specific unique index of a queue
 typedef enum {
   PuleGfxAction_bindPipeline,
-  PuleGfxAction_bindAttribute, // TODO bindBuffer
+  PuleGfxAction_bindBuffer,
+  PuleGfxAction_bindAttribute,
   PuleGfxAction_bindFramebuffer,
   PuleGfxAction_clearFramebufferColor,
   PuleGfxAction_clearFramebufferDepth,
@@ -58,8 +59,18 @@ typedef struct {
 } PuleGfxActionBindPipeline;
 
 typedef struct {
-  PuleGfxAction action; // PuleGfxAction_bindAttribute
+  PuleGfxAction action; // PuleGfxAction_bindBuffer
+  PuleGfxGpuBufferUsage usage; // must be uniform or storage
   PuleGfxPipeline pipeline;
+  size_t bindingIndex;
+  PuleGfxGpuBuffer buffer;
+  size_t offset;
+  size_t byteLen;
+} PuleGfxActionBindBuffer;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_bindAttribute
+  PuleGfxPipeline pipeline; // TODO this should just be whatever is bound?
   size_t bindingIndex;
   PuleGfxGpuBuffer buffer;
   size_t offset;
@@ -164,6 +175,7 @@ typedef union {
   PuleGfxAction action;
   PuleGfxActionBindPipeline bindPipeline;
   PuleGfxActionBindFramebuffer bindFramebuffer;
+  PuleGfxActionBindBuffer bindBuffer;
   PuleGfxActionBindAttribute bindAttribute;
   PuleGfxActionClearFramebufferColor clearFramebufferColor;
   PuleGfxActionClearFramebufferDepth clearFramebufferDepth;

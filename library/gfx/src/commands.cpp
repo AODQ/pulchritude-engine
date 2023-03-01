@@ -17,6 +17,8 @@ PuleStringView puleGfxActionToString(PuleGfxAction const action) {
     default: return puleCStr("unknown");
     case PuleGfxAction_bindPipeline:
       return puleCStr("bind-pipeline");
+    case PuleGfxAction_bindBuffer:
+      return puleCStr("bind-buffer");
     case PuleGfxAction_bindAttribute:
       return puleCStr("bind-attribute");
     case PuleGfxAction_clearFramebufferColor:
@@ -282,6 +284,33 @@ void puleGfxCommandListSubmit(
           }
         }
       } break;
+      case PuleGfxAction_bindBuffer: {
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
+        );
+        GLuint   const bufferId = static_cast<GLuint>(action.buffer.id);
+        GLintptr const offset   = static_cast<GLintptr>(action.offset);
+        GLsizei  const byteLen  = static_cast<GLsizei>(action.byteLen);
+
+        util::verifyIsBuffer(bufferId);
+        GLenum bufferType;
+        switch (action.bufferType) {
+          default: assert(false);
+          case PuleGfxGpuBufferUsage_bufferUniform:
+            bufferType = GL_UNIFORM_BUFFER;
+          break;
+          case PuleGfxGpuBufferUsage_bufferStorage:
+            bufferType = GL_SHADER_STORAGE_BUFFER;
+          break;
+        }
+        glBindBufferRange(
+          bufferType,
+          action.bindingIndex,
+          bufferId,
+          offset,
+          byteLen
+        );
+      } break;
       case PuleGfxAction_bindAttribute: {
         auto const action = (
           *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
@@ -475,6 +504,13 @@ void commandListDump(PuleGfxCommandList const commandList, int32_t level=0) {
           *reinterpret_cast<PuleGfxActionPushConstants const *>(
             &command
           )
+        );
+        (void)action;
+      } break;
+      case PuleGfxAction_bindBuffer: {
+        puleLogDebug("%sPuleGfxAction_bindBuffer", levelCStr);
+        auto const action = (
+          *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
         );
         (void)action;
       } break;
