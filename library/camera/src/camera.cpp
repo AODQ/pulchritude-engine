@@ -73,6 +73,14 @@ void puleCameraPerspectiveSet(
   auto & camera = ::internalCameras.at(pCamera.id);
   camera.perspective = perspective;
   camera.isPerspective = true;
+  camera.projection = (
+    puleProjectionPerspective(
+      camera.perspective.fieldOfViewRadians,
+      camera.perspective.aspectRatio,
+      camera.perspective.nearCutoff,
+      camera.perspective.farCutoff
+    )
+  );
 }
 
 } // extern C
@@ -120,7 +128,7 @@ void puleCameraSetRefreshUniformBuffer(CameraSet & set) {
     set.uniformBuffer = (
       puleGfxGpuBufferCreate(
         nullptr,
-        sizeof(CameraGpuData)*4 + sizeof(uint32_t),
+        sizeof(CameraGpuData)*4,
         PuleGfxGpuBufferUsage_bufferUniform,
         PuleGfxGpuBufferVisibilityFlag_hostWritable
       )
@@ -197,22 +205,20 @@ PuleGfxFence puleCameraSetRefresh(PuleCameraSet const pSet) {
   auto & set = ::internalCameraSets.at(pSet.id);
   puleCameraSetRefreshUniformBuffer(set);
 
-  uint32_t * const uniformBufferSizeMemory = (
-    reinterpret_cast<uint32_t *>(set.uniformBufferMemory)
+  CameraGpuData * const cameraMemory = (
+    reinterpret_cast<CameraGpuData *>(set.uniformBufferMemory)
   );
-  *uniformBufferSizeMemory = set.uniformBufferCapacity;
+  /* *uniformBufferSizeMemory = set.uniformBufferCapacity; */
   for (size_t it = 0; it < set.cameras.size(); ++ it) {
     PuleCamera const camera = set.cameras[it];
-    CameraGpuData * gpuMemory = (
-      reinterpret_cast<CameraGpuData *>(uniformBufferSizeMemory+1) + it
-    );
+    CameraGpuData * gpuMemory = cameraMemory + it;
     gpuMemory->projection = puleCameraProj(camera);
     gpuMemory->view = puleCameraView(camera);
   }
   puleGfxGpuBufferMappedFlush({
     .buffer = set.uniformBuffer,
     .byteOffset = 0,
-    .byteLength = sizeof(uint32_t) + sizeof(CameraGpuData)*set.cameras.size(),
+    .byteLength = sizeof(CameraGpuData)*set.cameras.size(),
   });
   return puleGfxFenceCreate(PuleGfxFenceConditionFlag_all);
 }
@@ -231,7 +237,7 @@ struct CameraControllerFps {
   PulePlatform platform;
 
   PuleI32v2 prevMouseOrigin;
-  float dirCos, dirSin;
+  float dirTheta, dirPhi;
 };
 
 struct CameraControllerGeneric {
@@ -248,28 +254,7 @@ void cameraControllerFpsUpdate(void * const userdata) {
     *reinterpret_cast<CameraControllerFps *>(userdata)
   );
 
-  uint32_t const moveH = (
-    (uint32_t)(puleInputKey(controller.platform, PuleInputKey_d))
-    -
-    (uint32_t)(puleInputKey(controller.platform, PuleInputKey_a))
-  );
-
-  uint32_t const moveD = (
-    (uint32_t)(puleInputKey(controller.platform, PuleInputKey_w))
-    -
-    (uint32_t)(puleInputKey(controller.platform, PuleInputKey_s))
-  );
-  uint32_t const moveV = (
-    (uint32_t)(puleInputKey(controller.platform, PuleInputKey_r))
-    -
-    (uint32_t)(puleInputKey(controller.platform, PuleInputKey_f))
-  );
-
-  // TODO move relative to up+forward
-  controller.origin.x += moveH;
-  controller.origin.y += moveV;
-  controller.origin.z += moveD;
-
+  // calculate view direction
   PuleI32v2 const mouse = pulePlatformMouseOrigin(controller.platform);
   auto const mouseDelta = (
     PuleF32v2 {
@@ -279,19 +264,68 @@ void cameraControllerFpsUpdate(void * const userdata) {
   );
   controller.prevMouseOrigin = mouse;
 
-  controller.dirCos += mouseDelta.x * 0.05f;
-  controller.dirSin += mouseDelta.y * 0.05f;
+  controller.dirTheta -= mouseDelta.x * 0.005f;
+  controller.dirPhi += mouseDelta.y * 0.005f;
+  if (controller.dirPhi > 1.3f)
+    controller.dirPhi = 1.3f;
+  if (controller.dirPhi < -1.3f)
+    controller.dirPhi = -1.3f;
   controller.forward = (
     puleF32v3Normalize( PuleF32v3 {
-      (float)cos(controller.dirCos),
-      (float)sin(controller.dirSin),
-      (float)sin(controller.dirCos),
+      (float)sin(controller.dirTheta),
+      (float)controller.dirPhi,
+      (float)cos(controller.dirTheta),
     })
   );
   controller.up = PuleF32v3 { 0.0f, 1.0f, 0.0f, };
 
+  // calculate movement
+  PuleF32v3 const moveDirection = PuleF32v3 {
+    (
+      (float)(puleInputKey(controller.platform, PuleInputKey_d))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_a))
+    ),
+    (
+      (float)(puleInputKey(controller.platform, PuleInputKey_r))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_f))
+    ),
+    (
+      (float)(puleInputKey(controller.platform, PuleInputKey_w))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_s))
+    ),
+  };
+
+  // horizontal
+  controller.origin.x += (
+    moveDirection.x*0.01f*(float)cos(controller.dirTheta)
+    + moveDirection.z*0.01f*(float)sin(controller.dirTheta)
+  );
+  controller.origin.z -= (
+    moveDirection.x*0.01f*(float)sin(controller.dirTheta)
+    + -moveDirection.z*0.01f*(float)cos(controller.dirTheta)
+  );
+
+  // veretical
+  controller.origin.y += moveDirection.y*0.02f;
+  /* controller.origin.y += ( */
+  /*   moveDirection.z*0.01f*(float)controller.dirPhi */
+  /* ); */
+
+  puleCameraPerspectiveSet(
+    controller.camera,
+    PuleCameraPerspective {
+      .nearCutoff = 0.01f,
+      .farCutoff = 100.0f,
+      .aspectRatio = 800.0f/600.0f,
+      .fieldOfViewRadians = 120.0f,
+    }
+  );
+
   puleCameraLookAt(
-    controller.camera, controller.origin, controller.forward, controller.up
+    controller.camera,
+    controller.origin,
+    puleF32v3Add(controller.forward, controller.origin),
+    controller.up
   );
 }
 } // namespace
@@ -304,6 +338,7 @@ PuleCameraController puleCameraControllerFirstPerson(
 ) {
   CameraControllerGeneric controllerContainer;
   controllerContainer.cameraData.resize(sizeof(CameraControllerFps));
+  controllerContainer.update = &cameraControllerFpsUpdate;
   CameraControllerFps & controller = (
     *reinterpret_cast<CameraControllerFps *>(
       controllerContainer.cameraData.data()
@@ -324,7 +359,7 @@ PULE_exportFn void puleCameraControllerDestroy(
   ::cameraControllers.erase(pController.id);
 }
 
-void puleCamereaControllerPollEvents() {
+void puleCameraControllerPollEvents() {
   for (auto & controller : ::cameraControllers) {
     if (controller.second.update) {
       controller.second.update(controller.second.cameraData.data());

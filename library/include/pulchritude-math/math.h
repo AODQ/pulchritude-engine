@@ -85,11 +85,13 @@ PULE_exportFn PuleF32m44 puleF32m44(float const identity);
 PULE_exportFn PuleF32m44 puleF32m44Ptr(float const * const data);
 PULE_exportFn PuleF32m44 puleF32m44PtrTranspose(float const * const data);
 
+PULE_exportFn void puleF32m44DumpToStdout(PuleF32m44 const);
+
 PULE_exportFn PuleF32m44 puleProjectionPerspective(
   float const fieldOfViewRadians,
   float const aspectRatio,
-  float const near,
-  float const far
+  float const nearCutoff,
+  float const farCutoff
 );
 
 // if engine has 3D use, then this should always be the preferred perspective

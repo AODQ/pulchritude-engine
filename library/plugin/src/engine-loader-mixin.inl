@@ -166,6 +166,11 @@
       ::loadSymbol("puleF32m44PtrTranspose", layerName)
     )
   );
+  layer->f32m44DumpToStdout = (
+    reinterpret_cast<decltype(layer->f32m44DumpToStdout)>(
+      ::loadSymbol("puleF32m44DumpToStdout", layerName)
+    )
+  );
   layer->projectionPerspective = (
     reinterpret_cast<decltype(layer->projectionPerspective)>(
       ::loadSymbol("puleProjectionPerspective", layerName)

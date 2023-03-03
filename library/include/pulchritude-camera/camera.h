@@ -31,10 +31,10 @@ PULE_exportFn void puleCameraLookAt(
 );
 
 typedef struct {
-  float nearField;
-  float farField;
+  float nearCutoff;
+  float farCutoff;
   float aspectRatio;
-  float fieldOfView;
+  float fieldOfViewRadians;
 } PuleCameraPerspective;
 
 PULE_exportFn PuleCameraPerspective puleCameraPerspective(PuleCamera const);

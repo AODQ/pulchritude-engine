@@ -138,13 +138,13 @@ void parseArguments(
     PuleDsValue const commandsFileValue = (
       puleAssetPdsLoadFromFile(
         allocator,
-        puleCStr("./puldata/commands.pds"),
+        puleCStr("./assets/puldata/commands.pds"),
         &err
       )
     );
     if (puleErrorConsume(&err)) { return; }
 
-    puleLogDebug("----- puldata/commands.pds ------");
+    puleLogDebug("----- assets/puldata/commands.pds ------");
     if (*puleLogDebugEnabled()) {
       puleAssetPdsWriteToStdout(commandsFileValue);
     }

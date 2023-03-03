@@ -61,7 +61,6 @@ typedef struct {
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_bindBuffer
   PuleGfxGpuBufferUsage usage; // must be uniform or storage
-  PuleGfxPipeline pipeline;
   size_t bindingIndex;
   PuleGfxGpuBuffer buffer;
   size_t offset;

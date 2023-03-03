@@ -79,6 +79,7 @@ typedef struct PuleEngineLayer {
   PuleF32m44 (* f32m44)(float const);
   PuleF32m44 (* f32m44Ptr)(float const * const);
   PuleF32m44 (* f32m44PtrTranspose)(float const * const);
+  void (* f32m44DumpToStdout)(PuleF32m44);
   PuleF32m44 (* projectionPerspective)(float const, float const, float const, float const);
   PuleF32m44 (* viewLookAt)(PuleF32v3 const, PuleF32v3 const, PuleF32v3 const);
   // platform

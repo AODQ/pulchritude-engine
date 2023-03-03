@@ -1,5 +1,7 @@
 #include <pulchritude-math/math.h>
 
+#include <pulchritude-log/log.h>
+
 #include <cmath>
 
 PuleF32v2 puleF32v2(float const identity) {
@@ -161,4 +163,20 @@ PuleF32m44 puleProjectionPerspective(
       0.0f, 0.0f, -(far*near)/(far-near), 0.0f,
     },
   };
+}
+
+void puleF32m44DumpToStdout(PuleF32m44 const m) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+  puleLogRaw(
+    "\n\t| %.2f , %.2f , %.2f , %.2f |"
+    "\n\t| %.2f , %.2f , %.2f , %.2f |"
+    "\n\t| %.2f , %.2f , %.2f , %.2f |"
+    "\n\t| %.2f , %.2f , %.2f , %.2f |\n",
+    m.elements[0],  m.elements[1],  m.elements[2],  m.elements[3],
+    m.elements[4],  m.elements[5],  m.elements[6],  m.elements[7],
+    m.elements[8],  m.elements[9],  m.elements[10], m.elements[11],
+    m.elements[12], m.elements[13], m.elements[14], m.elements[15]
+  );
+#pragma GCC diagnostic pop
 }

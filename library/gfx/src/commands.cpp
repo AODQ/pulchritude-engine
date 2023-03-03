@@ -294,7 +294,7 @@ void puleGfxCommandListSubmit(
 
         util::verifyIsBuffer(bufferId);
         GLenum bufferType;
-        switch (action.bufferType) {
+        switch (action.usage) {
           default: assert(false);
           case PuleGfxGpuBufferUsage_bufferUniform:
             bufferType = GL_UNIFORM_BUFFER;
