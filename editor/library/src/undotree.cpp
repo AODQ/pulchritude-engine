@@ -89,7 +89,7 @@ void applyRedoUndo(
   PuleDsValue const commandsFileValue = (
     puleAssetPdsLoadFromFile(
       allocator,
-      puleCStr("./puldata/commands.pds"),
+      puleCStr("./assets/puldata/commands.pds"),
       error
     )
   );
@@ -179,7 +179,7 @@ void applyRedoUndo(
   }
 
   puleAssetPdsWriteToFile(
-    commandsFileValue, puleCStr("puldata/commands.pds"), error
+    commandsFileValue, puleCStr("assets/puldata/commands.pds"), error
   );
   // fallthrough to destructor
   puleDsDestroy(commandsFileValue);
@@ -224,7 +224,7 @@ void undotreeShow(
   PuleDsValue const commandsFileValue = (
     puleAssetPdsLoadFromFile(
       allocator,
-      puleCStr("./puldata/commands.pds"),
+      puleCStr("./assets/puldata/commands.pds"),
       error
     )
   );

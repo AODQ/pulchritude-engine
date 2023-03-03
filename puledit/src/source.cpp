@@ -213,7 +213,7 @@ void parseArguments(
     if (applyToActionHistory == ApplyToActionHistory::Yes) {
       puleAssetPdsWriteToFile(
         commandsFileValue,
-        puleCStr("puldata/commands.pds"),
+        puleCStr("assets/puldata/commands.pds"),
         &err
       );
     }

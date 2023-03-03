@@ -263,7 +263,7 @@ int32_t main(
   pulePluginPayloadStore(payload, puleCStr("pule-engine-layer"), &layers[0]);
   PuleEngineLayer & pulBase = layers[0];
   puleLogDebug(
-    "Initializing application from project.pds with layer '%s'",
+    "Initializing application from assets/project.pds with layer '%s'",
     pulBase.layerName.contents
   );
 

@@ -29,7 +29,7 @@ bool refreshEcsMainComponentList(
   PuleDsValue const ecsMainValue = (
     puleAssetPdsLoadFromFile(
       allocator,
-      puleCStr("./puldata/ecs.pds"),
+      puleCStr("./assets/puldata/ecs.pds"),
       error
     )
   );
@@ -153,7 +153,7 @@ bool refreshEcsMainSystemList(
   PuleDsValue const ecsMainValue = (
     puleAssetPdsLoadFromFile(
       allocator,
-      puleCStr("./puldata/ecs.pds"),
+      puleCStr("./assets/puldata/ecs.pds"),
       error
     )
   );
@@ -300,7 +300,7 @@ bool pluginExists(PuleStringView const pluginName, PuleError * const error) {
   PuleDsValue const projectValue = (
     puleAssetPdsLoadFromFile(
       puleAllocateDefault(),
-      puleCStr("project.pds"),
+      puleCStr("assets/project.pds"),
       error
     )
   );
@@ -353,7 +353,7 @@ bool editorPluginNew(
   /* PuleDsValue const pluginsValue = ( */
   /*   puleAssetPdsLoadFromFile( */
   /*     allocator, */
-  /*     puleCStr("./puldata/plugins.pds"), */
+  /*     puleCStr("./assets/puldata/plugins.pds"), */
   /*     error */
   /*   ) */
   /* ); */
@@ -386,7 +386,7 @@ bool editorPluginNew(
   /*   puleDsArrayAppend(plugins, pluginInfo); */
   /* } */
   /* puleAssetPdsWriteToFile( */
-  /*   pluginsValue, puleCStr("./puldata/plugins.pds"), error */
+  /*   pluginsValue, puleCStr("./assets/puldata/plugins.pds"), error */
   /* ); */
   /* if (puleErrorExists(error)) { return false; } */
 
@@ -440,7 +440,7 @@ bool editorPluginNewRewind(
   /* PuleDsValue const pluginsValue = ( */
   /*   puleAssetPdsLoadFromFile( */
   /*     allocator, */
-  /*     puleCStr("./puldata/plugins.pds"), */
+  /*     puleCStr("./assets/puldata/plugins.pds"), */
   /*     error */
   /*   ) */
   /* ); */
@@ -470,7 +470,7 @@ bool editorPluginNewRewind(
   /* } */
 
   /* puleAssetPdsWriteToFile( */
-  /*   pluginsValue, puleCStr("./puldata/plugins.pds"), error */
+  /*   pluginsValue, puleCStr("./assets/puldata/plugins.pds"), error */
   /* ); */
   /* if (puleErrorExists(error)) { return false; } */
 
@@ -505,7 +505,7 @@ bool editorEcsComponentAdd(
   PuleDsValue const ecsMainValue = (
     puleAssetPdsLoadFromFile(
       allocator,
-      puleCStr("./puldata/ecs.pds"),
+      puleCStr("./assets/puldata/ecs.pds"),
       error
     )
   );
@@ -570,7 +570,11 @@ bool editorEcsComponentAdd(
     );
     puleDsArrayAppend(ecsPluginComponentValue, componentRegistryInfo);
   }
-  puleAssetPdsWriteToFile(ecsMainValue, puleCStr("./puldata/ecs.pds"), error);
+  puleAssetPdsWriteToFile(
+    ecsMainValue,
+    puleCStr("./assets/puldata/ecs.pds"),
+    error
+  );
   if (puleErrorExists(error)) { return false; }
 
   // create default component file
@@ -642,7 +646,7 @@ bool editorEcsComponentRemove(
   PuleDsValue const ecsMainValue = (
     puleAssetPdsLoadFromFile(
       allocator,
-      puleCStr("./puldata/ecs.pds"),
+      puleCStr("./assets/puldata/ecs.pds"),
       error
     )
   );
@@ -676,7 +680,11 @@ bool editorEcsComponentRemove(
     return false;
   }
 
-  puleAssetPdsWriteToFile(ecsMainValue, puleCStr("./puldata/ecs.pds"), error);
+  puleAssetPdsWriteToFile(
+    ecsMainValue,
+    puleCStr("./assets/puldata/ecs.pds"),
+    error
+  );
   if (puleErrorExists(error)) { return false; }
 
   puleDsDestroy(ecsMainValue);

@@ -248,7 +248,7 @@ static bool generateBuildHusk() {
   PuleDsValue const projectValue = (
     puleAssetPdsLoadFromFile(
       puleAllocateDefault(),
-      puleCStr("project.pds"),
+      puleCStr("assets/project.pds"),
       &err
     )
   );
@@ -364,15 +364,11 @@ void systemExecuteLog(char const * const command) {
 bool refreshAssets(PuleAllocator const allocator, PuleError * const error) {
   (void)allocator;
   (void)error;
-  // TODO strip out unnecessary metadata (like source files)
-  puleFileCopy(
-    puleCStr("project.pds"),
-    puleCStr("build-husk/install/assets/project.pds")
-  );
   puleFilesystemSymlinkCreate(
-    puleCStr("../../../puldata"),
-    puleCStr("build-husk/install/assets/puldata")
+    puleCStr("../../../assets"),
+    puleCStr("build-husk/install/assets")
   );
+  // TODO strip out unnecessary metadata (like source files)
   return true;
 }
 
