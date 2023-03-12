@@ -265,7 +265,6 @@ static bool generateBuildHusk() {
   puleFileDirectoryCreate(puleCStr("build-husk/applications"));
   puleFileDirectoryCreate(puleCStr("build-husk/build-install"));
   puleFileDirectoryCreate(puleCStr("build-husk/install"));
-  puleFileDirectoryCreate(puleCStr("build-husk/install/assets"));
   puleFileDirectoryCreate(puleCStr("build-husk/plugins"));
 
   PuleDsValue const buildInfoValue = (
@@ -365,7 +364,7 @@ bool refreshAssets(PuleAllocator const allocator, PuleError * const error) {
   (void)allocator;
   (void)error;
   puleFilesystemSymlinkCreate(
-    puleCStr("../../../assets"),
+    puleCStr("../../assets"),
     puleCStr("build-husk/install/assets")
   );
   // TODO strip out unnecessary metadata (like source files)

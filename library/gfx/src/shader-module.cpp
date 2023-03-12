@@ -41,12 +41,18 @@ namespace {
 }
 
 PuleGfxShaderModule puleGfxShaderModuleCreate(
-  PuleStringView const vertexShaderSource,
-  PuleStringView const fragmentShaderSource,
+  PuleStringView vertexShaderSource,
+  PuleStringView fragmentShaderSource,
   PuleError * const error
 ) {
   GLuint const vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER);
   GLuint const fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
+
+  puleLogDebug(
+    "Compiling vertex, last character: %d / %d",
+    vertexShaderSource.contents[vertexShaderSource.len-1],
+    vertexShaderSource.contents[vertexShaderSource.len]
+  );
 
   if (!::compileShader(vertexShaderHandle, "vertex", vertexShaderSource)) {
     PULE_error(
@@ -56,6 +62,12 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
     return {0};
   }
   // defer glDeleteShader(vertexShaderHandle)
+
+  puleLogDebug(
+    "Compiling fragment, last character: %d / %d",
+    fragmentShaderSource.contents[fragmentShaderSource.len-1],
+    fragmentShaderSource.contents[fragmentShaderSource.len]
+  );
 
   if (!::compileShader(fragmentShaderHandle, "fragment", fragmentShaderSource)){
     PULE_error(
@@ -70,7 +82,9 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
   GLuint const shaderModuleHandle = glCreateProgram();
   glAttachShader(shaderModuleHandle, vertexShaderHandle);
   glAttachShader(shaderModuleHandle, fragmentShaderHandle);
+  puleLogDebug("Linking program");
   glLinkProgram(shaderModuleHandle);
+  puleLogDebug("finished");
   // defer glDetachShader(shaderModuleHandle, vertexShaderHandle)
   // defer glDetachShader(shaderModuleHandle, fragmentShaderHandle)
 

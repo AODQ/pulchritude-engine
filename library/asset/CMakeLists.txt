@@ -1,6 +1,7 @@
 add_subdirectory(font)
-add_subdirectory(render-task-graph)
 add_subdirectory(image)
 add_subdirectory(model)
 add_subdirectory(pds)
+add_subdirectory(render-task-graph)
+add_subdirectory(shader-module)
 add_subdirectory(tiled)

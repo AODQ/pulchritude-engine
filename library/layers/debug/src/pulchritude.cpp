@@ -2240,13 +2240,15 @@ void pulePluginPayloadStore(
   void * const data
 ) {
   debugLayerFnEntry();
-  return (
-    pul.pluginPayloadStore(
-      payload,
-      handle,
-      data
-    )
-  );
+  for (size_t it = 0; it < handle.len; ++ it) {
+    char const ch = handle.contents[it];
+    if (ch == '\t' || ch == '\n' || ch == ' ' || ch == '\r' || ch == '\n') {
+      puleLogError(
+        "invalid whitespace character in handle: %s", handle.contents
+      );
+    }
+  }
+  return pul.pluginPayloadStore(payload, handle, data);
 }
 
 void pulePluginPayloadStoreU64(
@@ -2255,6 +2257,14 @@ void pulePluginPayloadStoreU64(
   uint64_t const data
 ) {
   debugLayerFnEntry();
+  for (size_t it = 0; it < handle.len; ++ it) {
+    char const ch = handle.contents[it];
+    if (ch == '\t' || ch == '\n' || ch == ' ' || ch == '\r' || ch == '\n') {
+      puleLogError(
+        "invalid whitespace character in handle: %s", handle.contents
+      );
+    }
+  }
   return (
     pul.pluginPayloadStoreU64(
       payload,

@@ -41,6 +41,11 @@ PULE_exportFn PuleFile puleFileOpen(
   PuleFileOpenMode const openMode,
   PuleError * const error
 );
+PULE_exportFn PuleArray puleFileLoadContents(
+  PuleAllocator const allocator,
+  PuleFileDataMode const dataMode,
+  PuleError * const error
+);
 PULE_exportFn void puleFileClose(PuleFile const file);
 PULE_exportFn bool puleFileIsDone(PuleFile const file);
 PULE_exportFn PuleStringView puleFilePath(PuleFile const file);

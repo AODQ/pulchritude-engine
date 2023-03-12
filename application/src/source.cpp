@@ -149,6 +149,40 @@ std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
 };
 std::vector<ParameterInfo> programParameters;
 
+PuleAssetShaderModule loadShaderModule(
+  PuleEngineLayer & pul,
+  PuleDsValue const dsShaderModule,
+  PuleStringView const assetPath
+) {
+  PuleStringView const shaderModuleLabel = (
+    puleDsMemberAsString(dsShaderModule, "label")
+  );
+  std::string const vertexPath = (
+    std::string(assetPath.contents)
+    + (
+      puleDsMemberAsString(
+        dsShaderModule, "vertex"
+      ).contents
+    )
+  );
+  std::string const fragmentPath = (
+    std::string(assetPath.contents)
+    + (
+      puleDsMemberAsString(
+        dsShaderModule, "fragment"
+      ).contents
+    )
+  );
+
+  return (
+    pul.assetShaderModuleCreateFromPaths(
+      shaderModuleLabel,
+      puleCStr(vertexPath.c_str()),
+      puleCStr(fragmentPath.c_str())
+    )
+  );
+}
+
 int32_t main(
   [[maybe_unused]] int32_t const argumentLength,
   [[maybe_unused]] char const * const * const arguments
@@ -273,6 +307,7 @@ int32_t main(
   PulePlatform platform = { .id = 0, };
   PuleEcsWorld ecsWorld = { .id = 0, };
   PuleTaskGraph renderTaskGraph = { .id = 0, };
+  std::vector<PuleAssetShaderModule> shaderModules = {};
   bool ecsWorldAdvance = false;
 
   // TODO break these out into functions
@@ -382,8 +417,16 @@ int32_t main(
           )
         );
         (void)generateWindowDepthFramebuffer;
-        /* if(!pulBase.dsMemberAsBool(generateWindowDepthFramebuffer)) { */
-        /* } */
+        // load shader modules
+        PuleDsValueArray const dsShaderModules = (
+          pulBase.dsMemberAsArray(payloadGfx, "shader-modules")
+        );
+        for (size_t it = 0; it < dsShaderModules.length; ++ it) {
+          PuleDsValue const dsShaderModule = dsShaderModules.values[it];
+          shaderModules.emplace_back(
+            loadShaderModule(pulBase, dsShaderModule, puleStringView(assetPath))
+          );
+        }
       }
       // -- ecs create
       PuleDsValue const payloadEcs = (
@@ -435,29 +478,45 @@ int32_t main(
         }
       }
     }
+  }
 
-    // insert into payload as necessary
-    if (platform.id != 0) {
-      pulBase.pluginPayloadStoreU64(
-        payload,
-        pulBase.cStr("pule-platform"),
-        platform.id
-      );
-    }
-    if (ecsWorld.id != 0) {
-      pulBase.pluginPayloadStoreU64(
-        payload,
-        pulBase.cStr("pule-ecs-world"),
-        ecsWorld.id
-      );
-    }
-    if (renderTaskGraph.id != 0) {
-      pulBase.pluginPayloadStoreU64(
-        payload,
-        pulBase.cStr("pule-render-task-graph"),
-        renderTaskGraph.id
-      );
-    }
+  // insert into payload as necessary
+  if (platform.id != 0) {
+    pulBase.pluginPayloadStoreU64(
+      payload,
+      pulBase.cStr("pule-platform"),
+      platform.id
+    );
+  }
+  if (ecsWorld.id != 0) {
+    pulBase.pluginPayloadStoreU64(
+      payload,
+      pulBase.cStr("pule-ecs-world"),
+      ecsWorld.id
+    );
+  }
+  if (renderTaskGraph.id != 0) {
+    pulBase.pluginPayloadStoreU64(
+      payload,
+      pulBase.cStr("pule-render-task-graph"),
+      renderTaskGraph.id
+    );
+  }
+  for (auto shaderModule : shaderModules) {
+    std::string const shaderModuleLabel = (
+      std::string("pule-asset-shader-module-")
+      + pulBase.assetShaderModuleLabel(shaderModule).contents
+    );
+    puleLogDebug(
+      "Storing shader module %d at payload label '%s'",
+      pulBase.assetShaderModuleGfxHandle(shaderModule).id,
+      shaderModuleLabel.c_str()
+    );
+    pulBase.pluginPayloadStoreU64(
+      payload,
+      pulBase.cStr(shaderModuleLabel.c_str()),
+      shaderModule.id
+    );
   }
 
   // initiate all plugins

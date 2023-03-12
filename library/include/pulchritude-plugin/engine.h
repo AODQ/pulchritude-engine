@@ -13,6 +13,7 @@
 #include <pulchritude-imgui/imgui.h>
 #include <pulchritude-asset/model.h>
 #include <pulchritude-asset/tiled.h>
+#include <pulchritude-asset/shader-module.h>
 #include <pulchritude-asset/font.h>
 #include <pulchritude-asset/image.h>
 #include <pulchritude-asset/render-task-graph.h>
@@ -236,6 +237,11 @@ typedef struct PuleEngineLayer {
   PuleAssetTiledMap (* assetTiledMapLoadFromStream)(PuleAssetTiledMapLoadCreateInfo const, PuleError * const);
   PuleAssetTiledMap (* assetTiledMapLoadFromFile)(PuleAssetTiledMapLoadFromFileCreateInfo const, PuleError * const);
   void (* assetTiledMapDestroy)(PuleAssetTiledMap const);
+  // asset-shader-module
+  PuleAssetShaderModule (* assetShaderModuleCreateFromPaths)(PuleStringView const, PuleStringView const, PuleStringView const);
+  void (* assetShaderModuleDestroy)(PuleAssetShaderModule const);
+  PuleStringView (* assetShaderModuleLabel)(PuleAssetShaderModule);
+  PuleGfxShaderModule (* assetShaderModuleGfxHandle)(PuleAssetShaderModule);
   // asset-font
   PuleAssetFont (* assetFontLoad)(PuleBufferView const, PuleError * const);
   void (* assetFontDestroy)(PuleAssetFont const);

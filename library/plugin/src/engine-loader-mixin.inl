@@ -915,6 +915,27 @@
       ::loadSymbol("puleAssetTiledMapDestroy", layerName)
     )
   );
+  // asset-shader-module
+  layer->assetShaderModuleCreateFromPaths = (
+    reinterpret_cast<decltype(layer->assetShaderModuleCreateFromPaths)>(
+      ::loadSymbol("puleAssetShaderModuleCreateFromPaths", layerName)
+    )
+  );
+  layer->assetShaderModuleDestroy = (
+    reinterpret_cast<decltype(layer->assetShaderModuleDestroy)>(
+      ::loadSymbol("puleAssetShaderModuleDestroy", layerName)
+    )
+  );
+  layer->assetShaderModuleLabel = (
+    reinterpret_cast<decltype(layer->assetShaderModuleLabel)>(
+      ::loadSymbol("puleAssetShaderModuleLabel", layerName)
+    )
+  );
+  layer->assetShaderModuleGfxHandle = (
+    reinterpret_cast<decltype(layer->assetShaderModuleGfxHandle)>(
+      ::loadSymbol("puleAssetShaderModuleGfxHandle", layerName)
+    )
+  );
   // asset-font
   layer->assetFontLoad = (
     reinterpret_cast<decltype(layer->assetFontLoad)>(

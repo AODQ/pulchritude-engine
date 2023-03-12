@@ -5,7 +5,6 @@
 #include <pulchritude-gfx/gfx.h>
 #include <pulchritude-gfx/commands.h>
 
-
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -140,7 +139,7 @@ void actionClearFramebufferDepth(
 
 } // namespace
 
-PULE_exportFn PuleTaskGraph puleAssetRenderTaskGraphFromPds(
+PuleTaskGraph puleAssetRenderTaskGraphFromPds(
   PuleAllocator const allocator,
   [[maybe_unused]] PulePlatform const platform,
   PuleDsValue const dsRenderGraphValue
