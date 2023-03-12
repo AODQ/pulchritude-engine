@@ -507,6 +507,7 @@ bool puleFilesystemSymlinkCreate(
 
 PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
   if (!puleFilesystemPathExists(path)) {
+    puleLogError("path does not exist: '%s'", path.contents);
     return {.value=0,};
   }
   std::error_code errorcode;
@@ -573,6 +574,7 @@ bool puleFileWatchCheckAll() {
       puleFilesystemTimestamp(puleCStr(filewatch.filename.c_str()))
     );
     if (filewatch.lastUpdated.value < timestamp.value) {
+      puleLogDebug("File updated: '%s'", filewatch.filename.c_str());
       anyFilesChanged = true;
       filewatch.lastUpdated = timestamp;
       if (filewatch.fileUpdatedCallback) {

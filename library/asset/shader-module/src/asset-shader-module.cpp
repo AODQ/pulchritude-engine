@@ -115,13 +115,13 @@ PuleAssetShaderModule puleAssetShaderModuleCreateFromPaths(
   shaderModuleRef.watcherVertex = puleFileWatch({
     .fileUpdatedCallback = &::shaderWatchFileUpdatedCallback,
     .deallocateUserdataCallback = &::shaderWatchDeallocateUserdata,
-    .filename = puleCStr(""),
+    .filename = puleCStr(pathVertex.contents),
     .userdata = shaderModuleUserdata,
   });
   shaderModuleRef.watcherFragment = puleFileWatch({
     .fileUpdatedCallback = &::shaderWatchFileUpdatedCallback,
     .deallocateUserdataCallback = &::shaderWatchDeallocateUserdata,
-    .filename = puleCStr(""),
+    .filename = puleCStr(pathFragment.contents),
     .userdata = shaderModuleUserdata,
   });
 

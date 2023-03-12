@@ -1274,6 +1274,11 @@
       ::loadSymbol("puleFileOpen", layerName)
     )
   );
+  layer->fileLoadContents = (
+    reinterpret_cast<decltype(layer->fileLoadContents)>(
+      ::loadSymbol("puleFileLoadContents", layerName)
+    )
+  );
   layer->fileClose = (
     reinterpret_cast<decltype(layer->fileClose)>(
       ::loadSymbol("puleFileClose", layerName)
@@ -1397,6 +1402,11 @@
   layer->fileWatch = (
     reinterpret_cast<decltype(layer->fileWatch)>(
       ::loadSymbol("puleFileWatch", layerName)
+    )
+  );
+  layer->fileWatchCheckAll = (
+    reinterpret_cast<decltype(layer->fileWatchCheckAll)>(
+      ::loadSymbol("puleFileWatchCheckAll", layerName)
     )
   );
   // script

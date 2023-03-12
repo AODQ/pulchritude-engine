@@ -320,6 +320,7 @@ typedef struct PuleEngineLayer {
   PuleEcsComponent (* renderer3DAttachComponentRender)(PuleEcsWorld const, PuleRenderer3D const, PuleEcsEntity const, PuleRenderer3DModel const);
   // file
   PuleFile (* fileOpen)(PuleStringView const, PuleFileDataMode const, PuleFileOpenMode const, PuleError * const);
+  PuleArray (* fileLoadContents)(PuleAllocator const, PuleFileDataMode const, PuleError * const);
   void (* fileClose)(PuleFile const);
   bool (* fileIsDone)(PuleFile const);
   PuleStringView (* filePath)(PuleFile const);
@@ -345,6 +346,7 @@ typedef struct PuleEngineLayer {
   bool (* filesystemSymlinkCreate)(PuleStringView const, PuleStringView const);
   PuleTimestamp (* filesystemTimestamp)(PuleStringView const);
   PuleFileWatcher (* fileWatch)(PuleFileWatchCreateInfo const);
+  bool (* fileWatchCheckAll)();
   // script
   PuleScriptContext (* scriptContextCreate)();
   void (* scriptContextDestroy)(PuleScriptContext const);

@@ -151,7 +151,7 @@ PULE_exportFn PuleFileWatcher puleFileWatch(
   PuleFileWatchCreateInfo const createinfo
 );
 // returns true if any files changed
-bool puleFileWatchCheckAll();
+PULE_exportFn bool puleFileWatchCheckAll();
 // TODO return a filewatch list of changed files since last check
 // TODO filewatch destroy
 

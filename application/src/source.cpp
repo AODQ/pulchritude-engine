@@ -643,6 +643,7 @@ int32_t main(
     if (platform.id != 0) {
       pulePlatformSwapFramebuffer(platform);
     }
+    pulBase.fileWatchCheckAll();
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
