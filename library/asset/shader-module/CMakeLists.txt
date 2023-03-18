@@ -24,6 +24,7 @@ target_link_libraries(
     pulchritude-array
     pulchritude-string
     pulchritude-file
+    pulchritude-time
 
     schrift
 )
