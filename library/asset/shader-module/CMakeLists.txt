@@ -23,6 +23,7 @@ target_link_libraries(
     pulchritude-error
     pulchritude-array
     pulchritude-string
+    pulchritude-file
 
     schrift
 )
