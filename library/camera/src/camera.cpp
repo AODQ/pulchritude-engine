@@ -264,6 +264,19 @@ void cameraControllerFpsUpdate(void * const userdata) {
   );
   controller.prevMouseOrigin = mouse;
 
+  if (
+    puleInputKey(controller.platform, PuleInputKey_escape)
+    || puleInputKey(controller.platform, PuleInputKey_graveAccent)
+  ) {
+    pulePlatformCursorShow(controller.platform);
+  }
+  if (
+    !pulePlatformCursorEnabled(controller.platform)
+    && puleInputMouse(controller.platform, PuleInputMouse_left)
+  ) {
+    pulePlatformCursorHide(controller.platform);
+  }
+
   controller.dirTheta -= mouseDelta.x * 0.005f;
   controller.dirPhi += mouseDelta.y * 0.005f;
   if (controller.dirPhi > 1.3f)
@@ -317,7 +330,7 @@ void cameraControllerFpsUpdate(void * const userdata) {
       .nearCutoff = 0.01f,
       .farCutoff = 100.0f,
       .aspectRatio = 800.0f/600.0f,
-      .fieldOfViewRadians = 120.0f,
+      .fieldOfViewRadians = 70.0f,
     }
   );
 
@@ -349,6 +362,7 @@ PuleCameraController puleCameraControllerFirstPerson(
   controller.up = PuleF32v3{0.0f, 1.0f, 0.0f,};
   controller.camera = camera;
   controller.platform = platform;
+  pulePlatformCursorHide(platform);
   ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
   return PuleCameraController { .id=::cameraControllerIt++, };
 }

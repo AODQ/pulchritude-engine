@@ -7,6 +7,7 @@
 #include <pulchritude-plugin/engine.h>
 #include <pulchritude-plugin/plugin.h>
 #include <pulchritude-task-graph/task-graph.h>
+#include <pulchritude-camera/camera.h>
 
 // need struct definitions, but don't call anything from here directly
 #include <pulchritude-gfx/gfx.h>
@@ -307,6 +308,7 @@ int32_t main(
   PulePlatform platform = { .id = 0, };
   PuleEcsWorld ecsWorld = { .id = 0, };
   PuleTaskGraph renderTaskGraph = { .id = 0, };
+  PuleCameraSet cameraSet = { .id = 0, };
   std::vector<PuleAssetShaderModule> shaderModules = {};
   bool ecsWorldAdvance = false;
 
@@ -477,6 +479,14 @@ int32_t main(
           }
         }
       }
+      // -- camera create
+      PuleDsValue const payloadCamera = (
+        pulBase.dsObjectMember(entryPayload, "camera-set")
+      );
+      if (!pulBase.dsIsNull(payloadCamera)) {
+        puleLogDebug("Application creating camera");
+        cameraSet = pulBase.cameraSetCreate(puleCStr("pule-primary"));
+      }
     }
   }
 
@@ -500,6 +510,13 @@ int32_t main(
       payload,
       pulBase.cStr("pule-render-task-graph"),
       renderTaskGraph.id
+    );
+  }
+  if (cameraSet.id != 0) {
+    pulBase.pluginPayloadStoreU64(
+      payload,
+      pulBase.cStr("pule-camera-set"),
+      cameraSet.id
     );
   }
   for (auto shaderModule : shaderModules) {
@@ -598,6 +615,10 @@ int32_t main(
     }
     if (isGuiEditor) {
       pulBase.imguiNewFrame();
+    }
+    if (cameraSet.id != 0) {
+      pulBase.cameraControllerPollEvents();
+      pulBase.cameraSetRefresh(cameraSet);
     }
     if (!isGuiEditor && renderTaskGraph.id != 0) {
       puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo {

@@ -210,7 +210,7 @@ bool pulePlatformCursorEnabled(PulePlatform const platform) {
 
 void pulePlatformCursorHide(PulePlatform const platform) {
   auto const glfwWindow = reinterpret_cast<GLFWwindow *>(platform.id);
-  glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+  glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void pulePlatformCursorShow(PulePlatform const platform) {

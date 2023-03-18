@@ -227,6 +227,7 @@ PULE_exportFn bool puleInputMouse(
   PulePlatform const window,
   PuleInputMouse const mouseKey
 );
+
 PULE_exportFn int32_t puleInputScroll(PulePlatform const window);
 
 // TODO fix the json exporter to allow function pointers in params
