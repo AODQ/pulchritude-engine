@@ -80,6 +80,11 @@ PULE_exportFn PuleGfxFence puleCameraSetRefresh(PuleCameraSet const);
 // -- camera controller --------------------------------------------------------
 
 typedef struct { uint64_t id; } PuleCameraController;
+PULE_exportFn PuleCameraController puleCameraControllerCreate(
+  void (*update)(void * const userdata),
+  void const * const controllerData,
+  size_t controllerDataSize
+);
 PULE_exportFn PuleCameraController puleCameraControllerFirstPerson(
   PulePlatform const platform,
   PuleCamera const

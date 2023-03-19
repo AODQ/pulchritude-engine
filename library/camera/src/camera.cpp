@@ -345,26 +345,37 @@ void cameraControllerFpsUpdate(void * const userdata) {
 
 extern "C" {
 
+PULE_exportFn PuleCameraController puleCameraControllerCreate(
+  void (*update)(void * const userdata),
+  void const * const controllerData,
+  size_t controllerDataSize
+) {
+  auto data = static_cast<uint8_t const * const>(controllerData);
+  CameraControllerGeneric controllerContainer {
+    .cameraData= std::vector<uint8_t>(data, data + controllerDataSize),
+    .update = update
+  };
+  ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
+  return PuleCameraController { .id=::cameraControllerIt++, };
+}
+
 PuleCameraController puleCameraControllerFirstPerson(
   PulePlatform const platform,
   PuleCamera const camera
 ) {
-  CameraControllerGeneric controllerContainer;
-  controllerContainer.cameraData.resize(sizeof(CameraControllerFps));
-  controllerContainer.update = &cameraControllerFpsUpdate;
-  CameraControllerFps & controller = (
-    *reinterpret_cast<CameraControllerFps *>(
-      controllerContainer.cameraData.data()
-    )
-  );
-  controller.origin = puleF32v3(1);
-  controller.forward = PuleF32v3{1.0f, 0.0f, 1.0f,};
-  controller.up = PuleF32v3{0.0f, 1.0f, 0.0f,};
-  controller.camera = camera;
-  controller.platform = platform;
+  CameraControllerFps controller {
+    .origin = puleF32v3(1),
+    .forward = PuleF32v3{1.0f, 0.0f, 1.0f,},
+    .up = PuleF32v3{0.0f, 1.0f, 0.0f,},
+    .camera = camera,
+    .platform = platform
+  };
   pulePlatformCursorHide(platform);
-  ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
-  return PuleCameraController { .id=::cameraControllerIt++, };
+  return puleCameraControllerCreate(
+    &cameraControllerFpsUpdate,
+    static_cast<void const * const>(&controller),
+    sizeof(CameraControllerFps)
+  );
 }
 PULE_exportFn void puleCameraControllerDestroy(
   PuleCameraController const pController
