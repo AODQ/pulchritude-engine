@@ -9,8 +9,10 @@ typedef struct { uint64_t id; } PulePluginPayload;
 extern "C" {
 #endif
 
-PulePluginPayload pulePluginPayloadCreate(PuleAllocator const allocator);
-void pulePluginPayloadDestroy(PulePluginPayload const payload);
+PULE_exportFn PulePluginPayload pulePluginPayloadCreate(
+  PuleAllocator const allocator
+);
+PULE_exportFn void pulePluginPayloadDestroy(PulePluginPayload const payload);
 
 // fetches data stores
 PULE_exportFn void * pulePluginPayloadFetch(

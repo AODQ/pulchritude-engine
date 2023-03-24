@@ -307,16 +307,21 @@ void puleScriptModuleExecute(
   if (functionLabel.len != 0) {
     int type = lua_getglobal(state, functionLabel.contents);
     (void)type;
-    /* switch (type) { */
-    /*   case LUA_TNUMBER: puleLogDebug("NUMBER"); break; */
-    /*   case LUA_TSTRING: puleLogDebug("LUA_TSTRING"); break; */
-    /*   case LUA_TBOOLEAN: puleLogDebug("LUA_TBOOLEAN"); break; */
-    /*   case LUA_TNIL: puleLogDebug("LUA_TNIL"); break; */
-    /*   case LUA_TTABLE: puleLogDebug("LUA_TTABLE"); break; */
-    /*   case LUA_TFUNCTION: puleLogDebug("LUA_TFUNCTION"); break; */
-    /*   default: puleLogDebug("UNKNOWN!!"); */
-    /* } */
-    luaCheckError(state, lua_pcall(state, 0, 0, 0), error, "pcall functino");
+    switch (type) {
+      case LUA_TNUMBER: puleLogDebug("NUMBER"); break;
+      case LUA_TSTRING: puleLogDebug("LUA_TSTRING"); break;
+      case LUA_TBOOLEAN: puleLogDebug("LUA_TBOOLEAN"); break;
+      case LUA_TNIL: puleLogDebug("LUA_TNIL"); break;
+      case LUA_TTABLE: puleLogDebug("LUA_TTABLE"); break;
+      case LUA_TFUNCTION: puleLogDebug("LUA_TFUNCTION"); break;
+      default: puleLogDebug("UNKNOWN!!");
+    }
+    std::string const errFn = (
+      std::string{"Can not find function to call in lua module: '"}
+      + functionLabel.contents
+      + std::string{"'"}
+    );
+    luaCheckError(state, lua_pcall(state, 0, 0, 0), error, errFn.c_str());
     lua_pop(state, lua_gettop(state)); // pop the compiled function
   }
 }

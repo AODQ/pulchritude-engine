@@ -11,6 +11,7 @@
 namespace {
 
 struct TaskGraphNode {
+  std::string label;
   std::unordered_map<uint64_t, void *> attributes;
   std::vector<uint64_t> relationDependsOn;
 };
@@ -128,7 +129,14 @@ PuleTaskGraphNode puleTaskGraphNodeCreate(
   // set ID mappings
   assert(!taskGraphNodeToGraph.contains(id));
   taskGraphNodeToGraph.emplace(id, pGraph.id);
-  graph.nodes.emplace(id, TaskGraphNode {});
+  graph.nodes.emplace(
+    id,
+    TaskGraphNode {
+      .label = std::string(label.contents),
+      .attributes = {},
+      .relationDependsOn = {},
+    }
+  );
   graph.needsResort = true;
   return PuleTaskGraphNode { .id = id, };
 }
@@ -138,6 +146,12 @@ void puleTaskGraphNodeRemove(PuleTaskGraphNode const node) {
   taskGraphNodeToGraph.erase(node.id);
   graph.nodes.erase(node.id);
   graph.needsResort = true;
+}
+
+PuleStringView puleTaskGraphNodeLabel(PuleTaskGraphNode const pNode) {
+  TaskGraph & graph = ::taskGraphs.at(taskGraphNodeToGraph.at(pNode.id));
+  TaskGraphNode & node = graph.nodes.at(pNode.id);
+  return puleCStr(node.label.c_str());
 }
 
 PuleTaskGraphNode puleTaskGraphNodeFetch(

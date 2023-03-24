@@ -1035,6 +1035,12 @@
       ::loadSymbol("puleAssetPdsLoadFromCommandLineArguments", layerName)
     )
   );
+  // asset-asset-script-task-graph
+  layer->assetScriptTaskGraphFromPds = (
+    reinterpret_cast<decltype(layer->assetScriptTaskGraphFromPds)>(
+      ::loadSymbol("puleAssetScriptTaskGraphFromPds", layerName)
+    )
+  );
   // stream
   layer->streamReadByte = (
     reinterpret_cast<decltype(layer->streamReadByte)>(
@@ -1521,6 +1527,11 @@
       ::loadSymbol("puleTaskGraphNodeRemove", layerName)
     )
   );
+  layer->taskGraphNodeLabel = (
+    reinterpret_cast<decltype(layer->taskGraphNodeLabel)>(
+      ::loadSymbol("puleTaskGraphNodeLabel", layerName)
+    )
+  );
   layer->taskGraphNodeFetch = (
     reinterpret_cast<decltype(layer->taskGraphNodeFetch)>(
       ::loadSymbol("puleTaskGraphNodeFetch", layerName)
@@ -1600,6 +1611,16 @@
   layer->iteratePlugins = (
     reinterpret_cast<decltype(layer->iteratePlugins)>(
       ::loadSymbol("puleIteratePlugins", layerName)
+    )
+  );
+  layer->pluginPayloadCreate = (
+    reinterpret_cast<decltype(layer->pluginPayloadCreate)>(
+      ::loadSymbol("pulePluginPayloadCreate", layerName)
+    )
+  );
+  layer->pluginPayloadDestroy = (
+    reinterpret_cast<decltype(layer->pluginPayloadDestroy)>(
+      ::loadSymbol("pulePluginPayloadDestroy", layerName)
     )
   );
   layer->pluginPayloadFetch = (

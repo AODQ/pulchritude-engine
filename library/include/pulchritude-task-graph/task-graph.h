@@ -26,6 +26,10 @@ PULE_exportFn void puleTaskGraphNodeRemove(
   PuleTaskGraphNode const node
 );
 
+PULE_exportFn PuleStringView puleTaskGraphNodeLabel(
+  PuleTaskGraphNode const node
+);
+
 PULE_exportFn PuleTaskGraphNode puleTaskGraphNodeFetch(
   PuleTaskGraph const graph, PuleStringView const label
 );

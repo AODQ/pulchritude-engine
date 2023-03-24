@@ -18,6 +18,7 @@
 #include <pulchritude-asset/image.h>
 #include <pulchritude-asset/render-task-graph.h>
 #include <pulchritude-asset/pds.h>
+#include <pulchritude-asset/asset-script-task-graph.h>
 #include <pulchritude-stream/stream.h>
 #include <pulchritude-array/array.h>
 #include <pulchritude-allocator/allocator.h>
@@ -265,6 +266,8 @@ typedef struct PuleEngineLayer {
   void (* assetPdsWriteToFile)(PuleDsValue const, PuleStringView const, PuleError * const);
   void (* assetPdsWriteToStdout)(PuleDsValue const);
   PuleDsValue (* assetPdsLoadFromCommandLineArguments)(PuleAssetPdsCommandLineArgumentsInfo const, PuleError * const);
+  // asset-asset-script-task-graph
+  PuleTaskGraph (* assetScriptTaskGraphFromPds)(PuleAllocator const, PuleScriptContext const, PuleDsValue const, PuleStringView const);
   // stream
   uint8_t (* streamReadByte)(PuleStreamRead const);
   uint8_t (* streamPeekByte)(PuleStreamRead const);
@@ -371,6 +374,7 @@ typedef struct PuleEngineLayer {
   void (* taskGraphDestroy)(PuleTaskGraph const);
   PuleTaskGraphNode (* taskGraphNodeCreate)(PuleTaskGraph const, PuleStringView const);
   void (* taskGraphNodeRemove)(PuleTaskGraphNode const);
+  PuleStringView (* taskGraphNodeLabel)(PuleTaskGraphNode const);
   PuleTaskGraphNode (* taskGraphNodeFetch)(PuleTaskGraph const, PuleStringView const);
   void (* taskGraphNodeAttributeStore)(PuleTaskGraphNode const, PuleStringView const, void * const);
   void (* taskGraphNodeAttributeStoreU64)(PuleTaskGraphNode const, PuleStringView const, uint64_t const);
@@ -388,6 +392,8 @@ typedef struct PuleEngineLayer {
   void * (* pluginLoadFn)(size_t const, char const * const);
   void * (* tryPluginLoadFn)(size_t const, char const * const);
   void (* iteratePlugins)(void (* )(PulePluginInfo const, void * const), void * const);
+  PulePluginPayload (* pluginPayloadCreate)(PuleAllocator const);
+  void (* pluginPayloadDestroy)(PulePluginPayload const);
   void * (* pluginPayloadFetch)(PulePluginPayload const, PuleStringView const);
   uint64_t (* pluginPayloadFetchU64)(PulePluginPayload const, PuleStringView const);
   void (* pluginPayloadStore)(PulePluginPayload const, PuleStringView const, void * const);
