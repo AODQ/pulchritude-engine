@@ -227,13 +227,19 @@ PuleGfxFence puleCameraSetRefresh(PuleCameraSet const pSet) {
 
 // -- camera controller---------------------------------------------------------
 // TODO make this its own API? expose to user how to append to list?
+struct CameraControllerRts {
+  PuleF32v3 origin;
+  PuleF32v3 forward;
+  PuleF32v3 up;
+
+  PulePlatform platform;
+};
 
 struct CameraControllerFps {
   PuleF32v3 origin;
   PuleF32v3 forward;
   PuleF32v3 up;
 
-  PuleCamera camera;
   PulePlatform platform;
 
   PuleI32v2 prevMouseOrigin;
@@ -241,15 +247,58 @@ struct CameraControllerFps {
 };
 
 struct CameraControllerGeneric {
+  PuleCamera camera;
   std::vector<uint8_t> cameraData;
-  void (*update)(void * const userdata);
+  void (*update)(PuleCamera camera, void * const userdata);
 };
 
 namespace {
 std::unordered_map<uint64_t, CameraControllerGeneric> cameraControllers;
 uint64_t cameraControllerIt = 1;
 
-void cameraControllerFpsUpdate(void * const userdata) {
+void cameraControllerRtsUpdate(PuleCamera camera, void * const userdata) {
+  CameraControllerRts & controller = (
+    *reinterpret_cast<CameraControllerRts *>(userdata)
+  );
+
+  puleCameraPerspectiveSet(
+    camera,
+    PuleCameraPerspective {
+      .nearCutoff = 0.01f,
+      .farCutoff = 100.0f,
+      .aspectRatio = 800.0f/600.0f,
+      .fieldOfViewRadians = 70.0f,
+    }
+  );
+
+  // calculate movement
+  float const mag = 0.01;
+  PuleF32v3 const velocity = PuleF32v3 {
+    mag * (
+      (float)(puleInputKey(controller.platform, PuleInputKey_d))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_a))
+    ),
+    mag * (
+      (float)(puleInputKey(controller.platform, PuleInputKey_r))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_f))
+    ),
+    mag * (
+      (float)(puleInputKey(controller.platform, PuleInputKey_w))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_s))
+    ),
+  };
+
+  controller.origin = puleF32v3Add(controller.origin, velocity);
+
+  puleCameraLookAt(
+    camera,
+    controller.origin,
+    puleF32v3Add(controller.forward, controller.origin),
+    controller.up
+  );
+}
+
+void cameraControllerFpsUpdate(PuleCamera camera, void * const userdata) {
   CameraControllerFps & controller = (
     *reinterpret_cast<CameraControllerFps *>(userdata)
   );
@@ -325,7 +374,7 @@ void cameraControllerFpsUpdate(void * const userdata) {
   /* ); */
 
   puleCameraPerspectiveSet(
-    controller.camera,
+    camera,
     PuleCameraPerspective {
       .nearCutoff = 0.01f,
       .farCutoff = 100.0f,
@@ -335,7 +384,7 @@ void cameraControllerFpsUpdate(void * const userdata) {
   );
 
   puleCameraLookAt(
-    controller.camera,
+    camera,
     controller.origin,
     puleF32v3Add(controller.forward, controller.origin),
     controller.up
@@ -345,14 +394,19 @@ void cameraControllerFpsUpdate(void * const userdata) {
 
 extern "C" {
 
-PULE_exportFn PuleCameraController puleCameraControllerCreate(
-  void (*update)(void * const userdata),
-  void const * const controllerData,
-  size_t controllerDataSize
+PuleCameraController puleCameraControllerCreate(
+  PuleCamera camera,
+  void (*update)(PuleCamera camera, void * const userdata),
+  PuleArrayView controllerData
 ) {
-  auto data = static_cast<uint8_t const * const>(controllerData);
+  auto data = static_cast<uint8_t const * const>(controllerData.data);
   CameraControllerGeneric controllerContainer {
-    .cameraData= std::vector<uint8_t>(data, data + controllerDataSize),
+    .camera = camera,
+    .cameraData = std::vector<uint8_t> (
+      controllerData.data, 
+      controllerData.data 
+        + controllerData.elementStride * controllerData.elementCount
+    ),
     .update = update
   };
   ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
@@ -367,17 +421,20 @@ PuleCameraController puleCameraControllerFirstPerson(
     .origin = puleF32v3(1),
     .forward = PuleF32v3{1.0f, 0.0f, 1.0f,},
     .up = PuleF32v3{0.0f, 1.0f, 0.0f,},
-    .camera = camera,
     .platform = platform
   };
   pulePlatformCursorHide(platform);
   return puleCameraControllerCreate(
+    camera,
     &cameraControllerFpsUpdate,
-    static_cast<void const * const>(&controller),
-    sizeof(CameraControllerFps)
+    PuleArrayView {
+      .data = reinterpret_cast<const uint8_t *>(&controller),
+      .elementStride = sizeof(CameraControllerFps),
+      .elementCount = 1
+    }
   );
 }
-PULE_exportFn void puleCameraControllerDestroy(
+void puleCameraControllerDestroy(
   PuleCameraController const pController
 ) {
   /* auto & controller = ::cameraControllers.at(pController.id); */
@@ -387,7 +444,10 @@ PULE_exportFn void puleCameraControllerDestroy(
 void puleCameraControllerPollEvents() {
   for (auto & controller : ::cameraControllers) {
     if (controller.second.update) {
-      controller.second.update(controller.second.cameraData.data());
+      controller.second.update(
+        controller.second.camera,
+        controller.second.cameraData.data()
+      );
     }
   }
 }

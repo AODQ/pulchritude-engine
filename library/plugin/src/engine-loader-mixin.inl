@@ -1,43 +1,629 @@
-  // gfx-mesh
-  layer->gfxMeshRender = (
-    reinterpret_cast<decltype(layer->gfxMeshRender)>(
-      ::loadSymbol("puleGfxMeshRender", layerName)
+  // file
+  layer->fileOpen = (
+    reinterpret_cast<decltype(layer->fileOpen)>(
+      ::loadSymbol("puleFileOpen", layerName)
     )
   );
-  // log
-  layer->logDebugEnabled = (
-    reinterpret_cast<decltype(layer->logDebugEnabled)>(
-      ::loadSymbol("puleLogDebugEnabled", layerName)
+  layer->fileLoadContents = (
+    reinterpret_cast<decltype(layer->fileLoadContents)>(
+      ::loadSymbol("puleFileLoadContents", layerName)
     )
   );
-  layer->logErrorSegfaultsEnabled = (
-    reinterpret_cast<decltype(layer->logErrorSegfaultsEnabled)>(
-      ::loadSymbol("puleLogErrorSegfaultsEnabled", layerName)
+  layer->fileClose = (
+    reinterpret_cast<decltype(layer->fileClose)>(
+      ::loadSymbol("puleFileClose", layerName)
     )
   );
-  layer->log = (
-    reinterpret_cast<decltype(layer->log)>(
-      ::loadSymbol("puleLog", layerName)
+  layer->fileIsDone = (
+    reinterpret_cast<decltype(layer->fileIsDone)>(
+      ::loadSymbol("puleFileIsDone", layerName)
     )
   );
-  layer->logDebug = (
-    reinterpret_cast<decltype(layer->logDebug)>(
-      ::loadSymbol("puleLogDebug", layerName)
+  layer->filePath = (
+    reinterpret_cast<decltype(layer->filePath)>(
+      ::loadSymbol("puleFilePath", layerName)
     )
   );
-  layer->logError = (
-    reinterpret_cast<decltype(layer->logError)>(
-      ::loadSymbol("puleLogError", layerName)
+  layer->fileReadByte = (
+    reinterpret_cast<decltype(layer->fileReadByte)>(
+      ::loadSymbol("puleFileReadByte", layerName)
     )
   );
-  layer->logLn = (
-    reinterpret_cast<decltype(layer->logLn)>(
-      ::loadSymbol("puleLogLn", layerName)
+  layer->fileReadBytes = (
+    reinterpret_cast<decltype(layer->fileReadBytes)>(
+      ::loadSymbol("puleFileReadBytes", layerName)
     )
   );
-  layer->logRaw = (
-    reinterpret_cast<decltype(layer->logRaw)>(
-      ::loadSymbol("puleLogRaw", layerName)
+  layer->fileReadBytesWithStride = (
+    reinterpret_cast<decltype(layer->fileReadBytesWithStride)>(
+      ::loadSymbol("puleFileReadBytesWithStride", layerName)
+    )
+  );
+  layer->fileWriteBytes = (
+    reinterpret_cast<decltype(layer->fileWriteBytes)>(
+      ::loadSymbol("puleFileWriteBytes", layerName)
+    )
+  );
+  layer->fileWriteString = (
+    reinterpret_cast<decltype(layer->fileWriteString)>(
+      ::loadSymbol("puleFileWriteString", layerName)
+    )
+  );
+  layer->fileSize = (
+    reinterpret_cast<decltype(layer->fileSize)>(
+      ::loadSymbol("puleFileSize", layerName)
+    )
+  );
+  layer->fileAdvanceFromStart = (
+    reinterpret_cast<decltype(layer->fileAdvanceFromStart)>(
+      ::loadSymbol("puleFileAdvanceFromStart", layerName)
+    )
+  );
+  layer->fileAdvanceFromEnd = (
+    reinterpret_cast<decltype(layer->fileAdvanceFromEnd)>(
+      ::loadSymbol("puleFileAdvanceFromEnd", layerName)
+    )
+  );
+  layer->fileAdvanceFromCurrent = (
+    reinterpret_cast<decltype(layer->fileAdvanceFromCurrent)>(
+      ::loadSymbol("puleFileAdvanceFromCurrent", layerName)
+    )
+  );
+  layer->fileStreamRead = (
+    reinterpret_cast<decltype(layer->fileStreamRead)>(
+      ::loadSymbol("puleFileStreamRead", layerName)
+    )
+  );
+  layer->fileStreamWrite = (
+    reinterpret_cast<decltype(layer->fileStreamWrite)>(
+      ::loadSymbol("puleFileStreamWrite", layerName)
+    )
+  );
+  layer->filesystemPathExists = (
+    reinterpret_cast<decltype(layer->filesystemPathExists)>(
+      ::loadSymbol("puleFilesystemPathExists", layerName)
+    )
+  );
+  layer->fileCopy = (
+    reinterpret_cast<decltype(layer->fileCopy)>(
+      ::loadSymbol("puleFileCopy", layerName)
+    )
+  );
+  layer->fileRemove = (
+    reinterpret_cast<decltype(layer->fileRemove)>(
+      ::loadSymbol("puleFileRemove", layerName)
+    )
+  );
+  layer->fileRemoveRecursive = (
+    reinterpret_cast<decltype(layer->fileRemoveRecursive)>(
+      ::loadSymbol("puleFileRemoveRecursive", layerName)
+    )
+  );
+  layer->fileDirectoryCreate = (
+    reinterpret_cast<decltype(layer->fileDirectoryCreate)>(
+      ::loadSymbol("puleFileDirectoryCreate", layerName)
+    )
+  );
+  layer->fileDirectoryCreateRecursive = (
+    reinterpret_cast<decltype(layer->fileDirectoryCreateRecursive)>(
+      ::loadSymbol("puleFileDirectoryCreateRecursive", layerName)
+    )
+  );
+  layer->filesystemExecutablePath = (
+    reinterpret_cast<decltype(layer->filesystemExecutablePath)>(
+      ::loadSymbol("puleFilesystemExecutablePath", layerName)
+    )
+  );
+  layer->filesystemCurrentPath = (
+    reinterpret_cast<decltype(layer->filesystemCurrentPath)>(
+      ::loadSymbol("puleFilesystemCurrentPath", layerName)
+    )
+  );
+  layer->filesystemSymlinkCreate = (
+    reinterpret_cast<decltype(layer->filesystemSymlinkCreate)>(
+      ::loadSymbol("puleFilesystemSymlinkCreate", layerName)
+    )
+  );
+  layer->filesystemTimestamp = (
+    reinterpret_cast<decltype(layer->filesystemTimestamp)>(
+      ::loadSymbol("puleFilesystemTimestamp", layerName)
+    )
+  );
+  layer->fileWatch = (
+    reinterpret_cast<decltype(layer->fileWatch)>(
+      ::loadSymbol("puleFileWatch", layerName)
+    )
+  );
+  layer->fileWatchCheckAll = (
+    reinterpret_cast<decltype(layer->fileWatchCheckAll)>(
+      ::loadSymbol("puleFileWatchCheckAll", layerName)
+    )
+  );
+  // platform
+  layer->platformInitialize = (
+    reinterpret_cast<decltype(layer->platformInitialize)>(
+      ::loadSymbol("pulePlatformInitialize", layerName)
+    )
+  );
+  layer->platformShutdown = (
+    reinterpret_cast<decltype(layer->platformShutdown)>(
+      ::loadSymbol("pulePlatformShutdown", layerName)
+    )
+  );
+  layer->platformCreate = (
+    reinterpret_cast<decltype(layer->platformCreate)>(
+      ::loadSymbol("pulePlatformCreate", layerName)
+    )
+  );
+  layer->platformDestroy = (
+    reinterpret_cast<decltype(layer->platformDestroy)>(
+      ::loadSymbol("pulePlatformDestroy", layerName)
+    )
+  );
+  layer->platformShouldExit = (
+    reinterpret_cast<decltype(layer->platformShouldExit)>(
+      ::loadSymbol("pulePlatformShouldExit", layerName)
+    )
+  );
+  layer->platformGetProcessAddress = (
+    reinterpret_cast<decltype(layer->platformGetProcessAddress)>(
+      ::loadSymbol("pulePlatformGetProcessAddress", layerName)
+    )
+  );
+  layer->platformPollEvents = (
+    reinterpret_cast<decltype(layer->platformPollEvents)>(
+      ::loadSymbol("pulePlatformPollEvents", layerName)
+    )
+  );
+  layer->platformSwapFramebuffer = (
+    reinterpret_cast<decltype(layer->platformSwapFramebuffer)>(
+      ::loadSymbol("pulePlatformSwapFramebuffer", layerName)
+    )
+  );
+  layer->platformWindowSize = (
+    reinterpret_cast<decltype(layer->platformWindowSize)>(
+      ::loadSymbol("pulePlatformWindowSize", layerName)
+    )
+  );
+  layer->platformFramebufferSize = (
+    reinterpret_cast<decltype(layer->platformFramebufferSize)>(
+      ::loadSymbol("pulePlatformFramebufferSize", layerName)
+    )
+  );
+  layer->platformFramebufferResizeCallback = (
+    reinterpret_cast<decltype(layer->platformFramebufferResizeCallback)>(
+      ::loadSymbol("pulePlatformFramebufferResizeCallback", layerName)
+    )
+  );
+  layer->platformWindowResizeCallback = (
+    reinterpret_cast<decltype(layer->platformWindowResizeCallback)>(
+      ::loadSymbol("pulePlatformWindowResizeCallback", layerName)
+    )
+  );
+  layer->platformGetTime = (
+    reinterpret_cast<decltype(layer->platformGetTime)>(
+      ::loadSymbol("pulePlatformGetTime", layerName)
+    )
+  );
+  layer->platformNull = (
+    reinterpret_cast<decltype(layer->platformNull)>(
+      ::loadSymbol("pulePlatformNull", layerName)
+    )
+  );
+  layer->platformFocused = (
+    reinterpret_cast<decltype(layer->platformFocused)>(
+      ::loadSymbol("pulePlatformFocused", layerName)
+    )
+  );
+  layer->platformMouseOriginSet = (
+    reinterpret_cast<decltype(layer->platformMouseOriginSet)>(
+      ::loadSymbol("pulePlatformMouseOriginSet", layerName)
+    )
+  );
+  layer->platformMouseOrigin = (
+    reinterpret_cast<decltype(layer->platformMouseOrigin)>(
+      ::loadSymbol("pulePlatformMouseOrigin", layerName)
+    )
+  );
+  layer->platformCursorEnabled = (
+    reinterpret_cast<decltype(layer->platformCursorEnabled)>(
+      ::loadSymbol("pulePlatformCursorEnabled", layerName)
+    )
+  );
+  layer->platformCursorHide = (
+    reinterpret_cast<decltype(layer->platformCursorHide)>(
+      ::loadSymbol("pulePlatformCursorHide", layerName)
+    )
+  );
+  layer->platformCursorShow = (
+    reinterpret_cast<decltype(layer->platformCursorShow)>(
+      ::loadSymbol("pulePlatformCursorShow", layerName)
+    )
+  );
+  layer->inputKey = (
+    reinterpret_cast<decltype(layer->inputKey)>(
+      ::loadSymbol("puleInputKey", layerName)
+    )
+  );
+  layer->inputKeyModifiers = (
+    reinterpret_cast<decltype(layer->inputKeyModifiers)>(
+      ::loadSymbol("puleInputKeyModifiers", layerName)
+    )
+  );
+  layer->inputMouse = (
+    reinterpret_cast<decltype(layer->inputMouse)>(
+      ::loadSymbol("puleInputMouse", layerName)
+    )
+  );
+  layer->inputScroll = (
+    reinterpret_cast<decltype(layer->inputScroll)>(
+      ::loadSymbol("puleInputScroll", layerName)
+    )
+  );
+  layer->inputKeyCallback = (
+    reinterpret_cast<decltype(layer->inputKeyCallback)>(
+      ::loadSymbol("puleInputKeyCallback", layerName)
+    )
+  );
+  layer->inputMouseButtonCallback = (
+    reinterpret_cast<decltype(layer->inputMouseButtonCallback)>(
+      ::loadSymbol("puleInputMouseButtonCallback", layerName)
+    )
+  );
+  layer->inputRawTextCallback = (
+    reinterpret_cast<decltype(layer->inputRawTextCallback)>(
+      ::loadSymbol("puleInputRawTextCallback", layerName)
+    )
+  );
+  // camera
+  layer->cameraCreate = (
+    reinterpret_cast<decltype(layer->cameraCreate)>(
+      ::loadSymbol("puleCameraCreate", layerName)
+    )
+  );
+  layer->cameraDestroy = (
+    reinterpret_cast<decltype(layer->cameraDestroy)>(
+      ::loadSymbol("puleCameraDestroy", layerName)
+    )
+  );
+  layer->cameraSerialize = (
+    reinterpret_cast<decltype(layer->cameraSerialize)>(
+      ::loadSymbol("puleCameraSerialize", layerName)
+    )
+  );
+  layer->cameraDeserialize = (
+    reinterpret_cast<decltype(layer->cameraDeserialize)>(
+      ::loadSymbol("puleCameraDeserialize", layerName)
+    )
+  );
+  layer->cameraView = (
+    reinterpret_cast<decltype(layer->cameraView)>(
+      ::loadSymbol("puleCameraView", layerName)
+    )
+  );
+  layer->cameraProj = (
+    reinterpret_cast<decltype(layer->cameraProj)>(
+      ::loadSymbol("puleCameraProj", layerName)
+    )
+  );
+  layer->cameraLookAt = (
+    reinterpret_cast<decltype(layer->cameraLookAt)>(
+      ::loadSymbol("puleCameraLookAt", layerName)
+    )
+  );
+  layer->cameraPerspective = (
+    reinterpret_cast<decltype(layer->cameraPerspective)>(
+      ::loadSymbol("puleCameraPerspective", layerName)
+    )
+  );
+  layer->cameraPerspectiveSet = (
+    reinterpret_cast<decltype(layer->cameraPerspectiveSet)>(
+      ::loadSymbol("puleCameraPerspectiveSet", layerName)
+    )
+  );
+  layer->cameraSetCreate = (
+    reinterpret_cast<decltype(layer->cameraSetCreate)>(
+      ::loadSymbol("puleCameraSetCreate", layerName)
+    )
+  );
+  layer->cameraSetDestroy = (
+    reinterpret_cast<decltype(layer->cameraSetDestroy)>(
+      ::loadSymbol("puleCameraSetDestroy", layerName)
+    )
+  );
+  layer->cameraSetAdd = (
+    reinterpret_cast<decltype(layer->cameraSetAdd)>(
+      ::loadSymbol("puleCameraSetAdd", layerName)
+    )
+  );
+  layer->cameraSetRemove = (
+    reinterpret_cast<decltype(layer->cameraSetRemove)>(
+      ::loadSymbol("puleCameraSetRemove", layerName)
+    )
+  );
+  layer->cameraSetArray = (
+    reinterpret_cast<decltype(layer->cameraSetArray)>(
+      ::loadSymbol("puleCameraSetArray", layerName)
+    )
+  );
+  layer->cameraSetGfxUniformBuffer = (
+    reinterpret_cast<decltype(layer->cameraSetGfxUniformBuffer)>(
+      ::loadSymbol("puleCameraSetGfxUniformBuffer", layerName)
+    )
+  );
+  layer->cameraSetRefresh = (
+    reinterpret_cast<decltype(layer->cameraSetRefresh)>(
+      ::loadSymbol("puleCameraSetRefresh", layerName)
+    )
+  );
+  layer->cameraControllerFirstPerson = (
+    reinterpret_cast<decltype(layer->cameraControllerFirstPerson)>(
+      ::loadSymbol("puleCameraControllerFirstPerson", layerName)
+    )
+  );
+  layer->cameraControllerDestroy = (
+    reinterpret_cast<decltype(layer->cameraControllerDestroy)>(
+      ::loadSymbol("puleCameraControllerDestroy", layerName)
+    )
+  );
+  layer->cameraControllerPollEvents = (
+    reinterpret_cast<decltype(layer->cameraControllerPollEvents)>(
+      ::loadSymbol("puleCameraControllerPollEvents", layerName)
+    )
+  );
+  // imgui-engine
+  layer->imguiEngineDisplay = (
+    reinterpret_cast<decltype(layer->imguiEngineDisplay)>(
+      ::loadSymbol("puleImguiEngineDisplay", layerName)
+    )
+  );
+  // array
+  layer->array = (
+    reinterpret_cast<decltype(layer->array)>(
+      ::loadSymbol("puleArray", layerName)
+    )
+  );
+  layer->arrayDestroy = (
+    reinterpret_cast<decltype(layer->arrayDestroy)>(
+      ::loadSymbol("puleArrayDestroy", layerName)
+    )
+  );
+  layer->arrayAppend = (
+    reinterpret_cast<decltype(layer->arrayAppend)>(
+      ::loadSymbol("puleArrayAppend", layerName)
+    )
+  );
+  layer->arrayElementAt = (
+    reinterpret_cast<decltype(layer->arrayElementAt)>(
+      ::loadSymbol("puleArrayElementAt", layerName)
+    )
+  );
+  // error
+  layer->error = (
+    reinterpret_cast<decltype(layer->error)>(
+      ::loadSymbol("puleError", layerName)
+    )
+  );
+  layer->errorConsume = (
+    reinterpret_cast<decltype(layer->errorConsume)>(
+      ::loadSymbol("puleErrorConsume", layerName)
+    )
+  );
+  layer->errorExists = (
+    reinterpret_cast<decltype(layer->errorExists)>(
+      ::loadSymbol("puleErrorExists", layerName)
+    )
+  );
+  // gfx
+  layer->gfxPipelineDescriptorSetLayout = (
+    reinterpret_cast<decltype(layer->gfxPipelineDescriptorSetLayout)>(
+      ::loadSymbol("puleGfxPipelineDescriptorSetLayout", layerName)
+    )
+  );
+  layer->gfxPipelineCreate = (
+    reinterpret_cast<decltype(layer->gfxPipelineCreate)>(
+      ::loadSymbol("puleGfxPipelineCreate", layerName)
+    )
+  );
+  layer->gfxPipelineUpdate = (
+    reinterpret_cast<decltype(layer->gfxPipelineUpdate)>(
+      ::loadSymbol("puleGfxPipelineUpdate", layerName)
+    )
+  );
+  layer->gfxPipelineDestroy = (
+    reinterpret_cast<decltype(layer->gfxPipelineDestroy)>(
+      ::loadSymbol("puleGfxPipelineDestroy", layerName)
+    )
+  );
+  layer->gfxFenceCreate = (
+    reinterpret_cast<decltype(layer->gfxFenceCreate)>(
+      ::loadSymbol("puleGfxFenceCreate", layerName)
+    )
+  );
+  layer->gfxFenceDestroy = (
+    reinterpret_cast<decltype(layer->gfxFenceDestroy)>(
+      ::loadSymbol("puleGfxFenceDestroy", layerName)
+    )
+  );
+  layer->gfxFenceCheckSignal = (
+    reinterpret_cast<decltype(layer->gfxFenceCheckSignal)>(
+      ::loadSymbol("puleGfxFenceCheckSignal", layerName)
+    )
+  );
+  layer->gfxMemoryBarrier = (
+    reinterpret_cast<decltype(layer->gfxMemoryBarrier)>(
+      ::loadSymbol("puleGfxMemoryBarrier", layerName)
+    )
+  );
+  layer->gfxShaderModuleCreate = (
+    reinterpret_cast<decltype(layer->gfxShaderModuleCreate)>(
+      ::loadSymbol("puleGfxShaderModuleCreate", layerName)
+    )
+  );
+  layer->gfxShaderModuleDestroy = (
+    reinterpret_cast<decltype(layer->gfxShaderModuleDestroy)>(
+      ::loadSymbol("puleGfxShaderModuleDestroy", layerName)
+    )
+  );
+  layer->gfxActionToString = (
+    reinterpret_cast<decltype(layer->gfxActionToString)>(
+      ::loadSymbol("puleGfxActionToString", layerName)
+    )
+  );
+  layer->gfxCommandListCreate = (
+    reinterpret_cast<decltype(layer->gfxCommandListCreate)>(
+      ::loadSymbol("puleGfxCommandListCreate", layerName)
+    )
+  );
+  layer->gfxCommandListDestroy = (
+    reinterpret_cast<decltype(layer->gfxCommandListDestroy)>(
+      ::loadSymbol("puleGfxCommandListDestroy", layerName)
+    )
+  );
+  layer->gfxCommandListName = (
+    reinterpret_cast<decltype(layer->gfxCommandListName)>(
+      ::loadSymbol("puleGfxCommandListName", layerName)
+    )
+  );
+  layer->gfxCommandListRecorder = (
+    reinterpret_cast<decltype(layer->gfxCommandListRecorder)>(
+      ::loadSymbol("puleGfxCommandListRecorder", layerName)
+    )
+  );
+  layer->gfxCommandListRecorderFinish = (
+    reinterpret_cast<decltype(layer->gfxCommandListRecorderFinish)>(
+      ::loadSymbol("puleGfxCommandListRecorderFinish", layerName)
+    )
+  );
+  layer->gfxCommandListRecorderReset = (
+    reinterpret_cast<decltype(layer->gfxCommandListRecorderReset)>(
+      ::loadSymbol("puleGfxCommandListRecorderReset", layerName)
+    )
+  );
+  layer->gfxCommandListAppendAction = (
+    reinterpret_cast<decltype(layer->gfxCommandListAppendAction)>(
+      ::loadSymbol("puleGfxCommandListAppendAction", layerName)
+    )
+  );
+  layer->gfxCommandListSubmit = (
+    reinterpret_cast<decltype(layer->gfxCommandListSubmit)>(
+      ::loadSymbol("puleGfxCommandListSubmit", layerName)
+    )
+  );
+  layer->gfxCommandListDump = (
+    reinterpret_cast<decltype(layer->gfxCommandListDump)>(
+      ::loadSymbol("puleGfxCommandListDump", layerName)
+    )
+  );
+  layer->gfxGpuBufferCreate = (
+    reinterpret_cast<decltype(layer->gfxGpuBufferCreate)>(
+      ::loadSymbol("puleGfxGpuBufferCreate", layerName)
+    )
+  );
+  layer->gfxGpuBufferDestroy = (
+    reinterpret_cast<decltype(layer->gfxGpuBufferDestroy)>(
+      ::loadSymbol("puleGfxGpuBufferDestroy", layerName)
+    )
+  );
+  layer->gfxGpuBufferMap = (
+    reinterpret_cast<decltype(layer->gfxGpuBufferMap)>(
+      ::loadSymbol("puleGfxGpuBufferMap", layerName)
+    )
+  );
+  layer->gfxGpuBufferMappedFlush = (
+    reinterpret_cast<decltype(layer->gfxGpuBufferMappedFlush)>(
+      ::loadSymbol("puleGfxGpuBufferMappedFlush", layerName)
+    )
+  );
+  layer->gfxGpuBufferUnmap = (
+    reinterpret_cast<decltype(layer->gfxGpuBufferUnmap)>(
+      ::loadSymbol("puleGfxGpuBufferUnmap", layerName)
+    )
+  );
+  layer->gfxInitialize = (
+    reinterpret_cast<decltype(layer->gfxInitialize)>(
+      ::loadSymbol("puleGfxInitialize", layerName)
+    )
+  );
+  layer->gfxShutdown = (
+    reinterpret_cast<decltype(layer->gfxShutdown)>(
+      ::loadSymbol("puleGfxShutdown", layerName)
+    )
+  );
+  layer->gfxFrameStart = (
+    reinterpret_cast<decltype(layer->gfxFrameStart)>(
+      ::loadSymbol("puleGfxFrameStart", layerName)
+    )
+  );
+  layer->gfxFrameEnd = (
+    reinterpret_cast<decltype(layer->gfxFrameEnd)>(
+      ::loadSymbol("puleGfxFrameEnd", layerName)
+    )
+  );
+  layer->gfxDebugPrint = (
+    reinterpret_cast<decltype(layer->gfxDebugPrint)>(
+      ::loadSymbol("puleGfxDebugPrint", layerName)
+    )
+  );
+  layer->gfxSamplerCreate = (
+    reinterpret_cast<decltype(layer->gfxSamplerCreate)>(
+      ::loadSymbol("puleGfxSamplerCreate", layerName)
+    )
+  );
+  layer->gfxSamplerDestroy = (
+    reinterpret_cast<decltype(layer->gfxSamplerDestroy)>(
+      ::loadSymbol("puleGfxSamplerDestroy", layerName)
+    )
+  );
+  layer->gfxGpuImageCreate = (
+    reinterpret_cast<decltype(layer->gfxGpuImageCreate)>(
+      ::loadSymbol("puleGfxGpuImageCreate", layerName)
+    )
+  );
+  layer->gfxGpuImageDestroy = (
+    reinterpret_cast<decltype(layer->gfxGpuImageDestroy)>(
+      ::loadSymbol("puleGfxGpuImageDestroy", layerName)
+    )
+  );
+  layer->gfxFramebufferCreateInfo = (
+    reinterpret_cast<decltype(layer->gfxFramebufferCreateInfo)>(
+      ::loadSymbol("puleGfxFramebufferCreateInfo", layerName)
+    )
+  );
+  layer->gfxFramebufferCreate = (
+    reinterpret_cast<decltype(layer->gfxFramebufferCreate)>(
+      ::loadSymbol("puleGfxFramebufferCreate", layerName)
+    )
+  );
+  layer->gfxFramebufferDestroy = (
+    reinterpret_cast<decltype(layer->gfxFramebufferDestroy)>(
+      ::loadSymbol("puleGfxFramebufferDestroy", layerName)
+    )
+  );
+  layer->gfxFramebufferWindow = (
+    reinterpret_cast<decltype(layer->gfxFramebufferWindow)>(
+      ::loadSymbol("puleGfxFramebufferWindow", layerName)
+    )
+  );
+  // allocator
+  layer->allocateDefault = (
+    reinterpret_cast<decltype(layer->allocateDefault)>(
+      ::loadSymbol("puleAllocateDefault", layerName)
+    )
+  );
+  layer->allocate = (
+    reinterpret_cast<decltype(layer->allocate)>(
+      ::loadSymbol("puleAllocate", layerName)
+    )
+  );
+  layer->reallocate = (
+    reinterpret_cast<decltype(layer->reallocate)>(
+      ::loadSymbol("puleReallocate", layerName)
+    )
+  );
+  layer->deallocate = (
+    reinterpret_cast<decltype(layer->deallocate)>(
+      ::loadSymbol("puleDeallocate", layerName)
     )
   );
   // math
@@ -181,146 +767,665 @@
       ::loadSymbol("puleViewLookAt", layerName)
     )
   );
-  // platform
-  layer->platformInitialize = (
-    reinterpret_cast<decltype(layer->platformInitialize)>(
-      ::loadSymbol("pulePlatformInitialize", layerName)
+  // log
+  layer->logDebugEnabled = (
+    reinterpret_cast<decltype(layer->logDebugEnabled)>(
+      ::loadSymbol("puleLogDebugEnabled", layerName)
     )
   );
-  layer->platformShutdown = (
-    reinterpret_cast<decltype(layer->platformShutdown)>(
-      ::loadSymbol("pulePlatformShutdown", layerName)
+  layer->logErrorSegfaultsEnabled = (
+    reinterpret_cast<decltype(layer->logErrorSegfaultsEnabled)>(
+      ::loadSymbol("puleLogErrorSegfaultsEnabled", layerName)
     )
   );
-  layer->platformCreate = (
-    reinterpret_cast<decltype(layer->platformCreate)>(
-      ::loadSymbol("pulePlatformCreate", layerName)
+  layer->log = (
+    reinterpret_cast<decltype(layer->log)>(
+      ::loadSymbol("puleLog", layerName)
     )
   );
-  layer->platformDestroy = (
-    reinterpret_cast<decltype(layer->platformDestroy)>(
-      ::loadSymbol("pulePlatformDestroy", layerName)
+  layer->logDebug = (
+    reinterpret_cast<decltype(layer->logDebug)>(
+      ::loadSymbol("puleLogDebug", layerName)
     )
   );
-  layer->platformShouldExit = (
-    reinterpret_cast<decltype(layer->platformShouldExit)>(
-      ::loadSymbol("pulePlatformShouldExit", layerName)
+  layer->logError = (
+    reinterpret_cast<decltype(layer->logError)>(
+      ::loadSymbol("puleLogError", layerName)
     )
   );
-  layer->platformGetProcessAddress = (
-    reinterpret_cast<decltype(layer->platformGetProcessAddress)>(
-      ::loadSymbol("pulePlatformGetProcessAddress", layerName)
+  layer->logLn = (
+    reinterpret_cast<decltype(layer->logLn)>(
+      ::loadSymbol("puleLogLn", layerName)
     )
   );
-  layer->platformPollEvents = (
-    reinterpret_cast<decltype(layer->platformPollEvents)>(
-      ::loadSymbol("pulePlatformPollEvents", layerName)
+  layer->logRaw = (
+    reinterpret_cast<decltype(layer->logRaw)>(
+      ::loadSymbol("puleLogRaw", layerName)
     )
   );
-  layer->platformSwapFramebuffer = (
-    reinterpret_cast<decltype(layer->platformSwapFramebuffer)>(
-      ::loadSymbol("pulePlatformSwapFramebuffer", layerName)
+  // stream
+  layer->streamReadByte = (
+    reinterpret_cast<decltype(layer->streamReadByte)>(
+      ::loadSymbol("puleStreamReadByte", layerName)
     )
   );
-  layer->platformWindowSize = (
-    reinterpret_cast<decltype(layer->platformWindowSize)>(
-      ::loadSymbol("pulePlatformWindowSize", layerName)
+  layer->streamPeekByte = (
+    reinterpret_cast<decltype(layer->streamPeekByte)>(
+      ::loadSymbol("puleStreamPeekByte", layerName)
     )
   );
-  layer->platformFramebufferSize = (
-    reinterpret_cast<decltype(layer->platformFramebufferSize)>(
-      ::loadSymbol("pulePlatformFramebufferSize", layerName)
+  layer->streamReadIsDone = (
+    reinterpret_cast<decltype(layer->streamReadIsDone)>(
+      ::loadSymbol("puleStreamReadIsDone", layerName)
     )
   );
-  layer->platformFramebufferResizeCallback = (
-    reinterpret_cast<decltype(layer->platformFramebufferResizeCallback)>(
-      ::loadSymbol("pulePlatformFramebufferResizeCallback", layerName)
+  layer->streamReadDestroy = (
+    reinterpret_cast<decltype(layer->streamReadDestroy)>(
+      ::loadSymbol("puleStreamReadDestroy", layerName)
     )
   );
-  layer->platformWindowResizeCallback = (
-    reinterpret_cast<decltype(layer->platformWindowResizeCallback)>(
-      ::loadSymbol("pulePlatformWindowResizeCallback", layerName)
+  layer->streamReadFromString = (
+    reinterpret_cast<decltype(layer->streamReadFromString)>(
+      ::loadSymbol("puleStreamReadFromString", layerName)
     )
   );
-  layer->platformGetTime = (
-    reinterpret_cast<decltype(layer->platformGetTime)>(
-      ::loadSymbol("pulePlatformGetTime", layerName)
+  layer->streamWriteBytes = (
+    reinterpret_cast<decltype(layer->streamWriteBytes)>(
+      ::loadSymbol("puleStreamWriteBytes", layerName)
     )
   );
-  layer->platformNull = (
-    reinterpret_cast<decltype(layer->platformNull)>(
-      ::loadSymbol("pulePlatformNull", layerName)
+  layer->streamWriteFlush = (
+    reinterpret_cast<decltype(layer->streamWriteFlush)>(
+      ::loadSymbol("puleStreamWriteFlush", layerName)
     )
   );
-  layer->platformFocused = (
-    reinterpret_cast<decltype(layer->platformFocused)>(
-      ::loadSymbol("pulePlatformFocused", layerName)
+  layer->streamWriteDestroy = (
+    reinterpret_cast<decltype(layer->streamWriteDestroy)>(
+      ::loadSymbol("puleStreamWriteDestroy", layerName)
     )
   );
-  layer->platformMouseOriginSet = (
-    reinterpret_cast<decltype(layer->platformMouseOriginSet)>(
-      ::loadSymbol("pulePlatformMouseOriginSet", layerName)
+  layer->streamStdoutWrite = (
+    reinterpret_cast<decltype(layer->streamStdoutWrite)>(
+      ::loadSymbol("puleStreamStdoutWrite", layerName)
     )
   );
-  layer->platformMouseOrigin = (
-    reinterpret_cast<decltype(layer->platformMouseOrigin)>(
-      ::loadSymbol("pulePlatformMouseOrigin", layerName)
+  // string
+  layer->stringDefault = (
+    reinterpret_cast<decltype(layer->stringDefault)>(
+      ::loadSymbol("puleStringDefault", layerName)
     )
   );
-  layer->platformCursorEnabled = (
-    reinterpret_cast<decltype(layer->platformCursorEnabled)>(
-      ::loadSymbol("pulePlatformCursorEnabled", layerName)
+  layer->string = (
+    reinterpret_cast<decltype(layer->string)>(
+      ::loadSymbol("puleString", layerName)
     )
   );
-  layer->platformCursorHide = (
-    reinterpret_cast<decltype(layer->platformCursorHide)>(
-      ::loadSymbol("pulePlatformCursorHide", layerName)
+  layer->stringDestroy = (
+    reinterpret_cast<decltype(layer->stringDestroy)>(
+      ::loadSymbol("puleStringDestroy", layerName)
     )
   );
-  layer->platformCursorShow = (
-    reinterpret_cast<decltype(layer->platformCursorShow)>(
-      ::loadSymbol("pulePlatformCursorShow", layerName)
+  layer->stringAppend = (
+    reinterpret_cast<decltype(layer->stringAppend)>(
+      ::loadSymbol("puleStringAppend", layerName)
     )
   );
-  layer->inputKey = (
-    reinterpret_cast<decltype(layer->inputKey)>(
-      ::loadSymbol("puleInputKey", layerName)
+  layer->stringFormat = (
+    reinterpret_cast<decltype(layer->stringFormat)>(
+      ::loadSymbol("puleStringFormat", layerName)
     )
   );
-  layer->inputKeyModifiers = (
-    reinterpret_cast<decltype(layer->inputKeyModifiers)>(
-      ::loadSymbol("puleInputKeyModifiers", layerName)
+  layer->stringFormatDefault = (
+    reinterpret_cast<decltype(layer->stringFormatDefault)>(
+      ::loadSymbol("puleStringFormatDefault", layerName)
     )
   );
-  layer->inputMouse = (
-    reinterpret_cast<decltype(layer->inputMouse)>(
-      ::loadSymbol("puleInputMouse", layerName)
+  layer->stringView = (
+    reinterpret_cast<decltype(layer->stringView)>(
+      ::loadSymbol("puleStringView", layerName)
     )
   );
-  layer->inputScroll = (
-    reinterpret_cast<decltype(layer->inputScroll)>(
-      ::loadSymbol("puleInputScroll", layerName)
+  layer->cStr = (
+    reinterpret_cast<decltype(layer->cStr)>(
+      ::loadSymbol("puleCStr", layerName)
     )
   );
-  layer->inputKeyCallback = (
-    reinterpret_cast<decltype(layer->inputKeyCallback)>(
-      ::loadSymbol("puleInputKeyCallback", layerName)
+  layer->stringViewEq = (
+    reinterpret_cast<decltype(layer->stringViewEq)>(
+      ::loadSymbol("puleStringViewEq", layerName)
     )
   );
-  layer->inputMouseButtonCallback = (
-    reinterpret_cast<decltype(layer->inputMouseButtonCallback)>(
-      ::loadSymbol("puleInputMouseButtonCallback", layerName)
+  layer->stringViewContains = (
+    reinterpret_cast<decltype(layer->stringViewContains)>(
+      ::loadSymbol("puleStringViewContains", layerName)
     )
   );
-  layer->inputRawTextCallback = (
-    reinterpret_cast<decltype(layer->inputRawTextCallback)>(
-      ::loadSymbol("puleInputRawTextCallback", layerName)
+  layer->stringViewEqCStr = (
+    reinterpret_cast<decltype(layer->stringViewEqCStr)>(
+      ::loadSymbol("puleStringViewEqCStr", layerName)
+    )
+  );
+  layer->stringViewHash = (
+    reinterpret_cast<decltype(layer->stringViewHash)>(
+      ::loadSymbol("puleStringViewHash", layerName)
+    )
+  );
+  // asset-tiled
+  layer->assetTiledMapInfo = (
+    reinterpret_cast<decltype(layer->assetTiledMapInfo)>(
+      ::loadSymbol("puleAssetTiledMapInfo", layerName)
+    )
+  );
+  layer->assetTiledMapLoadFromStream = (
+    reinterpret_cast<decltype(layer->assetTiledMapLoadFromStream)>(
+      ::loadSymbol("puleAssetTiledMapLoadFromStream", layerName)
+    )
+  );
+  layer->assetTiledMapLoadFromFile = (
+    reinterpret_cast<decltype(layer->assetTiledMapLoadFromFile)>(
+      ::loadSymbol("puleAssetTiledMapLoadFromFile", layerName)
+    )
+  );
+  layer->assetTiledMapDestroy = (
+    reinterpret_cast<decltype(layer->assetTiledMapDestroy)>(
+      ::loadSymbol("puleAssetTiledMapDestroy", layerName)
+    )
+  );
+  // asset-font
+  layer->assetFontLoad = (
+    reinterpret_cast<decltype(layer->assetFontLoad)>(
+      ::loadSymbol("puleAssetFontLoad", layerName)
+    )
+  );
+  layer->assetFontDestroy = (
+    reinterpret_cast<decltype(layer->assetFontDestroy)>(
+      ::loadSymbol("puleAssetFontDestroy", layerName)
+    )
+  );
+  layer->assetFontRenderToU8Buffer = (
+    reinterpret_cast<decltype(layer->assetFontRenderToU8Buffer)>(
+      ::loadSymbol("puleAssetFontRenderToU8Buffer", layerName)
+    )
+  );
+  // asset-model
+  layer->assetModelDestroy = (
+    reinterpret_cast<decltype(layer->assetModelDestroy)>(
+      ::loadSymbol("puleAssetModelDestroy", layerName)
+    )
+  );
+  layer->assetMeshComponentDataTypeByteLength = (
+    reinterpret_cast<decltype(layer->assetMeshComponentDataTypeByteLength)>(
+      ::loadSymbol("puleAssetMeshComponentDataTypeByteLength", layerName)
+    )
+  );
+  layer->assetModelLoadFromStream = (
+    reinterpret_cast<decltype(layer->assetModelLoadFromStream)>(
+      ::loadSymbol("puleAssetModelLoadFromStream", layerName)
+    )
+  );
+  // asset-render-task-graph
+  layer->assetRenderTaskGraphFromPds = (
+    reinterpret_cast<decltype(layer->assetRenderTaskGraphFromPds)>(
+      ::loadSymbol("puleAssetRenderTaskGraphFromPds", layerName)
+    )
+  );
+  layer->assetRenderTaskGraphToPds = (
+    reinterpret_cast<decltype(layer->assetRenderTaskGraphToPds)>(
+      ::loadSymbol("puleAssetRenderTaskGraphToPds", layerName)
+    )
+  );
+  // asset-shader-module
+  layer->assetShaderModuleCreateFromPaths = (
+    reinterpret_cast<decltype(layer->assetShaderModuleCreateFromPaths)>(
+      ::loadSymbol("puleAssetShaderModuleCreateFromPaths", layerName)
+    )
+  );
+  layer->assetShaderModuleDestroy = (
+    reinterpret_cast<decltype(layer->assetShaderModuleDestroy)>(
+      ::loadSymbol("puleAssetShaderModuleDestroy", layerName)
+    )
+  );
+  layer->assetShaderModuleLabel = (
+    reinterpret_cast<decltype(layer->assetShaderModuleLabel)>(
+      ::loadSymbol("puleAssetShaderModuleLabel", layerName)
+    )
+  );
+  layer->assetShaderModuleGfxHandle = (
+    reinterpret_cast<decltype(layer->assetShaderModuleGfxHandle)>(
+      ::loadSymbol("puleAssetShaderModuleGfxHandle", layerName)
+    )
+  );
+  // asset-pds
+  layer->assetPdsLoadFromStream = (
+    reinterpret_cast<decltype(layer->assetPdsLoadFromStream)>(
+      ::loadSymbol("puleAssetPdsLoadFromStream", layerName)
+    )
+  );
+  layer->assetPdsLoadFromRvalStream = (
+    reinterpret_cast<decltype(layer->assetPdsLoadFromRvalStream)>(
+      ::loadSymbol("puleAssetPdsLoadFromRvalStream", layerName)
+    )
+  );
+  layer->assetPdsLoadFromFile = (
+    reinterpret_cast<decltype(layer->assetPdsLoadFromFile)>(
+      ::loadSymbol("puleAssetPdsLoadFromFile", layerName)
+    )
+  );
+  layer->assetPdsWriteToStream = (
+    reinterpret_cast<decltype(layer->assetPdsWriteToStream)>(
+      ::loadSymbol("puleAssetPdsWriteToStream", layerName)
+    )
+  );
+  layer->assetPdsWriteToFile = (
+    reinterpret_cast<decltype(layer->assetPdsWriteToFile)>(
+      ::loadSymbol("puleAssetPdsWriteToFile", layerName)
+    )
+  );
+  layer->assetPdsWriteToStdout = (
+    reinterpret_cast<decltype(layer->assetPdsWriteToStdout)>(
+      ::loadSymbol("puleAssetPdsWriteToStdout", layerName)
+    )
+  );
+  layer->assetPdsLoadFromCommandLineArguments = (
+    reinterpret_cast<decltype(layer->assetPdsLoadFromCommandLineArguments)>(
+      ::loadSymbol("puleAssetPdsLoadFromCommandLineArguments", layerName)
+    )
+  );
+  // asset-image
+  layer->assetImageExtensionSupported = (
+    reinterpret_cast<decltype(layer->assetImageExtensionSupported)>(
+      ::loadSymbol("puleAssetImageExtensionSupported", layerName)
+    )
+  );
+  layer->assetImageLoadFromStream = (
+    reinterpret_cast<decltype(layer->assetImageLoadFromStream)>(
+      ::loadSymbol("puleAssetImageLoadFromStream", layerName)
+    )
+  );
+  layer->assetImageDestroy = (
+    reinterpret_cast<decltype(layer->assetImageDestroy)>(
+      ::loadSymbol("puleAssetImageDestroy", layerName)
+    )
+  );
+  layer->assetImageDecodedData = (
+    reinterpret_cast<decltype(layer->assetImageDecodedData)>(
+      ::loadSymbol("puleAssetImageDecodedData", layerName)
+    )
+  );
+  layer->assetImageDecodedDataLength = (
+    reinterpret_cast<decltype(layer->assetImageDecodedDataLength)>(
+      ::loadSymbol("puleAssetImageDecodedDataLength", layerName)
+    )
+  );
+  layer->assetImageWidth = (
+    reinterpret_cast<decltype(layer->assetImageWidth)>(
+      ::loadSymbol("puleAssetImageWidth", layerName)
+    )
+  );
+  layer->assetImageHeight = (
+    reinterpret_cast<decltype(layer->assetImageHeight)>(
+      ::loadSymbol("puleAssetImageHeight", layerName)
     )
   );
   // raycast
   layer->raycastTriangles = (
     reinterpret_cast<decltype(layer->raycastTriangles)>(
       ::loadSymbol("puleRaycastTriangles", layerName)
+    )
+  );
+  // tui
+  layer->tuiInitialize = (
+    reinterpret_cast<decltype(layer->tuiInitialize)>(
+      ::loadSymbol("puleTuiInitialize", layerName)
+    )
+  );
+  layer->tuiDestroy = (
+    reinterpret_cast<decltype(layer->tuiDestroy)>(
+      ::loadSymbol("puleTuiDestroy", layerName)
+    )
+  );
+  layer->tuiClear = (
+    reinterpret_cast<decltype(layer->tuiClear)>(
+      ::loadSymbol("puleTuiClear", layerName)
+    )
+  );
+  layer->tuiRefresh = (
+    reinterpret_cast<decltype(layer->tuiRefresh)>(
+      ::loadSymbol("puleTuiRefresh", layerName)
+    )
+  );
+  layer->tuiRenderString = (
+    reinterpret_cast<decltype(layer->tuiRenderString)>(
+      ::loadSymbol("puleTuiRenderString", layerName)
+    )
+  );
+  layer->tuiReadInputCharacterBlocking = (
+    reinterpret_cast<decltype(layer->tuiReadInputCharacterBlocking)>(
+      ::loadSymbol("puleTuiReadInputCharacterBlocking", layerName)
+    )
+  );
+  layer->tuiMoveCursor = (
+    reinterpret_cast<decltype(layer->tuiMoveCursor)>(
+      ::loadSymbol("puleTuiMoveCursor", layerName)
+    )
+  );
+  layer->tuiWindowDim = (
+    reinterpret_cast<decltype(layer->tuiWindowDim)>(
+      ::loadSymbol("puleTuiWindowDim", layerName)
+    )
+  );
+  // ecs
+  layer->ecsWorldCreate = (
+    reinterpret_cast<decltype(layer->ecsWorldCreate)>(
+      ::loadSymbol("puleEcsWorldCreate", layerName)
+    )
+  );
+  layer->ecsWorldDestroy = (
+    reinterpret_cast<decltype(layer->ecsWorldDestroy)>(
+      ::loadSymbol("puleEcsWorldDestroy", layerName)
+    )
+  );
+  layer->ecsWorldAdvance = (
+    reinterpret_cast<decltype(layer->ecsWorldAdvance)>(
+      ::loadSymbol("puleEcsWorldAdvance", layerName)
+    )
+  );
+  layer->ecsComponentCreate = (
+    reinterpret_cast<decltype(layer->ecsComponentCreate)>(
+      ::loadSymbol("puleEcsComponentCreate", layerName)
+    )
+  );
+  layer->ecsEntityIterateComponents = (
+    reinterpret_cast<decltype(layer->ecsEntityIterateComponents)>(
+      ::loadSymbol("puleEcsEntityIterateComponents", layerName)
+    )
+  );
+  layer->ecsComponentFetchByLabel = (
+    reinterpret_cast<decltype(layer->ecsComponentFetchByLabel)>(
+      ::loadSymbol("puleEcsComponentFetchByLabel", layerName)
+    )
+  );
+  layer->ecsComponentLabel = (
+    reinterpret_cast<decltype(layer->ecsComponentLabel)>(
+      ::loadSymbol("puleEcsComponentLabel", layerName)
+    )
+  );
+  layer->ecsComponentSerializer = (
+    reinterpret_cast<decltype(layer->ecsComponentSerializer)>(
+      ::loadSymbol("puleEcsComponentSerializer", layerName)
+    )
+  );
+  layer->ecsComponentInfo = (
+    reinterpret_cast<decltype(layer->ecsComponentInfo)>(
+      ::loadSymbol("puleEcsComponentInfo", layerName)
+    )
+  );
+  layer->ecsComponentIterateAll = (
+    reinterpret_cast<decltype(layer->ecsComponentIterateAll)>(
+      ::loadSymbol("puleEcsComponentIterateAll", layerName)
+    )
+  );
+  layer->ecsIteratorEntityCount = (
+    reinterpret_cast<decltype(layer->ecsIteratorEntityCount)>(
+      ::loadSymbol("puleEcsIteratorEntityCount", layerName)
+    )
+  );
+  layer->ecsIteratorRelativeOffset = (
+    reinterpret_cast<decltype(layer->ecsIteratorRelativeOffset)>(
+      ::loadSymbol("puleEcsIteratorRelativeOffset", layerName)
+    )
+  );
+  layer->ecsIteratorQueryComponents = (
+    reinterpret_cast<decltype(layer->ecsIteratorQueryComponents)>(
+      ::loadSymbol("puleEcsIteratorQueryComponents", layerName)
+    )
+  );
+  layer->ecsIteratorQueryEntities = (
+    reinterpret_cast<decltype(layer->ecsIteratorQueryEntities)>(
+      ::loadSymbol("puleEcsIteratorQueryEntities", layerName)
+    )
+  );
+  layer->ecsIteratorWorld = (
+    reinterpret_cast<decltype(layer->ecsIteratorWorld)>(
+      ::loadSymbol("puleEcsIteratorWorld", layerName)
+    )
+  );
+  layer->ecsIteratorSystem = (
+    reinterpret_cast<decltype(layer->ecsIteratorSystem)>(
+      ::loadSymbol("puleEcsIteratorSystem", layerName)
+    )
+  );
+  layer->ecsIteratorUserData = (
+    reinterpret_cast<decltype(layer->ecsIteratorUserData)>(
+      ::loadSymbol("puleEcsIteratorUserData", layerName)
+    )
+  );
+  layer->ecsSystemCreate = (
+    reinterpret_cast<decltype(layer->ecsSystemCreate)>(
+      ::loadSymbol("puleEcsSystemCreate", layerName)
+    )
+  );
+  layer->ecsSystemAdvance = (
+    reinterpret_cast<decltype(layer->ecsSystemAdvance)>(
+      ::loadSymbol("puleEcsSystemAdvance", layerName)
+    )
+  );
+  layer->ecsEntityCreate = (
+    reinterpret_cast<decltype(layer->ecsEntityCreate)>(
+      ::loadSymbol("puleEcsEntityCreate", layerName)
+    )
+  );
+  layer->ecsEntityName = (
+    reinterpret_cast<decltype(layer->ecsEntityName)>(
+      ::loadSymbol("puleEcsEntityName", layerName)
+    )
+  );
+  layer->ecsEntityDestroy = (
+    reinterpret_cast<decltype(layer->ecsEntityDestroy)>(
+      ::loadSymbol("puleEcsEntityDestroy", layerName)
+    )
+  );
+  layer->ecsEntityAttachComponent = (
+    reinterpret_cast<decltype(layer->ecsEntityAttachComponent)>(
+      ::loadSymbol("puleEcsEntityAttachComponent", layerName)
+    )
+  );
+  layer->ecsEntityComponentData = (
+    reinterpret_cast<decltype(layer->ecsEntityComponentData)>(
+      ::loadSymbol("puleEcsEntityComponentData", layerName)
+    )
+  );
+  layer->ecsQueryByComponent = (
+    reinterpret_cast<decltype(layer->ecsQueryByComponent)>(
+      ::loadSymbol("puleEcsQueryByComponent", layerName)
+    )
+  );
+  layer->ecsQueryAllEntities = (
+    reinterpret_cast<decltype(layer->ecsQueryAllEntities)>(
+      ::loadSymbol("puleEcsQueryAllEntities", layerName)
+    )
+  );
+  layer->ecsQueryDestroy = (
+    reinterpret_cast<decltype(layer->ecsQueryDestroy)>(
+      ::loadSymbol("puleEcsQueryDestroy", layerName)
+    )
+  );
+  layer->ecsQueryIterator = (
+    reinterpret_cast<decltype(layer->ecsQueryIterator)>(
+      ::loadSymbol("puleEcsQueryIterator", layerName)
+    )
+  );
+  layer->ecsQueryIteratorNext = (
+    reinterpret_cast<decltype(layer->ecsQueryIteratorNext)>(
+      ::loadSymbol("puleEcsQueryIteratorNext", layerName)
+    )
+  );
+  layer->ecsQueryIteratorDestroy = (
+    reinterpret_cast<decltype(layer->ecsQueryIteratorDestroy)>(
+      ::loadSymbol("puleEcsQueryIteratorDestroy", layerName)
+    )
+  );
+  // script
+  layer->scriptContextCreate = (
+    reinterpret_cast<decltype(layer->scriptContextCreate)>(
+      ::loadSymbol("puleScriptContextCreate", layerName)
+    )
+  );
+  layer->scriptContextDestroy = (
+    reinterpret_cast<decltype(layer->scriptContextDestroy)>(
+      ::loadSymbol("puleScriptContextDestroy", layerName)
+    )
+  );
+  layer->scriptModuleCreateFromSource = (
+    reinterpret_cast<decltype(layer->scriptModuleCreateFromSource)>(
+      ::loadSymbol("puleScriptModuleCreateFromSource", layerName)
+    )
+  );
+  layer->scriptModuleUpdateFromSource = (
+    reinterpret_cast<decltype(layer->scriptModuleUpdateFromSource)>(
+      ::loadSymbol("puleScriptModuleUpdateFromSource", layerName)
+    )
+  );
+  layer->scriptModuleCreateFromBinary = (
+    reinterpret_cast<decltype(layer->scriptModuleCreateFromBinary)>(
+      ::loadSymbol("puleScriptModuleCreateFromBinary", layerName)
+    )
+  );
+  layer->scriptModuleDestroy = (
+    reinterpret_cast<decltype(layer->scriptModuleDestroy)>(
+      ::loadSymbol("puleScriptModuleDestroy", layerName)
+    )
+  );
+  layer->scriptModuleExecute = (
+    reinterpret_cast<decltype(layer->scriptModuleExecute)>(
+      ::loadSymbol("puleScriptModuleExecute", layerName)
+    )
+  );
+  layer->scriptGlobal = (
+    reinterpret_cast<decltype(layer->scriptGlobal)>(
+      ::loadSymbol("puleScriptGlobal", layerName)
+    )
+  );
+  layer->scriptGlobalSet = (
+    reinterpret_cast<decltype(layer->scriptGlobalSet)>(
+      ::loadSymbol("puleScriptGlobalSet", layerName)
+    )
+  );
+  layer->scriptArrayF32Create = (
+    reinterpret_cast<decltype(layer->scriptArrayF32Create)>(
+      ::loadSymbol("puleScriptArrayF32Create", layerName)
+    )
+  );
+  layer->scriptArrayF32Destroy = (
+    reinterpret_cast<decltype(layer->scriptArrayF32Destroy)>(
+      ::loadSymbol("puleScriptArrayF32Destroy", layerName)
+    )
+  );
+  layer->scriptArrayF32Ptr = (
+    reinterpret_cast<decltype(layer->scriptArrayF32Ptr)>(
+      ::loadSymbol("puleScriptArrayF32Ptr", layerName)
+    )
+  );
+  layer->scriptArrayF32Append = (
+    reinterpret_cast<decltype(layer->scriptArrayF32Append)>(
+      ::loadSymbol("puleScriptArrayF32Append", layerName)
+    )
+  );
+  layer->scriptArrayF32Remove = (
+    reinterpret_cast<decltype(layer->scriptArrayF32Remove)>(
+      ::loadSymbol("puleScriptArrayF32Remove", layerName)
+    )
+  );
+  layer->scriptArrayF32At = (
+    reinterpret_cast<decltype(layer->scriptArrayF32At)>(
+      ::loadSymbol("puleScriptArrayF32At", layerName)
+    )
+  );
+  layer->scriptArrayF32Length = (
+    reinterpret_cast<decltype(layer->scriptArrayF32Length)>(
+      ::loadSymbol("puleScriptArrayF32Length", layerName)
+    )
+  );
+  layer->scriptArrayF32ElementByteSize = (
+    reinterpret_cast<decltype(layer->scriptArrayF32ElementByteSize)>(
+      ::loadSymbol("puleScriptArrayF32ElementByteSize", layerName)
+    )
+  );
+  layer->scriptModuleFileWatch = (
+    reinterpret_cast<decltype(layer->scriptModuleFileWatch)>(
+      ::loadSymbol("puleScriptModuleFileWatch", layerName)
+    )
+  );
+  // time
+  layer->microsecond = (
+    reinterpret_cast<decltype(layer->microsecond)>(
+      ::loadSymbol("puleMicrosecond", layerName)
+    )
+  );
+  layer->sleepMicrosecond = (
+    reinterpret_cast<decltype(layer->sleepMicrosecond)>(
+      ::loadSymbol("puleSleepMicrosecond", layerName)
+    )
+  );
+  // plugin
+  layer->pluginPayloadFetch = (
+    reinterpret_cast<decltype(layer->pluginPayloadFetch)>(
+      ::loadSymbol("pulePluginPayloadFetch", layerName)
+    )
+  );
+  layer->pluginPayloadFetchU64 = (
+    reinterpret_cast<decltype(layer->pluginPayloadFetchU64)>(
+      ::loadSymbol("pulePluginPayloadFetchU64", layerName)
+    )
+  );
+  layer->pluginPayloadStore = (
+    reinterpret_cast<decltype(layer->pluginPayloadStore)>(
+      ::loadSymbol("pulePluginPayloadStore", layerName)
+    )
+  );
+  layer->pluginPayloadStoreU64 = (
+    reinterpret_cast<decltype(layer->pluginPayloadStoreU64)>(
+      ::loadSymbol("pulePluginPayloadStoreU64", layerName)
+    )
+  );
+  layer->pluginPayloadRemove = (
+    reinterpret_cast<decltype(layer->pluginPayloadRemove)>(
+      ::loadSymbol("pulePluginPayloadRemove", layerName)
+    )
+  );
+  layer->pluginsLoad = (
+    reinterpret_cast<decltype(layer->pluginsLoad)>(
+      ::loadSymbol("pulePluginsLoad", layerName)
+    )
+  );
+  layer->pluginsFree = (
+    reinterpret_cast<decltype(layer->pluginsFree)>(
+      ::loadSymbol("pulePluginsFree", layerName)
+    )
+  );
+  layer->pluginsReload = (
+    reinterpret_cast<decltype(layer->pluginsReload)>(
+      ::loadSymbol("pulePluginsReload", layerName)
+    )
+  );
+  layer->pluginIdFromName = (
+    reinterpret_cast<decltype(layer->pluginIdFromName)>(
+      ::loadSymbol("pulePluginIdFromName", layerName)
+    )
+  );
+  layer->pluginLoadFn = (
+    reinterpret_cast<decltype(layer->pluginLoadFn)>(
+      ::loadSymbol("pulePluginLoadFn", layerName)
+    )
+  );
+  layer->tryPluginLoadFn = (
+    reinterpret_cast<decltype(layer->tryPluginLoadFn)>(
+      ::loadSymbol("puleTryPluginLoadFn", layerName)
+    )
+  );
+  layer->iteratePlugins = (
+    reinterpret_cast<decltype(layer->iteratePlugins)>(
+      ::loadSymbol("puleIteratePlugins", layerName)
     )
   );
   // data-serializer
@@ -574,207 +1679,45 @@
       ::loadSymbol("puleDsMemberAsBuffer", layerName)
     )
   );
-  // tui
-  layer->tuiInitialize = (
-    reinterpret_cast<decltype(layer->tuiInitialize)>(
-      ::loadSymbol("puleTuiInitialize", layerName)
+  // gfx-debug
+  layer->gfxDebugInitialize = (
+    reinterpret_cast<decltype(layer->gfxDebugInitialize)>(
+      ::loadSymbol("puleGfxDebugInitialize", layerName)
     )
   );
-  layer->tuiDestroy = (
-    reinterpret_cast<decltype(layer->tuiDestroy)>(
-      ::loadSymbol("puleTuiDestroy", layerName)
+  layer->gfxDebugShutdown = (
+    reinterpret_cast<decltype(layer->gfxDebugShutdown)>(
+      ::loadSymbol("puleGfxDebugShutdown", layerName)
     )
   );
-  layer->tuiClear = (
-    reinterpret_cast<decltype(layer->tuiClear)>(
-      ::loadSymbol("puleTuiClear", layerName)
+  layer->gfxDebugRenderLine = (
+    reinterpret_cast<decltype(layer->gfxDebugRenderLine)>(
+      ::loadSymbol("puleGfxDebugRenderLine", layerName)
     )
   );
-  layer->tuiRefresh = (
-    reinterpret_cast<decltype(layer->tuiRefresh)>(
-      ::loadSymbol("puleTuiRefresh", layerName)
+  layer->gfxDebugRenderRectOutline = (
+    reinterpret_cast<decltype(layer->gfxDebugRenderRectOutline)>(
+      ::loadSymbol("puleGfxDebugRenderRectOutline", layerName)
     )
   );
-  layer->tuiRenderString = (
-    reinterpret_cast<decltype(layer->tuiRenderString)>(
-      ::loadSymbol("puleTuiRenderString", layerName)
+  layer->gfxDebugRenderCircle = (
+    reinterpret_cast<decltype(layer->gfxDebugRenderCircle)>(
+      ::loadSymbol("puleGfxDebugRenderCircle", layerName)
     )
   );
-  layer->tuiReadInputCharacterBlocking = (
-    reinterpret_cast<decltype(layer->tuiReadInputCharacterBlocking)>(
-      ::loadSymbol("puleTuiReadInputCharacterBlocking", layerName)
+  layer->gfxDebugRenderPoint = (
+    reinterpret_cast<decltype(layer->gfxDebugRenderPoint)>(
+      ::loadSymbol("puleGfxDebugRenderPoint", layerName)
     )
   );
-  layer->tuiMoveCursor = (
-    reinterpret_cast<decltype(layer->tuiMoveCursor)>(
-      ::loadSymbol("puleTuiMoveCursor", layerName)
+  layer->gfxDebugFrameStart = (
+    reinterpret_cast<decltype(layer->gfxDebugFrameStart)>(
+      ::loadSymbol("puleGfxDebugFrameStart", layerName)
     )
   );
-  layer->tuiWindowDim = (
-    reinterpret_cast<decltype(layer->tuiWindowDim)>(
-      ::loadSymbol("puleTuiWindowDim", layerName)
-    )
-  );
-  // ecs-serializer
-  layer->ecsSerializeWorld = (
-    reinterpret_cast<decltype(layer->ecsSerializeWorld)>(
-      ::loadSymbol("puleEcsSerializeWorld", layerName)
-    )
-  );
-  layer->ecsDeserializeWorld = (
-    reinterpret_cast<decltype(layer->ecsDeserializeWorld)>(
-      ::loadSymbol("puleEcsDeserializeWorld", layerName)
-    )
-  );
-  // ecs
-  layer->ecsWorldCreate = (
-    reinterpret_cast<decltype(layer->ecsWorldCreate)>(
-      ::loadSymbol("puleEcsWorldCreate", layerName)
-    )
-  );
-  layer->ecsWorldDestroy = (
-    reinterpret_cast<decltype(layer->ecsWorldDestroy)>(
-      ::loadSymbol("puleEcsWorldDestroy", layerName)
-    )
-  );
-  layer->ecsWorldAdvance = (
-    reinterpret_cast<decltype(layer->ecsWorldAdvance)>(
-      ::loadSymbol("puleEcsWorldAdvance", layerName)
-    )
-  );
-  layer->ecsComponentCreate = (
-    reinterpret_cast<decltype(layer->ecsComponentCreate)>(
-      ::loadSymbol("puleEcsComponentCreate", layerName)
-    )
-  );
-  layer->ecsEntityIterateComponents = (
-    reinterpret_cast<decltype(layer->ecsEntityIterateComponents)>(
-      ::loadSymbol("puleEcsEntityIterateComponents", layerName)
-    )
-  );
-  layer->ecsComponentFetchByLabel = (
-    reinterpret_cast<decltype(layer->ecsComponentFetchByLabel)>(
-      ::loadSymbol("puleEcsComponentFetchByLabel", layerName)
-    )
-  );
-  layer->ecsComponentLabel = (
-    reinterpret_cast<decltype(layer->ecsComponentLabel)>(
-      ::loadSymbol("puleEcsComponentLabel", layerName)
-    )
-  );
-  layer->ecsComponentSerializer = (
-    reinterpret_cast<decltype(layer->ecsComponentSerializer)>(
-      ::loadSymbol("puleEcsComponentSerializer", layerName)
-    )
-  );
-  layer->ecsComponentInfo = (
-    reinterpret_cast<decltype(layer->ecsComponentInfo)>(
-      ::loadSymbol("puleEcsComponentInfo", layerName)
-    )
-  );
-  layer->ecsComponentIterateAll = (
-    reinterpret_cast<decltype(layer->ecsComponentIterateAll)>(
-      ::loadSymbol("puleEcsComponentIterateAll", layerName)
-    )
-  );
-  layer->ecsIteratorEntityCount = (
-    reinterpret_cast<decltype(layer->ecsIteratorEntityCount)>(
-      ::loadSymbol("puleEcsIteratorEntityCount", layerName)
-    )
-  );
-  layer->ecsIteratorRelativeOffset = (
-    reinterpret_cast<decltype(layer->ecsIteratorRelativeOffset)>(
-      ::loadSymbol("puleEcsIteratorRelativeOffset", layerName)
-    )
-  );
-  layer->ecsIteratorQueryComponents = (
-    reinterpret_cast<decltype(layer->ecsIteratorQueryComponents)>(
-      ::loadSymbol("puleEcsIteratorQueryComponents", layerName)
-    )
-  );
-  layer->ecsIteratorQueryEntities = (
-    reinterpret_cast<decltype(layer->ecsIteratorQueryEntities)>(
-      ::loadSymbol("puleEcsIteratorQueryEntities", layerName)
-    )
-  );
-  layer->ecsIteratorWorld = (
-    reinterpret_cast<decltype(layer->ecsIteratorWorld)>(
-      ::loadSymbol("puleEcsIteratorWorld", layerName)
-    )
-  );
-  layer->ecsIteratorSystem = (
-    reinterpret_cast<decltype(layer->ecsIteratorSystem)>(
-      ::loadSymbol("puleEcsIteratorSystem", layerName)
-    )
-  );
-  layer->ecsIteratorUserData = (
-    reinterpret_cast<decltype(layer->ecsIteratorUserData)>(
-      ::loadSymbol("puleEcsIteratorUserData", layerName)
-    )
-  );
-  layer->ecsSystemCreate = (
-    reinterpret_cast<decltype(layer->ecsSystemCreate)>(
-      ::loadSymbol("puleEcsSystemCreate", layerName)
-    )
-  );
-  layer->ecsSystemAdvance = (
-    reinterpret_cast<decltype(layer->ecsSystemAdvance)>(
-      ::loadSymbol("puleEcsSystemAdvance", layerName)
-    )
-  );
-  layer->ecsEntityCreate = (
-    reinterpret_cast<decltype(layer->ecsEntityCreate)>(
-      ::loadSymbol("puleEcsEntityCreate", layerName)
-    )
-  );
-  layer->ecsEntityName = (
-    reinterpret_cast<decltype(layer->ecsEntityName)>(
-      ::loadSymbol("puleEcsEntityName", layerName)
-    )
-  );
-  layer->ecsEntityDestroy = (
-    reinterpret_cast<decltype(layer->ecsEntityDestroy)>(
-      ::loadSymbol("puleEcsEntityDestroy", layerName)
-    )
-  );
-  layer->ecsEntityAttachComponent = (
-    reinterpret_cast<decltype(layer->ecsEntityAttachComponent)>(
-      ::loadSymbol("puleEcsEntityAttachComponent", layerName)
-    )
-  );
-  layer->ecsEntityComponentData = (
-    reinterpret_cast<decltype(layer->ecsEntityComponentData)>(
-      ::loadSymbol("puleEcsEntityComponentData", layerName)
-    )
-  );
-  layer->ecsQueryByComponent = (
-    reinterpret_cast<decltype(layer->ecsQueryByComponent)>(
-      ::loadSymbol("puleEcsQueryByComponent", layerName)
-    )
-  );
-  layer->ecsQueryAllEntities = (
-    reinterpret_cast<decltype(layer->ecsQueryAllEntities)>(
-      ::loadSymbol("puleEcsQueryAllEntities", layerName)
-    )
-  );
-  layer->ecsQueryDestroy = (
-    reinterpret_cast<decltype(layer->ecsQueryDestroy)>(
-      ::loadSymbol("puleEcsQueryDestroy", layerName)
-    )
-  );
-  layer->ecsQueryIterator = (
-    reinterpret_cast<decltype(layer->ecsQueryIterator)>(
-      ::loadSymbol("puleEcsQueryIterator", layerName)
-    )
-  );
-  layer->ecsQueryIteratorNext = (
-    reinterpret_cast<decltype(layer->ecsQueryIteratorNext)>(
-      ::loadSymbol("puleEcsQueryIteratorNext", layerName)
-    )
-  );
-  layer->ecsQueryIteratorDestroy = (
-    reinterpret_cast<decltype(layer->ecsQueryIteratorDestroy)>(
-      ::loadSymbol("puleEcsQueryIteratorDestroy", layerName)
+  layer->gfxDebugRender = (
+    reinterpret_cast<decltype(layer->gfxDebugRender)>(
+      ::loadSymbol("puleGfxDebugRender", layerName)
     )
   );
   // imgui
@@ -878,375 +1821,6 @@
       ::loadSymbol("puleImguiCallbackShowAll", layerName)
     )
   );
-  // asset-model
-  layer->assetModelDestroy = (
-    reinterpret_cast<decltype(layer->assetModelDestroy)>(
-      ::loadSymbol("puleAssetModelDestroy", layerName)
-    )
-  );
-  layer->assetMeshComponentDataTypeByteLength = (
-    reinterpret_cast<decltype(layer->assetMeshComponentDataTypeByteLength)>(
-      ::loadSymbol("puleAssetMeshComponentDataTypeByteLength", layerName)
-    )
-  );
-  layer->assetModelLoadFromStream = (
-    reinterpret_cast<decltype(layer->assetModelLoadFromStream)>(
-      ::loadSymbol("puleAssetModelLoadFromStream", layerName)
-    )
-  );
-  // asset-tiled
-  layer->assetTiledMapInfo = (
-    reinterpret_cast<decltype(layer->assetTiledMapInfo)>(
-      ::loadSymbol("puleAssetTiledMapInfo", layerName)
-    )
-  );
-  layer->assetTiledMapLoadFromStream = (
-    reinterpret_cast<decltype(layer->assetTiledMapLoadFromStream)>(
-      ::loadSymbol("puleAssetTiledMapLoadFromStream", layerName)
-    )
-  );
-  layer->assetTiledMapLoadFromFile = (
-    reinterpret_cast<decltype(layer->assetTiledMapLoadFromFile)>(
-      ::loadSymbol("puleAssetTiledMapLoadFromFile", layerName)
-    )
-  );
-  layer->assetTiledMapDestroy = (
-    reinterpret_cast<decltype(layer->assetTiledMapDestroy)>(
-      ::loadSymbol("puleAssetTiledMapDestroy", layerName)
-    )
-  );
-  // asset-shader-module
-  layer->assetShaderModuleCreateFromPaths = (
-    reinterpret_cast<decltype(layer->assetShaderModuleCreateFromPaths)>(
-      ::loadSymbol("puleAssetShaderModuleCreateFromPaths", layerName)
-    )
-  );
-  layer->assetShaderModuleDestroy = (
-    reinterpret_cast<decltype(layer->assetShaderModuleDestroy)>(
-      ::loadSymbol("puleAssetShaderModuleDestroy", layerName)
-    )
-  );
-  layer->assetShaderModuleLabel = (
-    reinterpret_cast<decltype(layer->assetShaderModuleLabel)>(
-      ::loadSymbol("puleAssetShaderModuleLabel", layerName)
-    )
-  );
-  layer->assetShaderModuleGfxHandle = (
-    reinterpret_cast<decltype(layer->assetShaderModuleGfxHandle)>(
-      ::loadSymbol("puleAssetShaderModuleGfxHandle", layerName)
-    )
-  );
-  // asset-font
-  layer->assetFontLoad = (
-    reinterpret_cast<decltype(layer->assetFontLoad)>(
-      ::loadSymbol("puleAssetFontLoad", layerName)
-    )
-  );
-  layer->assetFontDestroy = (
-    reinterpret_cast<decltype(layer->assetFontDestroy)>(
-      ::loadSymbol("puleAssetFontDestroy", layerName)
-    )
-  );
-  layer->assetFontRenderToU8Buffer = (
-    reinterpret_cast<decltype(layer->assetFontRenderToU8Buffer)>(
-      ::loadSymbol("puleAssetFontRenderToU8Buffer", layerName)
-    )
-  );
-  // asset-image
-  layer->assetImageExtensionSupported = (
-    reinterpret_cast<decltype(layer->assetImageExtensionSupported)>(
-      ::loadSymbol("puleAssetImageExtensionSupported", layerName)
-    )
-  );
-  layer->assetImageLoadFromStream = (
-    reinterpret_cast<decltype(layer->assetImageLoadFromStream)>(
-      ::loadSymbol("puleAssetImageLoadFromStream", layerName)
-    )
-  );
-  layer->assetImageDestroy = (
-    reinterpret_cast<decltype(layer->assetImageDestroy)>(
-      ::loadSymbol("puleAssetImageDestroy", layerName)
-    )
-  );
-  layer->assetImageDecodedData = (
-    reinterpret_cast<decltype(layer->assetImageDecodedData)>(
-      ::loadSymbol("puleAssetImageDecodedData", layerName)
-    )
-  );
-  layer->assetImageDecodedDataLength = (
-    reinterpret_cast<decltype(layer->assetImageDecodedDataLength)>(
-      ::loadSymbol("puleAssetImageDecodedDataLength", layerName)
-    )
-  );
-  layer->assetImageWidth = (
-    reinterpret_cast<decltype(layer->assetImageWidth)>(
-      ::loadSymbol("puleAssetImageWidth", layerName)
-    )
-  );
-  layer->assetImageHeight = (
-    reinterpret_cast<decltype(layer->assetImageHeight)>(
-      ::loadSymbol("puleAssetImageHeight", layerName)
-    )
-  );
-  // asset-render-task-graph
-  layer->assetRenderTaskGraphFromPds = (
-    reinterpret_cast<decltype(layer->assetRenderTaskGraphFromPds)>(
-      ::loadSymbol("puleAssetRenderTaskGraphFromPds", layerName)
-    )
-  );
-  layer->assetRenderTaskGraphToPds = (
-    reinterpret_cast<decltype(layer->assetRenderTaskGraphToPds)>(
-      ::loadSymbol("puleAssetRenderTaskGraphToPds", layerName)
-    )
-  );
-  // asset-pds
-  layer->assetPdsLoadFromStream = (
-    reinterpret_cast<decltype(layer->assetPdsLoadFromStream)>(
-      ::loadSymbol("puleAssetPdsLoadFromStream", layerName)
-    )
-  );
-  layer->assetPdsLoadFromRvalStream = (
-    reinterpret_cast<decltype(layer->assetPdsLoadFromRvalStream)>(
-      ::loadSymbol("puleAssetPdsLoadFromRvalStream", layerName)
-    )
-  );
-  layer->assetPdsLoadFromFile = (
-    reinterpret_cast<decltype(layer->assetPdsLoadFromFile)>(
-      ::loadSymbol("puleAssetPdsLoadFromFile", layerName)
-    )
-  );
-  layer->assetPdsWriteToStream = (
-    reinterpret_cast<decltype(layer->assetPdsWriteToStream)>(
-      ::loadSymbol("puleAssetPdsWriteToStream", layerName)
-    )
-  );
-  layer->assetPdsWriteToFile = (
-    reinterpret_cast<decltype(layer->assetPdsWriteToFile)>(
-      ::loadSymbol("puleAssetPdsWriteToFile", layerName)
-    )
-  );
-  layer->assetPdsWriteToStdout = (
-    reinterpret_cast<decltype(layer->assetPdsWriteToStdout)>(
-      ::loadSymbol("puleAssetPdsWriteToStdout", layerName)
-    )
-  );
-  layer->assetPdsLoadFromCommandLineArguments = (
-    reinterpret_cast<decltype(layer->assetPdsLoadFromCommandLineArguments)>(
-      ::loadSymbol("puleAssetPdsLoadFromCommandLineArguments", layerName)
-    )
-  );
-  // stream
-  layer->streamReadByte = (
-    reinterpret_cast<decltype(layer->streamReadByte)>(
-      ::loadSymbol("puleStreamReadByte", layerName)
-    )
-  );
-  layer->streamPeekByte = (
-    reinterpret_cast<decltype(layer->streamPeekByte)>(
-      ::loadSymbol("puleStreamPeekByte", layerName)
-    )
-  );
-  layer->streamReadIsDone = (
-    reinterpret_cast<decltype(layer->streamReadIsDone)>(
-      ::loadSymbol("puleStreamReadIsDone", layerName)
-    )
-  );
-  layer->streamReadDestroy = (
-    reinterpret_cast<decltype(layer->streamReadDestroy)>(
-      ::loadSymbol("puleStreamReadDestroy", layerName)
-    )
-  );
-  layer->streamReadFromString = (
-    reinterpret_cast<decltype(layer->streamReadFromString)>(
-      ::loadSymbol("puleStreamReadFromString", layerName)
-    )
-  );
-  layer->streamWriteBytes = (
-    reinterpret_cast<decltype(layer->streamWriteBytes)>(
-      ::loadSymbol("puleStreamWriteBytes", layerName)
-    )
-  );
-  layer->streamWriteFlush = (
-    reinterpret_cast<decltype(layer->streamWriteFlush)>(
-      ::loadSymbol("puleStreamWriteFlush", layerName)
-    )
-  );
-  layer->streamWriteDestroy = (
-    reinterpret_cast<decltype(layer->streamWriteDestroy)>(
-      ::loadSymbol("puleStreamWriteDestroy", layerName)
-    )
-  );
-  layer->streamStdoutWrite = (
-    reinterpret_cast<decltype(layer->streamStdoutWrite)>(
-      ::loadSymbol("puleStreamStdoutWrite", layerName)
-    )
-  );
-  // array
-  layer->array = (
-    reinterpret_cast<decltype(layer->array)>(
-      ::loadSymbol("puleArray", layerName)
-    )
-  );
-  layer->arrayDestroy = (
-    reinterpret_cast<decltype(layer->arrayDestroy)>(
-      ::loadSymbol("puleArrayDestroy", layerName)
-    )
-  );
-  layer->arrayAppend = (
-    reinterpret_cast<decltype(layer->arrayAppend)>(
-      ::loadSymbol("puleArrayAppend", layerName)
-    )
-  );
-  layer->arrayElementAt = (
-    reinterpret_cast<decltype(layer->arrayElementAt)>(
-      ::loadSymbol("puleArrayElementAt", layerName)
-    )
-  );
-  // allocator
-  layer->allocateDefault = (
-    reinterpret_cast<decltype(layer->allocateDefault)>(
-      ::loadSymbol("puleAllocateDefault", layerName)
-    )
-  );
-  layer->allocate = (
-    reinterpret_cast<decltype(layer->allocate)>(
-      ::loadSymbol("puleAllocate", layerName)
-    )
-  );
-  layer->reallocate = (
-    reinterpret_cast<decltype(layer->reallocate)>(
-      ::loadSymbol("puleReallocate", layerName)
-    )
-  );
-  layer->deallocate = (
-    reinterpret_cast<decltype(layer->deallocate)>(
-      ::loadSymbol("puleDeallocate", layerName)
-    )
-  );
-  // imgui-engine
-  layer->imguiEngineDisplay = (
-    reinterpret_cast<decltype(layer->imguiEngineDisplay)>(
-      ::loadSymbol("puleImguiEngineDisplay", layerName)
-    )
-  );
-  // gfx-debug
-  layer->gfxDebugInitialize = (
-    reinterpret_cast<decltype(layer->gfxDebugInitialize)>(
-      ::loadSymbol("puleGfxDebugInitialize", layerName)
-    )
-  );
-  layer->gfxDebugShutdown = (
-    reinterpret_cast<decltype(layer->gfxDebugShutdown)>(
-      ::loadSymbol("puleGfxDebugShutdown", layerName)
-    )
-  );
-  layer->gfxDebugRenderLine = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderLine)>(
-      ::loadSymbol("puleGfxDebugRenderLine", layerName)
-    )
-  );
-  layer->gfxDebugRenderRectOutline = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderRectOutline)>(
-      ::loadSymbol("puleGfxDebugRenderRectOutline", layerName)
-    )
-  );
-  layer->gfxDebugRenderCircle = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderCircle)>(
-      ::loadSymbol("puleGfxDebugRenderCircle", layerName)
-    )
-  );
-  layer->gfxDebugRenderPoint = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderPoint)>(
-      ::loadSymbol("puleGfxDebugRenderPoint", layerName)
-    )
-  );
-  layer->gfxDebugFrameStart = (
-    reinterpret_cast<decltype(layer->gfxDebugFrameStart)>(
-      ::loadSymbol("puleGfxDebugFrameStart", layerName)
-    )
-  );
-  layer->gfxDebugRender = (
-    reinterpret_cast<decltype(layer->gfxDebugRender)>(
-      ::loadSymbol("puleGfxDebugRender", layerName)
-    )
-  );
-  // error
-  layer->error = (
-    reinterpret_cast<decltype(layer->error)>(
-      ::loadSymbol("puleError", layerName)
-    )
-  );
-  layer->errorConsume = (
-    reinterpret_cast<decltype(layer->errorConsume)>(
-      ::loadSymbol("puleErrorConsume", layerName)
-    )
-  );
-  layer->errorExists = (
-    reinterpret_cast<decltype(layer->errorExists)>(
-      ::loadSymbol("puleErrorExists", layerName)
-    )
-  );
-  // string
-  layer->stringDefault = (
-    reinterpret_cast<decltype(layer->stringDefault)>(
-      ::loadSymbol("puleStringDefault", layerName)
-    )
-  );
-  layer->string = (
-    reinterpret_cast<decltype(layer->string)>(
-      ::loadSymbol("puleString", layerName)
-    )
-  );
-  layer->stringDestroy = (
-    reinterpret_cast<decltype(layer->stringDestroy)>(
-      ::loadSymbol("puleStringDestroy", layerName)
-    )
-  );
-  layer->stringAppend = (
-    reinterpret_cast<decltype(layer->stringAppend)>(
-      ::loadSymbol("puleStringAppend", layerName)
-    )
-  );
-  layer->stringFormat = (
-    reinterpret_cast<decltype(layer->stringFormat)>(
-      ::loadSymbol("puleStringFormat", layerName)
-    )
-  );
-  layer->stringFormatDefault = (
-    reinterpret_cast<decltype(layer->stringFormatDefault)>(
-      ::loadSymbol("puleStringFormatDefault", layerName)
-    )
-  );
-  layer->stringView = (
-    reinterpret_cast<decltype(layer->stringView)>(
-      ::loadSymbol("puleStringView", layerName)
-    )
-  );
-  layer->cStr = (
-    reinterpret_cast<decltype(layer->cStr)>(
-      ::loadSymbol("puleCStr", layerName)
-    )
-  );
-  layer->stringViewEq = (
-    reinterpret_cast<decltype(layer->stringViewEq)>(
-      ::loadSymbol("puleStringViewEq", layerName)
-    )
-  );
-  layer->stringViewContains = (
-    reinterpret_cast<decltype(layer->stringViewContains)>(
-      ::loadSymbol("puleStringViewContains", layerName)
-    )
-  );
-  layer->stringViewEqCStr = (
-    reinterpret_cast<decltype(layer->stringViewEqCStr)>(
-      ::loadSymbol("puleStringViewEqCStr", layerName)
-    )
-  );
-  layer->stringViewHash = (
-    reinterpret_cast<decltype(layer->stringViewHash)>(
-      ::loadSymbol("puleStringViewHash", layerName)
-    )
-  );
   // renderer-3d
   layer->renderer3DCreate = (
     reinterpret_cast<decltype(layer->renderer3DCreate)>(
@@ -1268,236 +1842,21 @@
       ::loadSymbol("puleRenderer3DAttachComponentRender", layerName)
     )
   );
-  // file
-  layer->fileOpen = (
-    reinterpret_cast<decltype(layer->fileOpen)>(
-      ::loadSymbol("puleFileOpen", layerName)
+  // ecs-serializer
+  layer->ecsSerializeWorld = (
+    reinterpret_cast<decltype(layer->ecsSerializeWorld)>(
+      ::loadSymbol("puleEcsSerializeWorld", layerName)
     )
   );
-  layer->fileLoadContents = (
-    reinterpret_cast<decltype(layer->fileLoadContents)>(
-      ::loadSymbol("puleFileLoadContents", layerName)
+  layer->ecsDeserializeWorld = (
+    reinterpret_cast<decltype(layer->ecsDeserializeWorld)>(
+      ::loadSymbol("puleEcsDeserializeWorld", layerName)
     )
   );
-  layer->fileClose = (
-    reinterpret_cast<decltype(layer->fileClose)>(
-      ::loadSymbol("puleFileClose", layerName)
-    )
-  );
-  layer->fileIsDone = (
-    reinterpret_cast<decltype(layer->fileIsDone)>(
-      ::loadSymbol("puleFileIsDone", layerName)
-    )
-  );
-  layer->filePath = (
-    reinterpret_cast<decltype(layer->filePath)>(
-      ::loadSymbol("puleFilePath", layerName)
-    )
-  );
-  layer->fileReadByte = (
-    reinterpret_cast<decltype(layer->fileReadByte)>(
-      ::loadSymbol("puleFileReadByte", layerName)
-    )
-  );
-  layer->fileReadBytes = (
-    reinterpret_cast<decltype(layer->fileReadBytes)>(
-      ::loadSymbol("puleFileReadBytes", layerName)
-    )
-  );
-  layer->fileReadBytesWithStride = (
-    reinterpret_cast<decltype(layer->fileReadBytesWithStride)>(
-      ::loadSymbol("puleFileReadBytesWithStride", layerName)
-    )
-  );
-  layer->fileWriteBytes = (
-    reinterpret_cast<decltype(layer->fileWriteBytes)>(
-      ::loadSymbol("puleFileWriteBytes", layerName)
-    )
-  );
-  layer->fileWriteString = (
-    reinterpret_cast<decltype(layer->fileWriteString)>(
-      ::loadSymbol("puleFileWriteString", layerName)
-    )
-  );
-  layer->fileSize = (
-    reinterpret_cast<decltype(layer->fileSize)>(
-      ::loadSymbol("puleFileSize", layerName)
-    )
-  );
-  layer->fileAdvanceFromStart = (
-    reinterpret_cast<decltype(layer->fileAdvanceFromStart)>(
-      ::loadSymbol("puleFileAdvanceFromStart", layerName)
-    )
-  );
-  layer->fileAdvanceFromEnd = (
-    reinterpret_cast<decltype(layer->fileAdvanceFromEnd)>(
-      ::loadSymbol("puleFileAdvanceFromEnd", layerName)
-    )
-  );
-  layer->fileAdvanceFromCurrent = (
-    reinterpret_cast<decltype(layer->fileAdvanceFromCurrent)>(
-      ::loadSymbol("puleFileAdvanceFromCurrent", layerName)
-    )
-  );
-  layer->fileStreamRead = (
-    reinterpret_cast<decltype(layer->fileStreamRead)>(
-      ::loadSymbol("puleFileStreamRead", layerName)
-    )
-  );
-  layer->fileStreamWrite = (
-    reinterpret_cast<decltype(layer->fileStreamWrite)>(
-      ::loadSymbol("puleFileStreamWrite", layerName)
-    )
-  );
-  layer->filesystemPathExists = (
-    reinterpret_cast<decltype(layer->filesystemPathExists)>(
-      ::loadSymbol("puleFilesystemPathExists", layerName)
-    )
-  );
-  layer->fileCopy = (
-    reinterpret_cast<decltype(layer->fileCopy)>(
-      ::loadSymbol("puleFileCopy", layerName)
-    )
-  );
-  layer->fileRemove = (
-    reinterpret_cast<decltype(layer->fileRemove)>(
-      ::loadSymbol("puleFileRemove", layerName)
-    )
-  );
-  layer->fileRemoveRecursive = (
-    reinterpret_cast<decltype(layer->fileRemoveRecursive)>(
-      ::loadSymbol("puleFileRemoveRecursive", layerName)
-    )
-  );
-  layer->fileDirectoryCreate = (
-    reinterpret_cast<decltype(layer->fileDirectoryCreate)>(
-      ::loadSymbol("puleFileDirectoryCreate", layerName)
-    )
-  );
-  layer->fileDirectoryCreateRecursive = (
-    reinterpret_cast<decltype(layer->fileDirectoryCreateRecursive)>(
-      ::loadSymbol("puleFileDirectoryCreateRecursive", layerName)
-    )
-  );
-  layer->filesystemExecutablePath = (
-    reinterpret_cast<decltype(layer->filesystemExecutablePath)>(
-      ::loadSymbol("puleFilesystemExecutablePath", layerName)
-    )
-  );
-  layer->filesystemCurrentPath = (
-    reinterpret_cast<decltype(layer->filesystemCurrentPath)>(
-      ::loadSymbol("puleFilesystemCurrentPath", layerName)
-    )
-  );
-  layer->filesystemSymlinkCreate = (
-    reinterpret_cast<decltype(layer->filesystemSymlinkCreate)>(
-      ::loadSymbol("puleFilesystemSymlinkCreate", layerName)
-    )
-  );
-  layer->filesystemTimestamp = (
-    reinterpret_cast<decltype(layer->filesystemTimestamp)>(
-      ::loadSymbol("puleFilesystemTimestamp", layerName)
-    )
-  );
-  layer->fileWatch = (
-    reinterpret_cast<decltype(layer->fileWatch)>(
-      ::loadSymbol("puleFileWatch", layerName)
-    )
-  );
-  layer->fileWatchCheckAll = (
-    reinterpret_cast<decltype(layer->fileWatchCheckAll)>(
-      ::loadSymbol("puleFileWatchCheckAll", layerName)
-    )
-  );
-  // script
-  layer->scriptContextCreate = (
-    reinterpret_cast<decltype(layer->scriptContextCreate)>(
-      ::loadSymbol("puleScriptContextCreate", layerName)
-    )
-  );
-  layer->scriptContextDestroy = (
-    reinterpret_cast<decltype(layer->scriptContextDestroy)>(
-      ::loadSymbol("puleScriptContextDestroy", layerName)
-    )
-  );
-  layer->scriptModuleCreateFromSource = (
-    reinterpret_cast<decltype(layer->scriptModuleCreateFromSource)>(
-      ::loadSymbol("puleScriptModuleCreateFromSource", layerName)
-    )
-  );
-  layer->scriptModuleUpdateFromSource = (
-    reinterpret_cast<decltype(layer->scriptModuleUpdateFromSource)>(
-      ::loadSymbol("puleScriptModuleUpdateFromSource", layerName)
-    )
-  );
-  layer->scriptModuleCreateFromBinary = (
-    reinterpret_cast<decltype(layer->scriptModuleCreateFromBinary)>(
-      ::loadSymbol("puleScriptModuleCreateFromBinary", layerName)
-    )
-  );
-  layer->scriptModuleDestroy = (
-    reinterpret_cast<decltype(layer->scriptModuleDestroy)>(
-      ::loadSymbol("puleScriptModuleDestroy", layerName)
-    )
-  );
-  layer->scriptModuleExecute = (
-    reinterpret_cast<decltype(layer->scriptModuleExecute)>(
-      ::loadSymbol("puleScriptModuleExecute", layerName)
-    )
-  );
-  layer->scriptGlobal = (
-    reinterpret_cast<decltype(layer->scriptGlobal)>(
-      ::loadSymbol("puleScriptGlobal", layerName)
-    )
-  );
-  layer->scriptGlobalSet = (
-    reinterpret_cast<decltype(layer->scriptGlobalSet)>(
-      ::loadSymbol("puleScriptGlobalSet", layerName)
-    )
-  );
-  layer->scriptArrayF32Create = (
-    reinterpret_cast<decltype(layer->scriptArrayF32Create)>(
-      ::loadSymbol("puleScriptArrayF32Create", layerName)
-    )
-  );
-  layer->scriptArrayF32Destroy = (
-    reinterpret_cast<decltype(layer->scriptArrayF32Destroy)>(
-      ::loadSymbol("puleScriptArrayF32Destroy", layerName)
-    )
-  );
-  layer->scriptArrayF32Ptr = (
-    reinterpret_cast<decltype(layer->scriptArrayF32Ptr)>(
-      ::loadSymbol("puleScriptArrayF32Ptr", layerName)
-    )
-  );
-  layer->scriptArrayF32Append = (
-    reinterpret_cast<decltype(layer->scriptArrayF32Append)>(
-      ::loadSymbol("puleScriptArrayF32Append", layerName)
-    )
-  );
-  layer->scriptArrayF32Remove = (
-    reinterpret_cast<decltype(layer->scriptArrayF32Remove)>(
-      ::loadSymbol("puleScriptArrayF32Remove", layerName)
-    )
-  );
-  layer->scriptArrayF32At = (
-    reinterpret_cast<decltype(layer->scriptArrayF32At)>(
-      ::loadSymbol("puleScriptArrayF32At", layerName)
-    )
-  );
-  layer->scriptArrayF32Length = (
-    reinterpret_cast<decltype(layer->scriptArrayF32Length)>(
-      ::loadSymbol("puleScriptArrayF32Length", layerName)
-    )
-  );
-  layer->scriptArrayF32ElementByteSize = (
-    reinterpret_cast<decltype(layer->scriptArrayF32ElementByteSize)>(
-      ::loadSymbol("puleScriptArrayF32ElementByteSize", layerName)
-    )
-  );
-  layer->scriptModuleFileWatch = (
-    reinterpret_cast<decltype(layer->scriptModuleFileWatch)>(
-      ::loadSymbol("puleScriptModuleFileWatch", layerName)
+  // gfx-mesh
+  layer->gfxMeshRender = (
+    reinterpret_cast<decltype(layer->gfxMeshRender)>(
+      ::loadSymbol("puleGfxMeshRender", layerName)
     )
   );
   // task-graph
@@ -1564,364 +1923,5 @@
   layer->taskGraphNodeExists = (
     reinterpret_cast<decltype(layer->taskGraphNodeExists)>(
       ::loadSymbol("puleTaskGraphNodeExists", layerName)
-    )
-  );
-  // plugin
-  layer->pluginsLoad = (
-    reinterpret_cast<decltype(layer->pluginsLoad)>(
-      ::loadSymbol("pulePluginsLoad", layerName)
-    )
-  );
-  layer->pluginsFree = (
-    reinterpret_cast<decltype(layer->pluginsFree)>(
-      ::loadSymbol("pulePluginsFree", layerName)
-    )
-  );
-  layer->pluginsReload = (
-    reinterpret_cast<decltype(layer->pluginsReload)>(
-      ::loadSymbol("pulePluginsReload", layerName)
-    )
-  );
-  layer->pluginIdFromName = (
-    reinterpret_cast<decltype(layer->pluginIdFromName)>(
-      ::loadSymbol("pulePluginIdFromName", layerName)
-    )
-  );
-  layer->pluginLoadFn = (
-    reinterpret_cast<decltype(layer->pluginLoadFn)>(
-      ::loadSymbol("pulePluginLoadFn", layerName)
-    )
-  );
-  layer->tryPluginLoadFn = (
-    reinterpret_cast<decltype(layer->tryPluginLoadFn)>(
-      ::loadSymbol("puleTryPluginLoadFn", layerName)
-    )
-  );
-  layer->iteratePlugins = (
-    reinterpret_cast<decltype(layer->iteratePlugins)>(
-      ::loadSymbol("puleIteratePlugins", layerName)
-    )
-  );
-  layer->pluginPayloadFetch = (
-    reinterpret_cast<decltype(layer->pluginPayloadFetch)>(
-      ::loadSymbol("pulePluginPayloadFetch", layerName)
-    )
-  );
-  layer->pluginPayloadFetchU64 = (
-    reinterpret_cast<decltype(layer->pluginPayloadFetchU64)>(
-      ::loadSymbol("pulePluginPayloadFetchU64", layerName)
-    )
-  );
-  layer->pluginPayloadStore = (
-    reinterpret_cast<decltype(layer->pluginPayloadStore)>(
-      ::loadSymbol("pulePluginPayloadStore", layerName)
-    )
-  );
-  layer->pluginPayloadStoreU64 = (
-    reinterpret_cast<decltype(layer->pluginPayloadStoreU64)>(
-      ::loadSymbol("pulePluginPayloadStoreU64", layerName)
-    )
-  );
-  layer->pluginPayloadRemove = (
-    reinterpret_cast<decltype(layer->pluginPayloadRemove)>(
-      ::loadSymbol("pulePluginPayloadRemove", layerName)
-    )
-  );
-  // time
-  layer->microsecond = (
-    reinterpret_cast<decltype(layer->microsecond)>(
-      ::loadSymbol("puleMicrosecond", layerName)
-    )
-  );
-  layer->sleepMicrosecond = (
-    reinterpret_cast<decltype(layer->sleepMicrosecond)>(
-      ::loadSymbol("puleSleepMicrosecond", layerName)
-    )
-  );
-  // gfx
-  layer->gfxPipelineDescriptorSetLayout = (
-    reinterpret_cast<decltype(layer->gfxPipelineDescriptorSetLayout)>(
-      ::loadSymbol("puleGfxPipelineDescriptorSetLayout", layerName)
-    )
-  );
-  layer->gfxPipelineCreate = (
-    reinterpret_cast<decltype(layer->gfxPipelineCreate)>(
-      ::loadSymbol("puleGfxPipelineCreate", layerName)
-    )
-  );
-  layer->gfxPipelineUpdate = (
-    reinterpret_cast<decltype(layer->gfxPipelineUpdate)>(
-      ::loadSymbol("puleGfxPipelineUpdate", layerName)
-    )
-  );
-  layer->gfxPipelineDestroy = (
-    reinterpret_cast<decltype(layer->gfxPipelineDestroy)>(
-      ::loadSymbol("puleGfxPipelineDestroy", layerName)
-    )
-  );
-  layer->gfxShaderModuleCreate = (
-    reinterpret_cast<decltype(layer->gfxShaderModuleCreate)>(
-      ::loadSymbol("puleGfxShaderModuleCreate", layerName)
-    )
-  );
-  layer->gfxShaderModuleDestroy = (
-    reinterpret_cast<decltype(layer->gfxShaderModuleDestroy)>(
-      ::loadSymbol("puleGfxShaderModuleDestroy", layerName)
-    )
-  );
-  layer->gfxSamplerCreate = (
-    reinterpret_cast<decltype(layer->gfxSamplerCreate)>(
-      ::loadSymbol("puleGfxSamplerCreate", layerName)
-    )
-  );
-  layer->gfxSamplerDestroy = (
-    reinterpret_cast<decltype(layer->gfxSamplerDestroy)>(
-      ::loadSymbol("puleGfxSamplerDestroy", layerName)
-    )
-  );
-  layer->gfxGpuImageCreate = (
-    reinterpret_cast<decltype(layer->gfxGpuImageCreate)>(
-      ::loadSymbol("puleGfxGpuImageCreate", layerName)
-    )
-  );
-  layer->gfxGpuImageDestroy = (
-    reinterpret_cast<decltype(layer->gfxGpuImageDestroy)>(
-      ::loadSymbol("puleGfxGpuImageDestroy", layerName)
-    )
-  );
-  layer->gfxFramebufferCreateInfo = (
-    reinterpret_cast<decltype(layer->gfxFramebufferCreateInfo)>(
-      ::loadSymbol("puleGfxFramebufferCreateInfo", layerName)
-    )
-  );
-  layer->gfxFramebufferCreate = (
-    reinterpret_cast<decltype(layer->gfxFramebufferCreate)>(
-      ::loadSymbol("puleGfxFramebufferCreate", layerName)
-    )
-  );
-  layer->gfxFramebufferDestroy = (
-    reinterpret_cast<decltype(layer->gfxFramebufferDestroy)>(
-      ::loadSymbol("puleGfxFramebufferDestroy", layerName)
-    )
-  );
-  layer->gfxFramebufferWindow = (
-    reinterpret_cast<decltype(layer->gfxFramebufferWindow)>(
-      ::loadSymbol("puleGfxFramebufferWindow", layerName)
-    )
-  );
-  layer->gfxGpuBufferCreate = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferCreate)>(
-      ::loadSymbol("puleGfxGpuBufferCreate", layerName)
-    )
-  );
-  layer->gfxGpuBufferDestroy = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferDestroy)>(
-      ::loadSymbol("puleGfxGpuBufferDestroy", layerName)
-    )
-  );
-  layer->gfxGpuBufferMap = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferMap)>(
-      ::loadSymbol("puleGfxGpuBufferMap", layerName)
-    )
-  );
-  layer->gfxGpuBufferMappedFlush = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferMappedFlush)>(
-      ::loadSymbol("puleGfxGpuBufferMappedFlush", layerName)
-    )
-  );
-  layer->gfxGpuBufferUnmap = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferUnmap)>(
-      ::loadSymbol("puleGfxGpuBufferUnmap", layerName)
-    )
-  );
-  layer->gfxInitialize = (
-    reinterpret_cast<decltype(layer->gfxInitialize)>(
-      ::loadSymbol("puleGfxInitialize", layerName)
-    )
-  );
-  layer->gfxShutdown = (
-    reinterpret_cast<decltype(layer->gfxShutdown)>(
-      ::loadSymbol("puleGfxShutdown", layerName)
-    )
-  );
-  layer->gfxFrameStart = (
-    reinterpret_cast<decltype(layer->gfxFrameStart)>(
-      ::loadSymbol("puleGfxFrameStart", layerName)
-    )
-  );
-  layer->gfxFrameEnd = (
-    reinterpret_cast<decltype(layer->gfxFrameEnd)>(
-      ::loadSymbol("puleGfxFrameEnd", layerName)
-    )
-  );
-  layer->gfxDebugPrint = (
-    reinterpret_cast<decltype(layer->gfxDebugPrint)>(
-      ::loadSymbol("puleGfxDebugPrint", layerName)
-    )
-  );
-  layer->gfxActionToString = (
-    reinterpret_cast<decltype(layer->gfxActionToString)>(
-      ::loadSymbol("puleGfxActionToString", layerName)
-    )
-  );
-  layer->gfxCommandListCreate = (
-    reinterpret_cast<decltype(layer->gfxCommandListCreate)>(
-      ::loadSymbol("puleGfxCommandListCreate", layerName)
-    )
-  );
-  layer->gfxCommandListDestroy = (
-    reinterpret_cast<decltype(layer->gfxCommandListDestroy)>(
-      ::loadSymbol("puleGfxCommandListDestroy", layerName)
-    )
-  );
-  layer->gfxCommandListName = (
-    reinterpret_cast<decltype(layer->gfxCommandListName)>(
-      ::loadSymbol("puleGfxCommandListName", layerName)
-    )
-  );
-  layer->gfxCommandListRecorder = (
-    reinterpret_cast<decltype(layer->gfxCommandListRecorder)>(
-      ::loadSymbol("puleGfxCommandListRecorder", layerName)
-    )
-  );
-  layer->gfxCommandListRecorderFinish = (
-    reinterpret_cast<decltype(layer->gfxCommandListRecorderFinish)>(
-      ::loadSymbol("puleGfxCommandListRecorderFinish", layerName)
-    )
-  );
-  layer->gfxCommandListRecorderReset = (
-    reinterpret_cast<decltype(layer->gfxCommandListRecorderReset)>(
-      ::loadSymbol("puleGfxCommandListRecorderReset", layerName)
-    )
-  );
-  layer->gfxCommandListAppendAction = (
-    reinterpret_cast<decltype(layer->gfxCommandListAppendAction)>(
-      ::loadSymbol("puleGfxCommandListAppendAction", layerName)
-    )
-  );
-  layer->gfxCommandListSubmit = (
-    reinterpret_cast<decltype(layer->gfxCommandListSubmit)>(
-      ::loadSymbol("puleGfxCommandListSubmit", layerName)
-    )
-  );
-  layer->gfxCommandListDump = (
-    reinterpret_cast<decltype(layer->gfxCommandListDump)>(
-      ::loadSymbol("puleGfxCommandListDump", layerName)
-    )
-  );
-  layer->gfxFenceCreate = (
-    reinterpret_cast<decltype(layer->gfxFenceCreate)>(
-      ::loadSymbol("puleGfxFenceCreate", layerName)
-    )
-  );
-  layer->gfxFenceDestroy = (
-    reinterpret_cast<decltype(layer->gfxFenceDestroy)>(
-      ::loadSymbol("puleGfxFenceDestroy", layerName)
-    )
-  );
-  layer->gfxFenceCheckSignal = (
-    reinterpret_cast<decltype(layer->gfxFenceCheckSignal)>(
-      ::loadSymbol("puleGfxFenceCheckSignal", layerName)
-    )
-  );
-  layer->gfxMemoryBarrier = (
-    reinterpret_cast<decltype(layer->gfxMemoryBarrier)>(
-      ::loadSymbol("puleGfxMemoryBarrier", layerName)
-    )
-  );
-  // camera
-  layer->cameraCreate = (
-    reinterpret_cast<decltype(layer->cameraCreate)>(
-      ::loadSymbol("puleCameraCreate", layerName)
-    )
-  );
-  layer->cameraDestroy = (
-    reinterpret_cast<decltype(layer->cameraDestroy)>(
-      ::loadSymbol("puleCameraDestroy", layerName)
-    )
-  );
-  layer->cameraSerialize = (
-    reinterpret_cast<decltype(layer->cameraSerialize)>(
-      ::loadSymbol("puleCameraSerialize", layerName)
-    )
-  );
-  layer->cameraDeserialize = (
-    reinterpret_cast<decltype(layer->cameraDeserialize)>(
-      ::loadSymbol("puleCameraDeserialize", layerName)
-    )
-  );
-  layer->cameraView = (
-    reinterpret_cast<decltype(layer->cameraView)>(
-      ::loadSymbol("puleCameraView", layerName)
-    )
-  );
-  layer->cameraProj = (
-    reinterpret_cast<decltype(layer->cameraProj)>(
-      ::loadSymbol("puleCameraProj", layerName)
-    )
-  );
-  layer->cameraLookAt = (
-    reinterpret_cast<decltype(layer->cameraLookAt)>(
-      ::loadSymbol("puleCameraLookAt", layerName)
-    )
-  );
-  layer->cameraPerspective = (
-    reinterpret_cast<decltype(layer->cameraPerspective)>(
-      ::loadSymbol("puleCameraPerspective", layerName)
-    )
-  );
-  layer->cameraPerspectiveSet = (
-    reinterpret_cast<decltype(layer->cameraPerspectiveSet)>(
-      ::loadSymbol("puleCameraPerspectiveSet", layerName)
-    )
-  );
-  layer->cameraSetCreate = (
-    reinterpret_cast<decltype(layer->cameraSetCreate)>(
-      ::loadSymbol("puleCameraSetCreate", layerName)
-    )
-  );
-  layer->cameraSetDestroy = (
-    reinterpret_cast<decltype(layer->cameraSetDestroy)>(
-      ::loadSymbol("puleCameraSetDestroy", layerName)
-    )
-  );
-  layer->cameraSetAdd = (
-    reinterpret_cast<decltype(layer->cameraSetAdd)>(
-      ::loadSymbol("puleCameraSetAdd", layerName)
-    )
-  );
-  layer->cameraSetRemove = (
-    reinterpret_cast<decltype(layer->cameraSetRemove)>(
-      ::loadSymbol("puleCameraSetRemove", layerName)
-    )
-  );
-  layer->cameraSetArray = (
-    reinterpret_cast<decltype(layer->cameraSetArray)>(
-      ::loadSymbol("puleCameraSetArray", layerName)
-    )
-  );
-  layer->cameraSetGfxUniformBuffer = (
-    reinterpret_cast<decltype(layer->cameraSetGfxUniformBuffer)>(
-      ::loadSymbol("puleCameraSetGfxUniformBuffer", layerName)
-    )
-  );
-  layer->cameraSetRefresh = (
-    reinterpret_cast<decltype(layer->cameraSetRefresh)>(
-      ::loadSymbol("puleCameraSetRefresh", layerName)
-    )
-  );
-  layer->cameraControllerFirstPerson = (
-    reinterpret_cast<decltype(layer->cameraControllerFirstPerson)>(
-      ::loadSymbol("puleCameraControllerFirstPerson", layerName)
-    )
-  );
-  layer->cameraControllerDestroy = (
-    reinterpret_cast<decltype(layer->cameraControllerDestroy)>(
-      ::loadSymbol("puleCameraControllerDestroy", layerName)
-    )
-  );
-  layer->cameraControllerPollEvents = (
-    reinterpret_cast<decltype(layer->cameraControllerPollEvents)>(
-      ::loadSymbol("puleCameraControllerPollEvents", layerName)
     )
   );
