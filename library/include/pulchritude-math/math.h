@@ -19,59 +19,62 @@ extern "C" {
 
 typedef struct {
   union {
-    struct { float x; float y; }
-    struct { float r; float g; }
-  }
+    struct { float x; float y; };
+    struct { float r; float g; };
+  };
 } PuleF32v2;
 typedef struct {
   union {
-    struct { float x; float y; float z; }
-    struct { float r; float g; float b; }
-  }
+    struct { float x; float y; float z; };
+    struct { float r; float g; float b; };
+  };
 } PuleF32v3;
 typedef struct {
   union {
-    struct { float x; float y; float z; float w; }
-    struct { float r; float g; float b; float a; }
-  }
+    struct { float x; float y; float z; float w; };
+    struct { float r; float g; float b; float a; };
+    PuleF32v3 rgb, xyz;
+  };
 } PuleF32v4;
 
 typedef struct {
   union {
-    struct { int32_t x; int32_t y; }
-    struct { int32_t r; int32_t g; }
-  }
+    struct { int32_t x; int32_t y; };
+    struct { int32_t r; int32_t g; };
+  };
 } PuleI32v2;
 typedef struct {
   union {
-    struct { int32_t x; int32_t y; int32_t z; }
-    struct { int32_t r; int32_t g; int32_t b; }
-  }
+    struct { int32_t x; int32_t y; int32_t z; };
+    struct { int32_t r; int32_t g; int32_t b; };
+  };
 } PuleI32v3;
 typedef struct {
   union {
-    struct { int32_t x; int32_t y; int32_t z; int32_t w; }
-    struct { int32_t r; int32_t g; int32_t b; int32_t a; }
-  }
+    struct { int32_t x; int32_t y; int32_t z; int32_t w; };
+    struct { int32_t r; int32_t g; int32_t b; int32_t a; };
+    PuleI32v3 rgb, xyz;
+  };
 } PuleI32v4;
 
 typedef struct {
   union {
-    struct { uint32_t x; uint32_t y; }
-    struct { uint32_t r; uint32_t g; }
-  }
+    struct { uint32_t x; uint32_t y; };
+    struct { uint32_t r; uint32_t g; };
+  };
 } PuleU32v2;
 typedef struct {
   union {
-    struct { uint32_t x; uint32_t y; uint32_t z; }
-    struct { uint32_t r; uint32_t g; uint32_t b; }
-  }
+    struct { uint32_t x; uint32_t y; uint32_t z; };
+    struct { uint32_t r; uint32_t g; uint32_t b; };
+  };
 } PuleU32v3;
 typedef struct {
   union {
-    struct { uint32_t x; uint32_t y; uint32_t z; uint32_t w; }
-    struct { uint32_t r; uint32_t g; uint32_t b; uint32_t a; }
-  }
+    struct { uint32_t x; uint32_t y; uint32_t z; uint32_t w; };
+    struct { uint32_t r; uint32_t g; uint32_t b; uint32_t a; };
+    PuleU32v3 rgb, xyz;
+  };
 } PuleU32v4;
 
 PULE_exportFn PuleF32v2 puleF32v2(float const identity);
