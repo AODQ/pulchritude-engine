@@ -10,7 +10,7 @@
 #include <pulchritude-camera/camera.h>
 
 // need struct definitions, but don't call anything from here directly
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/gpu.h>
 #include <pulchritude-imgui-engine/imgui-engine.h>
 #include <pulchritude-imgui/imgui.h>
 #include <pulchritude-platform/platform.h>
@@ -94,7 +94,7 @@ uint64_t fetchResourceHandle(
   void * const pluginPayload
 ) {
   if (puleStringViewEqCStr(label, "window-swapchain-image")) {
-    return puleGfxWindowImage().id;
+    return puleGpuWindowImage().id;
   }
   return (
     pulePluginPayloadFetchU64(
@@ -390,7 +390,7 @@ int32_t main(
             );
             return -1;
           }
-          pulBase.gfxInitialize(platform, &err);
+          pulBase.gpuInitialize(platform, &err);
           if (pulBase.errorConsume(&err)) { return -1; }
         }
         auto renderGraphPath = (
@@ -596,7 +596,7 @@ int32_t main(
     );
     puleLogDebug(
       "[PuleApplication] storing shader module %d at payload label '%s'",
-      pulBase.assetShaderModuleGfxHandle(shaderModule).id,
+      pulBase.assetShaderModuleHandle(shaderModule).id,
       shaderModuleLabel.c_str()
     );
     pulBase.pluginPayloadStoreU64(
@@ -650,35 +650,35 @@ int32_t main(
     );
     pulBase.imguiInitialize(platform);
     // guiPrepareRenderCommandList = (
-    //   pulBase.gfxCommandListCreate(
+    //   pulBase.gpuCommandListCreate(
     //     puleAllocateDefault(), puleCStr("pule-gui-prepare-render")
     //   )
     // );
-    // PuleGfxCommandListRecorder const recorder = (
-    //   pulBase.gfxCommandListRecorder(guiPrepareRenderCommandList)
+    // PuleGpuCommandListRecorder const recorder = (
+    //   pulBase.gpuCommandListRecorder(guiPrepareRenderCommandList)
     // );
     // // TODO::CRIT
-    // // pulBase.gfxCommandListAppendAction(
+    // // pulBase.gpuCommandListAppendAction(
     // //   recorder,
-    // //   PuleGfxCommand {
+    // //   PuleGpuCommand {
     // //     .clearImageColor = {
-    // //       .action = PuleGfxAction_clearImageColor,
-    // //       .framebuffer = pulBase.gfxFramebufferWindow(),
+    // //       .action = PuleGpuAction_clearImageColor,
+    // //       .framebuffer = pulBase.gpuFramebufferWindow(),
     // //       .color = PuleF32v4{0.2f, 0.2f, 0.3f, 1.0f},
     // //     },
     // //   }
     // // );
-    // // pulBase.gfxCommandListAppendAction(
+    // // pulBase.gpuCommandListAppendAction(
     // //   recorder,
-    // //   PuleGfxCommand {
+    // //   PuleGpuCommand {
     // //     .clearImageDepth = {
-    // //       .action = PuleGfxAction_clearImageDepth,
-    // //       .framebuffer = pulBase.gfxFramebufferWindow(),
+    // //       .action = PuleGpuAction_clearImageDepth,
+    // //       .framebuffer = pulBase.gpuFramebufferWindow(),
     // //       .depth = 1.0f,
     // //     },
     // //   }
     // // );
-    // pulBase.gfxCommandListRecorderFinish(recorder);
+    // pulBase.gpuCommandListRecorderFinish(recorder);
   }
 
   // get the render task graphs from plugins
@@ -696,7 +696,7 @@ int32_t main(
   while (hasUpdate) {
     puleLog("<--> frame start <-->");
     if (platform.id) {
-      puleGfxFrameStart();
+      puleGpuFrameStart();
       pulePlatformPollEvents(platform);
     }
     if (renderGraph.id != 0) {
@@ -753,7 +753,7 @@ int32_t main(
       pulBase.renderGraphFrameEnd(renderGraph);
     }
     if (platform.id != 0) {
-      puleGfxFrameEnd();
+      puleGpuFrameEnd();
       pulePlatformSwapFramebuffer(platform);
     }
     if (fileWatcherCheckAll) {

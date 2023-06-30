@@ -34,84 +34,84 @@ typedef enum {
 
 typedef struct {
   uint64_t id;
-} PuleGfxGpuBuffer;
+} PuleGpuBuffer;
 
 typedef  struct {
   uint32_t vertexCount;
   uint32_t instanceCount;
   uint32_t vertexOffset;
   uint32_t instanceOffset;
-} PuleGfxDrawIndirectArrays;
+} PuleGpuDrawIndirectArrays;
 
 // TODO rename to remove _buffer
 typedef enum {
-  PuleGfxGpuBufferUsage_attribute = 0x1,
-  PuleGfxGpuBufferUsage_element = 0x2,
-  PuleGfxGpuBufferUsage_uniform = 0x4,
-  PuleGfxGpuBufferUsage_storage = 0x8,
-  PuleGfxGpuBufferUsage_accelerationStructure = 0x10,
-  PuleGfxGpuBufferUsage_indirect = 0x20,
-} PuleGfxGpuBufferUsage;
+  PuleGpuBufferUsage_attribute = 0x1,
+  PuleGpuBufferUsage_element = 0x2,
+  PuleGpuBufferUsage_uniform = 0x4,
+  PuleGpuBufferUsage_storage = 0x8,
+  PuleGpuBufferUsage_accelerationStructure = 0x10,
+  PuleGpuBufferUsage_indirect = 0x20,
+} PuleGpuBufferUsage;
 
 typedef enum {
-  PuleGfxGpuBufferBindingDescriptor_uniform,
-  PuleGfxGpuBufferBindingDescriptor_storage,
-  PuleGfxGpuBufferBindingDescriptor_accelerationStructure,
-} PuleGfxGpuBufferBindingDescriptor;
+  PuleGpuBufferBindingDescriptor_uniform,
+  PuleGpuBufferBindingDescriptor_storage,
+  PuleGpuBufferBindingDescriptor_accelerationStructure,
+} PuleGpuBufferBindingDescriptor;
 
 typedef enum {
-  PuleGfxGpuBufferVisibilityFlag_deviceOnly = 0x1, // incompatible with rest
-  PuleGfxGpuBufferVisibilityFlag_hostVisible = 0x2,
-  PuleGfxGpuBufferVisibilityFlag_hostWritable = 0x4,
-} PuleGfxGpuBufferVisibilityFlag;
+  PuleGpuBufferVisibilityFlag_deviceOnly = 0x1, // incompatible with rest
+  PuleGpuBufferVisibilityFlag_hostVisible = 0x2,
+  PuleGpuBufferVisibilityFlag_hostWritable = 0x4,
+} PuleGpuBufferVisibilityFlag;
 
-PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
+PULE_exportFn PuleGpuBuffer puleGpuBufferCreate(
   PuleStringView const name,
   void const * const optionalInitialData,
   size_t const byteLength, // must be >0
-  PuleGfxGpuBufferUsage const usage,
-  PuleGfxGpuBufferVisibilityFlag const visibility
+  PuleGpuBufferUsage const usage,
+  PuleGpuBufferVisibilityFlag const visibility
 );
-PULE_exportFn void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const buffer);
+PULE_exportFn void puleGpuBufferDestroy(PuleGpuBuffer const buffer);
 
 typedef enum {
-  PuleGfxGpuBufferMapAccess_hostVisible = 0x1,
-  PuleGfxGpuBufferMapAccess_hostWritable = 0x2,
-  PuleGfxGpuBufferMapAccess_invalidate = 0x4,
-} PuleGfxGpuBufferMapAccess;
+  PuleGpuBufferMapAccess_hostVisible = 0x1,
+  PuleGpuBufferMapAccess_hostWritable = 0x2,
+  PuleGpuBufferMapAccess_invalidate = 0x4,
+} PuleGpuBufferMapAccess;
 
 typedef struct {
-  PuleGfxGpuBuffer buffer;
-  PuleGfxGpuBufferMapAccess access;
+  PuleGpuBuffer buffer;
+  PuleGpuBufferMapAccess access;
   size_t byteOffset;
   size_t byteLength;
-} PuleGfxGpuBufferMapRange;
+} PuleGpuBufferMapRange;
 
 typedef struct {
-  PuleGfxGpuBuffer buffer;
+  PuleGpuBuffer buffer;
   size_t byteOffset;
   size_t byteLength;
-} PuleGfxGpuBufferMappedFlushRange;
+} PuleGpuBufferMappedFlushRange;
 
-PULE_exportFn void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range);
+PULE_exportFn void * puleGpuBufferMap(PuleGpuBufferMapRange const range);
 // TODO invalidate mapped buffer
-PULE_exportFn void puleGfxGpuBufferMappedFlush(
-  PuleGfxGpuBufferMappedFlushRange const range
+PULE_exportFn void puleGpuBufferMappedFlush(
+  PuleGpuBufferMappedFlushRange const range
 );
-PULE_exportFn void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer);
+PULE_exportFn void puleGpuBufferUnmap(PuleGpuBuffer const buffer);
 
-PULE_exportFn void puleGfxInitialize(
+PULE_exportFn void puleGpuInitialize(
   PulePlatform const platform,
   PuleError * const error
 );
-PULE_exportFn void puleGfxShutdown();
+PULE_exportFn void puleGpuShutdown();
 
-PULE_exportFn void puleGfxFrameStart();
-PULE_exportFn void puleGfxFrameEnd(); // call before swapFramebuffer
+PULE_exportFn void puleGpuFrameStart();
+PULE_exportFn void puleGpuFrameEnd(); // call before swapFramebuffer
 
 // prints all debug information
 // TODO this should just stream out or something maybe serialize
-PULE_exportFn void puleGfxDebugPrint();
+PULE_exportFn void puleGpuDebugPrint();
 
 #ifdef __cplusplus
 } // extern C

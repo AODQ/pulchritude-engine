@@ -2,7 +2,7 @@
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
-#include <pulchritude-gfx/image.h>
+#include <pulchritude-gpu/image.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
 
@@ -41,7 +41,7 @@ PULE_exportFn void puleGfxDebugRenderPoint(
 PULE_exportFn void puleGfxDebugFrameStart();
 
 PULE_exportFn void puleGfxDebugRender(
-  PuleGfxFramebuffer const framebuffer,
+  PuleGpuFramebuffer const framebuffer,
   PuleF32m44 const transform
 );
 

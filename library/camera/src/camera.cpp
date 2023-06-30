@@ -90,7 +90,7 @@ void puleCameraPerspectiveSet(
 struct CameraSet {
   std::string label;
   std::vector<PuleCamera> cameras;
-  PuleGfxGpuBuffer uniformBuffer;
+  PuleGpuBuffer uniformBuffer;
   size_t uniformBufferCapacity;
   void * uniformBufferMemory;
 };
@@ -107,11 +107,11 @@ void puleCameraSetRefreshUniformBuffer(CameraSet & set) {
   // deallocate
   if (needsGrow || needsShrink) {
     if (set.uniformBufferMemory) {
-      puleGfxGpuBufferUnmap(set.uniformBuffer);
+      puleGpuBufferUnmap(set.uniformBuffer);
       set.uniformBufferMemory = nullptr;
     }
     if (set.uniformBuffer.id != 0) {
-      puleGfxGpuBufferDestroy(set.uniformBuffer);
+      puleGpuBufferDestroy(set.uniformBuffer);
       set.uniformBuffer.id = 0;
     }
   }
@@ -127,22 +127,22 @@ void puleCameraSetRefreshUniformBuffer(CameraSet & set) {
   if (!set.uniformBuffer.id) {
     std::string const label = set.label + "-uniform-buffer";
     set.uniformBuffer = (
-      puleGfxGpuBufferCreate(
+      puleGpuBufferCreate(
         puleCStr(label.c_str()),
         nullptr,
         sizeof(CameraGpuData)*4,
-        PuleGfxGpuBufferUsage_uniform,
-        PuleGfxGpuBufferVisibilityFlag_hostWritable
+        PuleGpuBufferUsage_uniform,
+        PuleGpuBufferVisibilityFlag_hostWritable
       )
     );
   }
 
   if (!set.uniformBufferMemory) {
     set.uniformBufferMemory = (
-      puleGfxGpuBufferMap(
-        PuleGfxGpuBufferMapRange {
+      puleGpuBufferMap(
+        PuleGpuBufferMapRange {
           .buffer = set.uniformBuffer,
-          .access = PuleGfxGpuBufferMapAccess_hostWritable,
+          .access = PuleGpuBufferMapAccess_hostWritable,
           .byteOffset = 0,
           .byteLength = sizeof(CameraGpuData)*4
         }
@@ -168,8 +168,8 @@ PuleCameraSet puleCameraSetCreate(PuleStringView const label) {
 
 void puleCameraSetDestroy(PuleCameraSet const pSet) {
   auto & set = ::internalCameraSets.at(pSet.id);
-  puleGfxGpuBufferUnmap(set.uniformBuffer);
-  puleGfxGpuBufferDestroy(set.uniformBuffer);
+  puleGpuBufferUnmap(set.uniformBuffer);
+  puleGpuBufferDestroy(set.uniformBuffer);
    ::internalCameraSets.erase(pSet.id);
 }
 
@@ -198,12 +198,12 @@ PuleCameraSetArray puleCameraSetArray(PuleCameraSet const pSet) {
   );
 }
 
-PuleGfxGpuBuffer puleCameraSetGfxUniformBuffer(PuleCameraSet const pSet) {
+PuleGpuBuffer puleCameraSetUniformBuffer(PuleCameraSet const pSet) {
   auto & set = ::internalCameraSets.at(pSet.id);
   return set.uniformBuffer;
 }
 
-PuleGfxFence puleCameraSetRefresh(PuleCameraSet const pSet) {
+PuleGpuFence puleCameraSetRefresh(PuleCameraSet const pSet) {
   auto & set = ::internalCameraSets.at(pSet.id);
   puleCameraSetRefreshUniformBuffer(set);
 
@@ -217,12 +217,12 @@ PuleGfxFence puleCameraSetRefresh(PuleCameraSet const pSet) {
     gpuMemory->projection = puleCameraProj(camera);
     gpuMemory->view = puleCameraView(camera);
   }
-  puleGfxGpuBufferMappedFlush({
+  puleGpuBufferMappedFlush({
     .buffer = set.uniformBuffer,
     .byteOffset = 0,
     .byteLength = sizeof(CameraGpuData)*set.cameras.size(),
   });
-  return puleGfxFenceCreate(PuleGfxFenceConditionFlag_all);
+  return puleGpuFenceCreate(PuleGpuFenceConditionFlag_all);
 }
 
 } // extern C

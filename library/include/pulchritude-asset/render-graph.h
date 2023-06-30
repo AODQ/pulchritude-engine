@@ -4,7 +4,7 @@
 #include <pulchritude-core/core.h>
 #include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-error/error.h>
-#include <pulchritude-gfx/commands.h>
+#include <pulchritude-gpu/commands.h>
 #include <pulchritude-platform/platform.h>
 #include <pulchritude-render-graph/render-graph.h>
 

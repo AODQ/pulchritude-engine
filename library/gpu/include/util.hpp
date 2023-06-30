@@ -1,6 +1,6 @@
-#include <pulchritude-gfx/commands.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/pipeline.h>
+#include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/pipeline.h>
 
 #include <pulchritude-math/math.h>
 
@@ -92,7 +92,7 @@ struct RecorderImage {
 
 struct CommandBufferRecorder {
   std::unordered_map<uint64_t, util::RecorderImage> images;
-  PuleGfxPipeline currentBoundPipeline = { .id = 0, };
+  PuleGpuPipeline currentBoundPipeline = { .id = 0, };
 };
 
 struct Context {
@@ -108,7 +108,7 @@ struct Context {
   VkDescriptorPool defaultDescriptorPool;
 
   // store all image views, indexed by the image handle and a hash of
-  // puleGfxGpuImageView
+  // puleGpuImageView
   std::unordered_map<
     uint64_t, std::unordered_map<uint64_t, VkImageView>
   > imageViews;
@@ -131,10 +131,10 @@ struct Context {
 Context & ctx();
 
 VkDescriptorType toDescriptorType(
-  PuleGfxGpuBufferBindingDescriptor const bufferBindingDescriptor
+  PuleGpuBufferBindingDescriptor const bufferBindingDescriptor
 );
 
-VkBufferUsageFlags toBufferUsageFlags(PuleGfxGpuBufferUsage const usage);
+VkBufferUsageFlags toBufferUsageFlags(PuleGpuBufferUsage const usage);
 
 VkSwapchainKHR swapchainCreate();
 uint32_t swapchainAcquireNextImage(
@@ -144,24 +144,24 @@ uint32_t swapchainAcquireNextImage(
 void swapchainPresent(VkSemaphore const waitSemaphore);
 void swapchainImages();
 
-VkShaderStageFlags toVkShaderStageFlags(PuleGfxDescriptorStage const stage);
-VkIndexType toVkIndexType(PuleGfxElementType const elementType);
-VkAccessFlags toVkAccessFlags(PuleGfxCommandPayloadAccess const access);
-VkImageLayout toVkImageLayout(PuleGfxImageLayout const layout);
-VkFormat toVkImageFormat(PuleGfxImageByteFormat const format);
+VkShaderStageFlags toVkShaderStageFlags(PuleGpuDescriptorStage const stage);
+VkIndexType toVkIndexType(PuleGpuElementType const elementType);
+VkAccessFlags toVkAccessFlags(PuleGpuCommandPayloadAccess const access);
+VkImageLayout toVkImageLayout(PuleGpuImageLayout const layout);
+VkFormat toVkImageFormat(PuleGpuImageByteFormat const format);
 VkFormat toVkBufferFormat(
-  PuleGfxAttributeDataType const dataType,
+  PuleGpuAttributeDataType const dataType,
   size_t const numComponents,
   bool const normalize
 );
 VkAttachmentLoadOp toVkAttachmentOpLoad(
-  PuleGfxImageAttachmentOpLoad const op
+  PuleGpuImageAttachmentOpLoad const op
 );
 VkAttachmentStoreOp toVkAttachmentOpStore(
-  PuleGfxImageAttachmentOpStore const op
+  PuleGpuImageAttachmentOpStore const op
 );
 
 
-VkImageView fetchImageView(PuleGfxGpuImageView const imageView);
+VkImageView fetchImageView(PuleGpuImageView const imageView);
 
 } // ::util

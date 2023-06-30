@@ -14,7 +14,7 @@ namespace {
 struct RenderGraphNode {
   std::string label;
   std::unordered_map<std::thread::id, uint64_t> perThreadCommandList;
-  std::vector<PuleGfxCommandList> commandLists;
+  std::vector<PuleGpuCommandList> commandLists;
   std::unordered_map<uint64_t, PuleRenderGraph_Resource> resources;
   std::unordered_map<uint64_t, std::string> resourceLabels;
   std::vector<uint64_t> relationDependsOn;
@@ -286,7 +286,7 @@ void puleRenderGraph_resourceRemove(
   node.resources.erase(puleStringViewHash(resourceLabel));
 }
 
-PuleGfxCommandList puleRenderGraph_commandList(
+PuleGpuCommandList puleRenderGraph_commandList(
   PuleRenderGraphNode const pNode,
   uint64_t (*fetchResourceHandle)(
     PuleStringView const label, void * const data
@@ -305,13 +305,13 @@ PuleGfxCommandList puleRenderGraph_commandList(
   );
   node.perThreadCommandList.emplace(threadId, node.commandLists.size());
   node.commandLists.emplace_back(
-    puleGfxCommandListCreate(
+    puleGpuCommandListCreate(
       puleAllocateDefault(),
       puleCStr(commandListStr.c_str())
     )
   );
   PULE_assert(
-    puleGfxCommandListRecorder(
+    puleGpuCommandListRecorder(
       node.commandLists.back(),
       puleRenderGraph_commandPayload(
         pNode,
@@ -324,7 +324,7 @@ PuleGfxCommandList puleRenderGraph_commandList(
   return node.commandLists.back();
 }
 
-PuleGfxCommandListRecorder puleRenderGraph_commandListRecorder(
+PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
   PuleRenderGraphNode const node,
   uint64_t (*fetchResourceHandle)(
     PuleStringView const label, void * const data
@@ -332,13 +332,13 @@ PuleGfxCommandListRecorder puleRenderGraph_commandListRecorder(
   void * const userdata
 ) {
   return (
-    PuleGfxCommandListRecorder {
+    PuleGpuCommandListRecorder {
       puleRenderGraph_commandList(node, fetchResourceHandle, userdata).id,
     }
   );
 }
 
-PuleGfxCommandPayload puleRenderGraph_commandPayload(
+PuleGpuCommandPayload puleRenderGraph_commandPayload(
   PuleRenderGraphNode const pGraphNode,
   PuleAllocator const payloadAllocator,
   uint64_t (*fetchResourceHandle)(PuleStringView const label, void * const data),
@@ -348,11 +348,11 @@ PuleGfxCommandPayload puleRenderGraph_commandPayload(
     ::renderGraphs.at(renderGraphNodeToGraph.at(pGraphNode.id))
   );
   RenderGraphNode & node = graph.nodes.at(pGraphNode.id);
-  PuleGfxCommandPayload payload;
+  PuleGpuCommandPayload payload;
   PuleArray payloadImages = (
     puleArray(
       PuleArrayCreateInfo {
-        .elementByteLength = sizeof(PuleGfxCommandPayloadImage),
+        .elementByteLength = sizeof(PuleGpuCommandPayloadImage),
         .elementAlignmentByteLength = 0,
         .allocator = payloadAllocator,
       }
@@ -367,18 +367,18 @@ PuleGfxCommandPayload puleRenderGraph_commandPayload(
       )
     );
     // TODO check all potential swapchain images
-    // bool const isSwapchainImage = (handle == puleGfxWindowImage().id);
+    // bool const isSwapchainImage = (handle == puleGpuWindowImage().id);
     switch (resource.resourceType) {
       case PuleRenderGraph_ResourceType_image: {
         auto * payloadImage = (
-          reinterpret_cast<PuleGfxCommandPayloadImage *>(
+          reinterpret_cast<PuleGpuCommandPayloadImage *>(
             puleArrayAppend(&payloadImages)
           )
         );
         PULE_assert(payloadImage);
         *payloadImage = (
-          PuleGfxCommandPayloadImage {
-            .image = PuleGfxGpuImage { .id = handle, },
+          PuleGpuCommandPayloadImage {
+            .image = PuleGpuImage { .id = handle, },
             .access = resource.image.entrancePayloadAccess,
             .layout = resource.image.entrancePayloadLayout,
           }
@@ -408,7 +408,7 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
   for (auto & nodePair : graph.nodes) {
     // reset command lists TODO maybe reuse?
     for (size_t it = 0; it < nodePair.second.commandLists.size(); ++ it) {
-      puleGfxCommandListDestroy(nodePair.second.commandLists[it]);
+      puleGpuCommandListDestroy(nodePair.second.commandLists[it]);
     }
     nodePair.second.commandLists = {};
     nodePair.second.perThreadCommandList = {};
@@ -422,10 +422,10 @@ void puleRenderGraphFrameEnd(PuleRenderGraph const pGraph) {
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
     auto const & node = graph.nodes.at(nodeId);
     for (auto const commandList : node.commandLists) {
-      puleGfxCommandListRecorderFinish(
-        PuleGfxCommandListRecorder { .id = commandList.id, }
+      puleGpuCommandListRecorderFinish(
+        PuleGpuCommandListRecorder { .id = commandList.id, }
       );
-      puleGfxCommandListSubmit({
+      puleGpuCommandListSubmit({
         .commandList = commandList,
         .fenceTargetStart = nullptr,
         .fenceTargetFinish = nullptr,

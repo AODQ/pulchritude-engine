@@ -1,4 +1,4 @@
-#include <pulchritude-gfx/commands.h>
+#include <pulchritude-gpu/commands.h>
 
 #include <util.hpp>
 
@@ -13,7 +13,7 @@
 //------------------------------------------------------------------------------
 
 VkRenderingAttachmentInfo imageAttachmentToVk(
-  PuleGfxImageAttachment const attachment,
+  PuleGpuImageAttachment const attachment,
   bool const isDepth
 ) {
   return VkRenderingAttachmentInfo {
@@ -41,30 +41,30 @@ VkRenderingAttachmentInfo imageAttachmentToVk(
   };
 }
 
-PuleStringView puleGfxActionToString(PuleGfxAction const action) {
+PuleStringView puleGpuActionToString(PuleGpuAction const action) {
   switch (action) {
     default: return puleCStr("unknown");
-    case PuleGfxAction_bindPipeline:
+    case PuleGpuAction_bindPipeline:
       return puleCStr("bind-pipeline");
-    case PuleGfxAction_bindBuffer:
+    case PuleGpuAction_bindBuffer:
       return puleCStr("bind-buffer");
-    case PuleGfxAction_bindElementBuffer:
+    case PuleGpuAction_bindElementBuffer:
       return puleCStr("bind-element-buffer");
-    case PuleGfxAction_bindAttributeBuffer:
+    case PuleGpuAction_bindAttributeBuffer:
       return puleCStr("bind-attribute-buffer");
-    case PuleGfxAction_clearImageColor:
+    case PuleGpuAction_clearImageColor:
       return puleCStr("clear-image-color");
-    case PuleGfxAction_clearImageDepth:
+    case PuleGpuAction_clearImageDepth:
       return puleCStr("clear-image-depth");
-    case PuleGfxAction_dispatchRender:
+    case PuleGpuAction_dispatchRender:
       return puleCStr("dispatch-render");
-    case PuleGfxAction_dispatchRenderIndirect:
+    case PuleGpuAction_dispatchRenderIndirect:
       return puleCStr("dispatch-render-indirect");
-    case PuleGfxAction_dispatchRenderElements:
+    case PuleGpuAction_dispatchRenderElements:
       return puleCStr("dispatch-render-elements");
-    case PuleGfxAction_pushConstants:
+    case PuleGpuAction_pushConstants:
       return puleCStr("push-constants");
-    case PuleGfxAction_dispatchCommandList:
+    case PuleGpuAction_dispatchCommandList:
       return puleCStr("dispatch-command-list");
   }
 }
@@ -72,7 +72,7 @@ PuleStringView puleGfxActionToString(PuleGfxAction const action) {
 namespace {
 
 void puClearImageColor(
-  PuleGfxActionClearImageColor const action,
+  PuleGpuActionClearImageColor const action,
   VkCommandBuffer const commandBuffer,
   util::CommandBufferRecorder & commandBufferRecorder
 ) {
@@ -134,7 +134,7 @@ void puClearImageColor(
 
 extern "C" {
 
-PuleGfxCommandList puleGfxCommandListCreate(
+PuleGpuCommandList puleGpuCommandListCreate(
   [[maybe_unused]] PuleAllocator const allocator,
   [[maybe_unused]] PuleStringView const label
 ) {
@@ -157,7 +157,7 @@ PuleGfxCommandList puleGfxCommandListCreate(
   return { .id = reinterpret_cast<uint64_t>(cmdBuffer), };
 }
 
-void puleGfxCommandListDestroy(PuleGfxCommandList const commandList) {
+void puleGpuCommandListDestroy(PuleGpuCommandList const commandList) {
   if (commandList.id == 0) { return; }
   auto cmdBuffer = reinterpret_cast<VkCommandBuffer>(commandList.id);
   vkFreeCommandBuffers(
@@ -167,8 +167,8 @@ void puleGfxCommandListDestroy(PuleGfxCommandList const commandList) {
   );
 }
 
-PuleStringView puleGfxCommandListName(
-  PuleGfxCommandList const commandListId
+PuleStringView puleGpuCommandListName(
+  PuleGpuCommandList const commandListId
 ) {
   (void)commandListId;
   //auto & commandList = ::commandLists.at(commandListId.id);
@@ -176,9 +176,9 @@ PuleStringView puleGfxCommandListName(
   return puleCStr("UNKNOWN YET");
 }
 
-PuleGfxCommandListRecorder puleGfxCommandListRecorder(
-  PuleGfxCommandList const commandList,
-  PuleGfxCommandPayload const beginCommandPayload
+PuleGpuCommandListRecorder puleGpuCommandListRecorder(
+  PuleGpuCommandList const commandList,
+  PuleGpuCommandPayload const beginCommandPayload
 ) {
   auto beginInfo = VkCommandBufferBeginInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -192,7 +192,7 @@ PuleGfxCommandListRecorder puleGfxCommandListRecorder(
   util::CommandBufferRecorder cbRecorder;
   // move data from user command payload into recorder storage
   for (size_t it = 0; it < beginCommandPayload.payloadImagesLength; ++ it) {
-    PuleGfxCommandPayloadImage const payloadImg = (
+    PuleGpuCommandPayloadImage const payloadImg = (
       beginCommandPayload.payloadImages[it]
     );
     cbRecorder.images.emplace(
@@ -211,13 +211,13 @@ PuleGfxCommandListRecorder puleGfxCommandListRecorder(
   return { .id = reinterpret_cast<uint64_t>(commandBuffer), };
 }
 
-void puleGfxCommandListRecorderFinish(
-  [[maybe_unused]] PuleGfxCommandListRecorder const commandListRecorder
+void puleGpuCommandListRecorderFinish(
+  [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
 ) {
   vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandListRecorder.id));
 }
-void puleGfxCommandListRecorderReset(
-  [[maybe_unused]] PuleGfxCommandListRecorder const commandListRecorder
+void puleGpuCommandListRecorderReset(
+  [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
 ) {
   auto const commandBuffer = (
     reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
@@ -226,9 +226,9 @@ void puleGfxCommandListRecorderReset(
   vkResetCommandBuffer(commandBuffer, 0); // TODO what about reset flag?
 }
 
-void puleGfxCommandListAppendAction(
-  PuleGfxCommandListRecorder const commandListRecorder,
-  PuleGfxCommand const command
+void puleGpuCommandListAppendAction(
+  PuleGpuCommandListRecorder const commandListRecorder,
+  PuleGpuCommand const command
 ) {
   auto commandBuffer = (
     reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
@@ -240,11 +240,11 @@ void puleGfxCommandListAppendAction(
 
   switch (command.action) {
     default:
-      puleLogError("Unknown command PuleGfxAction %d", command.action);
+      puleLogError("Unknown command PuleGpuAction %d", command.action);
       PULE_assert(false);
-    case PuleGfxAction_bindAttributeBuffer: {
+    case PuleGpuAction_bindAttributeBuffer: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionBindAttributeBuffer const *>(&command)
+        *reinterpret_cast<PuleGpuActionBindAttributeBuffer const *>(&command)
       );
       auto buffer = reinterpret_cast<VkBuffer>(action.buffer.id);
       auto offset = VkDeviceSize { action.offset };
@@ -265,9 +265,9 @@ void puleGfxCommandListAppendAction(
       );
     }
     break;
-    case PuleGfxAction_bindPipeline: {
+    case PuleGpuAction_bindPipeline: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
+        *reinterpret_cast<PuleGpuActionBindPipeline const *>(&command)
       );
       auto pipeline = reinterpret_cast<VkPipeline>(action.pipeline.id);
       vkCmdBindPipeline(
@@ -276,25 +276,25 @@ void puleGfxCommandListAppendAction(
       recorderInfo.currentBoundPipeline = action.pipeline;
     }
     break;
-    case PuleGfxAction_bindFramebuffer: {
+    case PuleGpuAction_bindFramebuffer: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
+        *reinterpret_cast<PuleGpuActionBindFramebuffer const *>(&command)
       );
       auto framebuffer = reinterpret_cast<VkFramebuffer>(action.framebuffer.id);
       (void)framebuffer;
       // TODO::CRITICAL
     }
     break;
-    case PuleGfxAction_clearImageColor: {
+    case PuleGpuAction_clearImageColor: {
       puClearImageColor(
-        *reinterpret_cast<PuleGfxActionClearImageColor const *>(&command),
+        *reinterpret_cast<PuleGpuActionClearImageColor const *>(&command),
         commandBuffer,
         recorderInfo
       );
     } break;
-    case PuleGfxAction_clearImageDepth: {
+    case PuleGpuAction_clearImageDepth: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionClearImageDepth const *>(&command)
+        *reinterpret_cast<PuleGpuActionClearImageDepth const *>(&command)
       );
       auto const depthStencil = VkClearDepthStencilValue {
         .depth = action.depth,
@@ -313,18 +313,18 @@ void puleGfxCommandListAppendAction(
         1, &clearSubresourceRange
       );
     } break;
-    case PuleGfxAction_dispatchRender: {
+    case PuleGpuAction_dispatchRender: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
+        *reinterpret_cast<PuleGpuActionDispatchRender const *>(&command)
       );
       vkCmdDraw(
         commandBuffer, action.numVertices, 1, action.vertexOffset, 0
       );
     }
     break;
-    case PuleGfxAction_dispatchRenderElements: {
+    case PuleGpuAction_dispatchRenderElements: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(&command)
+        *reinterpret_cast<PuleGpuActionDispatchRenderElements const *>(&command)
       );
       vkCmdDrawIndexed(
         commandBuffer,
@@ -333,16 +333,16 @@ void puleGfxCommandListAppendAction(
         0
       );
     } break;
-    case PuleGfxAction_dispatchRenderIndirect: {
+    case PuleGpuAction_dispatchRenderIndirect: {
       PULE_assert(false && "TODO"); // TODO
     } break;
-    case PuleGfxAction_pushConstants: {
+    case PuleGpuAction_pushConstants: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionPushConstants const *>(&command)
+        *reinterpret_cast<PuleGpuActionPushConstants const *>(&command)
       );
       (void)action;
       // TODO::CRITICAL need the PipelineLayout to program the push apparently
-      // TODO::CRITICAL need to prepare PuleGfxConstant array
+      // TODO::CRITICAL need to prepare PuleGpuConstant array
       // vkCmdPushConstants(
       //   commandBuffer,
       //   layout,
@@ -351,9 +351,9 @@ void puleGfxCommandListAppendAction(
       // );
     }
     break;
-    case PuleGfxAction_dispatchCommandList: {
+    case PuleGpuAction_dispatchCommandList: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
+        *reinterpret_cast<PuleGpuActionDispatchCommandList const *>(
           &command
         )
       );
@@ -363,9 +363,9 @@ void puleGfxCommandListAppendAction(
       vkCmdExecuteCommands(subCommandBuffer, 1, &subCommandBuffer);
     }
     break;
-    case PuleGfxAction_bindBuffer: {
+    case PuleGpuAction_bindBuffer: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
+        *reinterpret_cast<PuleGpuActionBindBuffer const *>(&command)
       );
       // write the descriptor set to our command 'cache'
       auto const bufferInfo = VkDescriptorBufferInfo {
@@ -402,9 +402,9 @@ void puleGfxCommandListAppendAction(
       );
     }
     break;
-    case PuleGfxAction_renderPassBegin: {
+    case PuleGpuAction_renderPassBegin: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionRenderPassBegin const *>(&command)
+        *reinterpret_cast<PuleGpuActionRenderPassBegin const *>(&command)
       );
       VkRenderingAttachmentInfo colorAttachments[8];
       for (size_t it = 0; it <  8; ++ it) {
@@ -445,13 +445,13 @@ void puleGfxCommandListAppendAction(
       vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }
     break;
-    case PuleGfxAction_renderPassEnd: {
+    case PuleGpuAction_renderPassEnd: {
       vkCmdEndRendering(commandBuffer);
     }
     break;
-    case PuleGfxAction_bindElementBuffer: {
+    case PuleGpuAction_bindElementBuffer: {
       auto const action = (
-        *reinterpret_cast<PuleGfxActionBindElementBuffer const *>(&command)
+        *reinterpret_cast<PuleGpuActionBindElementBuffer const *>(&command)
       );
       auto buffer = reinterpret_cast<VkBuffer>(action.buffer.id);
       vkCmdBindIndexBuffer(
@@ -463,8 +463,8 @@ void puleGfxCommandListAppendAction(
   }
 }
 
-void puleGfxCommandListSubmit(
-  PuleGfxCommandListSubmitInfo const info,
+void puleGpuCommandListSubmit(
+  PuleGpuCommandListSubmitInfo const info,
   PuleError * const error
 ) {
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(info.commandList.id);
@@ -499,7 +499,7 @@ void puleGfxCommandListSubmit(
 namespace {
 
 // TODO this should probably go to some serializer module
-// void commandListDump(PuleGfxCommandList const commandList, int32_t level=0) {
+// void commandListDump(PuleGpuCommandList const commandList, int32_t level=0) {
   // auto const commandListFind = ::commandLists.find(commandList.id);
   // std::string levelStr = "";
   // for (int32_t l = 0; l < level+1; ++ l) levelStr += "|  ";
@@ -509,97 +509,97 @@ namespace {
   //   levelCStr, commandListFind->second.label.c_str()
   // );
   // for (auto const command : commandListFind->second.actions) {
-  //   PuleGfxAction const actionType = (
-  //     *reinterpret_cast<PuleGfxAction const *>(&command)
+  //   PuleGpuAction const actionType = (
+  //     *reinterpret_cast<PuleGpuAction const *>(&command)
   //   );
   //   switch (actionType) {
   //     default:
   //       puleLogError("%sunknown action ID %d", levelCStr, actionType);
   //     break;
-  //     case PuleGfxAction_clearImageColor: {
-  //       puleLogDebug("%sPuleGfxAction_clearImageColor", levelCStr);
+  //     case PuleGpuAction_clearImageColor: {
+  //       puleLogDebug("%sPuleGpuAction_clearImageColor", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionClearImageColor const *>(
+  //         *reinterpret_cast<PuleGpuActionClearImageColor const *>(
   //           &command
   //         )
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_clearImageDepth: {
-  //       puleLogDebug("%sPuleGfxAction_clearImageDepth", levelCStr);
+  //     case PuleGpuAction_clearImageDepth: {
+  //       puleLogDebug("%sPuleGpuAction_clearImageDepth", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionClearImageDepth const *>(
+  //         *reinterpret_cast<PuleGpuActionClearImageDepth const *>(
   //           &command
   //         )
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_pushConstants: {
-  //       puleLogDebug("%sPuleGfxAction_pushConstants", levelCStr);
+  //     case PuleGpuAction_pushConstants: {
+  //       puleLogDebug("%sPuleGpuAction_pushConstants", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionPushConstants const *>(
+  //         *reinterpret_cast<PuleGpuActionPushConstants const *>(
   //           &command
   //         )
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_bindBuffer: {
-  //       puleLogDebug("%sPuleGfxAction_bindBuffer", levelCStr);
+  //     case PuleGpuAction_bindBuffer: {
+  //       puleLogDebug("%sPuleGpuAction_bindBuffer", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
+  //         *reinterpret_cast<PuleGpuActionBindBuffer const *>(&command)
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_bindAttributeBuffer: {
-  //       puleLogDebug("%sPuleGfxAction_bindAttributeBuffer", levelCStr);
+  //     case PuleGpuAction_bindAttributeBuffer: {
+  //       puleLogDebug("%sPuleGpuAction_bindAttributeBuffer", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
+  //         *reinterpret_cast<PuleGpuActionBindAttribute const *>(&command)
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_bindPipeline: {
-  //       puleLogDebug("%sPuleGfxAction_bindPipeline", levelCStr);
+  //     case PuleGpuAction_bindPipeline: {
+  //       puleLogDebug("%sPuleGpuAction_bindPipeline", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
+  //         *reinterpret_cast<PuleGpuActionBindPipeline const *>(&command)
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_bindFramebuffer: {
-  //       puleLogDebug("%sPuleGfxAction_bindFramebuffer", levelCStr);
+  //     case PuleGpuAction_bindFramebuffer: {
+  //       puleLogDebug("%sPuleGpuAction_bindFramebuffer", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
+  //         *reinterpret_cast<PuleGpuActionBindFramebuffer const *>(&command)
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_dispatchRender: {
-  //       puleLogDebug("%sPuleGfxAction_dispatchRender", levelCStr);
+  //     case PuleGpuAction_dispatchRender: {
+  //       puleLogDebug("%sPuleGpuAction_dispatchRender", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
+  //         *reinterpret_cast<PuleGpuActionDispatchRender const *>(&command)
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_dispatchRenderIndirect: {
-  //       puleLogDebug("%sPuleGfxAction_dispatchRenderIndirect", levelCStr);
+  //     case PuleGpuAction_dispatchRenderIndirect: {
+  //       puleLogDebug("%sPuleGpuAction_dispatchRenderIndirect", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionDispatchRenderIndirect const *>(
+  //         *reinterpret_cast<PuleGpuActionDispatchRenderIndirect const *>(
   //           &command
   //         )
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_dispatchRenderElements: {
-  //       puleLogDebug("%sPuleGfxAction_dispatchRenderElements", levelCStr);
+  //     case PuleGpuAction_dispatchRenderElements: {
+  //       puleLogDebug("%sPuleGpuAction_dispatchRenderElements", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(
+  //         *reinterpret_cast<PuleGpuActionDispatchRenderElements const *>(
   //           &command
   //         )
   //       );
   //       (void)action;
   //     } break;
-  //     case PuleGfxAction_dispatchCommandList: {
-  //       puleLogDebug("%sPuleGfxAction_dispatchCommandList", levelCStr);
+  //     case PuleGpuAction_dispatchCommandList: {
+  //       puleLogDebug("%sPuleGpuAction_dispatchCommandList", levelCStr);
   //       auto const action = (
-  //         *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
+  //         *reinterpret_cast<PuleGpuActionDispatchCommandList const *>(
   //           &command
   //         )
   //       );
@@ -613,7 +613,7 @@ namespace {
 
 extern "C" {
 
-void puleGfxCommandListDump(PuleGfxCommandList const) {
+void puleGpuCommandListDump(PuleGpuCommandList const) {
   // TODO -- this can only be done by serializer module i suppose
   //puleLogDebug("-------------------------------------------------");
   //puleLogDebug("<NO>");

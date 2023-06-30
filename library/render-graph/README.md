@@ -17,7 +17,7 @@ complete.
 TODO move this elsewhere I guess
 The lifetime of a frame:
 
-  - puleGfxFrameStart (prepare/acquire next swapchain image)
+  - puleGpuFrameStart (prepare/acquire next swapchain image)
   - pulePlatformPullEvents (poll user input, window/platform events, etc)
   - puleImguiNewFrame (create new imgui frame)
 

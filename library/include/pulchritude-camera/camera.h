@@ -3,8 +3,8 @@
 #include <pulchritude-core/core.h>
 
 #include <pulchritude-data-serializer/data-serializer.h>
-#include <pulchritude-gfx/barrier.h>
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/barrier.h>
+#include <pulchritude-gpu/gpu.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
 
@@ -71,11 +71,9 @@ typedef struct {
 } PuleCameraSetArray;
 PULE_exportFn PuleCameraSetArray puleCameraSetArray(PuleCameraSet const);
 
-PULE_exportFn PuleGfxGpuBuffer puleCameraSetGfxUniformBuffer(
-  PuleCameraSet const
-);
+PULE_exportFn PuleGpuBuffer puleCameraSetUniformBuffer(PuleCameraSet const);
 // must be on main thread in case buffer needs to be reallocated
-PULE_exportFn PuleGfxFence puleCameraSetRefresh(PuleCameraSet const);
+PULE_exportFn PuleGpuFence puleCameraSetRefresh(PuleCameraSet const);
 
 // -- camera controller --------------------------------------------------------
 

@@ -1,15 +1,15 @@
 #include <pulchritude-gfx-debug/gfx-debug.h>
 
-#include <pulchritude-gfx/barrier.h>
-#include <pulchritude-gfx/commands.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/shader-module.h>
+#include <pulchritude-gpu/barrier.h>
+#include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/shader-module.h>
 
 namespace {
 
 struct ShapeRenderer {
-  PuleGfxShaderModule shaderModule { 0 };
-  PuleGfxPipeline pipeline { 0 };
+  PuleGpuShaderModule shaderModule { 0 };
+  PuleGpuPipeline pipeline { 0 };
   size_t requestedDraws = 0;
 };
 
@@ -22,16 +22,16 @@ struct MappedLine {
 
 struct Context {
   PulePlatform platform;
-  PuleGfxGpuBuffer mappedBuffer { 0 };
+  PuleGpuBuffer mappedBuffer { 0 };
   uint8_t * mappedBufferContents = nullptr;
   size_t bufferByteLength { 0 };
   ShapeRenderer lineRenderer { 0 };
-  PuleGfxCommandList commandList { 0 };
+  PuleGpuCommandList commandList { 0 };
 };
 Context ctx { };
 
 void refreshContext(
-  [[maybe_unused]] PuleGfxFramebuffer const framebuffer,
+  [[maybe_unused]] PuleGpuFramebuffer const framebuffer,
   [[maybe_unused]] PuleF32m44 const transform,
   PuleError * const err
 ) {
@@ -46,16 +46,16 @@ void refreshContext(
   // prevHeight = windowSize.y;
   //
   // { // line pipeline layout
-  //   auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
+  //   auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
   //   descriptorSetLayout.bufferAttributeBindings[0] = {
-  //     .dataType = PuleGfxAttributeDataType_float,
+  //     .dataType = PuleGpuAttributeDataType_float,
   //     .numComponents = 3,
   //     .convertFixedDataTypeToNormalizedFloating = false,
   //     .stridePerElement = sizeof(PuleF32v3)*2,
   //     .offsetIntoBuffer = 0,
   //   };
   //
-  //   auto pipelineInfo = PuleGfxPipelineCreateInfo {
+  //   auto pipelineInfo = PuleGpuPipelineCreateInfo {
   //     .shaderModule = ctx.lineRenderer.shaderModule,
   //     .layout = &descriptorSetLayout,
   //     .config = {
@@ -68,41 +68,41 @@ void refreshContext(
   //       .scissorLr = pulePlatformWindowSize(ctx.platform),
   //     },
   //   };
-  //   puleGfxPipelineDestroy(ctx.lineRenderer.pipeline);
-  //   ctx.lineRenderer.pipeline = puleGfxPipelineCreate(&pipelineInfo, err);
+  //   puleGpuPipelineDestroy(ctx.lineRenderer.pipeline);
+  //   ctx.lineRenderer.pipeline = puleGpuPipelineCreate(&pipelineInfo, err);
   //   if (puleErrorExists(err)) {
   //     return;
   //   }
   // }
   //
-  // puleGfxCommandListDestroy(ctx.commandList);
+  // puleGpuCommandListDestroy(ctx.commandList);
   // ctx.commandList = (
-  //   puleGfxCommandListCreate(
+  //   puleGpuCommandListCreate(
   //     puleAllocateDefault(),
   //     puleCStr("pule-gfx-debug")
   //   )
   // );
   // { // record command list
-  //   auto commandListRecorder = puleGfxCommandListRecorder(ctx.commandList);
+  //   auto commandListRecorder = puleGpuCommandListRecorder(ctx.commandList);
   //
   //   if (ctx.lineRenderer.requestedDraws == 0) {
   //     goto finishLineRendering;
   //   }
-  //   puleGfxCommandListAppendAction(
+  //   puleGpuCommandListAppendAction(
   //     commandListRecorder,
-  //     PuleGfxCommand {
+  //     PuleGpuCommand {
   //       .bindPipeline = {
-  //         .action = PuleGfxAction_bindPipeline,
+  //         .action = PuleGpuAction_bindPipeline,
   //         .pipeline = ctx.lineRenderer.pipeline,
   //       },
   //     }
   //   );
-  //   puleGfxCommandListAppendAction(
+  //   puleGpuCommandListAppendAction(
   //     commandListRecorder,
-  //     PuleGfxCommand {
+  //     PuleGpuCommand {
   //       .dispatchRender = {
-  //         .action = PuleGfxAction_dispatchRender,
-  //         .drawPrimitive = PuleGfxDrawPrimitive_line,
+  //         .action = PuleGpuAction_dispatchRender,
+  //         .drawPrimitive = PuleGpuDrawPrimitive_line,
   //         .vertexOffset = 0,
   //         .numVertices = ctx.lineRenderer.requestedDraws*2,
   //       },
@@ -110,7 +110,7 @@ void refreshContext(
   //   );
   //   finishLineRendering:
   //
-  //   puleGfxCommandListRecorderFinish(commandListRecorder);
+  //   puleGpuCommandListRecorderFinish(commandListRecorder);
   // }
 }
 
@@ -122,20 +122,20 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
   ctx.platform = platform;
   ctx.bufferByteLength = 8192;
   ctx.mappedBuffer = (
-    puleGfxGpuBufferCreate(
+    puleGpuBufferCreate(
       puleCStr("pule-gfx-mapped-debug-buffer"),
       nullptr,
       ctx.bufferByteLength,
-      PuleGfxGpuBufferUsage_storage,
-      PuleGfxGpuBufferVisibilityFlag_hostWritable
+      PuleGpuBufferUsage_storage,
+      PuleGpuBufferVisibilityFlag_hostWritable
     )
   );
   ctx.mappedBufferContents = nullptr;
   ctx.mappedBufferContents = (
     reinterpret_cast<uint8_t *>(
-      puleGfxGpuBufferMap( PuleGfxGpuBufferMapRange {
+      puleGpuBufferMap( PuleGpuBufferMapRange {
         .buffer = ctx.mappedBuffer,
-        .access = PuleGfxGpuBufferMapAccess_hostWritable,
+        .access = PuleGpuBufferMapAccess_hostWritable,
         .byteOffset = 0,
         .byteLength = ctx.bufferByteLength,
       })
@@ -171,7 +171,7 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
 
   // { // line renderer
   //   ctx.lineRenderer.shaderModule = (
-  //     puleGfxShaderModuleCreate(
+  //     puleGpuShaderModuleCreate(
   //       puleCStr(moduleShaderSource),
   //       &err
   //     )
@@ -191,23 +191,23 @@ void puleGfxDebugFrameStart() {
 }
 
 void puleGfxDebugRender(
-  PuleGfxFramebuffer const framebuffer,
+  PuleGpuFramebuffer const framebuffer,
   PuleF32m44 const transform
 ) {
   // update GPU info
-  puleGfxGpuBufferMappedFlush({
+  puleGpuBufferMappedFlush({
     .buffer = ctx.mappedBuffer,
     .byteOffset = 0,
     .byteLength = ctx.lineRenderer.requestedDraws*sizeof(MappedLine),
   });
-  puleGfxMemoryBarrier(PuleGfxMemoryBarrierFlag_bufferUpdate);
+  puleGpuMemoryBarrier(PuleGpuMemoryBarrierFlag_bufferUpdate);
 
   PuleError err = puleError();
   refreshContext(framebuffer, transform, &err);
   if (puleErrorConsume(&err)) {
     return;
   }
-  puleGfxCommandListSubmit(
+  puleGpuCommandListSubmit(
     {
       .commandList = ctx.commandList,
       .fenceTargetStart = nullptr,

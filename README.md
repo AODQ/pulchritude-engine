@@ -1,7 +1,5 @@
 # Pulchritude
 
-TODO : rename puleGfx -> puleGpu / puleGfxGpu -> puleGpu
-
 <p align="center"> <img src="documents/pulchritude-logo.gif"> </p>
 
 ### summary
@@ -83,7 +81,7 @@ Some plugins in some cases are harder to replace than others and might require
    header; such as field initializers. As well new libraries would be forced to
    be coherent to a standard that can be portable among all languages.
 
- - headers should have `package` such as `pulchritude-gfx/package.h`
+ - headers should have `package` such as `pulchritude-gpu/package.h`
 
  - do not use any C++ STL in the library; basically don't want to impose the
    STL onto applications. This isn't really a priority because there are
@@ -117,7 +115,7 @@ replacement);
   - allocator
   - asset-font
   - asset-image
-  - gfx
+  - gpu
   - json
   - logging
   - math
@@ -581,8 +579,8 @@ typedef enum {
 ```
 
 The 'value' label of an enum can not start with an integer, for example,
-`PuleGfxImageTarget_2D` is not valid. This is so that binding generators can do
-`PuleGfxImageTarget.2D` for languages that support typed enums, and most
+`PuleGpuImageTarget_2D` is not valid. This is so that binding generators can do
+`PuleGpuImageTarget.2D` for languages that support typed enums, and most
 languages cannot have the first character of a variable label be numeric. Instead in these cases use `i2D`
 
 ```

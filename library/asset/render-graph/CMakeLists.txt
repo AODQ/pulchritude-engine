@@ -23,7 +23,7 @@ target_link_libraries(
     pulchritude-allocator
     pulchritude-asset-pds
     pulchritude-render-graph
-    pulchritude-gfx pulchritude-platform
+    pulchritude-gpu pulchritude-platform
     pulchritude-data-serializer
     pulchritude-error
     pulchritude-file

@@ -1,4 +1,4 @@
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/gpu.h>
 
 #include <util.hpp>
 
@@ -358,7 +358,7 @@ static void GLAPIENTRY errorMessageCallback(
 }
 #endif
 
-void puleGfxInitialize(PulePlatform const platform, PuleError * const error) {
+void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   puleLog("Initializing vulkan loader");
   PULE_vkAssert(volkInitialize(), PuleErrorGfx_creationFailed,);
   puleLog("Initializing vulkan instance");
@@ -573,7 +573,7 @@ void puleGfxInitialize(PulePlatform const platform, PuleError * const error) {
   util::swapchainImages();
 }
 
-void puleGfxShutdown() {
+void puleGpuShutdown() {
   // TODO ...
   vkDestroyDevice(util::ctx().device.logical, nullptr);
 }
@@ -587,48 +587,48 @@ void puleGfxShutdown() {
 #if 0
 namespace {
   [[maybe_unused]]
-  GLenum bufferUsageToGl(PuleGfxGpuBufferUsage const usage) {
+  GLenum bufferUsageToGl(PuleGpuBufferUsage const usage) {
     switch (usage) {
       default:
         puleLogError("usage is invalid with renderer: %d", usage);
         return 0;
-      case PuleGfxGpuBufferUsage_bufferAttribute: return GL_ARRAY_BUFFER;
-      case PuleGfxGpuBufferUsage_bufferElement: return GL_ELEMENT_ARRAY_BUFFER;
-      case PuleGfxGpuBufferUsage_bufferUniform: return GL_UNIFORM_BUFFER;
-      case PuleGfxGpuBufferUsage_bufferIndirect: return GL_DRAW_INDIRECT_BUFFER;
+      case PuleGpuBufferUsage_bufferAttribute: return GL_ARRAY_BUFFER;
+      case PuleGpuBufferUsage_bufferElement: return GL_ELEMENT_ARRAY_BUFFER;
+      case PuleGpuBufferUsage_bufferUniform: return GL_UNIFORM_BUFFER;
+      case PuleGpuBufferUsage_bufferIndirect: return GL_DRAW_INDIRECT_BUFFER;
     }
   }
 
-  GLbitfield bufferVisibilityToGl(PuleGfxGpuBufferVisibilityFlag const usage) {
-    if (usage & PuleGfxGpuBufferVisibilityFlag_deviceOnly) {
-      if (usage != PuleGfxGpuBufferVisibilityFlag_deviceOnly) {
+  GLbitfield bufferVisibilityToGl(PuleGpuBufferVisibilityFlag const usage) {
+    if (usage & PuleGpuBufferVisibilityFlag_deviceOnly) {
+      if (usage != PuleGpuBufferVisibilityFlag_deviceOnly) {
         puleLogError("incompatible buffer visibility: %d", usage);
       }
       return 0;
     }
     GLbitfield field = 0;
-    if (usage & PuleGfxGpuBufferVisibilityFlag_hostVisible) {
+    if (usage & PuleGpuBufferVisibilityFlag_hostVisible) {
       field |= GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT;
     }
-    if (usage & PuleGfxGpuBufferVisibilityFlag_hostWritable) {
+    if (usage & PuleGpuBufferVisibilityFlag_hostWritable) {
       field |= GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
     }
     return field;
   }
 
-  GLbitfield bufferMapAccessToGl(PuleGfxGpuBufferMapAccess const access) {
+  GLbitfield bufferMapAccessToGl(PuleGpuBufferMapAccess const access) {
     GLbitfield field = 0;
-    if (access & PuleGfxGpuBufferMapAccess_hostVisible) {
+    if (access & PuleGpuBufferMapAccess_hostVisible) {
       field |= (
         GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
       );
     }
-    if (access & PuleGfxGpuBufferMapAccess_hostWritable) {
+    if (access & PuleGpuBufferMapAccess_hostWritable) {
       field |= (
         GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
       );
     }
-    if (access & PuleGfxGpuBufferMapAccess_invalidate) {
+    if (access & PuleGpuBufferMapAccess_invalidate) {
       field |= GL_MAP_INVALIDATE_RANGE_BIT;
     }
     return field;
@@ -638,12 +638,12 @@ namespace {
 
 extern "C" {
 
-PuleGfxGpuBuffer puleGfxGpuBufferCreate(
+PuleGpuBuffer puleGpuBufferCreate(
   PuleStringView const name,
   void const * const optionalInitialData,
   size_t const byteLength,
-  [[maybe_unused]] PuleGfxGpuBufferUsage const usage,
-  PuleGfxGpuBufferVisibilityFlag const visibility
+  [[maybe_unused]] PuleGpuBufferUsage const usage,
+  PuleGpuBufferVisibilityFlag const visibility
 ) {
   VkBufferUsageFlags usageVk = util::toBufferUsageFlags(usage);
   usageVk |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -671,14 +671,14 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
 
   auto allocationFlags = VmaAllocationCreateFlags { 0 };
   VkMemoryPropertyFlags bufferMemoryProperties = 0;
-  if (visibility & PuleGfxGpuBufferVisibilityFlag_hostWritable) {
+  if (visibility & PuleGpuBufferVisibilityFlag_hostWritable) {
     allocationFlags |= (
       VMA_ALLOCATION_CREATE_MAPPED_BIT
       | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
     );
     bufferMemoryProperties |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
   }
-  if (visibility & PuleGfxGpuBufferVisibilityFlag_hostVisible) {
+  if (visibility & PuleGpuBufferVisibilityFlag_hostVisible) {
     allocationFlags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
     bufferMemoryProperties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
   }
@@ -791,13 +791,13 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   return { .id = reinterpret_cast<uint64_t>(buffer), };
 }
 
-void puleGfxGpuBufferDestroy(PuleGfxGpuBuffer const pBuffer) {
+void puleGpuBufferDestroy(PuleGpuBuffer const pBuffer) {
   if (pBuffer.id == 0) { return; }
   util::Buffer & buffer = util::ctx().buffers.at(pBuffer.id);
   vmaDestroyBuffer(util::ctx().allocator, buffer.vkHandle, buffer.allocation);
 }
 
-void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
+void * puleGpuBufferMap(PuleGpuBufferMapRange const range) {
   void * mappedData = nullptr;
   util::Buffer & buffer = util::ctx().buffers.at(range.buffer.id);
   vmaMapMemory(util::ctx().allocator, buffer.allocation, &mappedData);
@@ -805,14 +805,14 @@ void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range) {
   return mappedData;
 }
 
-void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const pBuffer) {
+void puleGpuBufferUnmap(PuleGpuBuffer const pBuffer) {
   util::Buffer & buffer = util::ctx().buffers.at(pBuffer.id);
   vmaUnmapMemory(util::ctx().allocator, buffer.allocation);
 }
 
 VkSemaphore semaphore;
 
-void puleGfxFrameStart() {
+void puleGpuFrameStart() {
   auto semaphoreCi = VkSemaphoreCreateInfo {
     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     .pNext = nullptr,
@@ -827,13 +827,13 @@ void puleGfxFrameStart() {
   util::swapchainAcquireNextImage(semaphore, nullptr);
 }
 
-void puleGfxFrameEnd() {
+void puleGpuFrameEnd() {
   util::swapchainPresent(semaphore);
   vkDestroySemaphore(util::ctx().device.logical, semaphore, nullptr);
 }
 
-void puleGfxGpuBufferMappedFlush(
-  PuleGfxGpuBufferMappedFlushRange const range
+void puleGpuBufferMappedFlush(
+  PuleGpuBufferMappedFlushRange const range
 ) {
   util::Buffer & buffer = util::ctx().buffers.at(range.buffer.id);
   vmaFlushAllocation(
@@ -846,7 +846,7 @@ void puleGfxGpuBufferMappedFlush(
 
 #include <pulchritude-imgui/imgui.h>
 
-void puleGfxDebugPrint() {
+void puleGpuDebugPrint() {
   // util::printCommandsDebug();
 }
 

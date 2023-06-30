@@ -18,7 +18,7 @@ target_link_libraries(
   pulchritude-camera
     pulchritude-math
     pulchritude-platform
-    pulchritude-gfx
+    pulchritude-gpu
 )
 
 install(

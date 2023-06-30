@@ -1,11 +1,11 @@
 #include <pulchritude-renderer-3d/renderer-3d.h>
 
 #include <pulchritude-ecs/ecs.h>
-#include <pulchritude-gfx/barrier.h>
-#include <pulchritude-gfx/commands.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/image.h>
-#include <pulchritude-gfx/pipeline.h>
+#include <pulchritude-gpu/barrier.h>
+#include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/image.h>
+#include <pulchritude-gpu/pipeline.h>
 
 #include <cstring>
 #include <unordered_map>
@@ -14,8 +14,8 @@
 namespace {
 
 struct InternalModelInstance {
-  PuleGfxPipeline pipeline;
-  PuleGfxCommandList commandList;
+  PuleGpuPipeline pipeline;
+  PuleGpuCommandList commandList;
 };
 
 struct InternalMesh {
@@ -30,11 +30,11 @@ struct InternalMesh {
 //     data, a known buffer of element data, but these are only hoisted to the
 //     appropiate mesh shader as generic buffers.
 struct InternalModel {
-  PuleGfxGpuBuffer staticAttributeGpuBuffer;
+  PuleGpuBuffer staticAttributeGpuBuffer;
   // TODO store dynamic attribute metadata (this will correlate to each
   //      instance of the model rather than being shared)
-  /* PuleGfxGpuBuffer dynamicAttributeGpuBuffer; */
-  PuleGfxGpuBuffer elementGpuBuffer;
+  /* PuleGpuBuffer dynamicAttributeGpuBuffer; */
+  PuleGpuBuffer elementGpuBuffer;
   std::vector<InternalMesh> meshes;
   // TODO mesh + material shader
 };
@@ -42,7 +42,7 @@ struct InternalModel {
 struct SystemInfo {
   PulePlatform platform;
   PuleEcsComponent componentRender;
-  PuleGfxShaderModule shaderModule;
+  PuleGpuShaderModule shaderModule;
 
   std::unordered_map<uint64_t, InternalModel> internalModels = {};
   size_t internalModelCount = 0;
@@ -66,7 +66,7 @@ static void renderer3DSystemCallback(PuleEcsIterator iter) {
   // size_t const entityCount = puleEcsIteratorEntityCount(iter);
   // for (size_t it = 0; it < entityCount; ++ it) {
   //   PuleError err = puleError();
-  //   puleGfxCommandListSubmit(
+  //   puleGpuCommandListSubmit(
   //     {
   //       .commandList = modelInstances[it].commandList,
   //       .fenceTargetStart = nullptr,
@@ -115,11 +115,11 @@ PuleRenderer3D puleRenderer3DCreate(
   //   )
   // );
   //
-  // PuleGfxShaderModule shaderModule = { 0 };
+  // PuleGpuShaderModule shaderModule = { 0 };
   // {
   //   // PuleError err = puleError();
   //   // shaderModule = (
-  //   //   puleGfxShaderModuleCreate(
+  //   //   puleGpuShaderModuleCreate(
   //   //     puleCStr("#version 450 core\n" // VERTEX
   //   //     PULE_multilineString(
   //   //       struct Attribute {
@@ -295,19 +295,19 @@ PuleRenderer3DModel puleRenderer3DPrepareModel(
   // }
   //
   // model.staticAttributeGpuBuffer = (
-  //   puleGfxGpuBufferCreate(
+  //   puleGpuBufferCreate(
   //     attributesCollapsed.data(),
   //     attributesCollapsed.size() * sizeof(attributesCollapsed[0]),
-  //     PuleGfxGpuBufferUsage_storage,
-  //     PuleGfxGpuBufferVisibilityFlag_deviceOnly
+  //     PuleGpuBufferUsage_storage,
+  //     PuleGpuBufferVisibilityFlag_deviceOnly
   //   )
   // );
   // model.elementGpuBuffer = (
-  //   puleGfxGpuBufferCreate(
+  //   puleGpuBufferCreate(
   //     elementsRevised.data(),
   //     elementsRevised.size() * sizeof(elementsRevised[0]),
-  //     PuleGfxGpuBufferUsage_element,
-  //     PuleGfxGpuBufferVisibilityFlag_deviceOnly
+  //     PuleGpuBufferUsage_element,
+  //     PuleGpuBufferVisibilityFlag_deviceOnly
   //   )
   // );
   //
@@ -333,9 +333,9 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   // );
   //
   // auto modelInstance = InternalModelInstance {
-  //   .pipeline = PuleGfxPipeline { .id = 0 },
+  //   .pipeline = PuleGpuPipeline { .id = 0 },
   //   .commandList = (
-  //     puleGfxCommandListCreate(
+  //     puleGpuCommandListCreate(
   //       puleAllocateDefault(),
   //       puleCStr("model-instance")
   //     )
@@ -343,7 +343,7 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   // };
   //
   // {
-  //   auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
+  //   auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
   //   // descriptorSetLayout.bufferStorageBindings[0] = (
   //     // modelInternal.staticAttributeGpuBuffer
   //   // );
@@ -351,7 +351,7 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   //   puleLog("storage gpu buffer: %zu\n", modelInternal.staticAttributeGpuBuffer.id);
   //   // TODO dynamic + custom bindings
   //
-  //   auto pipelineInfo = PuleGfxPipelineCreateInfo {
+  //   auto pipelineInfo = PuleGpuPipelineCreateInfo {
   //     .shaderModule = system.shaderModule,
   //     .layout = &descriptorSetLayout,
   //     .config = {
@@ -366,7 +366,7 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   //   };
   //
   //   PuleError err = puleError();
-  //   modelInstance.pipeline = (puleGfxPipelineCreate(&pipelineInfo, &err));
+  //   modelInstance.pipeline = (puleGpuPipelineCreate(&pipelineInfo, &err));
   //   if (puleErrorConsume(&err) > 0) {
   //     return { 0 };
   //   }
@@ -374,27 +374,27 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   //
   // { // record command list
   //   auto commandListRecorder = (
-  //     puleGfxCommandListRecorder(modelInstance.commandList)
+  //     puleGpuCommandListRecorder(modelInstance.commandList)
   //   );
   //
-  //   puleGfxCommandListAppendAction(
+  //   puleGpuCommandListAppendAction(
   //     commandListRecorder,
-  //     PuleGfxCommand {
+  //     PuleGpuCommand {
   //       .bindPipeline = {
-  //         .action = PuleGfxAction_bindPipeline,
+  //         .action = PuleGpuAction_bindPipeline,
   //         .pipeline = modelInstance.pipeline,
   //       },
   //     }
   //   );
   //   for (auto const & mesh : modelInternal.meshes) {
-  //     puleGfxCommandListAppendAction(
+  //     puleGpuCommandListAppendAction(
   //       commandListRecorder,
-  //       PuleGfxCommand {
+  //       PuleGpuCommand {
   //         .dispatchRenderElements = {
-  //           .action = PuleGfxAction_dispatchRenderElements,
-  //           .drawPrimitive = PuleGfxDrawPrimitive_triangle,
+  //           .action = PuleGpuAction_dispatchRenderElements,
+  //           .drawPrimitive = PuleGpuDrawPrimitive_triangle,
   //           .numElements = mesh.verticesToDispatch,
-  //           .elementType = PuleGfxElementType_u32,
+  //           .elementType = PuleGpuElementType_u32,
   //           .elementOffset = mesh.elementOffset,
   //           .baseVertexOffset = mesh.elementVertexOffset,
   //         },
@@ -402,7 +402,7 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   //     );
   //   }
   //
-  //   puleGfxCommandListRecorderFinish(commandListRecorder);
+  //   puleGpuCommandListRecorderFinish(commandListRecorder);
   // }
   //
   // puleEcsEntityAttachComponent(

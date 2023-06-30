@@ -1,9 +1,9 @@
 #include <pulchritude-asset/render-graph.h>
 
 #include <pulchritude-asset/pds.h>
-#include <pulchritude-gfx/image.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/commands.h>
+#include <pulchritude-gpu/image.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/commands.h>
 
 #include <string>
 #include <string_view>
@@ -14,90 +14,90 @@
 namespace {
 union GraphResource {
   uint64_t id;
-  PuleGfxGpuImage image;
-  PuleGfxGpuBuffer buffer;
-  PuleGfxFramebuffer framebuffer;
-  PuleGfxCommandList commandList;
-  PuleGfxCommandListRecorder commandListRecorder;
+  PuleGpuImage image;
+  PuleGpuBuffer buffer;
+  PuleGpuFramebuffer framebuffer;
+  PuleGpuCommandList commandList;
+  PuleGpuCommandListRecorder commandListRecorder;
 };
 
-PuleGfxCommandPayloadAccess toPayloadAccess(PuleStringView const view) {
+PuleGpuCommandPayloadAccess toPayloadAccess(PuleStringView const view) {
   std::string const access = std::string(view.contents, view.len);
   uint64_t accessFlag = 0;
   if (access == "indirect-command-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_indirectCommandRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_indirectCommandRead;
   }
   if (access == "index-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_indexRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_indexRead;
   }
   if (access == "vertex-attribute-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_vertexAttributeRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_vertexAttributeRead;
   }
   if (access == "uniform-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_uniformRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_uniformRead;
   }
   if (access == "input-attachment-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_inputAttachmentRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_inputAttachmentRead;
   }
   if (access == "shader-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_shaderRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_shaderRead;
   }
   if (access == "shader-write") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_shaderWrite;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_shaderWrite;
   }
   if (access == "attachment-color-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_colorAttachmentRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_colorAttachmentRead;
   }
   if (access == "attachment-color-write") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_colorAttachmentWrite;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_colorAttachmentWrite;
   }
   if (access == "attachment-depth-stencil-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_depthStencilAttachmentRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_depthStencilAttachmentRead;
   }
   if (access == "attachment-depth-stencil-write") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_depthStencilAttachmentWrite;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_depthStencilAttachmentWrite;
   }
   if (access == "transfer-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_transferRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_transferRead;
   }
   if (access == "transfer-write") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_transferWrite;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_transferWrite;
   }
   if (access == "host-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_hostRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_hostRead;
   }
   if (access == "host-write") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_hostWrite;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_hostWrite;
   }
   if (access == "memory-read") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_memoryRead;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_memoryRead;
   }
   if (access == "memory-write") {
-    accessFlag |= (uint64_t)PuleGfxCommandPayloadAccess_memoryWrite;
+    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_memoryWrite;
   }
   PULE_assert(accessFlag != 0);
-  return (PuleGfxCommandPayloadAccess)accessFlag;
+  return (PuleGpuCommandPayloadAccess)accessFlag;
 }
 
-PuleGfxImageLayout toPayloadLayout(PuleStringView const view) {
+PuleGpuImageLayout toPayloadLayout(PuleStringView const view) {
   std::string const layout = std::string(view.contents, view.len);
   if (layout == "uninitialized" or layout == "undefined") {
-    return PuleGfxImageLayout_uninitialized;
+    return PuleGpuImageLayout_uninitialized;
   }
   if (layout == "storage") {
-    return PuleGfxImageLayout_storage;
+    return PuleGpuImageLayout_storage;
   }
   if (layout == "attachment-color") {
-    return PuleGfxImageLayout_attachmentColor;
+    return PuleGpuImageLayout_attachmentColor;
   }
   if (layout == "attachment-depth") {
-    return PuleGfxImageLayout_attachmentDepth;
+    return PuleGpuImageLayout_attachmentDepth;
   }
   if (layout == "transfer-src") {
-    return PuleGfxImageLayout_transferSrc;
+    return PuleGpuImageLayout_transferSrc;
   }
   if (layout == "transfer-dst") {
-    return PuleGfxImageLayout_transferDst;
+    return PuleGpuImageLayout_transferDst;
   }
   PULE_assert(false);
 }
@@ -175,9 +175,9 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
           label,
           PuleRenderGraph_Resource {
             .image = {
-              .entrancePayloadAccess = (PuleGfxCommandPayloadAccess)0,
+              .entrancePayloadAccess = (PuleGpuCommandPayloadAccess)0,
               .exittancePayloadAccess = toPayloadAccess(exittanceAccess),
-              .entrancePayloadLayout = (PuleGfxImageLayout)0,
+              .entrancePayloadLayout = (PuleGpuImageLayout)0,
               .exittancePayloadLayout = toPayloadLayout(exittanceLayout),
             },
             .resourceType = PuleRenderGraph_ResourceType_image,

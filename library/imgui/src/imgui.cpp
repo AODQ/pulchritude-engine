@@ -5,9 +5,9 @@
 #include <pulchritude-asset/render-graph.h>
 #include <pulchritude-asset/shader-module.h>
 #include <pulchritude-error/error.h>
-#include <pulchritude-gfx/commands.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/image.h>
+#include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/image.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-platform/platform.h>
 #include <pulchritude-string/string.h>
@@ -28,44 +28,44 @@
 namespace {
 
 struct RenderData {
-  PuleGfxPipeline pipeline { 0 };
-  PuleGfxGpuImage fontImage { 0 };
-  PuleGfxSampler fontImageSampler { 0 };
-  PuleGfxShaderModule shaderModule { 0 };
-  PuleGfxGpuBuffer vertexBuffer { 0 };
-  PuleGfxGpuBuffer elementsBuffer { 0 };
+  PuleGpuPipeline pipeline { 0 };
+  PuleGpuImage fontImage { 0 };
+  PuleGpuSampler fontImageSampler { 0 };
+  PuleGpuShaderModule shaderModule { 0 };
+  PuleGpuBuffer vertexBuffer { 0 };
+  PuleGpuBuffer elementsBuffer { 0 };
   size_t vertexBufferLength = 0;
   size_t elementsBufferLength = 0;
 };
 
-PuleGfxPipelineDescriptorSetLayout createPipelineDescriptorSetLayout() {
-  auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
+PuleGpuPipelineDescriptorSetLayout createPipelineDescriptorSetLayout() {
+  auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
   descriptorSetLayout.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(ImDrawVert),
   };
   descriptorSetLayout.attributeBindings[0] = {
-    .dataType = PuleGfxAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_float,
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(ImDrawVert, pos),
   };
   descriptorSetLayout.attributeBindings[1] = {
-    .dataType = PuleGfxAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_float,
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(ImDrawVert, uv),
   };
   descriptorSetLayout.attributeBindings[2] = {
-    .dataType = PuleGfxAttributeDataType_unsignedByte,
+    .dataType = PuleGpuAttributeDataType_unsignedByte,
     .bufferIndex = 0,
     .numComponents = 4,
     .convertFixedDataTypeToNormalizedFloating = true,
     .offsetIntoBuffer = offsetof(ImDrawVert, col),
   };
   // descriptorSetLayout.bufferElementBinding = bd.elementsBuffer;
-  descriptorSetLayout.textureBindings[0] = PuleGfxDescriptorStage_fragment;
+  descriptorSetLayout.textureBindings[0] = PuleGpuDescriptorStage_fragment;
   return descriptorSetLayout;
 }
 
@@ -74,11 +74,11 @@ void createFontsTexture() {
   auto & bd = *reinterpret_cast<RenderData *>(io.BackendRendererUserData);
 
   bd.fontImageSampler = (
-    puleGfxSamplerCreate({
-      .minify  = PuleGfxImageMagnification_nearest,
-      .magnify = PuleGfxImageMagnification_nearest,
-      .wrapU = PuleGfxImageWrap_clampToEdge,
-      .wrapV = PuleGfxImageWrap_clampToEdge,
+    puleGpuSamplerCreate({
+      .minify  = PuleGpuImageMagnification_nearest,
+      .magnify = PuleGpuImageMagnification_nearest,
+      .wrapU = PuleGpuImageWrap_clampToEdge,
+      .wrapV = PuleGpuImageWrap_clampToEdge,
     })
   );
 
@@ -86,11 +86,11 @@ void createFontsTexture() {
   int32_t width, height;
   io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
   bd.fontImage = (
-    puleGfxGpuImageCreate({
+    puleGpuImageCreate({
       .width = static_cast<uint32_t>(width),
       .height = static_cast<uint32_t>(height),
-      .target = PuleGfxImageTarget_i2D,
-      .byteFormat = PuleGfxImageByteFormat_rgba8U,
+      .target = PuleGpuImageTarget_i2D,
+      .byteFormat = PuleGpuImageByteFormat_rgba8U,
       .sampler = bd.fontImageSampler,
       .optionalInitialData = pixels,
     })
@@ -114,26 +114,26 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
     )
   );
 
-  bd.shaderModule = puleAssetShaderModuleGfxHandle(assetShaderModule);
+  bd.shaderModule = puleAssetShaderModuleHandle(assetShaderModule);
 
   // TODO create vertex+elements buffer
   createFontsTexture();
 
   auto const descriptorSetLayout = createPipelineDescriptorSetLayout();
-  auto const pipelineCI = PuleGfxPipelineCreateInfo {
+  auto const pipelineCI = PuleGpuPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
     .layout = &descriptorSetLayout,
     .config = {},
   };
 
   PuleError err = puleError();
-  bd.pipeline = puleGfxPipelineCreate(&pipelineCI, &err);
+  bd.pipeline = puleGpuPipelineCreate(&pipelineCI, &err);
   if (puleErrorConsume(&err)) { return; }
 }
 
 void renderDrawData(
   ImDrawData * const drawData,
-  PuleGfxCommandListRecorder const commandListRecorder
+  PuleGpuCommandListRecorder const commandListRecorder
 ) {
   // don't render when minized
   int32_t const framebufferWidth = (
@@ -191,22 +191,22 @@ void renderDrawData(
 
     if (bd.vertexBufferLength < vertexBufferLength) {
       bd.vertexBufferLength = vertexBufferLength;
-      puleGfxGpuBufferDestroy(bd.vertexBuffer);
-      bd.vertexBuffer = puleGfxGpuBufferCreate(
+      puleGpuBufferDestroy(bd.vertexBuffer);
+      bd.vertexBuffer = puleGpuBufferCreate(
         puleCStr("imgui-vertex-buffer"),
         nullptr,//reinterpret_cast<void *>(drawList->VtxBuffer.Data),
         bd.vertexBufferLength,
-        PuleGfxGpuBufferUsage_attribute,
-        PuleGfxGpuBufferVisibilityFlag_hostWritable
+        PuleGpuBufferUsage_attribute,
+        PuleGpuBufferVisibilityFlag_hostWritable
       );
     }
 
     { // update vertex buffer
       uint8_t * mappedData = (
         reinterpret_cast<uint8_t *>(
-          puleGfxGpuBufferMap({
+          puleGpuBufferMap({
             .buffer = bd.vertexBuffer,
-            .access = PuleGfxGpuBufferMapAccess_hostWritable,
+            .access = PuleGpuBufferMapAccess_hostWritable,
             .byteOffset = 0,
             .byteLength = bd.vertexBufferLength,
           })
@@ -217,32 +217,32 @@ void renderDrawData(
         reinterpret_cast<void *>(drawList->VtxBuffer.Data),
         bd.vertexBufferLength
       );
-      puleGfxGpuBufferMappedFlush({
+      puleGpuBufferMappedFlush({
         .buffer = bd.vertexBuffer,
         .byteOffset = 0,
         .byteLength = bd.vertexBufferLength,
       });
-      puleGfxGpuBufferUnmap(bd.vertexBuffer);
+      puleGpuBufferUnmap(bd.vertexBuffer);
     }
 
     if (bd.elementsBufferLength < elementsBufferLength) {
       bd.elementsBufferLength = elementsBufferLength;
-      puleGfxGpuBufferDestroy(bd.elementsBuffer);
-      bd.elementsBuffer = puleGfxGpuBufferCreate(
+      puleGpuBufferDestroy(bd.elementsBuffer);
+      bd.elementsBuffer = puleGpuBufferCreate(
         puleCStr("imgui-elements-buffer"),
         nullptr,//reinterpret_cast<void *>(drawList->IdxBuffer.Data),
         bd.elementsBufferLength,
-        PuleGfxGpuBufferUsage_element,
-        PuleGfxGpuBufferVisibilityFlag_hostWritable
+        PuleGpuBufferUsage_element,
+        PuleGpuBufferVisibilityFlag_hostWritable
       );
     }
 
     { // update element buffer
       uint8_t * mappedData = (
         reinterpret_cast<uint8_t *>(
-          puleGfxGpuBufferMap({
+          puleGpuBufferMap({
             .buffer = bd.elementsBuffer,
-            .access = PuleGfxGpuBufferMapAccess_hostWritable,
+            .access = PuleGpuBufferMapAccess_hostWritable,
             .byteOffset = 0,
             .byteLength = bd.elementsBufferLength,
           })
@@ -253,15 +253,15 @@ void renderDrawData(
         reinterpret_cast<void *>(drawList->IdxBuffer.Data),
         bd.elementsBufferLength
       );
-      puleGfxGpuBufferMappedFlush({
+      puleGpuBufferMappedFlush({
         .buffer = bd.elementsBuffer,
         .byteOffset = 0,
         .byteLength = bd.elementsBufferLength,
       });
-      puleGfxGpuBufferUnmap(bd.elementsBuffer);
+      puleGpuBufferUnmap(bd.elementsBuffer);
     }
 
-    puleGfxMemoryBarrier(PuleGfxMemoryBarrierFlag_bufferUpdate);
+    puleGpuMemoryBarrier(PuleGpuMemoryBarrierFlag_bufferUpdate);
 
     for (int32_t drawIt = 0; drawIt < drawList->CmdBuffer.Size; ++ drawIt) {
       ImDrawCmd const & drawCmd = drawList->CmdBuffer[drawIt];
@@ -283,11 +283,11 @@ void renderDrawData(
       }
 
       {
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
-          PuleGfxCommand {
+          PuleGpuCommand {
             .renderPassBegin {
-              .action = PuleGfxAction_renderPassBegin,
+              .action = PuleGpuAction_renderPassBegin,
               .viewportUpperLeft = PuleI32v2 { .x = 0, .y = 0, },
               .viewportLowerRight = PuleI32v2 {
                 .x = framebufferWidth,
@@ -295,17 +295,17 @@ void renderDrawData(
               },
               .colorAttachmentCount = 1,
               .colorAttachments = {
-                PuleGfxImageAttachment {
-                  .opLoad = PuleGfxImageAttachmentOpLoad_clear,
-                  .opStore = PuleGfxImageAttachmentOpStore_store,
-                  .layout = PuleGfxImageLayout_attachmentColor,
+                PuleGpuImageAttachment {
+                  .opLoad = PuleGpuImageAttachmentOpLoad_clear,
+                  .opStore = PuleGpuImageAttachmentOpStore_store,
+                  .layout = PuleGpuImageLayout_attachmentColor,
                   .clearColor = {},
                   .imageView = (
-                    PuleGfxGpuImageView {
-                      .image = puleGfxWindowImage(),
+                    PuleGpuImageView {
+                      .image = puleGpuWindowImage(),
                       .mipmapLevelStart = 0, .mipmapLevelCount = 1,
                       .arrayLayerStart = 0, .arrayLayerCount = 1,
-                      .byteFormat = PuleGfxImageByteFormat_bgra8U,
+                      .byteFormat = PuleGpuImageByteFormat_bgra8U,
                     }
                   ),
                 },
@@ -314,22 +314,22 @@ void renderDrawData(
             },
           }
         );
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
-          PuleGfxCommand {
+          PuleGpuCommand {
             .bindPipeline {
-              .action = PuleGfxAction_bindPipeline,
+              .action = PuleGpuAction_bindPipeline,
               .pipeline = bd.pipeline,
             }
           }
         );
 
         // pos , uv , col
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
-          PuleGfxCommand {
+          PuleGpuCommand {
             .bindAttributeBuffer {
-              .action = PuleGfxAction_bindAttributeBuffer,
+              .action = PuleGpuAction_bindAttributeBuffer,
               .pipeline = bd.pipeline,
               .bindingIndex = 0,
               .buffer = bd.vertexBuffer,
@@ -339,42 +339,42 @@ void renderDrawData(
           }
         );
 
-        // puleGfxCommandListAppendAction(
+        // puleGpuCommandListAppendAction(
         //   commandListRecorder,
-        //   PuleGfxCommand {
+        //   PuleGpuCommand {
         //     .bindFramebuffer {
-        //       .action = PuleGfxAction_bindFramebuffer,
-        //       .framebuffer = puleGfxWindowImage(),
+        //       .action = PuleGpuAction_bindFramebuffer,
+        //       .framebuffer = puleGpuWindowImage(),
         //     }
         //   }
         // );
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
-          PuleGfxCommand {
+          PuleGpuCommand {
             .bindElementBuffer {
-              .action = PuleGfxAction_bindElementBuffer,
+              .action = PuleGpuAction_bindElementBuffer,
               .buffer = bd.elementsBuffer,
               .offset = 0,
               .elementType = (
                 sizeof(ImDrawIdx) == 2
-                  ? PuleGfxElementType_u16
-                  : PuleGfxElementType_u32
+                  ? PuleGpuElementType_u16
+                  : PuleGpuElementType_u32
               )
             }
           }
         );
 
-        PuleGfxConstant constants[1];
+        PuleGpuConstant constants[1];
         constants[0] = {
           .value = { .constantF32m44 = orthographicProjection, },
-          .typeTag = PuleGfxConstantTypeTag_f32m44,
+          .typeTag = PuleGpuConstantTypeTag_f32m44,
           .bindingSlot = 0,
         };
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
           {
             .pushConstants = {
-              .action = PuleGfxAction_pushConstants,
+              .action = PuleGpuAction_pushConstants,
               .constants = &constants[0],
               .constantsLength = 1,
             }
@@ -390,12 +390,12 @@ void renderDrawData(
           drawCmd.IdxOffset * sizeof(ImDrawIdx),
           drawCmd.VtxOffset
         );
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
           {
             .dispatchRenderElements = {
-              .action = PuleGfxAction_dispatchRenderElements,
-              .drawPrimitive = PuleGfxDrawPrimitive_triangle,
+              .action = PuleGpuAction_dispatchRenderElements,
+              .drawPrimitive = PuleGpuDrawPrimitive_triangle,
               .numElements = drawCmd.ElemCount,
               .elementOffset = drawCmd.IdxOffset * sizeof(ImDrawIdx),
               .baseVertexOffset = drawCmd.VtxOffset,
@@ -403,11 +403,11 @@ void renderDrawData(
           }
         );
 
-        puleGfxCommandListAppendAction(
+        puleGpuCommandListAppendAction(
           commandListRecorder,
-          PuleGfxCommand {
+          PuleGpuCommand {
             .renderPassEnd {
-              .action = PuleGfxAction_renderPassEnd,
+              .action = PuleGpuAction_renderPassEnd,
             },
           }
         );
@@ -772,9 +772,9 @@ void puleImguiShutdown() {
     *reinterpret_cast<RenderData *>(ImGui::GetIO().BackendRendererUserData)
   );
 
-  puleGfxPipelineDestroy(bd.pipeline);
-  puleGfxSamplerDestroy(bd.fontImageSampler);
-  puleGfxGpuImageDestroy(bd.fontImage);
+  puleGpuPipelineDestroy(bd.pipeline);
+  puleGpuSamplerDestroy(bd.fontImageSampler);
+  puleGpuImageDestroy(bd.fontImage);
   IM_DELETE(&bd);
 
   ::shutdownWindowing();
@@ -785,7 +785,7 @@ void puleImguiNewFrame() {
   ImGui::NewFrame();
 }
 
-void puleImguiRender(PuleGfxCommandListRecorder const recorder) {
+void puleImguiRender(PuleGpuCommandListRecorder const recorder) {
   ImGui::Render();
   renderDrawData(ImGui::GetDrawData(), recorder);
 }
@@ -853,7 +853,7 @@ void puleImguiText(char const * const format, ...) {
 }
 
 void puleImguiImage(
-  PuleGfxGpuImage const image,
+  PuleGpuImage const image,
   PuleF32v2 const size,
   PuleF32v2 const uvUl, PuleF32v2 const uvLr,
   PuleF32v4 const border

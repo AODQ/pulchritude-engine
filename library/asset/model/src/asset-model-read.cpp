@@ -1,7 +1,7 @@
 #include <pulchritude-asset/model.h>
 
 #include <pulchritude-asset/pds.h>
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/gpu.h>
 
 #include <functional>
 #include <string>

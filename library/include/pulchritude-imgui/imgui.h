@@ -7,7 +7,7 @@
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
-#include <pulchritude-gfx/image.h>
+#include <pulchritude-gpu/image.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
 #include <pulchritude-render-graph/render-graph.h>
@@ -20,7 +20,7 @@ PULE_exportFn void puleImguiInitialize(PulePlatform const window);
 PULE_exportFn void puleImguiShutdown();
 PULE_exportFn void puleImguiNewFrame();
 PULE_exportFn void puleImguiRender(
-  PuleGfxCommandListRecorder const recorder
+  PuleGpuCommandListRecorder const recorder
 );
 
 PULE_exportFn void puleImguiJoinNext();
@@ -49,7 +49,7 @@ PULE_exportFn void puleImguiSectionEnd();
 PULE_exportFn void puleImguiText(char const * const format, ...);
 
 PULE_exportFn void puleImguiImage(
-  PuleGfxGpuImage const image,
+  PuleGpuImage const image,
   PuleF32v2 const size,
   PuleF32v2 const uvUl, PuleF32v2 const uvLr,
   PuleF32v4 const borderColor

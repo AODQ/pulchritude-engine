@@ -2,7 +2,7 @@
 
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-file/file.h>
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/gpu.h>
 #include <pulchritude-imgui/imgui.h>
 #include <pulchritude-platform/platform.h>
 #include <pulchritude-plugin/plugin.h>

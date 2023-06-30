@@ -13,11 +13,11 @@ add_subdirectory(
 )
 
 # -- library
-add_library(pulchritude-gfx SHARED)
+add_library(pulchritude-gpu SHARED)
 
 
 target_include_directories(
-  pulchritude-gfx
+  pulchritude-gpu
   PUBLIC "../include/"
   PRIVATE
     "include/"
@@ -26,11 +26,11 @@ target_include_directories(
     "${CMAKE_SOURCE_DIR}/third-party/VulkanMemoryAllocator/include"
 )
 target_sources(
-  pulchritude-gfx
+  pulchritude-gpu
   PRIVATE
     src/barrier.cpp
     src/commands.cpp
-    src/gfx.cpp
+    src/gpu.cpp
     src/image.cpp
     src/pipeline.cpp
     src/shader-module.cpp
@@ -39,7 +39,7 @@ target_sources(
 )
 
 set_target_properties(
-  pulchritude-gfx
+  pulchritude-gpu
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
@@ -48,7 +48,7 @@ set_target_properties(
 )
 
 target_link_libraries(
-  pulchritude-gfx
+  pulchritude-gpu
     pulchritude-error
     pulchritude-log
     volk
@@ -57,7 +57,7 @@ target_link_libraries(
 )
 
 install(
-  TARGETS pulchritude-gfx
+  TARGETS pulchritude-gpu
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

@@ -6,7 +6,7 @@ target_include_directories(
   pulchritude-layer-debug
   PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../third-party/glfw/include/"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../gfx/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../gpu/include/"
     ${VULKAN_INCLUDE_DIRS}
 )
 target_sources(

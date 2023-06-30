@@ -21,7 +21,7 @@ set_target_properties(
 target_link_libraries(
   pulchritude-imgui-engine
   pulchritude-imgui
-  pulchritude-gfx
+  pulchritude-gpu
   pulchritude-ecs
   pulchritude-platform
   pulchritude-error

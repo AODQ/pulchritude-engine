@@ -2,10 +2,10 @@
 
 #include <pulchritude-core/core.h>
 
-#include <pulchritude-gfx/commands.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/image.h>
-#include <pulchritude-gfx/pipeline.h>
+#include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/image.h>
+#include <pulchritude-gpu/pipeline.h>
 #include <pulchritude-math/math.h>
 
 // Most basic rendering primitive, which can be represented in a single
@@ -46,7 +46,7 @@ typedef enum {
 } PuleGfxMeshVertexAttributeStorage;
 
 typedef struct {
-  PuleGfxGpuBuffer buffer;
+  PuleGpuBuffer buffer;
   size_t byteOffset;
   size_t byteStride;
   void * mappedMemory; // need to use stride
@@ -57,15 +57,15 @@ typedef struct {
 typedef struct {
   PuleGfxMeshAttributeMemory attributes[PuleGfxMeshAttributeSize];
   PuleGfxMeshAttributeMemory indices;
-  PuleGfxGpuImage textures[4];
-  PuleGfxPipeline pipeline;
+  PuleGpuImage textures[4];
+  PuleGpuPipeline pipeline;
 } PuleGfxMesh;
 
 PULE_exportFn void puleGfxMeshRender(
   PuleGfxMesh const * const mesh,
-  PuleGfxGpuBuffer const cameraUniformBuffer,
-  PuleGfxFramebuffer const targetFramebuffer,
-  PuleGfxCommandListRecorder const recorder
+  PuleGpuBuffer const cameraUniformBuffer,
+  PuleGpuFramebuffer const targetFramebuffer,
+  PuleGpuCommandListRecorder const recorder
 );
 
 // * TODO * generate descriptor set from mesh

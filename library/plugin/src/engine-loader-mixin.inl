@@ -176,9 +176,9 @@
       ::loadSymbol("puleAssetShaderModuleLabel", layerName)
     )
   );
-  layer->assetShaderModuleGfxHandle = (
-    reinterpret_cast<decltype(layer->assetShaderModuleGfxHandle)>(
-      ::loadSymbol("puleAssetShaderModuleGfxHandle", layerName)
+  layer->assetShaderModuleHandle = (
+    reinterpret_cast<decltype(layer->assetShaderModuleHandle)>(
+      ::loadSymbol("puleAssetShaderModuleHandle", layerName)
     )
   );
   // asset-render-graph
@@ -248,9 +248,9 @@
       ::loadSymbol("puleCameraSetArray", layerName)
     )
   );
-  layer->cameraSetGfxUniformBuffer = (
-    reinterpret_cast<decltype(layer->cameraSetGfxUniformBuffer)>(
-      ::loadSymbol("puleCameraSetGfxUniformBuffer", layerName)
+  layer->cameraSetUniformBuffer = (
+    reinterpret_cast<decltype(layer->cameraSetUniformBuffer)>(
+      ::loadSymbol("puleCameraSetUniformBuffer", layerName)
     )
   );
   layer->cameraSetRefresh = (
@@ -893,197 +893,6 @@
   layer->gfxMeshRender = (
     reinterpret_cast<decltype(layer->gfxMeshRender)>(
       ::loadSymbol("puleGfxMeshRender", layerName)
-    )
-  );
-  // gfx
-  layer->gfxFenceCreate = (
-    reinterpret_cast<decltype(layer->gfxFenceCreate)>(
-      ::loadSymbol("puleGfxFenceCreate", layerName)
-    )
-  );
-  layer->gfxFenceDestroy = (
-    reinterpret_cast<decltype(layer->gfxFenceDestroy)>(
-      ::loadSymbol("puleGfxFenceDestroy", layerName)
-    )
-  );
-  layer->gfxFenceCheckSignal = (
-    reinterpret_cast<decltype(layer->gfxFenceCheckSignal)>(
-      ::loadSymbol("puleGfxFenceCheckSignal", layerName)
-    )
-  );
-  layer->gfxMemoryBarrier = (
-    reinterpret_cast<decltype(layer->gfxMemoryBarrier)>(
-      ::loadSymbol("puleGfxMemoryBarrier", layerName)
-    )
-  );
-  layer->gfxShaderModuleCreate = (
-    reinterpret_cast<decltype(layer->gfxShaderModuleCreate)>(
-      ::loadSymbol("puleGfxShaderModuleCreate", layerName)
-    )
-  );
-  layer->gfxShaderModuleDestroy = (
-    reinterpret_cast<decltype(layer->gfxShaderModuleDestroy)>(
-      ::loadSymbol("puleGfxShaderModuleDestroy", layerName)
-    )
-  );
-  layer->gfxPipelineDescriptorSetLayout = (
-    reinterpret_cast<decltype(layer->gfxPipelineDescriptorSetLayout)>(
-      ::loadSymbol("puleGfxPipelineDescriptorSetLayout", layerName)
-    )
-  );
-  layer->gfxPipelineCreate = (
-    reinterpret_cast<decltype(layer->gfxPipelineCreate)>(
-      ::loadSymbol("puleGfxPipelineCreate", layerName)
-    )
-  );
-  layer->gfxPipelineUpdate = (
-    reinterpret_cast<decltype(layer->gfxPipelineUpdate)>(
-      ::loadSymbol("puleGfxPipelineUpdate", layerName)
-    )
-  );
-  layer->gfxPipelineDestroy = (
-    reinterpret_cast<decltype(layer->gfxPipelineDestroy)>(
-      ::loadSymbol("puleGfxPipelineDestroy", layerName)
-    )
-  );
-  layer->gfxGpuBufferCreate = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferCreate)>(
-      ::loadSymbol("puleGfxGpuBufferCreate", layerName)
-    )
-  );
-  layer->gfxGpuBufferDestroy = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferDestroy)>(
-      ::loadSymbol("puleGfxGpuBufferDestroy", layerName)
-    )
-  );
-  layer->gfxGpuBufferMap = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferMap)>(
-      ::loadSymbol("puleGfxGpuBufferMap", layerName)
-    )
-  );
-  layer->gfxGpuBufferMappedFlush = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferMappedFlush)>(
-      ::loadSymbol("puleGfxGpuBufferMappedFlush", layerName)
-    )
-  );
-  layer->gfxGpuBufferUnmap = (
-    reinterpret_cast<decltype(layer->gfxGpuBufferUnmap)>(
-      ::loadSymbol("puleGfxGpuBufferUnmap", layerName)
-    )
-  );
-  layer->gfxInitialize = (
-    reinterpret_cast<decltype(layer->gfxInitialize)>(
-      ::loadSymbol("puleGfxInitialize", layerName)
-    )
-  );
-  layer->gfxShutdown = (
-    reinterpret_cast<decltype(layer->gfxShutdown)>(
-      ::loadSymbol("puleGfxShutdown", layerName)
-    )
-  );
-  layer->gfxFrameStart = (
-    reinterpret_cast<decltype(layer->gfxFrameStart)>(
-      ::loadSymbol("puleGfxFrameStart", layerName)
-    )
-  );
-  layer->gfxFrameEnd = (
-    reinterpret_cast<decltype(layer->gfxFrameEnd)>(
-      ::loadSymbol("puleGfxFrameEnd", layerName)
-    )
-  );
-  layer->gfxDebugPrint = (
-    reinterpret_cast<decltype(layer->gfxDebugPrint)>(
-      ::loadSymbol("puleGfxDebugPrint", layerName)
-    )
-  );
-  layer->gfxSamplerCreate = (
-    reinterpret_cast<decltype(layer->gfxSamplerCreate)>(
-      ::loadSymbol("puleGfxSamplerCreate", layerName)
-    )
-  );
-  layer->gfxSamplerDestroy = (
-    reinterpret_cast<decltype(layer->gfxSamplerDestroy)>(
-      ::loadSymbol("puleGfxSamplerDestroy", layerName)
-    )
-  );
-  layer->gfxGpuImageCreate = (
-    reinterpret_cast<decltype(layer->gfxGpuImageCreate)>(
-      ::loadSymbol("puleGfxGpuImageCreate", layerName)
-    )
-  );
-  layer->gfxGpuImageDestroy = (
-    reinterpret_cast<decltype(layer->gfxGpuImageDestroy)>(
-      ::loadSymbol("puleGfxGpuImageDestroy", layerName)
-    )
-  );
-  layer->gfxFramebufferCreateInfo = (
-    reinterpret_cast<decltype(layer->gfxFramebufferCreateInfo)>(
-      ::loadSymbol("puleGfxFramebufferCreateInfo", layerName)
-    )
-  );
-  layer->gfxFramebufferCreate = (
-    reinterpret_cast<decltype(layer->gfxFramebufferCreate)>(
-      ::loadSymbol("puleGfxFramebufferCreate", layerName)
-    )
-  );
-  layer->gfxFramebufferDestroy = (
-    reinterpret_cast<decltype(layer->gfxFramebufferDestroy)>(
-      ::loadSymbol("puleGfxFramebufferDestroy", layerName)
-    )
-  );
-  layer->gfxWindowImage = (
-    reinterpret_cast<decltype(layer->gfxWindowImage)>(
-      ::loadSymbol("puleGfxWindowImage", layerName)
-    )
-  );
-  layer->gfxActionToString = (
-    reinterpret_cast<decltype(layer->gfxActionToString)>(
-      ::loadSymbol("puleGfxActionToString", layerName)
-    )
-  );
-  layer->gfxCommandListCreate = (
-    reinterpret_cast<decltype(layer->gfxCommandListCreate)>(
-      ::loadSymbol("puleGfxCommandListCreate", layerName)
-    )
-  );
-  layer->gfxCommandListDestroy = (
-    reinterpret_cast<decltype(layer->gfxCommandListDestroy)>(
-      ::loadSymbol("puleGfxCommandListDestroy", layerName)
-    )
-  );
-  layer->gfxCommandListName = (
-    reinterpret_cast<decltype(layer->gfxCommandListName)>(
-      ::loadSymbol("puleGfxCommandListName", layerName)
-    )
-  );
-  layer->gfxCommandListRecorder = (
-    reinterpret_cast<decltype(layer->gfxCommandListRecorder)>(
-      ::loadSymbol("puleGfxCommandListRecorder", layerName)
-    )
-  );
-  layer->gfxCommandListRecorderFinish = (
-    reinterpret_cast<decltype(layer->gfxCommandListRecorderFinish)>(
-      ::loadSymbol("puleGfxCommandListRecorderFinish", layerName)
-    )
-  );
-  layer->gfxCommandListRecorderReset = (
-    reinterpret_cast<decltype(layer->gfxCommandListRecorderReset)>(
-      ::loadSymbol("puleGfxCommandListRecorderReset", layerName)
-    )
-  );
-  layer->gfxCommandListAppendAction = (
-    reinterpret_cast<decltype(layer->gfxCommandListAppendAction)>(
-      ::loadSymbol("puleGfxCommandListAppendAction", layerName)
-    )
-  );
-  layer->gfxCommandListSubmit = (
-    reinterpret_cast<decltype(layer->gfxCommandListSubmit)>(
-      ::loadSymbol("puleGfxCommandListSubmit", layerName)
-    )
-  );
-  layer->gfxCommandListDump = (
-    reinterpret_cast<decltype(layer->gfxCommandListDump)>(
-      ::loadSymbol("puleGfxCommandListDump", layerName)
     )
   );
   // imgui-engine
@@ -2029,5 +1838,196 @@
   layer->renderGraphNodeExists = (
     reinterpret_cast<decltype(layer->renderGraphNodeExists)>(
       ::loadSymbol("puleRenderGraphNodeExists", layerName)
+    )
+  );
+  // gpu
+  layer->gpuFenceCreate = (
+    reinterpret_cast<decltype(layer->gpuFenceCreate)>(
+      ::loadSymbol("puleGpuFenceCreate", layerName)
+    )
+  );
+  layer->gpuFenceDestroy = (
+    reinterpret_cast<decltype(layer->gpuFenceDestroy)>(
+      ::loadSymbol("puleGpuFenceDestroy", layerName)
+    )
+  );
+  layer->gpuFenceCheckSignal = (
+    reinterpret_cast<decltype(layer->gpuFenceCheckSignal)>(
+      ::loadSymbol("puleGpuFenceCheckSignal", layerName)
+    )
+  );
+  layer->gpuMemoryBarrier = (
+    reinterpret_cast<decltype(layer->gpuMemoryBarrier)>(
+      ::loadSymbol("puleGpuMemoryBarrier", layerName)
+    )
+  );
+  layer->gpuShaderModuleCreate = (
+    reinterpret_cast<decltype(layer->gpuShaderModuleCreate)>(
+      ::loadSymbol("puleGpuShaderModuleCreate", layerName)
+    )
+  );
+  layer->gpuShaderModuleDestroy = (
+    reinterpret_cast<decltype(layer->gpuShaderModuleDestroy)>(
+      ::loadSymbol("puleGpuShaderModuleDestroy", layerName)
+    )
+  );
+  layer->gpuPipelineDescriptorSetLayout = (
+    reinterpret_cast<decltype(layer->gpuPipelineDescriptorSetLayout)>(
+      ::loadSymbol("puleGpuPipelineDescriptorSetLayout", layerName)
+    )
+  );
+  layer->gpuPipelineCreate = (
+    reinterpret_cast<decltype(layer->gpuPipelineCreate)>(
+      ::loadSymbol("puleGpuPipelineCreate", layerName)
+    )
+  );
+  layer->gpuPipelineUpdate = (
+    reinterpret_cast<decltype(layer->gpuPipelineUpdate)>(
+      ::loadSymbol("puleGpuPipelineUpdate", layerName)
+    )
+  );
+  layer->gpuPipelineDestroy = (
+    reinterpret_cast<decltype(layer->gpuPipelineDestroy)>(
+      ::loadSymbol("puleGpuPipelineDestroy", layerName)
+    )
+  );
+  layer->gpuSamplerCreate = (
+    reinterpret_cast<decltype(layer->gpuSamplerCreate)>(
+      ::loadSymbol("puleGpuSamplerCreate", layerName)
+    )
+  );
+  layer->gpuSamplerDestroy = (
+    reinterpret_cast<decltype(layer->gpuSamplerDestroy)>(
+      ::loadSymbol("puleGpuSamplerDestroy", layerName)
+    )
+  );
+  layer->gpuImageCreate = (
+    reinterpret_cast<decltype(layer->gpuImageCreate)>(
+      ::loadSymbol("puleGpuImageCreate", layerName)
+    )
+  );
+  layer->gpuImageDestroy = (
+    reinterpret_cast<decltype(layer->gpuImageDestroy)>(
+      ::loadSymbol("puleGpuImageDestroy", layerName)
+    )
+  );
+  layer->gpuFramebufferCreateInfo = (
+    reinterpret_cast<decltype(layer->gpuFramebufferCreateInfo)>(
+      ::loadSymbol("puleGpuFramebufferCreateInfo", layerName)
+    )
+  );
+  layer->gpuFramebufferCreate = (
+    reinterpret_cast<decltype(layer->gpuFramebufferCreate)>(
+      ::loadSymbol("puleGpuFramebufferCreate", layerName)
+    )
+  );
+  layer->gpuFramebufferDestroy = (
+    reinterpret_cast<decltype(layer->gpuFramebufferDestroy)>(
+      ::loadSymbol("puleGpuFramebufferDestroy", layerName)
+    )
+  );
+  layer->gpuWindowImage = (
+    reinterpret_cast<decltype(layer->gpuWindowImage)>(
+      ::loadSymbol("puleGpuWindowImage", layerName)
+    )
+  );
+  layer->gpuActionToString = (
+    reinterpret_cast<decltype(layer->gpuActionToString)>(
+      ::loadSymbol("puleGpuActionToString", layerName)
+    )
+  );
+  layer->gpuCommandListCreate = (
+    reinterpret_cast<decltype(layer->gpuCommandListCreate)>(
+      ::loadSymbol("puleGpuCommandListCreate", layerName)
+    )
+  );
+  layer->gpuCommandListDestroy = (
+    reinterpret_cast<decltype(layer->gpuCommandListDestroy)>(
+      ::loadSymbol("puleGpuCommandListDestroy", layerName)
+    )
+  );
+  layer->gpuCommandListName = (
+    reinterpret_cast<decltype(layer->gpuCommandListName)>(
+      ::loadSymbol("puleGpuCommandListName", layerName)
+    )
+  );
+  layer->gpuCommandListRecorder = (
+    reinterpret_cast<decltype(layer->gpuCommandListRecorder)>(
+      ::loadSymbol("puleGpuCommandListRecorder", layerName)
+    )
+  );
+  layer->gpuCommandListRecorderFinish = (
+    reinterpret_cast<decltype(layer->gpuCommandListRecorderFinish)>(
+      ::loadSymbol("puleGpuCommandListRecorderFinish", layerName)
+    )
+  );
+  layer->gpuCommandListRecorderReset = (
+    reinterpret_cast<decltype(layer->gpuCommandListRecorderReset)>(
+      ::loadSymbol("puleGpuCommandListRecorderReset", layerName)
+    )
+  );
+  layer->gpuCommandListAppendAction = (
+    reinterpret_cast<decltype(layer->gpuCommandListAppendAction)>(
+      ::loadSymbol("puleGpuCommandListAppendAction", layerName)
+    )
+  );
+  layer->gpuCommandListSubmit = (
+    reinterpret_cast<decltype(layer->gpuCommandListSubmit)>(
+      ::loadSymbol("puleGpuCommandListSubmit", layerName)
+    )
+  );
+  layer->gpuCommandListDump = (
+    reinterpret_cast<decltype(layer->gpuCommandListDump)>(
+      ::loadSymbol("puleGpuCommandListDump", layerName)
+    )
+  );
+  layer->gpuBufferCreate = (
+    reinterpret_cast<decltype(layer->gpuBufferCreate)>(
+      ::loadSymbol("puleGpuBufferCreate", layerName)
+    )
+  );
+  layer->gpuBufferDestroy = (
+    reinterpret_cast<decltype(layer->gpuBufferDestroy)>(
+      ::loadSymbol("puleGpuBufferDestroy", layerName)
+    )
+  );
+  layer->gpuBufferMap = (
+    reinterpret_cast<decltype(layer->gpuBufferMap)>(
+      ::loadSymbol("puleGpuBufferMap", layerName)
+    )
+  );
+  layer->gpuBufferMappedFlush = (
+    reinterpret_cast<decltype(layer->gpuBufferMappedFlush)>(
+      ::loadSymbol("puleGpuBufferMappedFlush", layerName)
+    )
+  );
+  layer->gpuBufferUnmap = (
+    reinterpret_cast<decltype(layer->gpuBufferUnmap)>(
+      ::loadSymbol("puleGpuBufferUnmap", layerName)
+    )
+  );
+  layer->gpuInitialize = (
+    reinterpret_cast<decltype(layer->gpuInitialize)>(
+      ::loadSymbol("puleGpuInitialize", layerName)
+    )
+  );
+  layer->gpuShutdown = (
+    reinterpret_cast<decltype(layer->gpuShutdown)>(
+      ::loadSymbol("puleGpuShutdown", layerName)
+    )
+  );
+  layer->gpuFrameStart = (
+    reinterpret_cast<decltype(layer->gpuFrameStart)>(
+      ::loadSymbol("puleGpuFrameStart", layerName)
+    )
+  );
+  layer->gpuFrameEnd = (
+    reinterpret_cast<decltype(layer->gpuFrameEnd)>(
+      ::loadSymbol("puleGpuFrameEnd", layerName)
+    )
+  );
+  layer->gpuDebugPrint = (
+    reinterpret_cast<decltype(layer->gpuDebugPrint)>(
+      ::loadSymbol("puleGpuDebugPrint", layerName)
     )
   );

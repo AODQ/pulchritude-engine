@@ -13,7 +13,7 @@ struct AssetShaderModule {
   std::string label;
   std::string pathFragment;
   std::string pathVertex;
-  PuleGfxShaderModule shaderModule;
+  PuleGpuShaderModule shaderModule;
   PuleFileWatcher watcherFragment;
   PuleFileWatcher watcherVertex;
 };
@@ -55,7 +55,7 @@ void shaderWatchFileUpdatedCallback(
   AssetShaderModule & assetShaderModule = ::shaderModules.at(assetHandle);
   // deallocate/destroy previous instance
   if (assetShaderModule.shaderModule.id != 0) {
-    puleGfxShaderModuleDestroy(assetShaderModule.shaderModule);
+    puleGpuShaderModuleDestroy(assetShaderModule.shaderModule);
   }
 
   // load contents, need to do for all files regardless which have changed
@@ -67,7 +67,7 @@ void shaderWatchFileUpdatedCallback(
   );
   PuleError err = puleError();
   assetShaderModule.shaderModule = (
-    puleGfxShaderModuleCreate(
+    puleGpuShaderModuleCreate(
       PuleBufferView {
         .data = bytecodeVertex.data(),
         .byteLength = bytecodeVertex.size(),
@@ -149,7 +149,7 @@ PuleStringView puleAssetShaderModuleLabel(
   return puleCStr(shaderModule.label.c_str());
 }
 
-PuleGfxShaderModule puleAssetShaderModuleGfxHandle(
+PuleGpuShaderModule puleAssetShaderModuleHandle(
   PuleAssetShaderModule const pMod
 ) {
   auto & shaderModule = shaderModules.at(pMod.id);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <pulchritude-string/string.h>
-#include <pulchritude-gfx/commands.h>
+#include <pulchritude-gpu/commands.h>
 
 // A task graph to help parallelize render tasks, and track the usage of
 // resources within each task. Can be built up from multiple graphs from
@@ -52,11 +52,11 @@ typedef struct {
   union {
     struct {
       // this can be filled out for you based off 'depends on' exittance
-      PuleGfxCommandPayloadAccess entrancePayloadAccess;
-      PuleGfxCommandPayloadAccess exittancePayloadAccess;
+      PuleGpuCommandPayloadAccess entrancePayloadAccess;
+      PuleGpuCommandPayloadAccess exittancePayloadAccess;
       // this can be filled out for you based off 'depends on' exittance
-      PuleGfxImageLayout entrancePayloadLayout;
-      PuleGfxImageLayout exittancePayloadLayout;
+      PuleGpuImageLayout entrancePayloadLayout;
+      PuleGpuImageLayout exittancePayloadLayout;
     } image;
     struct {
     } buffer;
@@ -82,14 +82,14 @@ PULE_exportFn void puleRenderGraph_resourceRemove(
 
 // -- render node | command list
 
-PULE_exportFn PuleGfxCommandList puleRenderGraph_commandList(
+PULE_exportFn PuleGpuCommandList puleRenderGraph_commandList(
   PuleRenderGraphNode const node,
   uint64_t (* const fetchResourceHandle)(
     PuleStringView const label, void * const userdata
   ),
   void * const userdata
 );
-PULE_exportFn PuleGfxCommandListRecorder puleRenderGraph_commandListRecorder(
+PULE_exportFn PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
   PuleRenderGraphNode const node,
   uint64_t (* const fetchResourceHandle)(
     PuleStringView const label, void * const userdata
@@ -97,8 +97,8 @@ PULE_exportFn PuleGfxCommandListRecorder puleRenderGraph_commandListRecorder(
   void * const userdata
 );
 
-// *must* manually free PuleGfxCommandPayload
-PULE_exportFn PuleGfxCommandPayload puleRenderGraph_commandPayload(
+// *must* manually free PuleGpuCommandPayload
+PULE_exportFn PuleGpuCommandPayload puleRenderGraph_commandPayload(
   PuleRenderGraphNode const node,
   PuleAllocator const payloadAllocator,
   uint64_t (* const fetchResourceHandle)(

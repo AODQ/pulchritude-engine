@@ -1,15 +1,15 @@
-#include <pulchritude-gfx/shader-module.h>
+#include <pulchritude-gpu/shader-module.h>
 
 #include <util.hpp>
 
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/gpu.h>
 #include <pulchritude-log/log.h>
 
 #include <volk.h>
 
 #include <cstdlib>
 
-PuleGfxShaderModule puleGfxShaderModuleCreate(
+PuleGpuShaderModule puleGpuShaderModuleCreate(
   PuleBufferView const vertexShaderBytecode,
   PuleBufferView const fragmentShaderBytecode,
   PuleError * const error
@@ -57,7 +57,7 @@ PuleGfxShaderModule puleGfxShaderModuleCreate(
   return { .id = shaderModuleId, };
 }
 
-void puleGfxShaderModuleDestroy(PuleGfxShaderModule const shaderModule) {
+void puleGpuShaderModuleDestroy(PuleGpuShaderModule const shaderModule) {
   if (shaderModule.id == 0) { return; }
   vkDestroyShaderModule(
     util::ctx().device.logical,

@@ -1,4 +1,4 @@
-#include <pulchritude-gfx/barrier.h>
+#include <pulchritude-gpu/barrier.h>
 
 #include <pulchritude-log/log.h>
 
@@ -6,30 +6,30 @@
 
 #if 0
 namespace {
-  GLenum memoryBarrierFlagToGl(PuleGfxMemoryBarrierFlag const barrier) {
+  GLenum memoryBarrierFlagToGl(PuleGpuMemoryBarrierFlag const barrier) {
     switch (barrier) {
       default: return 0;
-      case PuleGfxMemoryBarrierFlag_all:
+      case PuleGpuMemoryBarrierFlag_all:
         return GL_ALL_BARRIER_BITS;
-      case PuleGfxMemoryBarrierFlag_attribute:
+      case PuleGpuMemoryBarrierFlag_attribute:
         return GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
-      case PuleGfxMemoryBarrierFlag_element:
+      case PuleGpuMemoryBarrierFlag_element:
         return GL_ELEMENT_ARRAY_BARRIER_BIT;
-      case PuleGfxMemoryBarrierFlag_bufferUpdate:
+      case PuleGpuMemoryBarrierFlag_bufferUpdate:
         return GL_BUFFER_UPDATE_BARRIER_BIT;
     }
   }
 
-  GLenum memoryBarrierToGl(PuleGfxMemoryBarrierFlag const barrier) {
+  GLenum memoryBarrierToGl(PuleGpuMemoryBarrierFlag const barrier) {
     GLenum flags = 0;
-    if (barrier == PuleGfxMemoryBarrierFlag_all) {
+    if (barrier == PuleGpuMemoryBarrierFlag_all) {
       return GL_ALL_BARRIER_BITS;
     }
-    for (uint64_t it = 1; it < PuleGfxMemoryBarrierFlagEnd; it <<= 1) {
-      if (barrier & static_cast<PuleGfxMemoryBarrierFlag>(it)) {
+    for (uint64_t it = 1; it < PuleGpuMemoryBarrierFlagEnd; it <<= 1) {
+      if (barrier & static_cast<PuleGpuMemoryBarrierFlag>(it)) {
         flags |= (
           memoryBarrierFlagToGl(
-            static_cast<PuleGfxMemoryBarrierFlag>(it)
+            static_cast<PuleGpuMemoryBarrierFlag>(it)
           )
         );
       }
@@ -41,7 +41,7 @@ namespace {
 
 extern "C" {
 
-PuleGfxFence puleGfxFenceCreate(PuleGfxFenceConditionFlag const condition) {
+PuleGpuFence puleGpuFenceCreate(PuleGpuFenceConditionFlag const condition) {
   #if 0
   (void)condition;
   return {
@@ -52,7 +52,7 @@ PuleGfxFence puleGfxFenceCreate(PuleGfxFenceConditionFlag const condition) {
   #endif
   return { 0 };
 }
-void puleGfxFenceDestroy(PuleGfxFence const fence) {
+void puleGpuFenceDestroy(PuleGpuFence const fence) {
   #if 0
   if (fence.id == 0) { return; }
   auto const handle = reinterpret_cast<GLsync>(fence.id);
@@ -60,8 +60,8 @@ void puleGfxFenceDestroy(PuleGfxFence const fence) {
   #endif
 }
 
-PULE_exportFn bool puleGfxFenceCheckSignal(
-  PuleGfxFence const fence,
+PULE_exportFn bool puleGpuFenceCheckSignal(
+  PuleGpuFence const fence,
   PuleNanosecond const timeout
 ) {
   #if 0
@@ -77,8 +77,8 @@ PULE_exportFn bool puleGfxFenceCheckSignal(
   return false;
 }
 
-void puleGfxMemoryBarrier(
-  PuleGfxMemoryBarrierFlag const barrier
+void puleGpuMemoryBarrier(
+  PuleGpuMemoryBarrierFlag const barrier
 ) {
   #if 0
   glMemoryBarrier(memoryBarrierToGl(barrier));

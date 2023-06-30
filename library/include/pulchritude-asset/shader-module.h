@@ -2,7 +2,7 @@
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
-#include <pulchritude-gfx/shader-module.h>
+#include <pulchritude-gpu/shader-module.h>
 #include <pulchritude-string/string.h>
 
 #ifdef __cplusplus
@@ -26,7 +26,7 @@ PULE_exportFn void puleAssetShaderModuleDestroy(
 PULE_exportFn PuleStringView puleAssetShaderModuleLabel(
   PuleAssetShaderModule const
 );
-PULE_exportFn PuleGfxShaderModule puleAssetShaderModuleGfxHandle(
+PULE_exportFn PuleGpuShaderModule puleAssetShaderModuleHandle(
   PuleAssetShaderModule const
 );
 

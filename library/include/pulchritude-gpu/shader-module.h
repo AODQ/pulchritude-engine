@@ -11,15 +11,15 @@ extern "C" {
 
 typedef struct {
   uint64_t id;
-} PuleGfxShaderModule;
+} PuleGpuShaderModule;
 
-PULE_exportFn PuleGfxShaderModule puleGfxShaderModuleCreate(
+PULE_exportFn PuleGpuShaderModule puleGpuShaderModuleCreate(
   PuleBufferView const vertexShaderBytecode,
   PuleBufferView const fragmentShaderBytecode,
   PuleError * const error
 );
-PULE_exportFn void puleGfxShaderModuleDestroy(
-  PuleGfxShaderModule const shaderModule
+PULE_exportFn void puleGpuShaderModuleDestroy(
+  PuleGpuShaderModule const shaderModule
 );
 
 #ifdef __cplusplus

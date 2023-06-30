@@ -2,9 +2,9 @@
 
 #include <pulchritude-ecs/ecs.h>
 #include <pulchritude-error/error.h>
-#include <pulchritude-gfx/commands.h>
-#include <pulchritude-gfx/gfx.h>
-#include <pulchritude-gfx/image.h>
+#include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/image.h>
 #include <pulchritude-imgui/imgui.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-platform/platform.h>

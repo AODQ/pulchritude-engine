@@ -30,7 +30,7 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-imgui
-  pulchritude-gfx pulchritude-platform pulchritude-error
+  pulchritude-gpu pulchritude-platform pulchritude-error
   pulchritude-asset-render-graph
   pulchritude-asset-shader-module
   pulchritude-task-graph

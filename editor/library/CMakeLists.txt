@@ -24,7 +24,7 @@ target_link_libraries(
     pulchritude-asset-pds
     pulchritude-data-serializer
     pulchritude-error
-    pulchritude-gfx
+    pulchritude-gpu
     pulchritude-log
     pulchritude-platform
     pulchritude-plugin

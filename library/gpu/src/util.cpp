@@ -26,39 +26,39 @@ util::Context & util::ctx() {
 }
 
 VkDescriptorType util::toDescriptorType(
-  PuleGfxGpuBufferBindingDescriptor const descriptor
+  PuleGpuBufferBindingDescriptor const descriptor
 ) {
   switch (descriptor) {
     default: PULE_assert(false);
-    case PuleGfxGpuBufferBindingDescriptor_uniform:
+    case PuleGpuBufferBindingDescriptor_uniform:
       return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    case PuleGfxGpuBufferBindingDescriptor_storage:
+    case PuleGpuBufferBindingDescriptor_storage:
       return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    case PuleGfxGpuBufferBindingDescriptor_accelerationStructure:
+    case PuleGpuBufferBindingDescriptor_accelerationStructure:
       return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
   }
 }
 
 VkBufferUsageFlags util::toBufferUsageFlags(
-  PuleGfxGpuBufferUsage const usage
+  PuleGpuBufferUsage const usage
 ) {
   VkBufferUsageFlags usageVk = 0;
-  if (usage & PuleGfxGpuBufferUsage_attribute) {
+  if (usage & PuleGpuBufferUsage_attribute) {
     usageVk |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
   }
-  if (usage & PuleGfxGpuBufferUsage_element) {
+  if (usage & PuleGpuBufferUsage_element) {
     usageVk |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   }
-  if (usage & PuleGfxGpuBufferUsage_uniform) {
+  if (usage & PuleGpuBufferUsage_uniform) {
     usageVk |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
   }
-  if (usage & PuleGfxGpuBufferUsage_storage) {
+  if (usage & PuleGpuBufferUsage_storage) {
     usageVk |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
   }
-  if (usage & PuleGfxGpuBufferUsage_accelerationStructure) {
+  if (usage & PuleGpuBufferUsage_accelerationStructure) {
     usageVk |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
   }
-  if (usage & PuleGfxGpuBufferUsage_indirect) {
+  if (usage & PuleGpuBufferUsage_indirect) {
     usageVk |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
   }
   return usageVk;
@@ -401,109 +401,109 @@ void util::swapchainImages() {
 }
 
 VkShaderStageFlags util::toVkShaderStageFlags(
-  PuleGfxDescriptorStage const stage
+  PuleGpuDescriptorStage const stage
 ) {
   auto flags = VkShaderStageFlags {};
-  if (stage & PuleGfxDescriptorStage_vertex) {
+  if (stage & PuleGpuDescriptorStage_vertex) {
     flags |= VK_SHADER_STAGE_VERTEX_BIT;
   }
-  if (stage & PuleGfxDescriptorStage_fragment) {
+  if (stage & PuleGpuDescriptorStage_fragment) {
     flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
   }
   return flags;
 }
 
-VkIndexType util::toVkIndexType(PuleGfxElementType const elementType) {
+VkIndexType util::toVkIndexType(PuleGpuElementType const elementType) {
   switch (elementType) {
     default: PULE_assert(false);
-    case PuleGfxElementType_u8: return VK_INDEX_TYPE_UINT8_EXT;
-    case PuleGfxElementType_u16: return VK_INDEX_TYPE_UINT16;
-    case PuleGfxElementType_u32: return VK_INDEX_TYPE_UINT32;
+    case PuleGpuElementType_u8: return VK_INDEX_TYPE_UINT8_EXT;
+    case PuleGpuElementType_u16: return VK_INDEX_TYPE_UINT16;
+    case PuleGpuElementType_u32: return VK_INDEX_TYPE_UINT32;
   }
 }
 
-VkAccessFlags util::toVkAccessFlags(PuleGfxCommandPayloadAccess const access) {
+VkAccessFlags util::toVkAccessFlags(PuleGpuCommandPayloadAccess const access) {
   VkAccessFlags flag = 0;
-  if (access & PuleGfxCommandPayloadAccess_indirectCommandRead)
+  if (access & PuleGpuCommandPayloadAccess_indirectCommandRead)
     flag |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_indexRead)
+  if (access & PuleGpuCommandPayloadAccess_indexRead)
     flag |= VK_ACCESS_INDEX_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_vertexAttributeRead)
+  if (access & PuleGpuCommandPayloadAccess_vertexAttributeRead)
     flag |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_uniformRead)
+  if (access & PuleGpuCommandPayloadAccess_uniformRead)
     flag |= VK_ACCESS_UNIFORM_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_inputAttachmentRead)
+  if (access & PuleGpuCommandPayloadAccess_inputAttachmentRead)
     flag |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_shaderRead)
+  if (access & PuleGpuCommandPayloadAccess_shaderRead)
     flag |= VK_ACCESS_SHADER_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_shaderWrite)
+  if (access & PuleGpuCommandPayloadAccess_shaderWrite)
     flag |= VK_ACCESS_SHADER_WRITE_BIT;
-  if (access & PuleGfxCommandPayloadAccess_colorAttachmentRead)
+  if (access & PuleGpuCommandPayloadAccess_colorAttachmentRead)
     flag |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_colorAttachmentWrite)
+  if (access & PuleGpuCommandPayloadAccess_colorAttachmentWrite)
     flag |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  if (access & PuleGfxCommandPayloadAccess_depthStencilAttachmentRead)
+  if (access & PuleGpuCommandPayloadAccess_depthStencilAttachmentRead)
     flag |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_depthStencilAttachmentRead)
+  if (access & PuleGpuCommandPayloadAccess_depthStencilAttachmentRead)
     flag |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-  if (access & PuleGfxCommandPayloadAccess_transferRead)
+  if (access & PuleGpuCommandPayloadAccess_transferRead)
     flag |= VK_ACCESS_TRANSFER_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_transferWrite)
+  if (access & PuleGpuCommandPayloadAccess_transferWrite)
     flag |= VK_ACCESS_TRANSFER_WRITE_BIT;
-  if (access & PuleGfxCommandPayloadAccess_hostRead)
+  if (access & PuleGpuCommandPayloadAccess_hostRead)
     flag |= VK_ACCESS_HOST_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_hostWrite)
+  if (access & PuleGpuCommandPayloadAccess_hostWrite)
     flag |= VK_ACCESS_HOST_WRITE_BIT;
-  if (access & PuleGfxCommandPayloadAccess_memoryRead)
+  if (access & PuleGpuCommandPayloadAccess_memoryRead)
     flag |= VK_ACCESS_MEMORY_READ_BIT;
-  if (access & PuleGfxCommandPayloadAccess_memoryWrite)
+  if (access & PuleGpuCommandPayloadAccess_memoryWrite)
     flag |= VK_ACCESS_MEMORY_WRITE_BIT;
   return flag;
 }
 
 VkImageLayout util::toVkImageLayout(
-  PuleGfxImageLayout const layout
+  PuleGpuImageLayout const layout
 ) {
   switch (layout) {
     default: PULE_assert(false);
-    case PuleGfxImageLayout_uninitialized:
+    case PuleGpuImageLayout_uninitialized:
       return VK_IMAGE_LAYOUT_UNDEFINED;
-    case PuleGfxImageLayout_storage:
+    case PuleGpuImageLayout_storage:
       return VK_IMAGE_LAYOUT_GENERAL;
-    case PuleGfxImageLayout_attachmentColor:
+    case PuleGpuImageLayout_attachmentColor:
       return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    case PuleGfxImageLayout_attachmentDepth:
+    case PuleGpuImageLayout_attachmentDepth:
       return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-    case PuleGfxImageLayout_transferSrc:
+    case PuleGpuImageLayout_transferSrc:
       return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-    case PuleGfxImageLayout_transferDst:
+    case PuleGpuImageLayout_transferDst:
       return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
   }
 }
 
-VkFormat util::toVkImageFormat(PuleGfxImageByteFormat const format) {
+VkFormat util::toVkImageFormat(PuleGpuImageByteFormat const format) {
   switch (format) {
     default: PULE_assert(false);
-    case PuleGfxImageByteFormat_bgra8U:
+    case PuleGpuImageByteFormat_bgra8U:
       return VK_FORMAT_B8G8R8A8_UNORM;
-    case PuleGfxImageByteFormat_rgba8U:
+    case PuleGpuImageByteFormat_rgba8U:
       return VK_FORMAT_R8G8B8A8_UNORM;
-    case PuleGfxImageByteFormat_rgb8U:
+    case PuleGpuImageByteFormat_rgb8U:
       return VK_FORMAT_R8G8B8_UNORM;
-    case PuleGfxImageByteFormat_r8U:
+    case PuleGpuImageByteFormat_r8U:
       return VK_FORMAT_R8_UNORM;
-    case PuleGfxImageByteFormat_depth16:
+    case PuleGpuImageByteFormat_depth16:
       return VK_FORMAT_D16_UNORM;
   }
 }
 
 VkFormat util::toVkBufferFormat(
-  PuleGfxAttributeDataType const dataType,
+  PuleGpuAttributeDataType const dataType,
   size_t const numComponents,
   bool const normalize
 ) {
   switch (dataType) {
-    case PuleGfxAttributeDataType_float:
+    case PuleGpuAttributeDataType_float:
       switch (numComponents) {
         case 1: return VK_FORMAT_R32_SFLOAT;
         case 2: return VK_FORMAT_R32G32_SFLOAT;
@@ -511,7 +511,7 @@ VkFormat util::toVkBufferFormat(
         case 4: return VK_FORMAT_R32G32B32A32_SFLOAT;
       }
       PULE_assert(false);
-    case PuleGfxAttributeDataType_unsignedByte:
+    case PuleGpuAttributeDataType_unsignedByte:
       switch (numComponents) {
         case 1:
           return (normalize ? VK_FORMAT_R8_USCALED : VK_FORMAT_R8_UINT);
@@ -530,32 +530,32 @@ VkFormat util::toVkBufferFormat(
 }
 
 VkAttachmentLoadOp util::toVkAttachmentOpLoad(
-  PuleGfxImageAttachmentOpLoad const op
+  PuleGpuImageAttachmentOpLoad const op
 ) {
   switch (op) {
     default: PULE_assert(false);
-    case PuleGfxImageAttachmentOpLoad_load:
+    case PuleGpuImageAttachmentOpLoad_load:
       return VK_ATTACHMENT_LOAD_OP_LOAD;
-    case PuleGfxImageAttachmentOpLoad_clear:
+    case PuleGpuImageAttachmentOpLoad_clear:
       return VK_ATTACHMENT_LOAD_OP_CLEAR;
-    case PuleGfxImageAttachmentOpLoad_dontCare:
+    case PuleGpuImageAttachmentOpLoad_dontCare:
       return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   }
 }
 
 VkAttachmentStoreOp util::toVkAttachmentOpStore(
-  PuleGfxImageAttachmentOpStore const op
+  PuleGpuImageAttachmentOpStore const op
   ) {
   switch (op) {
     default: PULE_assert(false);
-    case PuleGfxImageAttachmentOpStore_store:
+    case PuleGpuImageAttachmentOpStore_store:
       return VK_ATTACHMENT_STORE_OP_STORE;
-    case PuleGfxImageAttachmentOpStore_dontCare:
+    case PuleGpuImageAttachmentOpStore_dontCare:
       return VK_ATTACHMENT_STORE_OP_DONT_CARE;
   }
 }
 
-VkImageView createImageView(PuleGfxGpuImageView const puImageView) {
+VkImageView createImageView(PuleGpuImageView const puImageView) {
   // create vulkan image view
   puleLogDev("Creating image view for image %d", puImageView.image.id);
   auto const imageViewCreateInfo = VkImageViewCreateInfo {
@@ -573,7 +573,7 @@ VkImageView createImageView(PuleGfxGpuImageView const puImageView) {
     },
     .subresourceRange = VkImageSubresourceRange {
       .aspectMask = (
-        puImageView.byteFormat == PuleGfxImageByteFormat_depth16
+        puImageView.byteFormat == PuleGpuImageByteFormat_depth16
         ? VK_IMAGE_ASPECT_DEPTH_BIT
         : VK_IMAGE_ASPECT_COLOR_BIT
       ),
@@ -593,7 +593,7 @@ VkImageView createImageView(PuleGfxGpuImageView const puImageView) {
   return imageView;
 }
 
-VkImageView util::fetchImageView(PuleGfxGpuImageView const imageView) {
+VkImageView util::fetchImageView(PuleGpuImageView const imageView) {
   // find image view list from image
   auto imageViewListIt = util::ctx().imageViews.find(imageView.image.id);
   // if image view list not found, create it

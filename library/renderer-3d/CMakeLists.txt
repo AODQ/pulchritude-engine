@@ -20,7 +20,7 @@ target_link_libraries(
   pulchritude-renderer-3d
   pulchritude-log
   pulchritude-error pulchritude-math pulchritude-platform
-  pulchritude-gfx
+  pulchritude-gpu
 )
 
 install(

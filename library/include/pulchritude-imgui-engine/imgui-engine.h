@@ -1,7 +1,7 @@
 #pragma once
 
 #include <pulchritude-ecs/ecs.h>
-#include <pulchritude-gfx/gfx.h>
+#include <pulchritude-gpu/gpu.h>
 #include <pulchritude-platform/platform.h>
 
 // presents engine internal/debug information through the gui

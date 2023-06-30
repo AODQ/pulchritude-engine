@@ -19,7 +19,7 @@ set_target_properties(
 target_link_libraries(
   pulchritude-render-graph
   pulchritude-allocator
-  pulchritude-gfx
+  pulchritude-gpu
 )
 
 install(

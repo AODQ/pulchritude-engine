@@ -1,4 +1,4 @@
-#include <pulchritude-gfx/module.h>
+#include <pulchritude-gpu/module.h>
 
 #include <util.hpp>
 
@@ -13,12 +13,12 @@
 namespace {
 
 void createPipelineVertexInputState(
-  PuleGfxPipelineCreateInfo const * const info,
+  PuleGpuPipelineCreateInfo const * const info,
   std::vector<VkVertexInputBindingDescription> & vtxBuffers,
   std::vector<VkVertexInputAttributeDescription> & vtxAttributes
 ) {
   // attribute bindings
-  for (size_t it = 0; it < puleGfxPipelineDescriptorMax_attribute; ++ it) {
+  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
     auto const binding = info->layout->attributeBindings[it];
     if (binding.numComponents == 0) {
       continue;
@@ -38,7 +38,7 @@ void createPipelineVertexInputState(
     });
   }
   // attribute buffer bindings
-  for (size_t it = 0; it < puleGfxPipelineDescriptorMax_attribute; ++ it) {
+  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
     auto const binding = info->layout->attributeBufferBindings[it];
     if (binding.stridePerElement == 0) {
       continue;
@@ -55,7 +55,7 @@ void createPipelineVertexInputState(
 }
 
 VkPipelineLayout createPipelineLayout(
-  PuleGfxPipelineCreateInfo const * const info,
+  PuleGpuPipelineCreateInfo const * const info,
   VkDescriptorSetLayout & descriptorSetLayout
 ) {
   auto setLayouts = std::vector<VkDescriptorSetLayout> { };
@@ -63,7 +63,7 @@ VkPipelineLayout createPipelineLayout(
     std::vector<VkDescriptorSetLayoutBinding>{}
   );
   // compactStorage buffers
-  for (size_t it = 0; it < puleGfxPipelineDescriptorMax_uniform; ++ it) {
+  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_uniform; ++ it) {
     auto bufferStage = info->layout->bufferUniformBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
@@ -75,7 +75,7 @@ VkPipelineLayout createPipelineLayout(
     });
   }
   // storage buffers
-  for (size_t it = 0; it < puleGfxPipelineDescriptorMax_storage; ++ it) {
+  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_storage; ++ it) {
     auto bufferStage = info->layout->bufferStorageBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
@@ -89,7 +89,7 @@ VkPipelineLayout createPipelineLayout(
   // TODO::CRIT how to bind images?
   for (
     size_t imageIt = 0;
-    imageIt < puleGfxPipelineDescriptorMax_texture;
+    imageIt < puleGpuPipelineDescriptorMax_texture;
     ++ imageIt
   ) {
     auto imageStage = info->layout->textureBindings[imageIt];
@@ -145,8 +145,8 @@ VkPipelineLayout createPipelineLayout(
 
 extern "C" {
 
-PuleGfxPipelineDescriptorSetLayout puleGfxPipelineDescriptorSetLayout() {
-  PuleGfxPipelineDescriptorSetLayout descriptorSetLayout;
+PuleGpuPipelineDescriptorSetLayout puleGpuPipelineDescriptorSetLayout() {
+  PuleGpuPipelineDescriptorSetLayout descriptorSetLayout;
   memset(
     &descriptorSetLayout.bufferUniformBindings[0],
     0,
@@ -176,9 +176,9 @@ PuleGfxPipelineDescriptorSetLayout puleGfxPipelineDescriptorSetLayout() {
   return descriptorSetLayout;
 }
 
-void puleGfxPipelineUpdate(
-  PuleGfxPipeline const pipeline,
-  PuleGfxPipelineCreateInfo const * const info,
+void puleGpuPipelineUpdate(
+  PuleGpuPipeline const pipeline,
+  PuleGpuPipelineCreateInfo const * const info,
   PuleError * const error
 ) {
   (void)pipeline;(void)info;(void)error;
@@ -188,7 +188,7 @@ void puleGfxPipelineUpdate(
 
   // buffer attribute bindings
   for (size_t it = 0; it < 16; ++ it) {
-    PuleGfxPipelineAttributeDescriptorBinding const &
+    PuleGpuPipelineAttributeDescriptorBinding const &
       descriptorAttributeBinding = (
         info->layout->bufferAttributeBindings[it]
       )
@@ -246,7 +246,7 @@ void puleGfxPipelineUpdate(
   // were [0, 0, 5, 0, 6], we want [{5, 2}, {6, 4}]
   utilPipeline.texturesLength = 0;
   for (size_t it = 0; it < 8; ++ it) {
-    PuleGfxGpuImage const texture = info->layout->textureBindings[it];
+    PuleGpuImage const texture = info->layout->textureBindings[it];
     if (texture.id == 0) {
       continue;
     }
@@ -261,8 +261,8 @@ void puleGfxPipelineUpdate(
 
   // collapse storage buffers into array
   utilPipeline.storagesLength = 0;
-  for (size_t it = 0; it < puleGfxPipelineDescriptorMax_storage; ++ it) {
-    PuleGfxGpuBuffer const buffer = info->layout->bufferStorageBindings[it];
+  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_storage; ++ it) {
+    PuleGpuBuffer const buffer = info->layout->bufferStorageBindings[it];
     if (buffer.id == 0) {
       continue;
     }
@@ -287,8 +287,8 @@ void puleGfxPipelineUpdate(
   #endif
 }
 
-PuleGfxPipeline puleGfxPipelineCreate(
-  PuleGfxPipelineCreateInfo const * const info,
+PuleGpuPipeline puleGpuPipelineCreate(
+  PuleGpuPipelineCreateInfo const * const info,
   PuleError * const error
 ) {
   auto const shaderModule = (
@@ -520,7 +520,7 @@ PuleGfxPipeline puleGfxPipelineCreate(
   return {.id = reinterpret_cast<uint64_t>(gfxPipeline),};
 }
 
-void puleGfxPipelineDestroy(PuleGfxPipeline const puPipeline) {
+void puleGpuPipelineDestroy(PuleGpuPipeline const puPipeline) {
   auto pipeline = reinterpret_cast<VkPipeline>(puPipeline.id);
   vkDestroyPipeline(util::ctx().device.logical, pipeline, nullptr);
   // TODO destroy pipeline layout
