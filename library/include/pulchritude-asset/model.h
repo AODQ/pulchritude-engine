@@ -92,13 +92,13 @@ typedef struct {
 
 //-- model ---------------------------------------------------------------------
 
-PULE_exportFn void puleAssetModelDestroy(PuleAssetModel const model);
+// FULE_exportFn void puleAssetModelDestroy(PuleAssetModel const model);
 
 //-- mesh/attribute ------------------------------------------------------------
 
-PULE_exportFn size_t puleAssetMeshComponentDataTypeByteLength(
-  PuleAssetMeshComponentDataType const dataType
-);
+// FULE_exportFn size_t puleAssetMeshComponentDataTypeByteLength(
+//   PuleAssetMeshComponentDataType const dataType
+// );
 
 //-- loading/requests ----------------------------------------------------------
 
@@ -124,12 +124,12 @@ typedef struct {
   PuleAssetMeshRequestedFormat requestedMeshFormat;
 } PuleAssetModelCreateInfo;
 
-PULE_exportFn PuleAssetModel puleAssetModelLoadFromStream(
-  PuleAssetModelCreateInfo const createInfo,
-  PuleError * const error
-);
+// FULE_exportFn PuleAssetModel puleAssetModelLoadFromStream(
+//   PuleAssetModelCreateInfo const createInfo,
+//   PuleError * const error
+// );
 
-//PULE_exportFn PuleAssetModelInstance puleAssetModelInstanceCreate(
+//FULE_exportFn PuleAssetModelInstance puleAssetModelInstanceCreate(
 //  PuleAssetModel const model
 //);
 

@@ -13,6 +13,10 @@ typedef struct {
 
 PULE_exportFn PuleTaskGraph puleTaskGraphCreate(PuleAllocator const allocator);
 PULE_exportFn void puleTaskGraphDestroy(PuleTaskGraph const graph);
+PULE_exportFn void puleTaskGraphMerge( // deletes secondary
+  PuleTaskGraph const taskGraphPrimary,
+  PuleTaskGraph const taskGraphSecondary
+);
 
 // -- task node
 typedef struct {

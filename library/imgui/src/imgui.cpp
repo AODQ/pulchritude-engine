@@ -1,6 +1,9 @@
 #include <pulchritude-imgui/imgui.h>
 
 #include <pulchritude-allocator/allocator.h>
+#include <pulchritude-asset/pds.h>
+#include <pulchritude-asset/render-graph.h>
+#include <pulchritude-asset/shader-module.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-gfx/commands.h>
 #include <pulchritude-gfx/gfx.h>
@@ -16,10 +19,7 @@
 #pragma GCC diagnostic pop
 
 #include <unordered_map>
-
-#define PULCHRITUDE_SHADER(...) \
-  "#version 460 core\n" \
-  #__VA_ARGS__
+#include <string>
 
 ////////////////////////////////////////////////////////////////////////////////
 //-- GRAPHICS ------------------------------------------------------------------
@@ -37,6 +37,37 @@ struct RenderData {
   size_t vertexBufferLength = 0;
   size_t elementsBufferLength = 0;
 };
+
+PuleGfxPipelineDescriptorSetLayout createPipelineDescriptorSetLayout() {
+  auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
+  descriptorSetLayout.attributeBufferBindings[0] = {
+    .stridePerElement = sizeof(ImDrawVert),
+  };
+  descriptorSetLayout.attributeBindings[0] = {
+    .dataType = PuleGfxAttributeDataType_float,
+    .bufferIndex = 0,
+    .numComponents = 2,
+    .convertFixedDataTypeToNormalizedFloating = false,
+    .offsetIntoBuffer = offsetof(ImDrawVert, pos),
+  };
+  descriptorSetLayout.attributeBindings[1] = {
+    .dataType = PuleGfxAttributeDataType_float,
+    .bufferIndex = 0,
+    .numComponents = 2,
+    .convertFixedDataTypeToNormalizedFloating = false,
+    .offsetIntoBuffer = offsetof(ImDrawVert, uv),
+  };
+  descriptorSetLayout.attributeBindings[2] = {
+    .dataType = PuleGfxAttributeDataType_unsignedByte,
+    .bufferIndex = 0,
+    .numComponents = 4,
+    .convertFixedDataTypeToNormalizedFloating = true,
+    .offsetIntoBuffer = offsetof(ImDrawVert, col),
+  };
+  // descriptorSetLayout.bufferElementBinding = bd.elementsBuffer;
+  descriptorSetLayout.textureBindings[0] = PuleGfxDescriptorStage_fragment;
+  return descriptorSetLayout;
+}
 
 void createFontsTexture() {
   ImGuiIO & io = ImGui::GetIO();
@@ -68,69 +99,42 @@ void createFontsTexture() {
   io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(bd.fontImage.id));
 }
 
-void initializeRenderData() {
+void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
   ImGuiIO & io = ImGui::GetIO();
   io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
   auto & bd = (
     *reinterpret_cast<RenderData *>(io.BackendRendererUserData)
   );
 
-  char const * const vertexShaderSource = PULCHRITUDE_SHADER(
-    in layout(location = 0) vec2 inPosition;
-    in layout(location = 1) vec2 inUv;
-    in layout(location = 2) vec4 inColor;
-
-    out layout(location = 0) vec2 outUv;
-    out layout(location = 1) vec4 outColor;
-
-    uniform layout(location = 0) mat4 unfProjection;
-
-    void main() {
-      outUv = inUv;
-      outColor = inColor;
-      gl_Position = unfProjection * vec4(inPosition.xy, 0.0f, 1.0f);
-    }
-  );
-
-  char const * const fragmentShaderSource = PULCHRITUDE_SHADER(
-    in layout(location = 0) vec2 inUv;
-    in layout(location = 1) vec4 inColor;
-
-    uniform layout(binding = 0) sampler2D boundSampler;
-
-    out layout(location = 0) vec4 outColor;
-
-    void main() {
-      outColor = inColor * texture(boundSampler, inUv);
-      if (outColor.a < 0.8f) discard;
-    }
-  );
-
-  PuleError err = puleError();
-  bd.shaderModule = (
-    puleGfxShaderModuleCreate(
-      puleCStr(vertexShaderSource),
-      puleCStr(fragmentShaderSource),
-      &err
+  auto assetShaderModule = (
+    puleAssetShaderModuleCreateFromPaths(
+      puleCStr("imgui-module"),
+      puleCStr("assets/imgui.vert.spv"),
+      puleCStr("assets/imgui.frag.spv")
     )
   );
-  if (puleErrorConsume(&err)) { return; }
+
+  bd.shaderModule = puleAssetShaderModuleGfxHandle(assetShaderModule);
 
   // TODO create vertex+elements buffer
   createFontsTexture();
 
-  auto const tempDescriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
+  auto const descriptorSetLayout = createPipelineDescriptorSetLayout();
   auto const pipelineCI = PuleGfxPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
-    .layout = &tempDescriptorSetLayout,
+    .layout = &descriptorSetLayout,
     .config = {},
   };
 
+  PuleError err = puleError();
   bd.pipeline = puleGfxPipelineCreate(&pipelineCI, &err);
   if (puleErrorConsume(&err)) { return; }
 }
 
-void renderDrawData(ImDrawData * const drawData) {
+void renderDrawData(
+  ImDrawData * const drawData,
+  PuleGfxCommandListRecorder const commandListRecorder
+) {
   // don't render when minized
   int32_t const framebufferWidth = (
     static_cast<int32_t>(
@@ -189,9 +193,10 @@ void renderDrawData(ImDrawData * const drawData) {
       bd.vertexBufferLength = vertexBufferLength;
       puleGfxGpuBufferDestroy(bd.vertexBuffer);
       bd.vertexBuffer = puleGfxGpuBufferCreate(
+        puleCStr("imgui-vertex-buffer"),
         nullptr,//reinterpret_cast<void *>(drawList->VtxBuffer.Data),
         bd.vertexBufferLength,
-        PuleGfxGpuBufferUsage_bufferAttribute,
+        PuleGfxGpuBufferUsage_attribute,
         PuleGfxGpuBufferVisibilityFlag_hostWritable
       );
     }
@@ -224,9 +229,10 @@ void renderDrawData(ImDrawData * const drawData) {
       bd.elementsBufferLength = elementsBufferLength;
       puleGfxGpuBufferDestroy(bd.elementsBuffer);
       bd.elementsBuffer = puleGfxGpuBufferCreate(
+        puleCStr("imgui-elements-buffer"),
         nullptr,//reinterpret_cast<void *>(drawList->IdxBuffer.Data),
         bd.elementsBufferLength,
-        PuleGfxGpuBufferUsage_bufferElement,
+        PuleGfxGpuBufferUsage_element,
         PuleGfxGpuBufferVisibilityFlag_hostWritable
       );
     }
@@ -276,72 +282,38 @@ void renderDrawData(ImDrawData * const drawData) {
         continue;
       }
 
-      auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
-      descriptorSetLayout.bufferAttributeBindings[0] = {
-        .buffer = bd.vertexBuffer,
-        .numComponents = 2,
-        .dataType = PuleGfxAttributeDataType_float,
-        .convertFixedDataTypeToNormalizedFloating = false,
-        .stridePerElement = sizeof(ImDrawVert),
-        .offsetIntoBuffer = offsetof(ImDrawVert, pos),
-      };
-      descriptorSetLayout.bufferAttributeBindings[1] = {
-        .buffer = bd.vertexBuffer,
-        .numComponents = 2,
-        .dataType = PuleGfxAttributeDataType_float,
-        .convertFixedDataTypeToNormalizedFloating = false,
-        .stridePerElement = sizeof(ImDrawVert),
-        .offsetIntoBuffer = offsetof(ImDrawVert, uv),
-      };
-      descriptorSetLayout.bufferAttributeBindings[2] = {
-        .buffer = bd.vertexBuffer,
-        .numComponents = 4,
-        .dataType = PuleGfxAttributeDataType_unsignedByte,
-        .convertFixedDataTypeToNormalizedFloating = true,
-        .stridePerElement = sizeof(ImDrawVert),
-        .offsetIntoBuffer = offsetof(ImDrawVert, col),
-      };
-      descriptorSetLayout.bufferElementBinding = bd.elementsBuffer;
-      descriptorSetLayout.textureBindings[0] = (
-        PuleGfxGpuImage { .id = reinterpret_cast<uint64_t>(drawCmd.GetTexID()) }
-      );
-
-      auto const pipelineCreateInfo = PuleGfxPipelineCreateInfo {
-        .shaderModule = bd.shaderModule,
-        .layout = &descriptorSetLayout,
-        .config = {
-          .depthTestEnabled = false,
-          .blendEnabled = true,
-          .scissorTestEnabled = true,
-          .viewportUl = PuleI32v2 { 0, 0 },
-          .viewportLr = PuleI32v2 { framebufferWidth, framebufferHeight },
-          .scissorUl = PuleI32v2 {
-            static_cast<int32_t>(clipMin.x),
-            static_cast<int32_t>(framebufferHeight - clipMax.y),
-          },
-          .scissorLr = PuleI32v2 {
-            static_cast<int32_t>(clipMax.x - clipMin.x),
-            static_cast<int32_t>(clipMax.y - clipMin.y),
-          },
-        },
-      };
-
-      puleGfxPipelineUpdate(
-        bd.pipeline,
-        &pipelineCreateInfo,
-        &err
-      );
-      puleErrorConsume(&err);
-
-      auto commandList = (
-        puleGfxCommandListCreate(
-          puleAllocateDefault(),
-          puleCStr("pule-imgui")
-        )
-      );
       {
-        auto commandListRecorder = puleGfxCommandListRecorder(commandList);
-
+        puleGfxCommandListAppendAction(
+          commandListRecorder,
+          PuleGfxCommand {
+            .renderPassBegin {
+              .action = PuleGfxAction_renderPassBegin,
+              .viewportUpperLeft = PuleI32v2 { .x = 0, .y = 0, },
+              .viewportLowerRight = PuleI32v2 {
+                .x = framebufferWidth,
+                .y = framebufferHeight
+              },
+              .colorAttachmentCount = 1,
+              .colorAttachments = {
+                PuleGfxImageAttachment {
+                  .opLoad = PuleGfxImageAttachmentOpLoad_clear,
+                  .opStore = PuleGfxImageAttachmentOpStore_store,
+                  .layout = PuleGfxImageLayout_attachmentColor,
+                  .clearColor = {},
+                  .imageView = (
+                    PuleGfxGpuImageView {
+                      .image = puleGfxWindowImage(),
+                      .mipmapLevelStart = 0, .mipmapLevelCount = 1,
+                      .arrayLayerStart = 0, .arrayLayerCount = 1,
+                      .byteFormat = PuleGfxImageByteFormat_bgra8U,
+                    }
+                  ),
+                },
+              },
+              .depthAttachment = {},
+            },
+          }
+        );
         puleGfxCommandListAppendAction(
           commandListRecorder,
           PuleGfxCommand {
@@ -352,12 +324,42 @@ void renderDrawData(ImDrawData * const drawData) {
           }
         );
 
+        // pos , uv , col
         puleGfxCommandListAppendAction(
           commandListRecorder,
           PuleGfxCommand {
-            .bindFramebuffer {
-              .action = PuleGfxAction_bindFramebuffer,
-              .framebuffer = puleGfxFramebufferWindow(),
+            .bindAttributeBuffer {
+              .action = PuleGfxAction_bindAttributeBuffer,
+              .pipeline = bd.pipeline,
+              .bindingIndex = 0,
+              .buffer = bd.vertexBuffer,
+              .offset = 0,
+              .stride = sizeof(ImDrawVert),
+            }
+          }
+        );
+
+        // puleGfxCommandListAppendAction(
+        //   commandListRecorder,
+        //   PuleGfxCommand {
+        //     .bindFramebuffer {
+        //       .action = PuleGfxAction_bindFramebuffer,
+        //       .framebuffer = puleGfxWindowImage(),
+        //     }
+        //   }
+        // );
+        puleGfxCommandListAppendAction(
+          commandListRecorder,
+          PuleGfxCommand {
+            .bindElementBuffer {
+              .action = PuleGfxAction_bindElementBuffer,
+              .buffer = bd.elementsBuffer,
+              .offset = 0,
+              .elementType = (
+                sizeof(ImDrawIdx) == 2
+                  ? PuleGfxElementType_u16
+                  : PuleGfxElementType_u32
+              )
             }
           }
         );
@@ -379,6 +381,15 @@ void renderDrawData(ImDrawData * const drawData) {
           }
         );
 
+        puleLogDev(
+          "render element:: "
+          " numElements: %d,"
+          " elementOffset: %zu,"
+          " baseVertexOffset: %zu",
+          drawCmd.ElemCount,
+          drawCmd.IdxOffset * sizeof(ImDrawIdx),
+          drawCmd.VtxOffset
+        );
         puleGfxCommandListAppendAction(
           commandListRecorder,
           {
@@ -386,31 +397,21 @@ void renderDrawData(ImDrawData * const drawData) {
               .action = PuleGfxAction_dispatchRenderElements,
               .drawPrimitive = PuleGfxDrawPrimitive_triangle,
               .numElements = drawCmd.ElemCount,
-              .elementType = (
-                sizeof(ImDrawIdx) == 2
-                  ? PuleGfxElementType_u16
-                  : PuleGfxElementType_u32
-              ),
               .elementOffset = drawCmd.IdxOffset * sizeof(ImDrawIdx),
               .baseVertexOffset = drawCmd.VtxOffset,
             },
           }
         );
 
-        puleGfxCommandListRecorderFinish(commandListRecorder);
+        puleGfxCommandListAppendAction(
+          commandListRecorder,
+          PuleGfxCommand {
+            .renderPassEnd {
+              .action = PuleGfxAction_renderPassEnd,
+            },
+          }
+        );
       }
-
-      puleGfxCommandListSubmit(
-        PuleGfxCommandListSubmitInfo {
-          .commandList = commandList,
-          .fenceTargetStart = nullptr,
-          .fenceTargetFinish = nullptr,
-        },
-        &err
-      );
-      puleErrorConsume(&err);
-
-      puleGfxCommandListDestroy(commandList);
     }
   }
 }
@@ -762,7 +763,7 @@ void puleImguiInitialize(PulePlatform const window) {
   ::RenderData * bd = IM_NEW(::RenderData)();
   io.BackendRendererUserData = reinterpret_cast<void *>(bd);
   io.BackendRendererName = "pulchritude_impl";
-  ::initializeRenderData();
+  ::initializeRenderData(window);
   ::initWindowing(window);
 }
 
@@ -784,9 +785,9 @@ void puleImguiNewFrame() {
   ImGui::NewFrame();
 }
 
-void puleImguiRender() {
+void puleImguiRender(PuleGfxCommandListRecorder const recorder) {
   ImGui::Render();
-  renderDrawData(ImGui::GetDrawData());
+  renderDrawData(ImGui::GetDrawData(), recorder);
 }
 
 void puleImguiJoinNext() {

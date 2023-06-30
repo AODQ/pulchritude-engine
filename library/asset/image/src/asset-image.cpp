@@ -140,3 +140,13 @@ uint32_t puleAssetImageHeight(PuleAssetImage const image) {
 }
 
 } // C
+
+extern "C" {
+PuleAssetImageSupportFlag puleAssetImageExtensionSupported(
+  char const * const extension
+) {
+  if (strcmp(extension, "png") == 0) {
+    return PuleAssetImageSupportFlag_readWrite;
+  }
+}
+}

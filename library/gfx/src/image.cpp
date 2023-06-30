@@ -1,8 +1,10 @@
 #include <pulchritude-gfx/image.h>
 
+#include <util.hpp>
+
 #include <pulchritude-log/log.h>
 
-#include <glad/glad.h>
+#include <volk.h>
 
 #include <unordered_map>
 
@@ -10,6 +12,7 @@ namespace { // sampler
   std::unordered_map<uint64_t, PuleGfxSamplerCreateInfo> samplers;
   uint64_t samplersIt = 1;
 
+#if 0
   GLenum imageMagnificationToGl(PuleGfxImageMagnification const magnify) {
     switch (magnify) {
       default:
@@ -53,6 +56,7 @@ namespace { // sampler
       imageWrapToGl(samplerInfo.wrapV)
     );
   }
+#endif
 }
 
 extern "C" { // sampler
@@ -76,6 +80,7 @@ void puleGfxSamplerDestroy(
 
 } // C
 
+#if 0
 namespace { // image
   GLenum byteFormatToGlInternalFormat(PuleGfxImageByteFormat const byteFormat) {
     switch (byteFormat) {
@@ -128,10 +133,12 @@ namespace { // image
     }
   }
 }
+#endif
 
 extern "C" { // image
 
 PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
+  #if 0
   GLuint textureHandle;
   glCreateTextures(::imageTargetToGl(createInfo.target), 1, &textureHandle);
   ::applySampler(textureHandle, createInfo.sampler);
@@ -163,14 +170,19 @@ PuleGfxGpuImage puleGfxGpuImageCreate(PuleGfxImageCreateInfo const createInfo) {
   }
 
   return { textureHandle };
+  #endif
+  return { 0 };
 }
 
 void puleGfxGpuImageDestroy(PuleGfxGpuImage const image) {
+  #if 0
   if (image.id == 0) { return; }
   GLuint handle = static_cast<GLuint>(image.id);
   if (handle != 0) {
     glDeleteTextures(1, &handle);
   }
+  // TODO... destroy image views in util
+  #endif
 }
 
 } // C
@@ -179,6 +191,7 @@ void puleGfxGpuImageDestroy(PuleGfxGpuImage const image) {
 // -- FRAMEBUFFER ---------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
+#if 0
 namespace {
   GLuint framebufferAttachmenToGl(PuleGfxFramebufferAttachment attachment) {
     switch (attachment) {
@@ -202,6 +215,7 @@ namespace {
     }
   }
 } // namespace
+#endif
 
 extern "C" {
 PuleGfxFramebufferCreateInfo puleGfxFramebufferCreateInfo() {
@@ -218,6 +232,7 @@ PuleGfxFramebuffer puleGfxFramebufferCreate(
   PuleGfxFramebufferCreateInfo const info,
   PuleError * const error
 ) {
+  #if 0
   GLuint framebuffer;
   glCreateFramebuffers(1, &framebuffer);
 
@@ -246,18 +261,31 @@ PuleGfxFramebuffer puleGfxFramebufferCreate(
   )
 
   return { framebuffer };
+  #endif
+  return { 0 };
 }
 
 void puleGfxFramebufferDestroy(PuleGfxFramebuffer const framebuffer) {
+  #if 0
   if (framebuffer.id == 0) { return; }
   auto const glFramebuffer = static_cast<GLuint>(framebuffer.id);
   if (glFramebuffer != 0) {
     glDeleteFramebuffers(1, &glFramebuffer);
   }
+  #endif
 }
 
-PuleGfxFramebuffer puleGfxFramebufferWindow() {
-  return { 0 };
+PuleGfxGpuImage puleGfxWindowImage() {
+  VkImage const image = (
+    util::ctx().swapchainImages[util::ctx().swapchainCurrentImageIdx]
+  );
+  return PuleGfxGpuImage { .id = reinterpret_cast<uint64_t>(image), };
+}
+
+PuleGfxFramebufferAttachments puleGfxFramebufferAttachments(
+  PuleGfxFramebuffer const framebuffer
+) {
+  PULE_assert(0);
 }
 
 } // C

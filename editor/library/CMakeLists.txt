@@ -15,7 +15,8 @@ set_target_properties(
   PROPERTIES
     COMPILE_FLAGS
       "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
-  POSITION_INDEPENDENT_CODE ON
+    POSITION_INDEPENDENT_CODE ON
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(

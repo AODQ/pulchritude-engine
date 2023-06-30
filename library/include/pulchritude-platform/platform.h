@@ -45,7 +45,11 @@ PULE_exportFn void pulePlatformDestroy(PulePlatform const window);
 
 PULE_exportFn bool pulePlatformShouldExit(PulePlatform const window);
 
+// TODO these need to pass in platform (puleGfxInitialize)
 PULE_exportFn void * pulePlatformGetProcessAddress();
+PULE_exportFn char const * * pulePlatformRequiredExtensions(
+  uint32_t * const count
+);
 
 PULE_exportFn void pulePlatformPollEvents(PulePlatform const window);
 PULE_exportFn void pulePlatformSwapFramebuffer(PulePlatform const window);

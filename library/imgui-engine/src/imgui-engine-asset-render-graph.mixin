@@ -1,0 +1,32 @@
+#define MULTILINESTRING(...) #__VA_ARGS__
+std::string const assetRenderGraphStr = MULTILINESTRING(
+  render-graph: [
+    {
+      label: "imgui-clear",
+      resources: [
+        {
+          label: "window-swapchain-image",
+          image: {
+            exittance-layout: "transfer-dst",
+            exittance-access: "transfer-write",
+          },
+        },
+      ],
+      depends-on: [],
+    },
+    {
+      label: "imgui-render",
+      resources: [
+        {
+          label: "window-swapchain-image",
+          image: {
+            exittance-layout: "attachment-color",
+            exittance-access: "attachment-color-write",
+          },
+        },
+      ],
+      depends-on: ["imgui-clear",],
+    },
+  ],
+);
+#undef MULTILINESTRING

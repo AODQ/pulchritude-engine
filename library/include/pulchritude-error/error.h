@@ -60,6 +60,15 @@ PULE_exportFn bool puleErrorExists(PuleError * const error);
   } \
 }
 
+#define PULE_assertComparison(X, Y) { \
+  if (X != Y) { \
+    puleLogError( \
+      "assert failed; %s != %s (%d != %d) @ %s:%d", \
+      #X, #Y, X, Y, __FILE__, __LINE__ \
+    ); \
+  } \
+}
+
 // pretty print error, format start with ("%s")
 #define PULE_prettyError(str, ...) { \
   puleLogError(str, __PRETTY_FUNCTION__, __VA_ARGS__); \

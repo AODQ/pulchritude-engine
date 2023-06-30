@@ -11,6 +11,7 @@
 
 // need struct definitions, but don't call anything from here directly
 #include <pulchritude-gfx/gfx.h>
+#include <pulchritude-imgui-engine/imgui-engine.h>
 #include <pulchritude-imgui/imgui.h>
 #include <pulchritude-platform/platform.h>
 
@@ -38,6 +39,24 @@ namespace {
     tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
     if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
       componentPlugins.emplace_back(plugin.id);
+    }
+  }
+
+  struct PluginsCollectRenderGraphInfo {
+    PuleRenderGraph renderGraph;
+    PulePlatform platform;
+  };
+  void iteratePluginsCollectRenderGraphs(
+    PulePluginInfo const plugin,
+    void * const userdata
+  ) {
+    auto const info = (
+      *reinterpret_cast<PluginsCollectRenderGraphInfo *>(userdata)
+    );
+    PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
+    tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
+    if (renderGraphFn) {
+      puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
     }
   }
 }
@@ -69,63 +88,20 @@ void scriptTaskGraphNodeUpdate(
 } // -- script task graph callbacks --------------------------------------------
 
 namespace { // -- render task graph callbacks ----------------------------------
-void renderTaskGraphStartup(
-  PuleTaskGraphNode const node,
-  void * const
-) {
-  // fetch command lists
-  auto const commandListStartup = PuleGfxCommandList {
-    puleTaskGraphNodeAttributeFetchU64(node, puleCStr("command-list-startup"))
-  };
-  auto const commandListPrimaryRecorder = PuleGfxCommandListRecorder {
-    puleTaskGraphNodeAttributeFetchU64(
-      node, puleCStr("command-list-primary-recorder"))
-  };
 
-  // reset primary command list & set first action to be startup command list
-  puleGfxCommandListRecorderReset(commandListPrimaryRecorder);
-  puleGfxCommandListAppendAction(
-    commandListPrimaryRecorder,
-    PuleGfxCommand {
-      .dispatchCommandList {
-        .action = PuleGfxAction_dispatchCommandList,
-        .submitInfo = {
-          .commandList = commandListStartup,
-          .fenceTargetStart = nullptr,
-          .fenceTargetFinish = nullptr,
-        },
-      },
-    }
-  );
-}
-
-static bool debugRenderTaskGraphDump = true;
-void renderTaskGraphFinish(
-  PuleTaskGraphNode const node,
-  void * const
+uint64_t fetchResourceHandle(
+  PuleStringView const label,
+  void * const pluginPayload
 ) {
-  // fetch & execute command list
-  auto const commandListPrimary = PuleGfxCommandList {
-    puleTaskGraphNodeAttributeFetchU64(node, puleCStr("command-list-primary"))
-  };
-  auto const commandListPrimaryRecorder = PuleGfxCommandListRecorder {
-    puleTaskGraphNodeAttributeFetchU64(
-      node, puleCStr("command-list-primary-recorder"))
-  };
-  puleGfxCommandListRecorderFinish(commandListPrimaryRecorder);
-  PuleError err = puleError();
-  if (debugRenderTaskGraphDump && *puleLogDebugEnabled()) {
-    puleGfxCommandListDump(commandListPrimary);
+  if (puleStringViewEqCStr(label, "window-swapchain-image")) {
+    return puleGfxWindowImage().id;
   }
-  puleGfxCommandListSubmit(
-    {
-      .commandList = commandListPrimary,
-      .fenceTargetStart = nullptr,
-      .fenceTargetFinish = nullptr,
-    },
-    &err
+  return (
+    pulePluginPayloadFetchU64(
+      PulePluginPayload { .id = reinterpret_cast<uint64_t>(pluginPayload), },
+      label
+    )
   );
-  puleErrorConsume(&err);
 }
 
 } // -- render task graph callbacks --------------------------------------------
@@ -270,7 +246,7 @@ int32_t main(
 
   if (assetPath.len == 0) {
     puleLogError("[PuleApplication] No asset path specified");
-    return false;
+    return -1;
   }
 
   // ensure default is picked
@@ -334,12 +310,13 @@ int32_t main(
 
   // store asset path
   pulePluginPayloadStore(payload, puleCStr("pule-fs-asset-path"), &assetPath);
+  puleFilesystemAssetPathSet(puleStringView(assetPath));
 
   PulePlatform platform = { .id = 0, };
   PuleScriptContext scriptContext = { .id = 0, };
   bool fileWatcherCheckAll = true;
   PuleEcsWorld ecsWorld = { .id = 0, };
-  PuleTaskGraph renderTaskGraph = { .id = 0, };
+  PuleRenderGraph renderGraph = { .id = 0, };
   PuleTaskGraph scriptTaskGraph = { .id = 0, };
   PuleCameraSet cameraSet = { .id = 0, };
   std::vector<PuleAssetShaderModule> shaderModules = {};
@@ -351,13 +328,11 @@ int32_t main(
     PuleDsValue const projectValue = (
       pulBase.assetPdsLoadFromFile(
         pulBase.allocateDefault(),
-        pulBase.cStr(
-          (std::string(assetPath.contents) + "/project.pds").c_str()
-        ),
+        pulBase.cStr("/assets/project.pds"),
         &err
       )
     );
-    if (pulBase.errorConsume(&err)) { return false; }
+    if (pulBase.errorConsume(&err)) { return -1; }
 
 
     // -- entry payload
@@ -389,7 +364,7 @@ int32_t main(
           // TODO... puleDsMemberAsString */
         );
         pulBase.platformInitialize(&err);
-        if (pulBase.errorConsume(&err)) { return false; }
+        if (pulBase.errorConsume(&err)) { return -1; }
         platform = (
           pulBase.platformCreate(
             PulePlatformCreateInfo {
@@ -400,7 +375,7 @@ int32_t main(
             &err
           )
         );
-        if (pulBase.errorConsume(&err)) { return false; }
+        if (pulBase.errorConsume(&err)) { return -1; }
       }
       // -- graphics create
       PuleDsValue const payloadGfx = (
@@ -413,10 +388,10 @@ int32_t main(
             pulBase.logError(
               "Trying to initialize gfx context without platform"
             );
-            return false;
+            return -1;
           }
-          pulBase.gfxInitialize(&err);
-          if (pulBase.errorConsume(&err)) { return false; }
+          pulBase.gfxInitialize(platform, &err);
+          if (pulBase.errorConsume(&err)) { return -1; }
         }
         auto renderGraphPath = (
           pulBase.dsObjectMember(payloadGfx, "render-graph-path")
@@ -435,9 +410,9 @@ int32_t main(
               &err
             )
           );
-          if (pulBase.errorConsume(&err)) { return false; }
-          renderTaskGraph = (
-            puleAssetRenderTaskGraphFromPds(
+          if (pulBase.errorConsume(&err)) { return -1; }
+          renderGraph = (
+            puleAssetRenderGraphFromPds(
               puleAllocateDefault(),
               platform,
               renderGraphValue
@@ -550,7 +525,7 @@ int32_t main(
               &err
             )
           );
-          if (pulBase.errorConsume(&err)) { return false; }
+          if (pulBase.errorConsume(&err)) { return -1; }
           scriptTaskGraph = (
             pulBase.assetScriptTaskGraphFromPds(
               puleAllocateDefault(),
@@ -573,6 +548,11 @@ int32_t main(
     }
   }
 
+  // create defaults
+  if (renderGraph.id == 0 && platform.id != 0) {
+    renderGraph = puleRenderGraphCreate(puleAllocateDefault());
+  }
+
   // insert into payload as necessary
   if (platform.id != 0) {
     pulBase.pluginPayloadStoreU64(
@@ -588,11 +568,11 @@ int32_t main(
       ecsWorld.id
     );
   }
-  if (renderTaskGraph.id != 0) {
+  if (renderGraph.id != 0) {
     pulBase.pluginPayloadStoreU64(
       payload,
-      pulBase.cStr("pule-render-task-graph"),
-      renderTaskGraph.id
+      pulBase.cStr("pule-render-graph"),
+      renderGraph.id
     );
   }
   if (scriptTaskGraph.id != 0) {
@@ -646,10 +626,19 @@ int32_t main(
     }
   }
 
+  { // check if any plugin contributes to render task graph
+    auto renderGraphInfo = PluginsCollectRenderGraphInfo {
+      .renderGraph = renderGraph,
+      .platform = platform,
+    };
+    puleIteratePlugins(
+      ::iteratePluginsCollectRenderGraphs, &renderGraphInfo
+    );
+  }
+
   // load gui editor if requested
   assert(isGuiEditor ? platform.id : true);
   std::vector<GuiEditorFn> guiEditorFns;
-  PuleGfxCommandList guiPrepareRenderCommandList;
   if (isGuiEditor) {
     puleIteratePlugins(
       ::guiPluginLoad,
@@ -660,36 +649,39 @@ int32_t main(
       guiEditorFns.size()
     );
     pulBase.imguiInitialize(platform);
-    guiPrepareRenderCommandList = (
-      pulBase.gfxCommandListCreate(
-        puleAllocateDefault(), puleCStr("pule-gui-prepare-render")
-      )
-    );
-    PuleGfxCommandListRecorder const recorder = (
-      pulBase.gfxCommandListRecorder(guiPrepareRenderCommandList)
-    );
-    pulBase.gfxCommandListAppendAction(
-      recorder,
-      PuleGfxCommand {
-        .clearFramebufferColor = {
-          .action = PuleGfxAction_clearFramebufferColor,
-          .framebuffer = pulBase.gfxFramebufferWindow(),
-          .color = PuleF32v4{0.2f, 0.2f, 0.3f, 1.0f},
-        },
-      }
-    );
-    pulBase.gfxCommandListAppendAction(
-      recorder,
-      PuleGfxCommand {
-        .clearFramebufferDepth = {
-          .action = PuleGfxAction_clearFramebufferDepth,
-          .framebuffer = pulBase.gfxFramebufferWindow(),
-          .depth = 1.0f,
-        },
-      }
-    );
-    pulBase.gfxCommandListRecorderFinish(recorder);
+    // guiPrepareRenderCommandList = (
+    //   pulBase.gfxCommandListCreate(
+    //     puleAllocateDefault(), puleCStr("pule-gui-prepare-render")
+    //   )
+    // );
+    // PuleGfxCommandListRecorder const recorder = (
+    //   pulBase.gfxCommandListRecorder(guiPrepareRenderCommandList)
+    // );
+    // // TODO::CRIT
+    // // pulBase.gfxCommandListAppendAction(
+    // //   recorder,
+    // //   PuleGfxCommand {
+    // //     .clearImageColor = {
+    // //       .action = PuleGfxAction_clearImageColor,
+    // //       .framebuffer = pulBase.gfxFramebufferWindow(),
+    // //       .color = PuleF32v4{0.2f, 0.2f, 0.3f, 1.0f},
+    // //     },
+    // //   }
+    // // );
+    // // pulBase.gfxCommandListAppendAction(
+    // //   recorder,
+    // //   PuleGfxCommand {
+    // //     .clearImageDepth = {
+    // //       .action = PuleGfxAction_clearImageDepth,
+    // //       .framebuffer = pulBase.gfxFramebufferWindow(),
+    // //       .depth = 1.0f,
+    // //     },
+    // //   }
+    // // );
+    // pulBase.gfxCommandListRecorderFinish(recorder);
   }
+
+  // get the render task graphs from plugins
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   //                         _      _____  _____ ______                        *
@@ -702,9 +694,13 @@ int32_t main(
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   while (hasUpdate) {
+    puleLog("<--> frame start <-->");
     if (platform.id) {
       puleGfxFrameStart();
       pulePlatformPollEvents(platform);
+    }
+    if (renderGraph.id != 0) {
+      pulBase.renderGraphFrameStart(renderGraph);
     }
     if (isGuiEditor) {
       pulBase.imguiNewFrame();
@@ -712,14 +708,6 @@ int32_t main(
     if (cameraSet.id != 0) {
       pulBase.cameraControllerPollEvents();
       pulBase.cameraSetRefresh(cameraSet);
-    }
-    if (!isGuiEditor && renderTaskGraph.id != 0) {
-      puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo {
-        .graph = renderTaskGraph,
-        .callback = &renderTaskGraphStartup,
-        .userdata = nullptr,
-        .multithreaded = false,
-      });
     }
     if (scriptTaskGraph.id != 0) {
       auto info = ScriptTaskGraphNodeUpdateInfo {
@@ -737,42 +725,46 @@ int32_t main(
       pulBase.ecsWorldAdvance(ecsWorld, 16.0f);
     }
     if (isGuiEditor) {
+      // pulchritude engine display
+      puleImguiEngineDisplay(PuleImguiEngineDisplayInfo {
+        .world = ecsWorld,
+        .platform = platform,
+      });
+      // plugin provided functions
       for (auto const guiFn : guiEditorFns) {
         guiFn(puleAllocateDefault(), platform, pulBase);
       }
+      // render out
+      pulBase.imguiRender(
+        pulBase.renderGraph_commandListRecorder(
+          pulBase.renderGraphNodeFetch(
+            renderGraph, pulBase.cStr("imgui-render")
+          ),
+          &fetchResourceHandle,
+          reinterpret_cast<void *>(payload.id)
+        )
+      );
     } else {
       for (auto const componentUpdateFn : updateableComponents) {
         componentUpdateFn(payload);
       }
     }
-    if (!isGuiEditor && renderTaskGraph.id != 0) {
-      puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo {
-        .graph = renderTaskGraph,
-        .callback = &renderTaskGraphFinish,
-        .userdata = nullptr,
-        .multithreaded = false,
-      });
-      debugRenderTaskGraphDump = false;
-    }
-    if (isGuiEditor) {
-      PuleError err = puleError();
-      pulBase.gfxCommandListSubmit(
-        PuleGfxCommandListSubmitInfo {
-          .commandList = guiPrepareRenderCommandList,
-          .fenceTargetStart = nullptr, .fenceTargetFinish = nullptr,
-        },
-        &err
-      );
-      puleErrorConsume(&err);
-      pulBase.imguiRender();
+    if (renderGraph.id != 0) {
+      pulBase.renderGraphFrameEnd(renderGraph);
     }
     if (platform.id != 0) {
+      puleGfxFrameEnd();
       pulePlatformSwapFramebuffer(platform);
     }
     if (fileWatcherCheckAll) {
       pulBase.fileWatchCheckAll();
     }
     pulBase.fileWatchCheckAll();
+    puleLog("<--> frame end <-->");
+    //{ // debug early exit
+    //  static size_t frameCount = 0;
+    //  if (++frameCount > 2) { break; }
+    //}
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -784,6 +776,11 @@ int32_t main(
   //        \____/ \_| |_/ \___/   \_/  |___/   \___/  \/  \/ \_| \_/          *
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+  puleLog(
+    "[PuleApplication] Shutting down...",
+    guiEditorFns.size()
+  );
 
   // try to unload components
   for (size_t const componentPluginId : componentPluginIds) {
@@ -808,6 +805,7 @@ int32_t main(
   }
 
   pulePluginsFree();
+  puleLog("[PuleApplication] Exit finished");
   return 0;
 }
 

@@ -116,6 +116,39 @@ void puleTaskGraphDestroy(PuleTaskGraph const pGraph) {
   ::taskGraphs.erase(pGraph.id);
 }
 
+void puleTaskGraphMerge(
+  PuleTaskGraph const puPrimary, PuleTaskGraph const puSecondary
+) {
+  if (puSecondary.id == 0) {return;}
+  ::TaskGraph & primary = ::taskGraphs.at(puPrimary.id);
+  ::TaskGraph & secondary = ::taskGraphs.at(puSecondary.id);
+  // copy over nodes, reset taskGraphNodeToGraph
+  for (auto secondaryNodePair : secondary.nodes) {
+    if (primary.nodes.contains(secondaryNodePair.first)) {
+      puleLogError(
+        "Merging graph with conflicting node ID, label '%s' vs '%s'",
+        secondaryNodePair.first,
+        secondaryNodePair.second.label.c_str(),
+        primary.nodes.at(secondaryNodePair.first).label.c_str()
+      );
+      continue;
+    }
+    TaskGraphNode const secondaryNode = secondaryNodePair.second;
+    std::string const newNodeHash = (
+      secondaryNode.label + "--" + std::to_string(puPrimary.id)
+    );
+    uint64_t const newNodeId = (
+      puleStringViewHash(puleCStr(newNodeHash.c_str()))
+    );
+    primary.nodes.emplace(newNodeId, secondaryNodePair.second);
+    primary.needsResort = true;
+    // move to new node id
+    taskGraphNodeToGraph.erase(secondaryNodePair.first);
+    taskGraphNodeToGraph.emplace(newNodeId, puPrimary.id);
+  }
+  puleTaskGraphDestroy(puSecondary);
+}
+
 PuleTaskGraphNode puleTaskGraphNodeCreate(
   PuleTaskGraph const pGraph, PuleStringView const label
 ) {
@@ -157,7 +190,6 @@ PuleStringView puleTaskGraphNodeLabel(PuleTaskGraphNode const pNode) {
 PuleTaskGraphNode puleTaskGraphNodeFetch(
   PuleTaskGraph const pGraph, PuleStringView const label
 ) {
-  TaskGraph & graph = ::taskGraphs.at(pGraph.id);
   std::string const labelToHash = (
     std::string(label.contents) + "--" + std::to_string(pGraph.id)
   );
@@ -213,6 +245,20 @@ void puleTaskGraphNodeAttributeRemove(
   TaskGraphNode & node = graph.nodes.at(pGraphNode.id);
   node.attributes.erase(puleStringViewHash(label));
 }
+
+// void puleTaskGraphNodeAttributeLabels(
+//   PuleTaskGraphNode const pGraphNode,
+//   size_t * viewsArrayLength,
+//   PuleStringView * viewsArray
+// ) {
+//   TaskGraph & graph = ::taskGraphs.at(taskGraphNodeToGraph.at(pGraphNode.id));
+//   TaskGraphNode & node = graph.nodes.at(pGraphNode.id);
+//   if (viewsArray == nullptr) {
+//     PULE_assert(viewsArrayLength != nullptr);
+//     viewsArrayLength = node.attributes
+//   }
+//   node.at
+// }
 
 void puleTaskGraphNodeRelationSet(
   PuleTaskGraphNode const pNodePri,

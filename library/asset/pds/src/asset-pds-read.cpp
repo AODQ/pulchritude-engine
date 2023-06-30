@@ -509,6 +509,17 @@ PuleDsValue puleAssetPdsLoadFromFile(
   return head;
 }
 
+PuleDsValue puleAssetPdsLoadFromString(
+  PuleAllocator const allocator,
+  PuleStringView const contents,
+  PuleError * const error
+) {
+  PuleStreamRead const stream = puleStreamReadFromString(contents);
+  PuleDsValue const head = puleAssetPdsLoadFromStream(allocator, stream, error);
+  puleStreamReadDestroy(stream);
+  return head;
+}
+
 static void printCommandLineParameterHelp(
   char const * const argumentName,
   PuleDsValue const layoutValue

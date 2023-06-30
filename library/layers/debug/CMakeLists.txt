@@ -1,18 +1,19 @@
 add_library(pulchritude-layer-debug SHARED)
 
+find_package(Vulkan REQUIRED FATAL_ERROR)
+
 target_include_directories(
   pulchritude-layer-debug
   PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../third-party/glfw/include/"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../gfx/include/"
+    ${VULKAN_INCLUDE_DIRS}
 )
 target_sources(
   pulchritude-layer-debug
   PRIVATE
     src/pulchritude.cpp
     src/debug.cpp
-
-    "../../gfx/src/glad/glad.c"
 )
 
 set_target_properties(
@@ -20,6 +21,7 @@ set_target_properties(
     PROPERTIES
       COMPILE_FLAGS "-Wshadow -Wdouble-promotion -Wformat=2 -Wundef"
     POSITION_INDEPENDENT_CODE ON
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(
@@ -27,7 +29,7 @@ target_link_libraries(
     pulchritude-log
     pulchritude-log pulchritude-string pulchritude-allocator
     pulchritude-plugin
-    glfw
+    ${VULKAN_LIB_LIST}
 )
 
 install(

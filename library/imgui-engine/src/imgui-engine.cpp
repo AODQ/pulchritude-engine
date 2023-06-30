@@ -9,6 +9,14 @@
 #include <pulchritude-log/log.h>
 #include <pulchritude-platform/platform.h>
 
+// only needed for pulcRenderGraph which should probably
+// be moved later
+#include <pulchritude-task-graph/task-graph.h>
+#include <pulchritude-asset/pds.h>
+#include <pulchritude-asset/render-graph.h>
+
+#include <string>
+
 namespace {
 
 PuleEcsComponent focusedComponent = { .id = 0, };
@@ -171,5 +179,33 @@ void puleImguiEngineDisplay(PuleImguiEngineDisplayInfo const info) {
   displayEcsEntityList(info);
   displayEcsFocusedEntity(info);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//-- RENDER TASK GRAPH ---------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////
+
+extern "C" {
+PuleRenderGraph pulcRenderGraph(PulePlatform const platform) {
+  #include "imgui-engine-asset-render-graph.mixin"
+  PuleError err = puleError();
+  PuleDsValue const assetRenderPds = (
+    puleAssetPdsLoadFromString(
+      puleAllocateDefault(),
+      PuleStringView{assetRenderGraphStr.c_str(), assetRenderGraphStr.size(),},
+      &err
+    )
+  );
+  if (puleErrorConsume(&err)) { return { .id = 0, }; }
+  PuleRenderGraph const renderGraph = (
+    puleAssetRenderGraphFromPds(
+      puleAllocateDefault(),
+      platform,
+      assetRenderPds
+    )
+  );
+  puleDsDestroy(assetRenderPds);
+  return renderGraph;
+}
+} // extern C
 
 } // C

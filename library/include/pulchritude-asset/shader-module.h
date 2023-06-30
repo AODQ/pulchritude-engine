@@ -18,6 +18,7 @@ puleAssetShaderModuleCreateFromPaths(
   PuleStringView const fragmentPath
 );
 
+// does not destroy underlying shader module
 PULE_exportFn void puleAssetShaderModuleDestroy(
   PuleAssetShaderModule const assetShaderModule
 );

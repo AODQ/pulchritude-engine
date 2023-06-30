@@ -35,10 +35,7 @@
 #include <pulchritude-gfx/commands.h>
 #include <pulchritude-gfx/barrier.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#include <glad/glad.h>
-#pragma GCC diagnostic pop
+//#include <volk.h>
 
 #include <GLFW/glfw3.h>
 
@@ -1095,11 +1092,6 @@ void puleImguiNewFrame() {
   return pul.imguiNewFrame();
 }
 
-void puleImguiRender() {
-  debugLayerFnEntry();
-  return pul.imguiRender();
-}
-
 void puleImguiJoinNext() {
   debugLayerFnEntry();
   return pul.imguiJoinNext();
@@ -1197,36 +1189,6 @@ void puleImguiCallbackUnregister(PuleImguiCallbackRegistry const registry) {
 void puleImguiCallbackShowAll() {
   debugLayerFnEntry();
   return pul.imguiCallbackShowAll();
-}
-
-// asset-model
-void puleAssetModelDestroy(PuleAssetModel const model) {
-  debugLayerFnEntry();
-  return pul.assetModelDestroy(model);
-}
-
-size_t puleAssetMeshComponentDataTypeByteLength(
-  PuleAssetMeshComponentDataType const dataType
-) {
-  debugLayerFnEntry();
-  return (
-    pul.assetMeshComponentDataTypeByteLength(
-      dataType
-    )
-  );
-}
-
-PuleAssetModel puleAssetModelLoadFromStream(
-  PuleAssetModelCreateInfo const createInfo,
-  PuleError * const error
-) {
-  debugLayerFnEntry();
-  return (
-    pul.assetModelLoadFromStream(
-      createInfo,
-      error
-    )
-  );
 }
 
 // asset-tiled
@@ -1762,19 +1724,6 @@ PuleEcsSystem puleRenderer3DEcsSystem(PuleRenderer3D const renderer3D) {
   return pul.renderer3DEcsSystem(renderer3D);
 }
 
-PuleRenderer3DModel puleRenderer3DPrepareModel(
-  PuleRenderer3D renderer3D,
-  PuleAssetModel const model
-) {
-  debugLayerFnEntry();
-  return (
-    pul.renderer3DPrepareModel(
-      renderer3D,
-      model
-    )
-  );
-}
-
 PuleEcsComponent puleRenderer3DAttachComponentRender(
   PuleEcsWorld const world,
   PuleRenderer3D const renderer3DSystem,
@@ -1837,19 +1786,6 @@ size_t puleFileReadBytes(
   debugLayerFnEntry();
   return (
     pul.fileReadBytes(
-      file,
-      destination
-    )
-  );
-}
-
-size_t puleFileReadBytesWithStride(
-  PuleFile const file,
-  PuleArrayViewMutable const destination
-) {
-  debugLayerFnEntry();
-  return (
-    pul.fileReadBytesWithStride(
       file,
       destination
     )
@@ -1950,9 +1886,9 @@ bool puleFileDirectoryCreateRecursive(PuleStringView const path) {
   return pul.fileDirectoryCreateRecursive(path);
 }
 
-PuleString puleFilesystemExecutablePath(PuleAllocator const allocator) {
+PuleStringView puleFilesystemExecutablePath() {
   debugLayerFnEntry();
-  return pul.filesystemExecutablePath(allocator);
+  return pul.filesystemExecutablePath();
 }
 
 PuleString puleFilesystemCurrentPath(PuleAllocator const allocator) {
@@ -2338,15 +2274,15 @@ void puleGfxPipelineDestroy(PuleGfxPipeline const pipeline) {
 }
 
 PuleGfxShaderModule puleGfxShaderModuleCreate(
-  PuleStringView const vertexShaderSource,
-  PuleStringView const fragmentShaderSource,
+  PuleBufferView const vertexShaderBytecode,
+  PuleBufferView const fragmentShaderBytecode,
   PuleError * const error
 ) {
   debugLayerFnEntry();
   return (
     pul.gfxShaderModuleCreate(
-      vertexShaderSource,
-      fragmentShaderSource,
+      vertexShaderBytecode,
+      fragmentShaderBytecode,
       error
     )
   );
@@ -2412,12 +2348,13 @@ void puleGfxFramebufferDestroy(PuleGfxFramebuffer const framebuffer) {
   return pul.gfxFramebufferDestroy(framebuffer);
 }
 
-PuleGfxFramebuffer puleGfxFramebufferWindow() {
+PuleGfxGpuImage puleGfxWindowImage() {
   debugLayerFnEntry();
-  return pul.gfxFramebufferWindow();
+  return pul.gfxWindowImage();
 }
 
 PuleGfxGpuBuffer puleGfxGpuBufferCreate(
+  PuleStringView const name,
   void const * const optionalInitialData,
   size_t const byteLength,
   PuleGfxGpuBufferUsage const usage,
@@ -2426,6 +2363,7 @@ PuleGfxGpuBuffer puleGfxGpuBufferCreate(
   debugLayerFnEntry();
   return (
     pul.gfxGpuBufferCreate(
+      name,
       optionalInitialData,
       byteLength,
       usage,
@@ -2464,10 +2402,10 @@ void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer) {
   return pul.gfxGpuBufferUnmap(buffer);
 }
 
-void puleGfxInitialize(PuleError * const error) {
+void puleGfxInitialize(PulePlatform const platform, PuleError * const error) {
   debugLayerFnEntry();
   renderThread = std::this_thread::get_id();
-  pul.gfxInitialize(error);
+  pul.gfxInitialize(platform, error);
   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 }
 
@@ -2517,17 +2455,6 @@ void puleGfxCommandListDestroy(PuleGfxCommandList const commandList) {
 PuleStringView puleGfxCommandListName(PuleGfxCommandList const commandList) {
   debugLayerFnEntry();
   return pul.gfxCommandListName(commandList);
-}
-
-PuleGfxCommandListRecorder puleGfxCommandListRecorder(
-  PuleGfxCommandList const commandList
-) {
-  debugLayerFnEntry();
-  return (
-    pul.gfxCommandListRecorder(
-      commandList
-    )
-  );
 }
 
 void puleGfxCommandListRecorderFinish(

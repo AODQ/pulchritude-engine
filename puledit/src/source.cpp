@@ -410,15 +410,12 @@ int32_t main(
   *puleLogDebugEnabled() = true;
   *puleLogErrorSegfaultsEnabled() = true;
   { // load plugins
-    PuleString const path = (
-      puleFilesystemExecutablePath(puleAllocateDefault())
-    );
+    PuleStringView const path = puleFilesystemExecutablePath();
     PuleString pathPlugin = (
       puleStringFormatDefault("%s/plugins/", path.contents)
     );
     PuleStringView const pathView = puleStringView(pathPlugin);
     pulePluginsLoad(&pathView, 1);
-    puleStringDestroy(path);
     puleStringDestroy(pathPlugin);
   }
 

@@ -1,6 +1,7 @@
 # Pulchritude
 
-<p align="center"> <img src="documents/pulchritude-logo.png"> </p>
+TODO : rename puleGfx -> puleGpu / puleGfxGpu -> puleGpu
+
 <p align="center"> <img src="documents/pulchritude-logo.gif"> </p>
 
 ### summary
@@ -702,7 +703,6 @@ create an issue and propose the modifications to be made to the exposing C ABI.
 We should strive to unify the ABI to be consistenty pulchritude.
 
   ---
-
 
 ##### long term plans
 

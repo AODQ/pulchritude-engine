@@ -2,7 +2,7 @@
 
 #include <util.hpp>
 
-#include <glad/glad.h>
+#include <volk.h>
 
 #include <string>
 #include <unordered_map>
@@ -12,6 +12,35 @@
 //-- ACTIONS -------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
+VkRenderingAttachmentInfo imageAttachmentToVk(
+  PuleGfxImageAttachment const attachment,
+  bool const isDepth
+) {
+  return VkRenderingAttachmentInfo {
+    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    .pNext = nullptr,
+    .imageView = util::fetchImageView(attachment.imageView),
+    .imageLayout = (
+      isDepth
+      ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+      : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    ),
+    .resolveMode = VK_RESOLVE_MODE_NONE, // TODO support multisampling
+    .resolveImageView = VK_NULL_HANDLE,
+    .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .loadOp = util::toVkAttachmentOpLoad(attachment.opLoad),
+    .storeOp = util::toVkAttachmentOpStore(attachment.opStore),
+    .clearValue = VkClearValue {
+      .color = VkClearColorValue {
+        .float32 = {
+          attachment.clearColor.x, attachment.clearColor.y,
+          attachment.clearColor.z, attachment.clearColor.w,
+        },
+      },
+    },
+  };
+}
+
 PuleStringView puleGfxActionToString(PuleGfxAction const action) {
   switch (action) {
     default: return puleCStr("unknown");
@@ -19,12 +48,14 @@ PuleStringView puleGfxActionToString(PuleGfxAction const action) {
       return puleCStr("bind-pipeline");
     case PuleGfxAction_bindBuffer:
       return puleCStr("bind-buffer");
-    case PuleGfxAction_bindAttribute:
-      return puleCStr("bind-attribute");
-    case PuleGfxAction_clearFramebufferColor:
-      return puleCStr("clear-framebuffer-color");
-    case PuleGfxAction_clearFramebufferDepth:
-      return puleCStr("clear-framebuffer-depth");
+    case PuleGfxAction_bindElementBuffer:
+      return puleCStr("bind-element-buffer");
+    case PuleGfxAction_bindAttributeBuffer:
+      return puleCStr("bind-attribute-buffer");
+    case PuleGfxAction_clearImageColor:
+      return puleCStr("clear-image-color");
+    case PuleGfxAction_clearImageDepth:
+      return puleCStr("clear-image-depth");
     case PuleGfxAction_dispatchRender:
       return puleCStr("dispatch-render");
     case PuleGfxAction_dispatchRenderIndirect:
@@ -38,145 +69,397 @@ PuleStringView puleGfxActionToString(PuleGfxAction const action) {
   }
 }
 
+namespace {
+
+void puClearImageColor(
+  PuleGfxActionClearImageColor const action,
+  VkCommandBuffer const commandBuffer,
+  util::CommandBufferRecorder & commandBufferRecorder
+) {
+  /* prep */
+  auto const clearSubresourceRange = VkImageSubresourceRange {
+    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+    .baseMipLevel = 0, .levelCount = 1,
+    .baseArrayLayer = 0, .layerCount = 1,
+  };
+  auto color = VkClearColorValue {
+    .float32 = {
+      action.color.x, action.color.y, action.color.z, action.color.w,
+    },
+  };
+  /* hazard */
+  util::RecorderImage & recorderImage = (
+    commandBufferRecorder.images.at(action.image.id)
+  );
+  auto const barrierImage = VkImageMemoryBarrier {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .pNext = nullptr,
+    .srcAccessMask = recorderImage.access,
+    .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+    .oldLayout = recorderImage.layout,
+    .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+    .srcQueueFamilyIndex = recorderImage.deviceQueueIdx,
+    .dstQueueFamilyIndex = util::ctx().device.queues.idxGTC,
+    .image = reinterpret_cast<VkImage>(action.image.id),
+    .subresourceRange = clearSubresourceRange,
+  };
+  recorderImage = util::RecorderImage {
+    .access = barrierImage.dstAccessMask,
+    .layout = barrierImage.newLayout,
+    .deviceQueueIdx = util::ctx().device.queues.idxGTC,
+  };
+  vkCmdPipelineBarrier(
+    commandBuffer,
+    /*srcStageMask*/ VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+    /*dstStageMask*/ VK_PIPELINE_STAGE_TRANSFER_BIT,
+    /*dependencyFlags*/ 0,
+    /*memoryBarrier*/ 0, nullptr,
+    /*bufferMemoryBarrier*/ 0, nullptr,
+    /*imageMemoryBarrier*/ 1, &barrierImage
+  );
+  /* action */
+  vkCmdClearColorImage(
+    commandBuffer,
+    reinterpret_cast<VkImage>(action.image.id),
+    VK_IMAGE_LAYOUT_GENERAL,
+    &color, 1, &clearSubresourceRange
+  );
+}
+
+} // namespace
+
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-namespace {
-  struct CommandList {
-    PuleAllocator allocator;
-    // TODO use allocator instead of vector
-    std::vector<PuleGfxCommand> actions;
-    std::vector<uint8_t> constantData;
-    std::string label;
-  };
-  std::unordered_map<uint64_t, CommandList> commandLists;
-  uint64_t commandListsIt = 1;
-
-  GLenum drawPrimitiveToGl(PuleGfxDrawPrimitive drawPrimitive) {
-    switch (drawPrimitive) {
-      default:
-        puleLogError("unknown draw primitive: %d", drawPrimitive);
-      return 0;
-      case PuleGfxDrawPrimitive_triangle: return GL_TRIANGLES;
-      case PuleGfxDrawPrimitive_triangleStrip: return GL_TRIANGLE_STRIP;
-      case PuleGfxDrawPrimitive_line: return GL_LINES;
-      case PuleGfxDrawPrimitive_point: return GL_POINTS;
-    }
-  }
-
-  GLenum elementTypeToGl(PuleGfxElementType elementType) {
-    switch (elementType) {
-      default:
-        puleLogError("unknown element type: %d", elementType);
-      return 0;
-      case PuleGfxElementType_u8: return GL_UNSIGNED_BYTE;
-      case PuleGfxElementType_u16: return GL_UNSIGNED_SHORT;
-      case PuleGfxElementType_u32: return GL_UNSIGNED_INT;
-    }
-  }
-}
-
 extern "C" {
 
 PuleGfxCommandList puleGfxCommandListCreate(
-  PuleAllocator const allocator,
-  PuleStringView const label
+  [[maybe_unused]] PuleAllocator const allocator,
+  [[maybe_unused]] PuleStringView const label
 ) {
-  PuleGfxCommandList commandList = {
-    .id = commandListsIt,
+  auto cmdBufferCi = VkCommandBufferAllocateInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .pNext = nullptr,
+    .commandPool = util::ctx().defaultCommandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = 1,
   };
-  ::commandLists.emplace(
-    commandList.id,
-    ::CommandList{
-      .allocator = allocator,
-      .actions = {},
-      .constantData = {},
-      .label = label.contents,
-    }
+  VkCommandBuffer cmdBuffer;
+  PULE_assert(
+    vkAllocateCommandBuffers(
+      util::ctx().device.logical,
+      &cmdBufferCi,
+      &cmdBuffer
+    ) == VK_SUCCESS
   );
-  commandListsIt += 1;
-  return commandList;
+  // TODO name object
+  return { .id = reinterpret_cast<uint64_t>(cmdBuffer), };
 }
 
 void puleGfxCommandListDestroy(PuleGfxCommandList const commandList) {
   if (commandList.id == 0) { return; }
-  ::commandLists.erase(commandList.id);
+  auto cmdBuffer = reinterpret_cast<VkCommandBuffer>(commandList.id);
+  vkFreeCommandBuffers(
+    util::ctx().device.logical,
+    util::ctx().defaultCommandPool,
+    1, &cmdBuffer
+  );
 }
 
 PuleStringView puleGfxCommandListName(
   PuleGfxCommandList const commandListId
 ) {
-  auto & commandList = ::commandLists.at(commandListId.id);
-  return puleCStr(commandList.label.c_str());
+  (void)commandListId;
+  //auto & commandList = ::commandLists.at(commandListId.id);
+  // TODO::CRITICAL return named object label
+  return puleCStr("UNKNOWN YET");
 }
 
 PuleGfxCommandListRecorder puleGfxCommandListRecorder(
-  PuleGfxCommandList const commandList
+  PuleGfxCommandList const commandList,
+  PuleGfxCommandPayload const beginCommandPayload
 ) {
-  // TODO just need to check that it's not already being recorded to
-  return { commandList.id };
+  auto beginInfo = VkCommandBufferBeginInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .pNext = nullptr,
+    .flags = 0, // TODO::CRITCAL VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+    .pInheritanceInfo = nullptr,
+  };
+  auto commandBuffer = reinterpret_cast<VkCommandBuffer>(commandList.id);
+  PULE_assert(vkBeginCommandBuffer(commandBuffer, &beginInfo) == VK_SUCCESS);
+  // TODO should I store the entire swapchain?
+  util::CommandBufferRecorder cbRecorder;
+  // move data from user command payload into recorder storage
+  for (size_t it = 0; it < beginCommandPayload.payloadImagesLength; ++ it) {
+    PuleGfxCommandPayloadImage const payloadImg = (
+      beginCommandPayload.payloadImages[it]
+    );
+    cbRecorder.images.emplace(
+      payloadImg.image.id,
+      util::RecorderImage {
+        .access = util::toVkAccessFlags(payloadImg.access),
+        .layout = util::toVkImageLayout(payloadImg.layout),
+        .deviceQueueIdx = util::ctx().device.queues.idxGTC,
+      }
+    );
+  }
+  util::ctx().commandBufferRecorders.emplace(
+    commandList.id,
+    util::CommandBufferRecorder { }
+  );
+  return { .id = reinterpret_cast<uint64_t>(commandBuffer), };
 }
 
 void puleGfxCommandListRecorderFinish(
   [[maybe_unused]] PuleGfxCommandListRecorder const commandListRecorder
 ) {
+  vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandListRecorder.id));
 }
 void puleGfxCommandListRecorderReset(
   [[maybe_unused]] PuleGfxCommandListRecorder const commandListRecorder
 ) {
-  auto & commandList = ::commandLists.at(commandListRecorder.id);
-  commandList.actions.resize(0);
-  commandList.constantData.resize(0);
+  auto const commandBuffer = (
+    reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
+  );
+  util::ctx().commandBufferRecorders.erase(commandListRecorder.id);
+  vkResetCommandBuffer(commandBuffer, 0); // TODO what about reset flag?
 }
 
 void puleGfxCommandListAppendAction(
   PuleGfxCommandListRecorder const commandListRecorder,
   PuleGfxCommand const command
 ) {
-  auto & commandList = ::commandLists.at(commandListRecorder.id);
+  auto commandBuffer = (
+    reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
+  );
 
-  // validate
-  switch (command.action) {
-    default: break;
-    case PuleGfxAction_bindPipeline: {
-      auto const action = (
-        *reinterpret_cast<PuleGfxActionBindPipeline const *>(
-          &command
-        )
-      );
-      if (action.pipeline.id == 0) {
-        puleLogError("attempting to bind null pipeline to command list");
-      }
-    } break;
-  }
+  auto & recorderInfo = (
+    util::ctx().commandBufferRecorders.at(commandListRecorder.id)
+  );
 
   switch (command.action) {
     default:
-      commandList.actions.emplace_back(command);
+      puleLogError("Unknown command PuleGfxAction %d", command.action);
+      PULE_assert(false);
+    case PuleGfxAction_bindAttributeBuffer: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionBindAttributeBuffer const *>(&command)
+      );
+      auto buffer = reinterpret_cast<VkBuffer>(action.buffer.id);
+      auto offset = VkDeviceSize { action.offset };
+      auto stride = VkDeviceSize { action.stride };
+      if (stride == 0) {
+        auto const & pipelineInfo = util::ctx().pipelines.at(
+          recorderInfo.currentBoundPipeline.id
+        );
+        (void)pipelineInfo;
+        // TODO
+        PULE_assert(false && "zero strides not supported yet");
+        //pipelineInfo.attributes.at(action.attributeIndex).stride;
+      }
+      vkCmdBindVertexBuffers2(
+        commandBuffer,
+        action.bindingIndex, 1,
+        &buffer, &offset, /*size*/ nullptr, &stride
+      );
+    }
     break;
+    case PuleGfxAction_bindPipeline: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
+      );
+      auto pipeline = reinterpret_cast<VkPipeline>(action.pipeline.id);
+      vkCmdBindPipeline(
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline
+      );
+      recorderInfo.currentBoundPipeline = action.pipeline;
+    }
+    break;
+    case PuleGfxAction_bindFramebuffer: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
+      );
+      auto framebuffer = reinterpret_cast<VkFramebuffer>(action.framebuffer.id);
+      (void)framebuffer;
+      // TODO::CRITICAL
+    }
+    break;
+    case PuleGfxAction_clearImageColor: {
+      puClearImageColor(
+        *reinterpret_cast<PuleGfxActionClearImageColor const *>(&command),
+        commandBuffer,
+        recorderInfo
+      );
+    } break;
+    case PuleGfxAction_clearImageDepth: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionClearImageDepth const *>(&command)
+      );
+      auto const depthStencil = VkClearDepthStencilValue {
+        .depth = action.depth,
+        .stencil = 0,
+      };
+      auto const clearSubresourceRange = VkImageSubresourceRange {
+        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+        .baseMipLevel = 0, .levelCount = 1,
+        .baseArrayLayer = 0, .layerCount = 1,
+      };
+      vkCmdClearDepthStencilImage(
+        commandBuffer,
+        reinterpret_cast<VkImage>(action.image.id),
+        VK_IMAGE_LAYOUT_GENERAL,
+        &depthStencil,
+        1, &clearSubresourceRange
+      );
+    } break;
+    case PuleGfxAction_dispatchRender: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
+      );
+      vkCmdDraw(
+        commandBuffer, action.numVertices, 1, action.vertexOffset, 0
+      );
+    }
+    break;
+    case PuleGfxAction_dispatchRenderElements: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(&command)
+      );
+      vkCmdDrawIndexed(
+        commandBuffer,
+        action.numElements, 1,
+        action.elementOffset, action.baseVertexOffset,
+        0
+      );
+    } break;
+    case PuleGfxAction_dispatchRenderIndirect: {
+      PULE_assert(false && "TODO"); // TODO
+    } break;
     case PuleGfxAction_pushConstants: {
-      // allocate push constants into command list's constant data
-      size_t const prevConstantDataLength = commandList.constantData.size();
-      commandList.constantData.resize(
-        commandList.constantData.size()
-        + sizeof(PuleGfxConstant) * command.pushConstants.constantsLength
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionPushConstants const *>(&command)
       );
-      memcpy(
-        commandList.constantData.data() + prevConstantDataLength,
-        command.pushConstants.constants,
-        sizeof(PuleGfxConstant) * command.pushConstants.constantsLength
-      );
-
-      // assign push constants to command
-      PuleGfxCommand copyCmd = command;
-      copyCmd.pushConstants.constants = (
-        reinterpret_cast<PuleGfxConstant *>(
-          commandList.constantData.data() + prevConstantDataLength
+      (void)action;
+      // TODO::CRITICAL need the PipelineLayout to program the push apparently
+      // TODO::CRITICAL need to prepare PuleGfxConstant array
+      // vkCmdPushConstants(
+      //   commandBuffer,
+      //   layout,
+      //   VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      //   0,
+      // );
+    }
+    break;
+    case PuleGfxAction_dispatchCommandList: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
+          &command
         )
       );
-      commandList.actions.emplace_back(copyCmd);
-    } break;
+      auto subCommandBuffer = (
+        reinterpret_cast<VkCommandBuffer>(action.submitInfo.commandList.id)
+      );
+      vkCmdExecuteCommands(subCommandBuffer, 1, &subCommandBuffer);
+    }
+    break;
+    case PuleGfxAction_bindBuffer: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
+      );
+      // write the descriptor set to our command 'cache'
+      auto const bufferInfo = VkDescriptorBufferInfo {
+        .buffer = reinterpret_cast<VkBuffer>(action.buffer.id),
+        .offset = (VkDeviceSize)action.offset,
+        .range = (VkDeviceSize)action.byteLen,
+      };
+      auto const writeDescriptorSet = VkWriteDescriptorSet {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = nullptr,
+        .dstSet = (
+          util::ctx()
+            .pipelines.at(recorderInfo.currentBoundPipeline.id)
+            .descriptorSet
+        ),
+        .dstBinding = (uint32_t)action.bindingIndex,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = util::toDescriptorType(action.bindingDescriptor),
+        .pImageInfo = nullptr,
+        .pBufferInfo = &bufferInfo,
+        .pTexelBufferView = nullptr,
+      };
+      vkCmdPushDescriptorSetKHR(
+        commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // TODO support compute bindpoint
+        (
+          util::ctx()
+            .pipelines.at(recorderInfo.currentBoundPipeline.id)
+            .pipelineLayout
+        ),
+        1, 1, /* set, descriptorWriteCount */
+        &writeDescriptorSet
+      );
+    }
+    break;
+    case PuleGfxAction_renderPassBegin: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionRenderPassBegin const *>(&command)
+      );
+      VkRenderingAttachmentInfo colorAttachments[8];
+      for (size_t it = 0; it <  8; ++ it) {
+        if (action.colorAttachments[it].imageView.image.id == 0) {
+          continue;
+        }
+        colorAttachments[it] = (
+          imageAttachmentToVk(action.colorAttachments[it], false)
+        );
+      }
+      VkRenderingAttachmentInfo depthAttachment = {};
+      bool hasDepthAttachment = false;
+      if (action.depthAttachment.imageView.image.id != 0) {
+        depthAttachment = imageAttachmentToVk(action.depthAttachment, true);
+        hasDepthAttachment = true;
+      }
+      auto const renderingInfo = VkRenderingInfo {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .renderArea = VkRect2D {
+          .offset = VkOffset2D {
+            .x = action.viewportUpperLeft.x,
+            .y = action.viewportUpperLeft.y,
+          },
+          .extent = VkExtent2D {
+            .width = (uint32_t)action.viewportLowerRight.x,
+            .height = (uint32_t)action.viewportLowerRight.y,
+          },
+        },
+        .layerCount = 1,
+        .viewMask = 0,
+        .colorAttachmentCount = (uint32_t)action.colorAttachmentCount,
+        .pColorAttachments = colorAttachments,
+        .pDepthAttachment = hasDepthAttachment ? &depthAttachment : nullptr,
+        .pStencilAttachment = nullptr,
+      };
+      vkCmdBeginRendering(commandBuffer, &renderingInfo);
+    }
+    break;
+    case PuleGfxAction_renderPassEnd: {
+      vkCmdEndRendering(commandBuffer);
+    }
+    break;
+    case PuleGfxAction_bindElementBuffer: {
+      auto const action = (
+        *reinterpret_cast<PuleGfxActionBindElementBuffer const *>(&command)
+      );
+      auto buffer = reinterpret_cast<VkBuffer>(action.buffer.id);
+      vkCmdBindIndexBuffer(
+        commandBuffer,
+        buffer, action.offset, util::toVkIndexType(action.elementType)
+      );
+    }
+    break;
   }
 }
 
@@ -184,452 +467,158 @@ void puleGfxCommandListSubmit(
   PuleGfxCommandListSubmitInfo const info,
   PuleError * const error
 ) {
-  bool usedProgram = false;
-  bool usedVertexArray = false;
-  auto const commandListFind = ::commandLists.find(info.commandList.id);
-  PULE_errorAssert(
-    commandListFind != ::commandLists.end(),
+  auto commandBuffer = reinterpret_cast<VkCommandBuffer>(info.commandList.id);
+  auto submitInfo = VkSubmitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .pNext = nullptr,
+    // TODO::CRITICAL semaphores
+    .waitSemaphoreCount = 0,
+    .pWaitSemaphores = nullptr,
+    .pWaitDstStageMask = nullptr,
+    .commandBufferCount = 1,
+    .pCommandBuffers = &commandBuffer,
+    .signalSemaphoreCount = 0,
+    .pSignalSemaphores = nullptr,
+  };
+  PULE_vkAssert(
+    vkQueueSubmit(
+      util::ctx().defaultQueue,
+      1, &submitInfo,
+      (
+        info.fenceTargetFinish
+          ? reinterpret_cast<VkFence>(info.fenceTargetFinish->id)
+          : nullptr
+      )
+    ),
     PuleErrorGfx_invalidCommandList,
   );
-
-  if (info.fenceTargetStart != nullptr) {
-    if (
-      !puleGfxFenceCheckSignal(
-        *info.fenceTargetStart,
-        PuleNanosecond{100'000'000}
-      )
-    ) {
-      PULE_error(
-        PuleErrorGfx_submissionFenceWaitFailed,
-        "failed to wait for fence '%d' on submission",
-        info.fenceTargetStart->id
-      );
-      puleGfxFenceDestroy(*info.fenceTargetStart);
-      info.fenceTargetStart->id = 0;
-      return;
-    }
-  }
-
-  for (auto const command : commandListFind->second.actions) {
-    PuleGfxAction const actionType = (
-      *reinterpret_cast<PuleGfxAction const *>(&command)
-    );
-    switch (actionType) {
-      default:
-        puleLogError("unknown action ID %d", actionType);
-      break;
-      case PuleGfxAction_clearFramebufferColor: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionClearFramebufferColor const *>(
-            &command
-          )
-        );
-        glClearNamedFramebufferfv(
-          static_cast<GLuint>(action.framebuffer.id),
-          GL_COLOR, 0,
-          &action.color.x
-        );
-      } break;
-      case PuleGfxAction_clearFramebufferDepth: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionClearFramebufferDepth const *>(
-            &command
-          )
-        );
-        glClearNamedFramebufferfv(
-          static_cast<GLuint>(action.framebuffer.id),
-          GL_DEPTH, 0,
-          &action.depth
-        );
-      } break;
-      case PuleGfxAction_pushConstants: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionPushConstants const *>(
-            &command
-          )
-        );
-
-        for (size_t it = 0; it < action.constantsLength; ++ it) {
-          PuleGfxConstant const & constant = action.constants[it];
-          auto dataAsF32 = reinterpret_cast<float const *>(&constant.value);
-          auto dataAsI32 = reinterpret_cast<int32_t const *>(&constant.value);
-          switch (constant.typeTag) {
-            case PuleGfxConstantTypeTag_f32:
-              glUniform1fv(constant.bindingSlot, 1, dataAsF32);
-            break;
-            case PuleGfxConstantTypeTag_f32v2:
-              glUniform2fv(constant.bindingSlot, 1, dataAsF32);
-            break;
-            case PuleGfxConstantTypeTag_f32v3:
-              glUniform3fv(constant.bindingSlot, 1, dataAsF32);
-            break;
-            case PuleGfxConstantTypeTag_f32v4:
-              glUniform4fv(constant.bindingSlot, 1, dataAsF32);
-            break;
-            case PuleGfxConstantTypeTag_i32:
-              glUniform1iv(constant.bindingSlot, 1, dataAsI32);
-            break;
-            case PuleGfxConstantTypeTag_i32v2:
-              glUniform2iv(constant.bindingSlot, 1, dataAsI32);
-            break;
-            case PuleGfxConstantTypeTag_i32v3:
-              glUniform3iv(constant.bindingSlot, 1, dataAsI32);
-            break;
-            case PuleGfxConstantTypeTag_i32v4:
-              glUniform4iv(constant.bindingSlot, 1, dataAsI32);
-            break;
-            case PuleGfxConstantTypeTag_f32m44:
-              glUniformMatrix4fv(constant.bindingSlot, 1, GL_FALSE, dataAsF32);
-            break;
-          }
-        }
-      } break;
-      case PuleGfxAction_bindBuffer: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
-        );
-        GLuint   const bufferId = static_cast<GLuint>(action.buffer.id);
-        GLintptr const offset   = static_cast<GLintptr>(action.offset);
-        GLsizei  const byteLen  = static_cast<GLsizei>(action.byteLen);
-
-        util::verifyIsBuffer(bufferId);
-        GLenum bufferType;
-        switch (action.usage) {
-          default: assert(false);
-          case PuleGfxGpuBufferUsage_bufferUniform:
-            bufferType = GL_UNIFORM_BUFFER;
-          break;
-          case PuleGfxGpuBufferUsage_bufferStorage:
-            bufferType = GL_SHADER_STORAGE_BUFFER;
-          break;
-        }
-        glBindBufferRange(
-          bufferType,
-          action.bindingIndex,
-          bufferId,
-          offset,
-          byteLen
-        );
-      } break;
-      case PuleGfxAction_bindAttribute: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
-        );
-        util::Pipeline const & pipeline = *util::pipeline(action.pipeline.id);
-        GLuint const bufferId = static_cast<GLuint>(action.buffer.id);
-        GLintptr const offset = static_cast<GLintptr>(action.offset);
-        GLsizei const stride = static_cast<GLsizei>(action.stride);
-
-        util::verifyIsBuffer(bufferId);
-        glVertexArrayVertexBuffer(
-          static_cast<GLuint>(pipeline.attributeDescriptorHandle),
-          action.bindingIndex,
-          bufferId, offset, stride
-        );
-      } break;
-      case PuleGfxAction_bindPipeline: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
-        );
-        util::Pipeline const & pipeline = *util::pipeline(action.pipeline.id);
-        glUseProgram(static_cast<GLuint>(pipeline.shaderModuleHandle));
-        glBindVertexArray(
-          static_cast<GLuint>(pipeline.attributeDescriptorHandle)
-        );
-        for (size_t it = 0; it < pipeline.texturesLength; ++ it) {
-          util::DescriptorSetImageBinding const & binding = (
-            pipeline.textures[it]
-          );
-          glBindTextureUnit(binding.bindingSlot, binding.imageHandle);
-        }
-        for (size_t it = 0; it < pipeline.storagesLength; ++ it) {
-          util::DescriptorSetStorageBinding const & binding = (
-            pipeline.storages[it]
-          );
-          glBindBufferBase(
-            GL_SHADER_STORAGE_BUFFER,
-            binding.bindingSlot,
-            binding.storageHandle
-          );
-        }
-        usedProgram = true;
-        usedVertexArray = true;
-
-        if (pipeline.blendEnabled) {
-          glEnable(GL_BLEND);
-          glBlendEquation(GL_FUNC_ADD);
-          glBlendFuncSeparate(
-            GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-            GL_ONE, GL_ONE_MINUS_SRC_ALPHA
-          );
-        } else {
-          glDisable(GL_BLEND);
-        }
-
-        if (pipeline.depthTestEnabled) {
-          glEnable(GL_DEPTH_TEST);
-          glDepthFunc(GL_LESS);
-        } else {
-          glDisable(GL_DEPTH_TEST);
-        }
-
-        (pipeline.scissorTestEnabled ? glEnable : glDisable)(GL_STENCIL_TEST);
-
-        glViewport(
-          static_cast<GLsizei>(pipeline.viewportUl.x),
-          static_cast<GLsizei>(pipeline.viewportUl.y),
-          static_cast<GLsizei>(pipeline.viewportLr.x),
-          static_cast<GLsizei>(pipeline.viewportLr.y)
-        );
-
-        glScissor(
-          static_cast<int32_t>(pipeline.scissorUl.x),
-          static_cast<int32_t>(pipeline.scissorUl.y),
-          static_cast<int32_t>(pipeline.scissorLr.x),
-          static_cast<int32_t>(pipeline.scissorLr.y)
-        );
-      } break;
-      case PuleGfxAction_bindFramebuffer: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
-        );
-        glBindFramebuffer(
-          GL_FRAMEBUFFER,
-          static_cast<GLuint>(action.framebuffer.id)
-        );
-      } break;
-      case PuleGfxAction_dispatchRender: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
-        );
-        glDrawArrays(
-          drawPrimitiveToGl(action.drawPrimitive),
-          action.vertexOffset,
-          action.numVertices
-        );
-      } break;
-      case PuleGfxAction_dispatchRenderIndirect: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchRenderIndirect const *>(
-            &command
-          )
-        );
-        glBindBuffer(
-          GL_DRAW_INDIRECT_BUFFER,
-          action.bufferIndirect.id
-        );
-        glDrawArraysIndirect(
-          drawPrimitiveToGl(action.drawPrimitive),
-          reinterpret_cast<void *>(action.byteOffset)
-        );
-      } break;
-      case PuleGfxAction_dispatchRenderElements: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(
-            &command
-          )
-        );
-        glDrawElementsBaseVertex(
-          drawPrimitiveToGl(action.drawPrimitive),
-          action.numElements,
-          elementTypeToGl(action.elementType),
-          reinterpret_cast<void const *>(action.elementOffset),
-          action.baseVertexOffset
-        );
-      } break;
-      case PuleGfxAction_dispatchCommandList: {
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
-            &command
-          )
-        );
-        puleGfxCommandListSubmit(action.submitInfo, error);
-        if (puleErrorExists(error)) {
-          return;
-        }
-      } break;
-    }
-  }
-
-  if (usedProgram) { glUseProgram(0); }
-  if (usedVertexArray) { glBindVertexArray(0); }
-
-  if (info.fenceTargetFinish != nullptr) {
-    *info.fenceTargetFinish = puleGfxFenceCreate(PuleGfxFenceConditionFlag_all);
-  }
 }
 
 } // extern C
 
 namespace {
 
-void commandListDump(PuleGfxCommandList const commandList, int32_t level=0) {
-  auto const commandListFind = ::commandLists.find(commandList.id);
-  std::string levelStr = "";
-  for (int32_t l = 0; l < level+1; ++ l) levelStr += "|  ";
-  char const * const levelCStr = levelStr.c_str();
-  puleLogDebug(
-    "%sCommand list dump of '%s'",
-    levelCStr, commandListFind->second.label.c_str()
-  );
-  for (auto const command : commandListFind->second.actions) {
-    PuleGfxAction const actionType = (
-      *reinterpret_cast<PuleGfxAction const *>(&command)
-    );
-    switch (actionType) {
-      default:
-        puleLogError("%sunknown action ID %d", levelCStr, actionType);
-      break;
-      case PuleGfxAction_clearFramebufferColor: {
-        puleLogDebug("%sPuleGfxAction_clearFramebufferColor", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionClearFramebufferColor const *>(
-            &command
-          )
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_clearFramebufferDepth: {
-        puleLogDebug("%sPuleGfxAction_clearFramebufferDepth", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionClearFramebufferDepth const *>(
-            &command
-          )
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_pushConstants: {
-        puleLogDebug("%sPuleGfxAction_pushConstants", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionPushConstants const *>(
-            &command
-          )
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_bindBuffer: {
-        puleLogDebug("%sPuleGfxAction_bindBuffer", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_bindAttribute: {
-        puleLogDebug("%sPuleGfxAction_bindAttribute", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_bindPipeline: {
-        puleLogDebug("%sPuleGfxAction_bindPipeline", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_bindFramebuffer: {
-        puleLogDebug("%sPuleGfxAction_bindFramebuffer", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_dispatchRender: {
-        puleLogDebug("%sPuleGfxAction_dispatchRender", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_dispatchRenderIndirect: {
-        puleLogDebug("%sPuleGfxAction_dispatchRenderIndirect", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchRenderIndirect const *>(
-            &command
-          )
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_dispatchRenderElements: {
-        puleLogDebug("%sPuleGfxAction_dispatchRenderElements", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(
-            &command
-          )
-        );
-        (void)action;
-      } break;
-      case PuleGfxAction_dispatchCommandList: {
-        puleLogDebug("%sPuleGfxAction_dispatchCommandList", levelCStr);
-        auto const action = (
-          *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
-            &command
-          )
-        );
-        commandListDump(action.submitInfo.commandList, level+1);
-      } break;
-    }
-  }
-}
+// TODO this should probably go to some serializer module
+// void commandListDump(PuleGfxCommandList const commandList, int32_t level=0) {
+  // auto const commandListFind = ::commandLists.find(commandList.id);
+  // std::string levelStr = "";
+  // for (int32_t l = 0; l < level+1; ++ l) levelStr += "|  ";
+  // char const * const levelCStr = levelStr.c_str();
+  // puleLogDebug(
+  //   "%sCommand list dump of '%s'",
+  //   levelCStr, commandListFind->second.label.c_str()
+  // );
+  // for (auto const command : commandListFind->second.actions) {
+  //   PuleGfxAction const actionType = (
+  //     *reinterpret_cast<PuleGfxAction const *>(&command)
+  //   );
+  //   switch (actionType) {
+  //     default:
+  //       puleLogError("%sunknown action ID %d", levelCStr, actionType);
+  //     break;
+  //     case PuleGfxAction_clearImageColor: {
+  //       puleLogDebug("%sPuleGfxAction_clearImageColor", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionClearImageColor const *>(
+  //           &command
+  //         )
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_clearImageDepth: {
+  //       puleLogDebug("%sPuleGfxAction_clearImageDepth", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionClearImageDepth const *>(
+  //           &command
+  //         )
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_pushConstants: {
+  //       puleLogDebug("%sPuleGfxAction_pushConstants", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionPushConstants const *>(
+  //           &command
+  //         )
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_bindBuffer: {
+  //       puleLogDebug("%sPuleGfxAction_bindBuffer", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionBindBuffer const *>(&command)
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_bindAttributeBuffer: {
+  //       puleLogDebug("%sPuleGfxAction_bindAttributeBuffer", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionBindAttribute const *>(&command)
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_bindPipeline: {
+  //       puleLogDebug("%sPuleGfxAction_bindPipeline", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionBindPipeline const *>(&command)
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_bindFramebuffer: {
+  //       puleLogDebug("%sPuleGfxAction_bindFramebuffer", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionBindFramebuffer const *>(&command)
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_dispatchRender: {
+  //       puleLogDebug("%sPuleGfxAction_dispatchRender", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionDispatchRender const *>(&command)
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_dispatchRenderIndirect: {
+  //       puleLogDebug("%sPuleGfxAction_dispatchRenderIndirect", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionDispatchRenderIndirect const *>(
+  //           &command
+  //         )
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_dispatchRenderElements: {
+  //       puleLogDebug("%sPuleGfxAction_dispatchRenderElements", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionDispatchRenderElements const *>(
+  //           &command
+  //         )
+  //       );
+  //       (void)action;
+  //     } break;
+  //     case PuleGfxAction_dispatchCommandList: {
+  //       puleLogDebug("%sPuleGfxAction_dispatchCommandList", levelCStr);
+  //       auto const action = (
+  //         *reinterpret_cast<PuleGfxActionDispatchCommandList const *>(
+  //           &command
+  //         )
+  //       );
+  //       commandListDump(action.submitInfo.commandList, level+1);
+  //     } break;
+  //   }
+  // }
+// }
 
 } // namespace
 
 extern "C" {
 
-void puleGfxCommandListDump(PuleGfxCommandList const commandList) {
-  puleLogDebug("-------------------------------------------------");
-  commandListDump(commandList);
-  puleLogDebug("-------------------------------------------------");
+void puleGfxCommandListDump(PuleGfxCommandList const) {
+  // TODO -- this can only be done by serializer module i suppose
+  //puleLogDebug("-------------------------------------------------");
+  //puleLogDebug("<NO>");
+  // commandListDump(commandList);
+  //puleLogDebug("-------------------------------------------------");
 }
 
 } // extern C
-
-//------------------------------------------------------------------------------
-//-- DEBUG ---------------------------------------------------------------------
-//------------------------------------------------------------------------------
-
-void util::printCommandsDebug() {
-  puleLog(
-    "-------------------- command lists "
-    "--------------------"
-  );
-  for (auto const & commandListIter : ::commandLists) {
-    ::CommandList const & commandList = commandListIter.second;
-    puleLog(">>> %s", commandList.label.c_str());
-    puleLog("\t> actions [%zu total]", commandList.actions.size());
-    for (PuleGfxCommand const & command : commandList.actions) {
-      puleLog("\t\t> %s", puleGfxActionToString(command.action));
-      switch (command.action) {
-        default: break;
-        case PuleGfxAction_bindPipeline:
-          puleLog("\t\t\tpipeline: %u", command.bindPipeline.pipeline);
-        break;
-        case PuleGfxAction_dispatchRender:
-          puleLog(
-            "\t\t\tdispatch render: vertex offset %zu num vertices %zu",
-            command.dispatchRender.vertexOffset,
-            command.dispatchRender.numVertices
-          );
-        break;
-      }
-    }
-    puleLogLn(
-      "\t> constant data [%zu total]\n\t\t",
-      commandList.constantData.size()
-    );
-    size_t constantIter = 0;
-    for (uint8_t const & constant : commandList.constantData) {
-      if (constantIter ++ > 40) {
-        constantIter += 1;
-        puleLogLn("\n");
-      }
-      puleLogLn("%x", constant);
-    }
-    puleLogLn("\n");
-  }
-  puleLog(
-    "-----------------------------------"
-    "--------------------"
-  );
-}

@@ -2,8 +2,9 @@
 
 #include <pulchritude-log/log.h>
 
-#include <glad/glad.h>
+#include <volk.h>
 
+#if 0
 namespace {
   GLenum memoryBarrierFlagToGl(PuleGfxMemoryBarrierFlag const barrier) {
     switch (barrier) {
@@ -36,27 +37,34 @@ namespace {
     return flags;
   }
 }
+#endif
 
 extern "C" {
 
 PuleGfxFence puleGfxFenceCreate(PuleGfxFenceConditionFlag const condition) {
+  #if 0
   (void)condition;
   return {
     .id = (
       reinterpret_cast<uint64_t>(glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0))
     )
   };
+  #endif
+  return { 0 };
 }
 void puleGfxFenceDestroy(PuleGfxFence const fence) {
+  #if 0
   if (fence.id == 0) { return; }
   auto const handle = reinterpret_cast<GLsync>(fence.id);
   glDeleteSync(handle);
+  #endif
 }
 
 PULE_exportFn bool puleGfxFenceCheckSignal(
   PuleGfxFence const fence,
   PuleNanosecond const timeout
 ) {
+  #if 0
   auto const handle = reinterpret_cast<GLsync>(fence.id);
   switch (glClientWaitSync(handle, GL_SYNC_FLUSH_COMMANDS_BIT, timeout.value)) {
     default: return false;
@@ -65,12 +73,16 @@ PULE_exportFn bool puleGfxFenceCheckSignal(
     case GL_TIMEOUT_EXPIRED: return false;
     case GL_WAIT_FAILED: return false;
   }
+  #endif
+  return false;
 }
 
 void puleGfxMemoryBarrier(
   PuleGfxMemoryBarrierFlag const barrier
 ) {
+  #if 0
   glMemoryBarrier(memoryBarrierToGl(barrier));
+  #endif
 }
 
 }

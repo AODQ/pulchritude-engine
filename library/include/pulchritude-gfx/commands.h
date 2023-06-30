@@ -22,12 +22,18 @@ typedef struct {
   PuleGfxCommandList commandList;
   // before this command list starts, will wait on this fence to finish,
   //   will also destroy the fence
+  // TODO::CRITICAL actually I guess I need semaphore start and semaphore end
   PuleGfxFence * fenceTargetStart;
   // at end of command list submission, if this is non-null, a fence will
   //   be created to this target
   PuleGfxFence * fenceTargetFinish;
 } PuleGfxCommandListSubmitInfo;
 
+typedef enum {
+  PuleGfxElementType_u8,
+  PuleGfxElementType_u16,
+  PuleGfxElementType_u32,
+} PuleGfxElementType;
 
 //------------------------------------------------------------------------------
 //-- ACTIONS -------------------------------------------------------------------
@@ -40,10 +46,13 @@ typedef struct {
 typedef enum {
   PuleGfxAction_bindPipeline,
   PuleGfxAction_bindBuffer,
-  PuleGfxAction_bindAttribute,
+  PuleGfxAction_renderPassBegin,
+  PuleGfxAction_renderPassEnd,
+  PuleGfxAction_bindElementBuffer,
+  PuleGfxAction_bindAttributeBuffer,
   PuleGfxAction_bindFramebuffer,
-  PuleGfxAction_clearFramebufferColor,
-  PuleGfxAction_clearFramebufferDepth,
+  PuleGfxAction_clearImageColor,
+  PuleGfxAction_clearImageDepth,
   PuleGfxAction_dispatchRender,
   PuleGfxAction_dispatchRenderElements,
   PuleGfxAction_dispatchRenderIndirect,
@@ -60,7 +69,7 @@ typedef struct {
 
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_bindBuffer
-  PuleGfxGpuBufferUsage usage; // must be uniform or storage
+  PuleGfxGpuBufferBindingDescriptor bindingDescriptor;
   size_t bindingIndex;
   PuleGfxGpuBuffer buffer;
   size_t offset;
@@ -68,13 +77,33 @@ typedef struct {
 } PuleGfxActionBindBuffer;
 
 typedef struct {
-  PuleGfxAction action; // PuleGfxAction_bindAttribute
+  PuleGfxAction action; // PuleGfxAction_renderPassBegin
+  PuleI32v2 viewportUpperLeft;
+  PuleI32v2 viewportLowerRight;
+  size_t colorAttachmentCount;
+  PuleGfxImageAttachment colorAttachments[8];
+  PuleGfxImageAttachment depthAttachment;
+} PuleGfxActionRenderPassBegin;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_renderPassEnd
+} PuleGfxActionRenderPassEnd;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_bindElementBuffer
+  PuleGfxGpuBuffer buffer;
+  size_t offset;
+  PuleGfxElementType elementType;
+} PuleGfxActionBindElementBuffer;
+
+typedef struct {
+  PuleGfxAction action; // PuleGfxAction_bindAttributeBuffer
   PuleGfxPipeline pipeline; // TODO this should just be whatever is bound?
   size_t bindingIndex;
   PuleGfxGpuBuffer buffer;
   size_t offset;
-  size_t stride;
-} PuleGfxActionBindAttribute;
+  size_t stride; // this can be 0 to defer to pipeline's default stride at this index
+} PuleGfxActionBindAttributeBuffer;
 
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_bindFramebuffer
@@ -102,32 +131,25 @@ typedef struct {
   size_t byteOffset;
 } PuleGfxActionDispatchRenderIndirect;
 
-typedef enum {
-  PuleGfxElementType_u8,
-  PuleGfxElementType_u16,
-  PuleGfxElementType_u32,
-} PuleGfxElementType;
-
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_dispatchRenderElements
   PuleGfxDrawPrimitive drawPrimitive;
   size_t numElements;
-  PuleGfxElementType elementType;
   size_t elementOffset; // can be 0
   size_t baseVertexOffset; // can be 0
 } PuleGfxActionDispatchRenderElements;
 
 typedef struct {
-  PuleGfxAction action; // PuleGfxAction_clearFramebufferColor
-  PuleGfxFramebuffer framebuffer;
+  PuleGfxAction action; // PuleGfxAction_clearImageColor
+  PuleGfxGpuImage image;
   PuleF32v4 color;
-} PuleGfxActionClearFramebufferColor;
+} PuleGfxActionClearImageColor;
 
 typedef struct {
-  PuleGfxAction action; // PuleGfxAction_clearFramebufferDepth
-  PuleGfxFramebuffer framebuffer;
+  PuleGfxAction action; // PuleGfxAction_clearImageDepth
+  PuleGfxGpuImage image;
   float depth;
-} PuleGfxActionClearFramebufferDepth;
+} PuleGfxActionClearImageDepth;
 
 typedef union {
   float constantF32;
@@ -167,17 +189,20 @@ typedef struct {
 
 typedef struct {
   PuleGfxAction action; // PuleGfxAction_dispatchCommandList
-  PuleGfxCommandListSubmitInfo submitInfo;
+  PuleGfxCommandListSubmitInfo submitInfo; // TODO remove this
 } PuleGfxActionDispatchCommandList;
 
 typedef union {
   PuleGfxAction action;
-  PuleGfxActionBindPipeline bindPipeline;
+  PuleGfxActionBindPipeline bindPipeline; // TODO need bindPipelineGfx/compute/rt
   PuleGfxActionBindFramebuffer bindFramebuffer;
   PuleGfxActionBindBuffer bindBuffer;
-  PuleGfxActionBindAttribute bindAttribute;
-  PuleGfxActionClearFramebufferColor clearFramebufferColor;
-  PuleGfxActionClearFramebufferDepth clearFramebufferDepth;
+  PuleGfxActionRenderPassBegin renderPassBegin;
+  PuleGfxActionRenderPassEnd renderPassEnd;
+  PuleGfxActionBindElementBuffer bindElementBuffer;
+  PuleGfxActionBindAttributeBuffer bindAttributeBuffer;
+  PuleGfxActionClearImageColor clearImageColor;
+  PuleGfxActionClearImageDepth clearImageDepth;
   PuleGfxActionDispatchRender dispatchRender;
   PuleGfxActionDispatchRenderIndirect dispatchRenderIndirect;
   PuleGfxActionDispatchRenderElements dispatchRenderElements;
@@ -185,10 +210,48 @@ typedef union {
   PuleGfxActionDispatchCommandList dispatchCommandList;
 } PuleGfxCommand;
 
+typedef enum {
+  PuleGfxCommandPayloadAccess_indirectCommandRead         = 0x000001,
+  PuleGfxCommandPayloadAccess_indexRead                   = 0x000002,
+  PuleGfxCommandPayloadAccess_vertexAttributeRead         = 0x000004,
+  PuleGfxCommandPayloadAccess_uniformRead                 = 0x000008,
+  PuleGfxCommandPayloadAccess_inputAttachmentRead         = 0x000010,
+  PuleGfxCommandPayloadAccess_shaderRead                  = 0x000020,
+  PuleGfxCommandPayloadAccess_shaderWrite                 = 0x000040,
+  PuleGfxCommandPayloadAccess_colorAttachmentRead         = 0x000080,
+  PuleGfxCommandPayloadAccess_colorAttachmentWrite        = 0x000100,
+  PuleGfxCommandPayloadAccess_depthStencilAttachmentRead  = 0x000200,
+  PuleGfxCommandPayloadAccess_depthStencilAttachmentWrite = 0x000400,
+  PuleGfxCommandPayloadAccess_transferRead                = 0x000800,
+  PuleGfxCommandPayloadAccess_transferWrite               = 0x001000,
+  PuleGfxCommandPayloadAccess_hostRead                    = 0x002000,
+  PuleGfxCommandPayloadAccess_hostWrite                   = 0x004000,
+  PuleGfxCommandPayloadAccess_memoryRead                  = 0x008000,
+  PuleGfxCommandPayloadAccess_memoryWrite                 = 0x010000,
+} PuleGfxCommandPayloadAccess;
+
+typedef struct {
+  PuleGfxGpuImage image;
+  PuleGfxCommandPayloadAccess access;
+  PuleGfxImageLayout layout;
+} PuleGfxCommandPayloadImage;
+
+// these are the state of resources expected when starting to record. This can
+//   be either filled out manually or automated using PuleRenderGraph
+// Using resources without noting them in the payload can result in hazard
+//   tracking errors.
+// The resources can be in a different state up until they are expected to be
+//   submitted/executed.
+typedef struct {
+  size_t payloadImagesLength;
+  PuleGfxCommandPayloadImage * payloadImages;
+} PuleGfxCommandPayload;
+
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
 //------------------------------------------------------------------------------
 
+// TODO::CRITICAL THIS *needs* to specify primary or secondary...
 PULE_exportFn PuleGfxCommandList puleGfxCommandListCreate(
   PuleAllocator const allocator,
   PuleStringView const label
@@ -201,7 +264,8 @@ PULE_exportFn PuleStringView puleGfxCommandListName(
 );
 
 PULE_exportFn PuleGfxCommandListRecorder puleGfxCommandListRecorder(
-  PuleGfxCommandList const commandList
+  PuleGfxCommandList const commandList,
+  PuleGfxCommandPayload const beginCommandPayload
 );
 PULE_exportFn void puleGfxCommandListRecorderFinish(
   PuleGfxCommandListRecorder const commandListRecorder

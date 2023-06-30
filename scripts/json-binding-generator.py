@@ -435,6 +435,7 @@ for objkey, obj in enumerate(exportJson):
       if (character == "["):
         it = zit
         break
+    print(field)
     assert(it > 0)
     exportJson[objkey][fieldsOrPameter][fieldkey]["type"] = (
       field["type"] + [field["label"][it:]]

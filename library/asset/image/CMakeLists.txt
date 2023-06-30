@@ -17,6 +17,7 @@ set_target_properties(
   pulchritude-asset-image-spng
     PROPERTIES COMPILE_FLAGS ""
     POSITION_INDEPENDENT_CODE ON
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(pulchritude-asset-image-spng ${ZLIB_LIBRARIES})
@@ -42,6 +43,7 @@ set_target_properties(
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
     POSITION_INDEPENDENT_CODE ON
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(

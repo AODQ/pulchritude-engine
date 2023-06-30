@@ -13,6 +13,8 @@ else()
   set(PULCHRITUDE_PLATFORM "Linux")
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # use rpath so we can install .so files locally to lib (such as libstdc++.so.6
 #   etc) to allow pulchritude to be portable across various distros
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -65,7 +67,7 @@ if (
      PULCHRITUDE_PLATFORM STREQUAL "Linux"
   OR PULCHRITUDE_PLATFORM STREQUAL "macOS"
 )
-  set(CMAKE_CXX_FLAGS "-march=x86-64")
+  set(CMAKE_CXX_FLAGS "-march=x86-64 -rdynamic")
 elseif (PULCHRITUDE_PLATFORM STREQUAL "Win64" OR PULCHRITUDE_PLATFORM STREQUAL "Win32")
   set(CMAKE_CXX_FLAGS "-march=x86-64 -gstabs")
 endif()

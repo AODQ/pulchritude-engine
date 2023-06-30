@@ -52,33 +52,37 @@ void shaderWatchFileUpdatedCallback(
 ) {
   puleSleepMicrosecond({.value=100,});
   uint64_t const assetHandle = reinterpret_cast<uint64_t>(userdata);
-  AssetShaderModule & shaderModule = ::shaderModules.at(assetHandle);
-  // deallocate/destroy
-  if (shaderModule.shaderModule.id != 0) {
-    puleGfxShaderModuleDestroy(shaderModule.shaderModule);
+  AssetShaderModule & assetShaderModule = ::shaderModules.at(assetHandle);
+  // deallocate/destroy previous instance
+  if (assetShaderModule.shaderModule.id != 0) {
+    puleGfxShaderModuleDestroy(assetShaderModule.shaderModule);
   }
 
   // load contents, need to do for all files regardless which have changed
-  std::vector<uint8_t> vertexFilebuffer = (
-    readFileContents(puleCStr(shaderModule.pathVertex.c_str()))
+  std::vector<uint8_t> bytecodeVertex = (
+    readFileContents(puleCStr(assetShaderModule.pathVertex.c_str()))
   );
-  vertexFilebuffer.emplace_back('\0');
-  std::vector<uint8_t> fragmentFilebuffer = (
-    readFileContents(puleCStr(shaderModule.pathFragment.c_str()))
+  std::vector<uint8_t> bytecodeFragment = (
+    readFileContents(puleCStr(assetShaderModule.pathFragment.c_str()))
   );
-  fragmentFilebuffer.emplace_back('\0');
   PuleError err = puleError();
-  shaderModule.shaderModule = (
+  assetShaderModule.shaderModule = (
     puleGfxShaderModuleCreate(
-      puleCStr(reinterpret_cast<char const *>(vertexFilebuffer.data())),
-      puleCStr(reinterpret_cast<char const *>(fragmentFilebuffer.data())),
+      PuleBufferView {
+        .data = bytecodeVertex.data(),
+        .byteLength = bytecodeVertex.size(),
+      },
+      PuleBufferView {
+        .data = bytecodeFragment.data(),
+        .byteLength = bytecodeFragment.size(),
+      },
       &err
     )
   );
-  puleLogDebug(
+  puleLogDev(
     "reloaded shader module '%s' with id %d",
-    shaderModule.label.c_str(),
-    shaderModule.shaderModule
+    assetShaderModule.label.c_str(),
+    assetShaderModule.shaderModule
   );
   puleErrorConsume(&err);
 }
@@ -130,6 +134,12 @@ PuleAssetShaderModule puleAssetShaderModuleCreateFromPaths(
 
   puleLogDebug("new asset shader module %d", shaderModuleCount);
   return { .id = shaderModuleCount ++, };
+}
+
+void puleAssetShaderModuleDestroy(
+  PuleAssetShaderModule const assetShaderModule
+) {
+  ::shaderModules.erase(assetShaderModule.id);
 }
 
 PuleStringView puleAssetShaderModuleLabel(

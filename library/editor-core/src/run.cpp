@@ -26,9 +26,7 @@ bool editorBuildRunApplication(
   std::string execute = "";
   {
     // launch application with correct plugin path
-    PuleString const exePath = (
-      puleFilesystemExecutablePath(puleAllocateDefault())
-    );
+    PuleStringView const exePath = puleFilesystemExecutablePath();
     PuleString const currentPath = (
       puleFilesystemCurrentPath(puleAllocateDefault())
     );
@@ -64,7 +62,7 @@ bool editorBuildRunApplication(
     execute += (
       "--asset-path "
       + std::string(currentPath.contents)
-      + "/build-husk/install/assets/ "
+      + "/build-husk/install/ "
     );
 
     if (isDebug) {
@@ -79,12 +77,12 @@ bool editorBuildRunApplication(
     if (debugLayer) {
       execute += "--plugin-layer debug ";
     }
+    // execute += (gdb ? "" : " | c++filt");
 
     printf("------\n\t%s\n\n--------", execute.c_str());
 
     // cleanup
     puleStringDestroy(filesystemPath);
-    puleStringDestroy(exePath);
     puleStringDestroy(currentPath);
   }
   // execute

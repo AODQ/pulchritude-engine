@@ -25,11 +25,15 @@ set_target_properties(
       COMPILE_FLAGS
         "-Wshadow -Wall -Wformat=2 -Wextra -Wundef"
     POSITION_INDEPENDENT_CODE ON
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(
   pulchritude-imgui
   pulchritude-gfx pulchritude-platform pulchritude-error
+  pulchritude-asset-render-graph
+  pulchritude-asset-shader-module
+  pulchritude-task-graph
 )
 
 install(

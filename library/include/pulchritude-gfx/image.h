@@ -42,6 +42,7 @@ typedef struct {
 } PuleGfxGpuImage;
 
 typedef enum {
+  PuleGfxImageByteFormat_bgra8U,
   PuleGfxImageByteFormat_rgba8U,
   PuleGfxImageByteFormat_rgb8U,
   PuleGfxImageByteFormat_r8U,
@@ -117,7 +118,47 @@ PULE_exportFn PuleGfxFramebuffer puleGfxFramebufferCreate(
 PULE_exportFn void puleGfxFramebufferDestroy(
   PuleGfxFramebuffer const framebuffer
 );
-PULE_exportFn PuleGfxFramebuffer puleGfxFramebufferWindow();
+PULE_exportFn PuleGfxGpuImage puleGfxWindowImage();
+PuleGfxFramebufferAttachments puleGfxFramebufferAttachments(
+  PuleGfxFramebuffer const framebuffer
+);
+
+typedef enum {
+  PuleGfxImageAttachmentOpLoad_load,
+  PuleGfxImageAttachmentOpLoad_clear,
+  PuleGfxImageAttachmentOpLoad_dontCare,
+} PuleGfxImageAttachmentOpLoad;
+
+typedef enum {
+  PuleGfxImageAttachmentOpStore_store,
+  PuleGfxImageAttachmentOpStore_dontCare,
+} PuleGfxImageAttachmentOpStore;
+
+typedef enum {
+  PuleGfxImageLayout_uninitialized,
+  PuleGfxImageLayout_storage,
+  PuleGfxImageLayout_attachmentColor,
+  PuleGfxImageLayout_attachmentDepth,
+  PuleGfxImageLayout_transferSrc,
+  PuleGfxImageLayout_transferDst,
+} PuleGfxImageLayout;
+
+typedef struct {
+  PuleGfxGpuImage image;
+  size_t mipmapLevelStart;
+  size_t mipmapLevelCount;
+  size_t arrayLayerStart;
+  size_t arrayLayerCount;
+  PuleGfxImageByteFormat byteFormat;
+} PuleGfxGpuImageView;
+
+typedef struct {
+  PuleGfxImageAttachmentOpLoad opLoad;
+  PuleGfxImageAttachmentOpStore opStore;
+  PuleGfxImageLayout layout;
+  PuleF32v4 clearColor;
+  PuleGfxGpuImageView imageView;
+} PuleGfxImageAttachment;
 
 #ifdef __cplusplus
 } // C

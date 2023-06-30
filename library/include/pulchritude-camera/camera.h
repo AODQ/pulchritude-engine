@@ -19,8 +19,8 @@ typedef struct { uint64_t id; } PuleCamera;
 PULE_exportFn PuleCamera puleCameraCreate();
 PULE_exportFn void puleCameraDestroy(PuleCamera const);
 
-PULE_exportFn PuleDsValue puleCameraSerialize();
-PULE_exportFn PuleCamera puleCameraDeserialize(PuleDsValue const);
+//FULE_exportFn PuleDsValue puleCameraSerialize();
+//FULE_exportFn PuleCamera puleCameraDeserialize(PuleDsValue const);
 
 PULE_exportFn PuleF32m44 puleCameraView(PuleCamera const);
 PULE_exportFn PuleF32m44 puleCameraProj(PuleCamera const);

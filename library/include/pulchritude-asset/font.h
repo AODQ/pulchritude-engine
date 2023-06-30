@@ -33,7 +33,7 @@ typedef struct {
 
   uint32_t glyphCodepoint;
 
-  PuleBufferView destinationBuffer;
+  PuleBufferViewMutable destinationBuffer;
   PuleU32v2 destinationBufferDim;
 } PuleAssetFontRenderInfo;
 

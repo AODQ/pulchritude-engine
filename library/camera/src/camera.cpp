@@ -31,7 +31,7 @@ extern "C" {
 PuleCamera puleCameraCreate() {
   Camera defaultCamera;
   memset(&defaultCamera, 0, sizeof(Camera));
-  defaultCamera.up = PuleF32v3(0.0f, 1.0f, 0.0f);
+  defaultCamera.up = PuleF32v3{0.0f, 1.0f, 0.0f};
   ::internalCameras.emplace(::internalCameraCount, defaultCamera);
   return PuleCamera { .id = ::internalCameraCount ++, };
 }
@@ -125,11 +125,13 @@ void puleCameraSetRefreshUniformBuffer(CameraSet & set) {
 
   // allocate more space (this could be first allocation)
   if (!set.uniformBuffer.id) {
+    std::string const label = set.label + "-uniform-buffer";
     set.uniformBuffer = (
       puleGfxGpuBufferCreate(
+        puleCStr(label.c_str()),
         nullptr,
         sizeof(CameraGpuData)*4,
-        PuleGfxGpuBufferUsage_bufferUniform,
+        PuleGfxGpuBufferUsage_uniform,
         PuleGfxGpuBufferVisibilityFlag_hostWritable
       )
     );

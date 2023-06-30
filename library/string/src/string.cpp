@@ -134,12 +134,14 @@ bool puleStringViewEq(PuleStringView const v0, PuleStringView const v1) {
 }
 
 bool puleStringViewEqCStr(PuleStringView const v0, char const * const v1) {
+  // verify all characters up to null term are equal
   for (size_t it = 0; it < v0.len; ++ it) {
     if (v0.contents[it] != v1[it]) {
       return false;
     }
   }
-  return true;
+  // verify the null term exists (don't capture substring)
+  return v1[v0.len] == '\0';
 }
 
 bool puleStringViewContains(PuleStringView const v0, PuleStringView const v1) {

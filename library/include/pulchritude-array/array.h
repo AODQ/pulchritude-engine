@@ -32,6 +32,7 @@ typedef struct {
 } PuleArrayCreateInfo;
 
 PULE_exportFn PuleArray puleArray(PuleArrayCreateInfo const info);
+// this is equivalent to puleDeallocate(array.allocator, array.content)
 PULE_exportFn void puleArrayDestroy(PuleArray const array);
 
 // appends single element to array and returns it
@@ -47,9 +48,14 @@ PULE_exportFn void * puleArrayElementAt(
 //   of data, but have no indication on its stride, element count, etc. Useful
 //   for raw binary data
 typedef struct {
-  uint8_t * data;
+  uint8_t const * data;
   size_t byteLength;
 } PuleBufferView;
+
+typedef struct {
+  uint8_t * data;
+  size_t byteLength;
+} PuleBufferViewMutable;
 
 // Array views let you view the contents of an array, without modifying the
 //   contents nor modifying it's allocation.

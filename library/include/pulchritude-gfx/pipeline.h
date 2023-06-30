@@ -22,25 +22,50 @@ typedef enum {
 } PuleGfxAttributeDataType;
 
 typedef struct {
-  PuleGfxGpuBuffer buffer; // optional, set to .id=0 to assign later
-  size_t numComponents;
   PuleGfxAttributeDataType dataType;
+  size_t bufferIndex;
+  size_t numComponents;
   bool convertFixedDataTypeToNormalizedFloating;
-  size_t stridePerElement; // zero implies same element; does not pack for you
   size_t offsetIntoBuffer;
 } PuleGfxPipelineAttributeDescriptorBinding;
+
+typedef struct {
+  size_t stridePerElement; // must be non-zero
+  // TODO input rate
+} PuleGfxPipelineAttributeBufferDescriptorBinding;
+
+
+typedef enum {
+  puleGfxPipelineDescriptorMax_uniform = 16,
+  puleGfxPipelineDescriptorMax_storage = 16,
+  puleGfxPipelineDescriptorMax_attribute = 16,
+  puleGfxPipelineDescriptorMax_texture = 8,
+} PuleGfxPipelineDescriptorMax;
+
+typedef enum {
+  PuleGfxDescriptorStage_unused = 0x0,
+  PuleGfxDescriptorStage_vertex = 0x1,
+  PuleGfxDescriptorStage_fragment = 0x2,
+} PuleGfxDescriptorStage;
 
 // here are some known & fixable limitations with the current model:
 //   - can't reference the same buffer in separate elements
 //   - can't reference relative offset strides (related to above)
 //   - of course, maximum 16 attributes (I think this is fine though)
 typedef struct {
-  PuleGfxGpuBuffer bufferUniformBindings[16];
-  PuleGfxGpuBuffer bufferStorageBindings[16]; // TODO use range
-  PuleGfxPipelineAttributeDescriptorBinding bufferAttributeBindings[16];
-  PuleGfxGpuImage textureBindings[8]; // TODO can store metadata but not texture
+  // TODO change 'uniform' to just 'smallStorage' in this context
+  // !!!!!!!!!!!!!!
+  // TODO.... DONT BIND BUFFERS HERE!!!!!!!
+  // Need to just bind what stages they will be used!!!
+  // !!!!!!!!!!!!!!
+  PuleGfxDescriptorStage bufferUniformBindings[puleGfxPipelineDescriptorMax_uniform];
+  // TODO use range
+  PuleGfxDescriptorStage bufferStorageBindings[puleGfxPipelineDescriptorMax_storage];
+  PuleGfxPipelineAttributeDescriptorBinding attributeBindings[puleGfxPipelineDescriptorMax_attribute];
+  PuleGfxPipelineAttributeBufferDescriptorBinding attributeBufferBindings[puleGfxPipelineDescriptorMax_attribute];
+  // TODO can store metadata but not texture
+  PuleGfxDescriptorStage textureBindings[puleGfxPipelineDescriptorMax_texture];
   // TODO I guess pair with an optional sampler?
-  PuleGfxGpuBuffer bufferElementBinding;
 } PuleGfxPipelineDescriptorSetLayout;
 
 PULE_exportFn PuleGfxPipelineDescriptorSetLayout

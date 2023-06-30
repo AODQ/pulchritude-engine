@@ -38,6 +38,12 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(
   PuleError * const error
 );
 
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromString(
+  PuleAllocator const allocator,
+  PuleStringView const contents,
+  PuleError * const error
+);
+
 typedef struct {
   PuleDsValue head;
   bool prettyPrint; // PULE_defaultValue(false)

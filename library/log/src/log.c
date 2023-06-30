@@ -1,13 +1,20 @@
 #include <pulchritude-log/log.h>
 
+#include <pulchritude-error/error.h>
+
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
+
+#ifdef __unix__
+#include <execinfo.h>
+#endif
 
 typedef enum {
   LogType_normal,
   LogType_debug,
   LogType_error,
+  LogType_warn,
   LogType_raw,
 } LogType;
 
@@ -43,6 +50,9 @@ static void logger(
     return;
   }
 
+  if (logType == LogType_warn || logType == LogType_error) {
+    printf("\n");
+  }
   if (standardFormatting) {
     switch (logType) {
       case LogType_debug:
@@ -53,6 +63,9 @@ static void logger(
       break;
       case LogType_normal:
         printf("["COLOR_CODE_GRN"NOR"COLOR_CODE_WHT"] ");
+      break;
+      case LogType_warn:
+        printf("["COLOR_CODE_YEL "WRN"COLOR_CODE_WHT"] ");
       break;
       case LogType_error:
         printf("["COLOR_CODE_RED"ERR"COLOR_CODE_WHT"] ");
@@ -69,6 +82,28 @@ static void logger(
   if (standardFormatting) {
     printf("\n");
   }
+  if (logType == LogType_warn || logType == LogType_error) {
+    // print stack trace
+    void * callstack[128];
+    int32_t const numFrames = backtrace(callstack, 128);
+    char ** const symbols = backtrace_symbols(callstack, numFrames);
+    if (symbols != NULL) {
+      for (int32_t i = 1; i < numFrames; ++ i) { // skip log function
+        char * const parenStr = strchr(symbols[i], '(');
+        char * const plusStr = strchr(symbols[i], '+');
+        PULE_assert(parenStr != NULL && plusStr != NULL);
+        if ((int32_t)(plusStr - parenStr) > 1) {
+          if (strncmp(parenStr+1, "main", 4) == 0) { break; }
+          printf(
+            " -> %.*s",
+            (int32_t)(plusStr - parenStr-1), parenStr+1
+          );
+        }
+      }
+      free(symbols);
+    }
+    printf("\n");
+  }
 }
 
 void puleLog(char const * const formatCStr, ...) {
@@ -82,6 +117,13 @@ void puleLogDebug(char const * const formatCStr, ...) {
   va_list args;
   va_start(args, formatCStr);
   logger(LogType_debug, true, formatCStr, args);
+  va_end(args);
+}
+
+void puleLogWarn(char const * const formatCStr, ...) {
+  va_list args;
+  va_start(args, formatCStr);
+  logger(LogType_warn, true, formatCStr, args);
   va_end(args);
 }
 

@@ -45,6 +45,7 @@ set_target_properties(
       COMPILE_FLAGS
         "-Wshadow -Wall -Wformat=2 -Wextra -Wundef"
     POSITION_INDEPENDENT_CODE ON
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(
@@ -95,10 +96,6 @@ endif()
 if (PULCHRITUDE_SCRIPT_BIND_GFX)
   target_compile_definitions(pulchritude-script PUBLIC "PULCHRITUDE_SCRIPT_BIND_GFX")
   target_link_libraries(pulchritude-script pulchritude-gfx)
-endif()
-if (PULCHRITUDE_SCRIPT_BIND_IMGUI_ENGINE)
-  target_compile_definitions(pulchritude-script PUBLIC "PULCHRITUDE_SCRIPT_BIND_IMGUI_ENGINE")
-  target_link_libraries(pulchritude-script pulchritude-imgui-engine)
 endif()
 if (PULCHRITUDE_SCRIPT_BIND_IMGUI)
   target_compile_definitions(pulchritude-script PUBLIC "PULCHRITUDE_SCRIPT_BIND_IMGUI")

@@ -85,6 +85,7 @@ for symbol in inputJson:
     f"      ::loadSymbol(\"{symbol['label']}\", layerName)\n"
     f"    )\n"
     f"  );\n"
+    #f"  PULE_assert(layer->{cleanSymbol(symbol['label'])});\n" TODO enable this
   );
   header = f"pulchritude-{symbol['module']}/{symbol['header']}"
   if symbol['module'][:len('asset')] == 'asset':

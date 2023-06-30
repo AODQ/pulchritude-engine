@@ -10,6 +10,7 @@
 #include <pulchritude-gfx/image.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
+#include <pulchritude-render-graph/render-graph.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +19,9 @@ extern "C" {
 PULE_exportFn void puleImguiInitialize(PulePlatform const window);
 PULE_exportFn void puleImguiShutdown();
 PULE_exportFn void puleImguiNewFrame();
-PULE_exportFn void puleImguiRender();
+PULE_exportFn void puleImguiRender(
+  PuleGfxCommandListRecorder const recorder
+);
 
 PULE_exportFn void puleImguiJoinNext();
 

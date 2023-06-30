@@ -26,6 +26,9 @@ bool refreshEcsMainComponentList(
   PuleAllocator const allocator,
   PuleError * const error
 ) {
+  if (!puleFilesystemPathExists(puleCStr("./assets/puldata/ecs.pds"))) {
+    return true;
+  }
   PuleDsValue const ecsMainValue = (
     puleAssetPdsLoadFromFile(
       allocator,
@@ -150,6 +153,9 @@ bool refreshEcsMainSystemList(
   PuleAllocator const allocator,
   PuleError * const error
 ) {
+  if (!puleFilesystemPathExists(puleCStr("./assets/puldata/ecs.pds"))) {
+    return true;
+  }
   PuleDsValue const ecsMainValue = (
     puleAssetPdsLoadFromFile(
       allocator,

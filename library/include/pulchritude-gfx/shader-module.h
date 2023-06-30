@@ -1,5 +1,6 @@
 #pragma once
 
+#include <pulchritude-array/array.h>
 #include <pulchritude-core/core.h>
 
 #include <pulchritude-error/error.h>
@@ -13,8 +14,8 @@ typedef struct {
 } PuleGfxShaderModule;
 
 PULE_exportFn PuleGfxShaderModule puleGfxShaderModuleCreate(
-  PuleStringView const vertexShaderSource,
-  PuleStringView const fragmentShaderSource,
+  PuleBufferView const vertexShaderBytecode,
+  PuleBufferView const fragmentShaderBytecode,
   PuleError * const error
 );
 PULE_exportFn void puleGfxShaderModuleDestroy(

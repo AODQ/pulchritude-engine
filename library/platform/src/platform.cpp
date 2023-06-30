@@ -44,11 +44,9 @@ PulePlatform pulePlatformCreate(
   PuleError * const error
 ) {
   // TODO glfwSetErrorCallback
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
@@ -92,6 +90,7 @@ PulePlatform pulePlatformCreate(
       windowWidth, windowHeight, info.name.contents, nullptr, nullptr
     )
   );
+  puleLogDebug("Created GLFWwindow * %p", window);
   if (!window) {
     PULE_error(
       PuleErrorWindow_windowCreationFailed,
@@ -145,6 +144,10 @@ void pulePlatformSwapFramebuffer(PulePlatform const platform) {
 
 void * pulePlatformGetProcessAddress() {
   return reinterpret_cast<void *>(&glfwGetProcAddress);
+}
+
+char const * * pulePlatformRequiredExtensions(uint32_t * const count) {
+  return glfwGetRequiredInstanceExtensions(count);
 }
 
 PuleI32v2 pulePlatformWindowSize(PulePlatform const platform) {

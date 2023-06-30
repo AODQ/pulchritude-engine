@@ -37,9 +37,8 @@ void * puleArrayAppend(PuleArray * const array) {
   );
   return (
     reinterpret_cast<void *>(
-      reinterpret_cast<uint8_t *>(array->content)[
-        stride*(array->elementCount-1)
-      ]
+      reinterpret_cast<uint64_t>(array->content)
+      + stride*(array->elementCount-1)
     )
   );
 }

@@ -27,3 +27,8 @@ target_sources(
     libschrift/schrift.c
 )
 target_link_libraries(schrift)
+
+# volk loader
+add_subdirectory(
+  "${CMAKE_SOURCE_DIR}/third-party/volk"
+)

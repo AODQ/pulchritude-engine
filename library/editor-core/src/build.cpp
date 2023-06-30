@@ -265,6 +265,10 @@ static bool generateBuildHusk() {
   puleFileDirectoryCreate(puleCStr("build-husk/applications"));
   puleFileDirectoryCreate(puleCStr("build-husk/build-install"));
   puleFileDirectoryCreate(puleCStr("build-husk/install"));
+  // theoretically CMake will install the below, but if there are no targets
+  // then it won't
+  puleFileDirectoryCreate(puleCStr("build-husk/install/bin"));
+  puleFileDirectoryCreate(puleCStr("build-husk/install/bin/plugins"));
   puleFileDirectoryCreate(puleCStr("build-husk/plugins"));
 
   PuleDsValue const buildInfoValue = (
@@ -272,12 +276,9 @@ static bool generateBuildHusk() {
   );
 
   // create symbolic link to include
-  PuleString const exePath = (
-    puleFilesystemExecutablePath(puleAllocateDefault())
-  );
+  PuleStringView const exePath = puleFilesystemExecutablePath();
   std::string includePath = std::string(exePath.contents) + "/engine-include";
   puleLog("Include path: %s", includePath.c_str());
-  puleStringDestroy(exePath);
   if (
     !puleFilesystemSymlinkCreate(
       // TODO get this path from a known relpath

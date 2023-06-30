@@ -15,6 +15,7 @@
 //   implementation can change.
 
 #include <pulchritude-core/core.h>
+#include <pulchritude-platform/platform.h>
 #include <pulchritude-error/error.h>
 
 #ifdef __cplusplus
@@ -42,16 +43,21 @@ typedef  struct {
   uint32_t instanceOffset;
 } PuleGfxDrawIndirectArrays;
 
-// this should be a bitfield in the future (this only tells us what the buffer
-//   may be bound to for use in the future);
+// TODO rename to remove _buffer
 typedef enum {
-  PuleGfxGpuBufferUsage_bufferAttribute,
-  PuleGfxGpuBufferUsage_bufferElement,
-  PuleGfxGpuBufferUsage_bufferUniform,
-  PuleGfxGpuBufferUsage_bufferStorage, // unsupported GL3.3
-  PuleGfxGpuBufferUsage_bufferAccelerationStructure, // unsupported GL3.3
-  PuleGfxGpuBufferUsage_bufferIndirect, // unsupported GL3.3
+  PuleGfxGpuBufferUsage_attribute = 0x1,
+  PuleGfxGpuBufferUsage_element = 0x2,
+  PuleGfxGpuBufferUsage_uniform = 0x4,
+  PuleGfxGpuBufferUsage_storage = 0x8,
+  PuleGfxGpuBufferUsage_accelerationStructure = 0x10,
+  PuleGfxGpuBufferUsage_indirect = 0x20,
 } PuleGfxGpuBufferUsage;
+
+typedef enum {
+  PuleGfxGpuBufferBindingDescriptor_uniform,
+  PuleGfxGpuBufferBindingDescriptor_storage,
+  PuleGfxGpuBufferBindingDescriptor_accelerationStructure,
+} PuleGfxGpuBufferBindingDescriptor;
 
 typedef enum {
   PuleGfxGpuBufferVisibilityFlag_deviceOnly = 0x1, // incompatible with rest
@@ -60,6 +66,7 @@ typedef enum {
 } PuleGfxGpuBufferVisibilityFlag;
 
 PULE_exportFn PuleGfxGpuBuffer puleGfxGpuBufferCreate(
+  PuleStringView const name,
   void const * const optionalInitialData,
   size_t const byteLength, // must be >0
   PuleGfxGpuBufferUsage const usage,
@@ -87,16 +94,20 @@ typedef struct {
 } PuleGfxGpuBufferMappedFlushRange;
 
 PULE_exportFn void * puleGfxGpuBufferMap(PuleGfxGpuBufferMapRange const range);
+// TODO invalidate mapped buffer
 PULE_exportFn void puleGfxGpuBufferMappedFlush(
   PuleGfxGpuBufferMappedFlushRange const range
 );
 PULE_exportFn void puleGfxGpuBufferUnmap(PuleGfxGpuBuffer const buffer);
 
-PULE_exportFn void puleGfxInitialize(PuleError * const error);
+PULE_exportFn void puleGfxInitialize(
+  PulePlatform const platform,
+  PuleError * const error
+);
 PULE_exportFn void puleGfxShutdown();
 
 PULE_exportFn void puleGfxFrameStart();
-PULE_exportFn void puleGfxFrameEnd();
+PULE_exportFn void puleGfxFrameEnd(); // call before swapFramebuffer
 
 // prints all debug information
 // TODO this should just stream out or something maybe serialize

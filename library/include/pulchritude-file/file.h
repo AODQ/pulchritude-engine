@@ -41,11 +41,11 @@ PULE_exportFn PuleFile puleFileOpen(
   PuleFileOpenMode const openMode,
   PuleError * const error
 );
-PULE_exportFn PuleArray puleFileLoadContents(
-  PuleAllocator const allocator,
-  PuleFileDataMode const dataMode,
-  PuleError * const error
-);
+// FULE_exportFn PuleArray puleFileLoadContents(
+//   PuleAllocator const allocator,
+//   PuleFileDataMode const dataMode,
+//   PuleError * const error
+// );
 PULE_exportFn void puleFileClose(PuleFile const file);
 PULE_exportFn bool puleFileIsDone(PuleFile const file);
 PULE_exportFn PuleStringView puleFilePath(PuleFile const file);
@@ -54,10 +54,10 @@ PULE_exportFn size_t puleFileReadBytes( // greedy
   PuleFile const file,
   PuleArrayViewMutable const destination
 );
-PULE_exportFn size_t puleFileReadBytesWithStride(
-  PuleFile const file,
-  PuleArrayViewMutable const destination
-);
+//FULE_exportFn size_t puleFileReadBytesWithStride(
+//  PuleFile const file,
+//  PuleArrayViewMutable const destination
+//);
 PULE_exportFn void puleFileWriteBytes(
   PuleFile const file,
   PuleArrayView const source
@@ -106,12 +106,21 @@ PULE_exportFn bool puleFileRemoveRecursive(PuleStringView const filePath);
 PULE_exportFn bool puleFileDirectoryCreate(PuleStringView const path);
 PULE_exportFn bool puleFileDirectoryCreateRecursive(PuleStringView const path);
 
-PULE_exportFn PuleString puleFilesystemExecutablePath(
-  PuleAllocator const allocator
-);
+// TODO rename all puleFilesystem*Path to puleFilesystemPath*
+PULE_exportFn PuleStringView puleFilesystemExecutablePath();
 
 PULE_exportFn PuleString puleFilesystemCurrentPath(
   PuleAllocator const allocator
+);
+
+PULE_exportFn PuleStringView puleFilesystemAssetPath();
+PULE_exportFn void puleFilesystemAssetPathSet(PuleStringView const path);
+
+// fetches absolute path of the file, first trying the path directly,
+// then the executable path, then the asset path. Returns empty string if
+// the file doesn't exist
+PULE_exportFn PuleString puleFilesystemAbsolutePath(
+  PuleStringView const path
 );
 
 PULE_exportFn bool puleFilesystemSymlinkCreate(

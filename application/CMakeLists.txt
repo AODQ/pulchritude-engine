@@ -13,6 +13,7 @@ set_target_properties(
   PROPERTIES
     COMPILE_FLAGS
       "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
+    ENABLE_EXPORTS ON
 )
 
 target_link_libraries(
@@ -22,7 +23,8 @@ target_link_libraries(
   pulchritude-allocator
   pulchritude-error
   pulchritude-asset-pds
-  pulchritude-asset-render-task-graph
+  pulchritude-asset-render-graph
+  pulchritude-imgui-engine
   pulchritude-task-graph
 )
 

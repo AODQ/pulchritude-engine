@@ -35,84 +35,83 @@ void refreshContext(
   [[maybe_unused]] PuleF32m44 const transform,
   PuleError * const err
 ) {
-  // have to do this because pipelines depend on viewports, but they really
-  // shouldn't
-  static int32_t prevWidth = 0, prevHeight = 0;
-  auto const windowSize = pulePlatformWindowSize(ctx.platform);
-  if (prevWidth == windowSize.x && prevHeight == windowSize.y) {
-    return;
-  }
-  prevWidth = windowSize.x;
-  prevHeight = windowSize.y;
-
-  { // line pipeline layout
-    auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
-    descriptorSetLayout.bufferAttributeBindings[0] = {
-      .buffer = ctx.mappedBuffer,
-      .numComponents = 3,
-      .dataType = PuleGfxAttributeDataType_float,
-      .convertFixedDataTypeToNormalizedFloating = false,
-      .stridePerElement = sizeof(PuleF32v3)*2,
-      .offsetIntoBuffer = 0,
-    };
-
-    auto pipelineInfo = PuleGfxPipelineCreateInfo {
-      .shaderModule = ctx.lineRenderer.shaderModule,
-      .layout = &descriptorSetLayout,
-      .config = {
-        .depthTestEnabled = true,
-        .blendEnabled = false,
-        .scissorTestEnabled = false,
-        .viewportUl = PuleI32v2 { 0, 0, },
-        .viewportLr = pulePlatformWindowSize(ctx.platform),
-        .scissorUl = PuleI32v2 { 0, 0, },
-        .scissorLr = pulePlatformWindowSize(ctx.platform),
-      },
-    };
-    puleGfxPipelineDestroy(ctx.lineRenderer.pipeline);
-    ctx.lineRenderer.pipeline = puleGfxPipelineCreate(&pipelineInfo, err);
-    if (puleErrorExists(err)) {
-      return;
-    }
-  }
-
-  puleGfxCommandListDestroy(ctx.commandList);
-  ctx.commandList = (
-    puleGfxCommandListCreate(
-      puleAllocateDefault(),
-      puleCStr("pule-gfx-debug")
-    )
-  );
-  { // record command list
-    auto commandListRecorder = puleGfxCommandListRecorder(ctx.commandList);
-
-    if (ctx.lineRenderer.requestedDraws == 0) {
-      goto finishLineRendering;
-    }
-    puleGfxCommandListAppendAction(
-      commandListRecorder,
-      PuleGfxCommand {
-        .bindPipeline = {
-          .action = PuleGfxAction_bindPipeline,
-          .pipeline = ctx.lineRenderer.pipeline,
-        },
-      }
-    );
-    puleGfxCommandListAppendAction(
-      commandListRecorder,
-      PuleGfxCommand {
-        .dispatchRender = {
-          .action = PuleGfxAction_dispatchRender,
-          .drawPrimitive = PuleGfxDrawPrimitive_line,
-          .vertexOffset = 0,
-          .numVertices = ctx.lineRenderer.requestedDraws*2,
-        },
-      }
-    );
-    finishLineRendering:
-
-    puleGfxCommandListRecorderFinish(commandListRecorder);
-  }
+  // // have to do this because pipelines depend on viewports, but they really
+  // // shouldn't
+  // static int32_t prevWidth = 0, prevHeight = 0;
+  // auto const windowSize = pulePlatformWindowSize(ctx.platform);
+  // if (prevWidth == windowSize.x && prevHeight == windowSize.y) {
+  //   return;
+  // }
+  // prevWidth = windowSize.x;
+  // prevHeight = windowSize.y;
+  //
+  // { // line pipeline layout
+  //   auto descriptorSetLayout = puleGfxPipelineDescriptorSetLayout();
+  //   descriptorSetLayout.bufferAttributeBindings[0] = {
+  //     .dataType = PuleGfxAttributeDataType_float,
+  //     .numComponents = 3,
+  //     .convertFixedDataTypeToNormalizedFloating = false,
+  //     .stridePerElement = sizeof(PuleF32v3)*2,
+  //     .offsetIntoBuffer = 0,
+  //   };
+  //
+  //   auto pipelineInfo = PuleGfxPipelineCreateInfo {
+  //     .shaderModule = ctx.lineRenderer.shaderModule,
+  //     .layout = &descriptorSetLayout,
+  //     .config = {
+  //       .depthTestEnabled = true,
+  //       .blendEnabled = false,
+  //       .scissorTestEnabled = false,
+  //       .viewportUl = PuleI32v2 { 0, 0, },
+  //       .viewportLr = pulePlatformWindowSize(ctx.platform),
+  //       .scissorUl = PuleI32v2 { 0, 0, },
+  //       .scissorLr = pulePlatformWindowSize(ctx.platform),
+  //     },
+  //   };
+  //   puleGfxPipelineDestroy(ctx.lineRenderer.pipeline);
+  //   ctx.lineRenderer.pipeline = puleGfxPipelineCreate(&pipelineInfo, err);
+  //   if (puleErrorExists(err)) {
+  //     return;
+  //   }
+  // }
+  //
+  // puleGfxCommandListDestroy(ctx.commandList);
+  // ctx.commandList = (
+  //   puleGfxCommandListCreate(
+  //     puleAllocateDefault(),
+  //     puleCStr("pule-gfx-debug")
+  //   )
+  // );
+  // { // record command list
+  //   auto commandListRecorder = puleGfxCommandListRecorder(ctx.commandList);
+  //
+  //   if (ctx.lineRenderer.requestedDraws == 0) {
+  //     goto finishLineRendering;
+  //   }
+  //   puleGfxCommandListAppendAction(
+  //     commandListRecorder,
+  //     PuleGfxCommand {
+  //       .bindPipeline = {
+  //         .action = PuleGfxAction_bindPipeline,
+  //         .pipeline = ctx.lineRenderer.pipeline,
+  //       },
+  //     }
+  //   );
+  //   puleGfxCommandListAppendAction(
+  //     commandListRecorder,
+  //     PuleGfxCommand {
+  //       .dispatchRender = {
+  //         .action = PuleGfxAction_dispatchRender,
+  //         .drawPrimitive = PuleGfxDrawPrimitive_line,
+  //         .vertexOffset = 0,
+  //         .numVertices = ctx.lineRenderer.requestedDraws*2,
+  //       },
+  //     }
+  //   );
+  //   finishLineRendering:
+  //
+  //   puleGfxCommandListRecorderFinish(commandListRecorder);
+  // }
 }
 
 } // namespace
@@ -124,9 +123,10 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
   ctx.bufferByteLength = 8192;
   ctx.mappedBuffer = (
     puleGfxGpuBufferCreate(
+      puleCStr("pule-gfx-mapped-debug-buffer"),
       nullptr,
       ctx.bufferByteLength,
-      PuleGfxGpuBufferUsage_bufferStorage,
+      PuleGfxGpuBufferUsage_storage,
       PuleGfxGpuBufferVisibilityFlag_hostWritable
     )
   );
@@ -143,44 +143,44 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
   );
   puleLog("mapped buffer %p", ctx.mappedBufferContents);
 
-  char const * const vertexShaderSource = (
-    "#version 460 core\n" \
-    PULE_multilineString(
-      uniform layout(location = 0) mat4 transform;
-      in layout(location = 0) vec2 attributeOrigin;
-      out layout(location = 0) flat int outVertexId;
-      void main() {
-        gl_Position = vec4(attributeOrigin.xy, 0.0f, 1.0f);
-        outVertexId = gl_VertexID;
-      }
-    )
-  );
+  char const * const moduleShaderSource = "TODO";
+  /*   "#version 460 core\n" \
+  //   PULE_multilineString(
+  //     uniform layout(location = 0) mat4 transform;
+  //     in layout(location = 0) vec2 attributeOrigin;
+  //     out layout(location = 0) flat int outVertexId;
+  //     void main() {
+  //       gl_Position = vec4(attributeOrigin.xy, 0.0f, 1.0f);
+  //       outVertexId = gl_VertexID;
+  //     }
+  //   )
+  // );
+  //
+  // char const * const fragmentShaderSource = (
+  //   "#version 460 core\n" \
+  //   PULE_multilineString(
+  //     in layout(location = 0) flat int inVertexId;
+  //     out layout(location = 0) vec4 outColor;
+  //     void main() {
+  //       outColor = vec4(1.0f);
+  //     }
+  //   )
+  // );
 
-  char const * const fragmentShaderSource = (
-    "#version 460 core\n" \
-    PULE_multilineString(
-      in layout(location = 0) flat int inVertexId;
-      out layout(location = 0) vec4 outColor;
-      void main() {
-        outColor = vec4(1.0f);
-      }
-    )
-  );
+  // PuleError err = puleError();
 
-  PuleError err = puleError();
-
-  { // line renderer
-    ctx.lineRenderer.shaderModule = (
-      puleGfxShaderModuleCreate(
-        puleCStr(vertexShaderSource),
-        puleCStr(fragmentShaderSource),
-        &err
-      )
-    );
-    if (puleErrorConsume(&err)) {
-      return;
-    }
-  }
+  // { // line renderer
+  //   ctx.lineRenderer.shaderModule = (
+  //     puleGfxShaderModuleCreate(
+  //       puleCStr(moduleShaderSource),
+  //       &err
+  //     )
+  //   );
+  //   if (puleErrorConsume(&err)) {
+  //     return;
+  //   }
+  // }
+  */
 }
 
 void puleGfxDebugShutdown() {

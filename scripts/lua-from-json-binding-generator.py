@@ -39,7 +39,9 @@ cheader = (
 )
 
 # --- binding includes
-outFile = open(f"{inputArgs['output']}/binding-includes.h", "w+")
+bindingFilename = f"{inputArgs['output']}/binding-includes.h"
+os.makedirs(os.path.dirname(bindingFilename), exist_ok=True)
+outFile = open(bindingFilename, "w+")
 outFile.write(cheader)
 includeDir = f"{inputArgs['source']}/library/include/"
 print(f"include dir: {includeDir}")

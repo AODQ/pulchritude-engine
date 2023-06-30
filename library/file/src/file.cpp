@@ -2,12 +2,11 @@
 
 #include <pulchritude-time/time.h>
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-
 #include <sys/file.h>
 
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -21,6 +20,9 @@ struct OpenFileInfo {
   FILE * file;
 };
 std::unordered_map<uint64_t, OpenFileInfo> openFiles;
+
+std::string filesystemAssetPath;
+std::string filesystemExecutablePath;
 } // namespace
 
 extern "C" {
@@ -57,7 +59,10 @@ PuleFile puleFileOpen(
   }
   // null terminate the filename
   std::string const filenameStr = std::string(filename.contents, filename.len);
-  FILE * const file = fopen(filenameStr.c_str(), fileMode);
+  FILE * file = fopen(filenameStr.c_str(), fileMode);
+  if (!file) { // try asset path
+    file = fopen((filesystemAssetPath + filenameStr).c_str(), fileMode);
+  }
   if (!file) {
     auto const strerrorcp = std::string(strerror(errno));
     // in C11 there is nice strerrorlen_s and strerror_s, but not in C++
@@ -452,11 +457,13 @@ bool puleFileDirectoryCreateRecursive(PuleStringView const path) {
   return true;
 }
 
-PuleString puleFilesystemExecutablePath(PuleAllocator const allocator) {
-  // TODO[crossplatform] isn't compatible with windows or MacOS.
-  auto path = std::filesystem::canonical("/proc/self/exe").remove_filename();
-  // remove the last
-  return puleString(allocator, path.string().c_str());
+PuleStringView puleFilesystemExecutablePath() {
+  if (::filesystemExecutablePath == "") {
+    ::filesystemExecutablePath = (
+      std::filesystem::canonical("/proc/self/exe").remove_filename()
+    );
+  }
+  return puleCStr(::filesystemExecutablePath.c_str());
 }
 
 PuleString puleFilesystemCurrentPath(PuleAllocator const allocator) {
@@ -506,15 +513,17 @@ bool puleFilesystemSymlinkCreate(
 }
 
 PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
-  if (!puleFilesystemPathExists(path)) {
-    puleLogError("path does not exist: '%s'", path.contents);
+  PuleString const pathAbs = puleFilesystemAbsolutePath(path);
+  if (pathAbs.contents == nullptr) {
+    puleLogError("file does not exist: '%s'", path.contents);
     return {.value=0,};
   }
   std::error_code errorcode;
   auto const filetime = std::filesystem::last_write_time(
-    std::filesystem::path(std::string_view(path.contents, path.len)),
+    std::filesystem::path(std::string_view(pathAbs.contents, pathAbs.len)),
     errorcode
   );
+  puleStringDestroy(pathAbs);
   if (errorcode) {
     return {.value=0,};
   }
@@ -589,6 +598,56 @@ bool puleFileWatchCheckAll() {
     }
   }
   return anyFilesChanged;
+}
+
+} // C
+
+extern "C" {
+
+PuleStringView puleFilesystemAssetPath() {
+  return PuleStringView {
+    filesystemAssetPath.c_str(),
+    filesystemAssetPath.size(),
+  };
+}
+
+void puleFilesystemAssetPathSet(PuleStringView const path) {
+  filesystemAssetPath = std::string(path.contents, path.len);
+}
+
+PuleString puleFilesystemAbsolutePath(
+    PuleStringView const path
+) {
+  if (puleFilesystemPathExists(path)) {
+    return puleString(puleAllocateDefault(), path.contents);
+  }
+  { // check executable path
+    PuleStringView const executableDir = puleFilesystemExecutablePath();
+    std::string const executablePath = (
+      std::string(executableDir.contents, executableDir.len)
+      + "/" + std::string(path.contents, path.len)
+    );
+    if (puleFilesystemPathExists(puleCStr(executablePath.c_str()))) {
+      return puleString(puleAllocateDefault(), executablePath.c_str());
+    }
+  }
+  { // check asset path
+    PuleStringView const assetDir = puleFilesystemAssetPath();
+    std::string const assetPath = (
+      std::string(assetDir.contents, assetDir.len)
+      + "/" + std::string(path.contents, path.len)
+    );
+    if (puleFilesystemPathExists(puleCStr(assetPath.c_str()))) {
+      return puleString(puleAllocateDefault(), assetPath.c_str());
+    }
+  }
+
+  // could not find path
+  return PuleString {
+    .contents = nullptr,
+    .len = 0,
+    .allocator = puleAllocateDefault(),
+  };
 }
 
 } // C
