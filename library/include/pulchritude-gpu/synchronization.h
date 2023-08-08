@@ -12,20 +12,32 @@ extern "C" {
 
 typedef struct {
   uint64_t id;
+} PuleGpuSemaphore;
+
+PULE_exportFn PuleGpuSemaphore puleGpuSemaphoreCreate(
+  PuleStringView const label
+);
+PULE_exportFn void puleGpuSemaphoreDestroy(PuleGpuSemaphore const semaphore);
+
+typedef struct {
+  uint64_t id;
 } PuleGpuFence;
 
 typedef enum {
   PuleGpuFenceConditionFlag_all,
 } PuleGpuFenceConditionFlag;
 
-PULE_exportFn PuleGpuFence puleGpuFenceCreate(
-  PuleGpuFenceConditionFlag const condition
-);
+typedef enum {
+  PuleGpuSignalTime_forever = 2000000000,
+} PuleGpuSignalTime;
+
+PULE_exportFn PuleGpuFence puleGpuFenceCreate();
 PULE_exportFn void puleGpuFenceDestroy(PuleGpuFence const fence);
-PULE_exportFn bool puleGpuFenceCheckSignal(
+PULE_exportFn bool puleGpuFenceWaitSignal(
   PuleGpuFence const fence,
   PuleNanosecond const timeout
 );
+PULE_exportFn void puleGpuFenceReset(PuleGpuFence const fence);
 
 typedef enum {
   PuleGpuMemoryBarrierFlag_attribute = 0x1,
@@ -36,6 +48,14 @@ typedef enum {
 } PuleGpuMemoryBarrierFlag;
 
 PULE_exportFn void puleGpuMemoryBarrier(PuleGpuMemoryBarrierFlag const barrier);
+
+PULE_exportFn PuleGpuSemaphore puleGpuFrameStart();
+// call before pulePlatformSwapFramebuffer
+PULE_exportFn void puleGpuFrameEnd(
+  size_t const waitSemaphoreCount,
+  PuleGpuSemaphore const * const waitSemaphores
+);
+
 
 #ifdef __cplusplus
 } // extern C

@@ -3,8 +3,8 @@
 #include <pulchritude-core/core.h>
 
 #include <pulchritude-data-serializer/data-serializer.h>
-#include <pulchritude-gpu/barrier.h>
 #include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/synchronization.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
 

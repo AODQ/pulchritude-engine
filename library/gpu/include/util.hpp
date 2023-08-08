@@ -6,6 +6,7 @@
 
 #include <volk.h>
 
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -66,6 +67,9 @@ namespace util {
     VkDescriptorSet descriptorSet;
     VkDescriptorSetLayout descriptorSetLayout;
   };
+  struct CommandList {
+    std::string label;
+  };
 
   // chains pNext together, pnextList[0].pNext = pnextList[1]; and so on
   void chainPNextList(std::vector<void *> const pnextList);
@@ -93,6 +97,7 @@ struct RecorderImage {
 struct CommandBufferRecorder {
   std::unordered_map<uint64_t, util::RecorderImage> images;
   PuleGpuPipeline currentBoundPipeline = { .id = 0, };
+  PuleGpuCommandList commandList = { .id = 0, };
 };
 
 struct Context {
@@ -118,6 +123,7 @@ struct Context {
   VmaAllocation utilStagingBufferAllocation;
   VmaAllocationInfo utilStagingBufferAllocationInfo;
 
+  std::unordered_map<uint64_t, util::CommandList> commandLists;
   std::unordered_map<uint64_t, util::Pipeline> pipelines;
   std::unordered_map<uint64_t, util::ShaderModule> shaderModules;
   std::unordered_map<
@@ -126,6 +132,8 @@ struct Context {
   VkSwapchainKHR swapchain;
   uint32_t swapchainCurrentImageIdx;
   std::vector<VkImage> swapchainImages;
+  std::vector<VkSemaphore> swapchainImageAvailableSemaphores;
+  size_t frameIdx = 1;
 };
 
 Context & ctx();
@@ -137,17 +145,19 @@ VkDescriptorType toDescriptorType(
 VkBufferUsageFlags toBufferUsageFlags(PuleGpuBufferUsage const usage);
 
 VkSwapchainKHR swapchainCreate();
-uint32_t swapchainAcquireNextImage(
-  VkSemaphore const semaphore,
-  VkFence const fence
-);
-void swapchainPresent(VkSemaphore const waitSemaphore);
-void swapchainImages();
+uint32_t swapchainAcquireNextImage(VkFence const fence);
+void swapchainImagesCreate();
 
+VkPipelineStageFlagBits toVkPipelineStageFlagBits(
+  PuleGpuPipelineStage const stage
+);
 VkShaderStageFlags toVkShaderStageFlags(PuleGpuDescriptorStage const stage);
 VkIndexType toVkIndexType(PuleGpuElementType const elementType);
-VkAccessFlags toVkAccessFlags(PuleGpuCommandPayloadAccess const access);
+VkAccessFlags toVkAccessFlags(PuleGpuResourceAccess const access);
 VkImageLayout toVkImageLayout(PuleGpuImageLayout const layout);
+VkPipelineStageFlags toVkPipelineStageFlags(
+  PuleGpuResourceBarrierStage const access
+);
 VkFormat toVkImageFormat(PuleGpuImageByteFormat const format);
 VkFormat toVkBufferFormat(
   PuleGpuAttributeDataType const dataType,
@@ -165,3 +175,8 @@ VkAttachmentStoreOp toVkAttachmentOpStore(
 VkImageView fetchImageView(PuleGpuImageView const imageView);
 
 } // ::util
+
+namespace util::str {
+  std::string vkImageLayout(VkImageLayout const layout);
+  std::string vkAccessFlags(VkAccessFlags const flags);
+}

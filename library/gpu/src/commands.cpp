@@ -69,65 +69,6 @@ PuleStringView puleGpuActionToString(PuleGpuAction const action) {
   }
 }
 
-namespace {
-
-void puClearImageColor(
-  PuleGpuActionClearImageColor const action,
-  VkCommandBuffer const commandBuffer,
-  util::CommandBufferRecorder & commandBufferRecorder
-) {
-  /* prep */
-  auto const clearSubresourceRange = VkImageSubresourceRange {
-    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-    .baseMipLevel = 0, .levelCount = 1,
-    .baseArrayLayer = 0, .layerCount = 1,
-  };
-  auto color = VkClearColorValue {
-    .float32 = {
-      action.color.x, action.color.y, action.color.z, action.color.w,
-    },
-  };
-  /* hazard */
-  util::RecorderImage & recorderImage = (
-    commandBufferRecorder.images.at(action.image.id)
-  );
-  auto const barrierImage = VkImageMemoryBarrier {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-    .pNext = nullptr,
-    .srcAccessMask = recorderImage.access,
-    .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-    .oldLayout = recorderImage.layout,
-    .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-    .srcQueueFamilyIndex = recorderImage.deviceQueueIdx,
-    .dstQueueFamilyIndex = util::ctx().device.queues.idxGTC,
-    .image = reinterpret_cast<VkImage>(action.image.id),
-    .subresourceRange = clearSubresourceRange,
-  };
-  recorderImage = util::RecorderImage {
-    .access = barrierImage.dstAccessMask,
-    .layout = barrierImage.newLayout,
-    .deviceQueueIdx = util::ctx().device.queues.idxGTC,
-  };
-  vkCmdPipelineBarrier(
-    commandBuffer,
-    /*srcStageMask*/ VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-    /*dstStageMask*/ VK_PIPELINE_STAGE_TRANSFER_BIT,
-    /*dependencyFlags*/ 0,
-    /*memoryBarrier*/ 0, nullptr,
-    /*bufferMemoryBarrier*/ 0, nullptr,
-    /*imageMemoryBarrier*/ 1, &barrierImage
-  );
-  /* action */
-  vkCmdClearColorImage(
-    commandBuffer,
-    reinterpret_cast<VkImage>(action.image.id),
-    VK_IMAGE_LAYOUT_GENERAL,
-    &color, 1, &clearSubresourceRange
-  );
-}
-
-} // namespace
-
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -154,6 +95,10 @@ PuleGpuCommandList puleGpuCommandListCreate(
     ) == VK_SUCCESS
   );
   // TODO name object
+  util::ctx().commandLists.emplace(
+    reinterpret_cast<uint64_t>(cmdBuffer),
+    util::CommandList { .label = std::string(label.contents), }
+  );
   return { .id = reinterpret_cast<uint64_t>(cmdBuffer), };
 }
 
@@ -177,8 +122,7 @@ PuleStringView puleGpuCommandListName(
 }
 
 PuleGpuCommandListRecorder puleGpuCommandListRecorder(
-  PuleGpuCommandList const commandList,
-  PuleGpuCommandPayload const beginCommandPayload
+  PuleGpuCommandList const commandList
 ) {
   auto beginInfo = VkCommandBufferBeginInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -188,26 +132,27 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
   };
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(commandList.id);
   PULE_assert(vkBeginCommandBuffer(commandBuffer, &beginInfo) == VK_SUCCESS);
-  // TODO should I store the entire swapchain?
   util::CommandBufferRecorder cbRecorder;
-  // move data from user command payload into recorder storage
-  for (size_t it = 0; it < beginCommandPayload.payloadImagesLength; ++ it) {
-    PuleGpuCommandPayloadImage const payloadImg = (
-      beginCommandPayload.payloadImages[it]
-    );
-    cbRecorder.images.emplace(
-      payloadImg.image.id,
-      util::RecorderImage {
-        .access = util::toVkAccessFlags(payloadImg.access),
-        .layout = util::toVkImageLayout(payloadImg.layout),
-        .deviceQueueIdx = util::ctx().device.queues.idxGTC,
-      }
-    );
-  }
-  util::ctx().commandBufferRecorders.emplace(
-    commandList.id,
-    util::CommandBufferRecorder { }
+  cbRecorder.commandList = commandList;
+  // TODO should I store the entire swapchain?
+  cbRecorder.images.emplace(
+    reinterpret_cast<uint64_t>(
+      util::ctx().swapchainImages[util::ctx().swapchainCurrentImageIdx]
+    ),
+    util::RecorderImage {
+      .access = 0, // TODO change this i guess?
+      .layout = VK_IMAGE_LAYOUT_UNDEFINED, // TODO change this i guess?
+      .deviceQueueIdx = util::ctx().device.queues.idxGTC,
+    }
   );
+  puleLogDev(
+    "<> command buffer recorder %u, stored swapchain image %d",
+    cbRecorder.commandList.id,
+    reinterpret_cast<uint64_t>(
+      util::ctx().swapchainImages[util::ctx().swapchainCurrentImageIdx]
+    )
+  );
+  util::ctx().commandBufferRecorders.emplace(commandList.id, cbRecorder);
   return { .id = reinterpret_cast<uint64_t>(commandBuffer), };
 }
 
@@ -215,15 +160,8 @@ void puleGpuCommandListRecorderFinish(
   [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
 ) {
   vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandListRecorder.id));
-}
-void puleGpuCommandListRecorderReset(
-  [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
-) {
-  auto const commandBuffer = (
-    reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
-  );
+  puleLogDev("Deleting CBR %u", commandListRecorder.id);
   util::ctx().commandBufferRecorders.erase(commandListRecorder.id);
-  vkResetCommandBuffer(commandBuffer, 0); // TODO what about reset flag?
 }
 
 void puleGpuCommandListAppendAction(
@@ -286,11 +224,11 @@ void puleGpuCommandListAppendAction(
     }
     break;
     case PuleGpuAction_clearImageColor: {
-      puClearImageColor(
-        *reinterpret_cast<PuleGpuActionClearImageColor const *>(&command),
-        commandBuffer,
-        recorderInfo
-      );
+      //puClearImageColor(
+      //  *reinterpret_cast<PuleGpuActionClearImageColor const *>(&command),
+      //  commandBuffer,
+      //  recorderInfo
+      //);
     } break;
     case PuleGpuAction_clearImageDepth: {
       auto const action = (
@@ -341,14 +279,17 @@ void puleGpuCommandListAppendAction(
         *reinterpret_cast<PuleGpuActionPushConstants const *>(&command)
       );
       (void)action;
-      // TODO::CRITICAL need the PipelineLayout to program the push apparently
-      // TODO::CRITICAL need to prepare PuleGpuConstant array
-      // vkCmdPushConstants(
-      //   commandBuffer,
-      //   layout,
-      //   VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-      //   0,
-      // );
+      auto const & pipelineInfo = util::ctx().pipelines.at(
+        recorderInfo.currentBoundPipeline.id
+      );
+      vkCmdPushConstants(
+        commandBuffer,
+        pipelineInfo.pipelineLayout,
+        util::toVkShaderStageFlags(action.stage),
+        action.byteOffset,
+        action.byteLength,
+        action.data
+      );
     }
     break;
     case PuleGpuAction_dispatchCommandList: {
@@ -402,23 +343,62 @@ void puleGpuCommandListAppendAction(
       );
     }
     break;
+    case PuleGpuAction_resourceBarrier: {
+      auto const action = (
+        *reinterpret_cast<PuleGpuActionResourceBarrier const *>(&command)
+      );
+      std::vector<VkImageMemoryBarrier> imageBarriers;
+      // iterate through image barriers
+      for (size_t it = 0; it < action.resourceImageCount; ++ it) {
+        auto const & imageBarrier = action.resourceImages[it];
+        auto const imageSubresourceRange = VkImageSubresourceRange {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .baseMipLevel = 0, .levelCount = 1,
+          .baseArrayLayer = 0, .layerCount = 1,
+        };
+        imageBarriers.emplace_back(
+          VkImageMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = util::toVkAccessFlags(imageBarrier.accessSrc),
+            .dstAccessMask = util::toVkAccessFlags(imageBarrier.accessDst),
+            .oldLayout = util::toVkImageLayout(imageBarrier.layoutSrc),
+            .newLayout = util::toVkImageLayout(imageBarrier.layoutDst),
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = reinterpret_cast<VkImage>(imageBarrier.image.id),
+            .subresourceRange = imageSubresourceRange,
+          }
+        );
+      }
+      vkCmdPipelineBarrier(
+        commandBuffer,
+        util::toVkPipelineStageFlags(action.stageSrc),
+        util::toVkPipelineStageFlags(action.stageDst),
+        0, // dependency flag
+        0, nullptr, // memory barriers
+        0, nullptr, // buffer memory barriers
+        (uint32_t)imageBarriers.size(), imageBarriers.data()
+      );
+    } break;
     case PuleGpuAction_renderPassBegin: {
       auto const action = (
         *reinterpret_cast<PuleGpuActionRenderPassBegin const *>(&command)
       );
+      std::vector<VkImageMemoryBarrier> imageBarriers;
       VkRenderingAttachmentInfo colorAttachments[8];
       for (size_t it = 0; it <  8; ++ it) {
-        if (action.colorAttachments[it].imageView.image.id == 0) {
+        if (action.attachmentColor[it].imageView.image.id == 0) {
           continue;
         }
         colorAttachments[it] = (
-          imageAttachmentToVk(action.colorAttachments[it], false)
+          imageAttachmentToVk(action.attachmentColor[it], false)
         );
       }
       VkRenderingAttachmentInfo depthAttachment = {};
       bool hasDepthAttachment = false;
-      if (action.depthAttachment.imageView.image.id != 0) {
-        depthAttachment = imageAttachmentToVk(action.depthAttachment, true);
+      if (action.attachmentDepth.imageView.image.id != 0) {
+        depthAttachment = imageAttachmentToVk(action.attachmentDepth, true);
         hasDepthAttachment = true;
       }
       auto const renderingInfo = VkRenderingInfo {
@@ -437,7 +417,7 @@ void puleGpuCommandListAppendAction(
         },
         .layerCount = 1,
         .viewMask = 0,
-        .colorAttachmentCount = (uint32_t)action.colorAttachmentCount,
+        .colorAttachmentCount = (uint32_t)action.attachmentColorCount,
         .pColorAttachments = colorAttachments,
         .pDepthAttachment = hasDepthAttachment ? &depthAttachment : nullptr,
         .pStencilAttachment = nullptr,
@@ -468,30 +448,65 @@ void puleGpuCommandListSubmit(
   PuleError * const error
 ) {
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(info.commandList.id);
-  auto submitInfo = VkSubmitInfo {
+  for (size_t it = 0; it < info.signalSemaphoreCount; ++ it) {
+    if (info.signalSemaphores[it].id > 0) { continue; }
+    // create semaphore if user's semaphore is null
+    auto commandList = util::ctx().commandLists.at(info.commandList.id);
+    info.signalSemaphores[it] = (
+      puleGpuSemaphoreCreate(
+        puleCStr((
+          std::string("signal for command list '") + commandList.label + "'"
+        ).c_str())
+      )
+    );
+  }
+  std::vector<VkPipelineStageFlags> waitStages(info.waitSemaphoreCount);
+  for (size_t it = 0; it < info.waitSemaphoreCount; ++ it) {
+    waitStages[it] = (
+      util::toVkPipelineStageFlagBits(info.waitSemaphoreStages[it])
+    );
+  }
+  auto const submitInfo = VkSubmitInfo {
     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
     .pNext = nullptr,
-    // TODO::CRITICAL semaphores
-    .waitSemaphoreCount = 0,
-    .pWaitSemaphores = nullptr,
-    .pWaitDstStageMask = nullptr,
+    .waitSemaphoreCount = (uint32_t)info.waitSemaphoreCount,
+    .pWaitSemaphores = (
+      reinterpret_cast<VkSemaphore const *>(info.waitSemaphores)
+    ),
+    .pWaitDstStageMask = waitStages.data(),
     .commandBufferCount = 1,
     .pCommandBuffers = &commandBuffer,
-    .signalSemaphoreCount = 0,
-    .pSignalSemaphores = nullptr,
+    .signalSemaphoreCount = (uint32_t)info.signalSemaphoreCount,
+    .pSignalSemaphores = reinterpret_cast<VkSemaphore *>(info.signalSemaphores),
   };
   PULE_vkAssert(
     vkQueueSubmit(
       util::ctx().defaultQueue,
       1, &submitInfo,
-      (
-        info.fenceTargetFinish
-          ? reinterpret_cast<VkFence>(info.fenceTargetFinish->id)
-          : nullptr
-      )
+      reinterpret_cast<VkFence>(info.fenceTargetFinish.id)
     ),
     PuleErrorGfx_invalidCommandList,
   );
+}
+
+void puleGpuFrameEnd(
+  size_t const waitSemaphoreCount,
+  PuleGpuSemaphore const * const waitSemaphores
+) {
+  auto const presentInfo = VkPresentInfoKHR {
+    .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    .pNext = nullptr,
+    .waitSemaphoreCount = (uint32_t)waitSemaphoreCount,
+    .pWaitSemaphores = reinterpret_cast<VkSemaphore const *>(waitSemaphores),
+    .swapchainCount = 1,
+    .pSwapchains = &util::ctx().swapchain,
+    .pImageIndices = &util::ctx().swapchainCurrentImageIdx,
+    .pResults = nullptr,
+  };
+  PULE_assert(
+    vkQueuePresentKHR(util::ctx().defaultQueue, &presentInfo) == VK_SUCCESS
+  );
+  util::ctx().frameIdx += 1;
 }
 
 } // extern C
@@ -619,6 +634,109 @@ void puleGpuCommandListDump(PuleGpuCommandList const) {
   //puleLogDebug("<NO>");
   // commandListDump(commandList);
   //puleLogDebug("-------------------------------------------------");
+}
+
+} // extern C
+
+//------------------------------------------------------------------------------
+//-- COMMAND LIST CHAIN --------------------------------------------------------
+//------------------------------------------------------------------------------
+
+namespace {
+struct ImplCommandListChainCommand {
+  PuleGpuCommandList commandList;
+  PuleGpuFence fence;
+  std::string label;
+  uint64_t frameIdx;
+};
+struct ImplCommandListChain {
+  std::vector<ImplCommandListChainCommand> commandListChain;
+  PuleAllocator allocator;
+};
+std::unordered_map<uint64_t, ImplCommandListChain> commandListChains;
+uint64_t commandListChainId = 0;
+} // namespace
+
+extern "C" {
+
+PuleGpuCommandListChain puleGpuCommandListChainCreate(
+  PuleAllocator const allocator,
+  PuleStringView const label
+) {
+  auto const id = commandListChainId ++;
+  std::vector<ImplCommandListChainCommand> commandListChain;
+  for (size_t it = 0; it < util::ctx().swapchainImages.size(); ++ it) {
+    commandListChain.emplace_back(ImplCommandListChainCommand{
+      .commandList = PuleGpuCommandList{.id = 0,},
+      .fence = puleGpuFenceCreate(),
+      .label = std::string(label.contents, label.len),
+      .frameIdx = 0,
+    });
+  }
+  commandListChains.emplace(
+    id,
+    ImplCommandListChain{
+      .commandListChain = std::move(commandListChain),
+      .allocator = allocator,
+    }
+  );
+  return {.id = id,};
+}
+
+void puleGpuCommandListChainDestroy(PuleGpuCommandListChain const chain) {
+  if (chain.id == 0) { return; }
+  commandListChains.erase(chain.id);
+}
+
+PuleGpuCommandList puleGpuCommandListChainCurrent(
+  PuleGpuCommandListChain const chain
+) {
+  auto & commandListChain = commandListChains.at(chain.id);
+  auto & currentCommandList = (
+    commandListChain.commandListChain.at(util::ctx().swapchainCurrentImageIdx)
+  );
+  // check if this has already been handled this frame
+  if (currentCommandList.frameIdx == util::ctx().frameIdx) {
+    return currentCommandList.commandList;
+  }
+  // create command list, destroy previous one if needed
+  if (currentCommandList.commandList.id != 0) {
+    puleLogDev(
+      "Destroying on frame %u (was created frame %u) frequency %u",
+      util::ctx().frameIdx,
+      currentCommandList.frameIdx,
+      util::ctx().swapchainImages.size()
+    );
+    puleGpuFenceWaitSignal(
+      currentCommandList.fence,
+      PuleNanosecond { PuleGpuSignalTime_forever, }
+    );
+    puleGpuFenceReset(currentCommandList.fence);
+    puleGpuCommandListDestroy(currentCommandList.commandList);
+  }
+  std::string const label = (
+    currentCommandList.label + "-[" + std::to_string(util::ctx().frameIdx) + "]"
+  );
+  currentCommandList.frameIdx = util::ctx().frameIdx;
+  return currentCommandList.commandList = (
+    puleGpuCommandListCreate(
+      commandListChain.allocator, puleCStr(label.c_str())
+    )
+  );
+}
+
+PuleGpuFence puleGpuCommandListChainCurrentFence(
+  PuleGpuCommandListChain const commandListChain
+) {
+  auto & chain = commandListChains.at(commandListChain.id);
+  auto & currentCommandList = (
+    chain.commandListChain.at(util::ctx().swapchainCurrentImageIdx)
+  );
+  // TODO move the asserts to debug layer
+  PULE_assert(currentCommandList.commandList.id != 0);
+  PULE_assert(currentCommandList.fence.id != 0);
+  PULE_assert(currentCommandList.frameIdx == util::ctx().frameIdx);
+  return currentCommandList.fence;
 }
 
 } // extern C

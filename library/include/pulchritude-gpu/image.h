@@ -141,6 +141,7 @@ typedef enum {
   PuleGpuImageLayout_attachmentDepth,
   PuleGpuImageLayout_transferSrc,
   PuleGpuImageLayout_transferDst,
+  PuleGpuImageLayout_presentSrc,
 } PuleGpuImageLayout;
 
 typedef struct {

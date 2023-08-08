@@ -28,13 +28,14 @@ target_include_directories(
 target_sources(
   pulchritude-gpu
   PRIVATE
-    src/barrier.cpp
+    src/synchronization.cpp
     src/commands.cpp
     src/gpu.cpp
     src/image.cpp
     src/pipeline.cpp
     src/shader-module.cpp
     src/util.cpp
+    src/util-str.cpp
     src/vulkan-memory-allocator.cpp
 )
 

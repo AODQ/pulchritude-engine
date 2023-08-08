@@ -1,10 +1,10 @@
 #pragma once
 
-#include <pulchritude-gpu/barrier.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/image.h>
 #include <pulchritude-gpu/pipeline.h>
 #include <pulchritude-gpu/shader-module.h>
+#include <pulchritude-gpu/synchronization.h>
 
 #include <pulchritude-allocator/allocator.h>
 
@@ -20,13 +20,15 @@ typedef struct { uint64_t id; } PuleGpuCommandList;
 typedef struct { uint64_t id; } PuleGpuCommandListRecorder;
 typedef struct {
   PuleGpuCommandList commandList;
-  // before this command list starts, will wait on this fence to finish,
-  //   will also destroy the fence
-  // TODO::CRITICAL actually I guess I need semaphore start and semaphore end
-  PuleGpuFence * fenceTargetStart;
-  // at end of command list submission, if this is non-null, a fence will
-  //   be created to this target
-  PuleGpuFence * fenceTargetFinish;
+  size_t waitSemaphoreCount;
+  PuleGpuSemaphore const * waitSemaphores;
+  PuleGpuPipelineStage const * waitSemaphoreStages;
+  // will create semaphore if id is 0, otherwise will use existing semaphore
+  size_t signalSemaphoreCount;
+  PuleGpuSemaphore * signalSemaphores;
+  // at end of command list submission, if this is non-zero, fence will
+  // be triggered
+  PuleGpuFence fenceTargetFinish;
 } PuleGpuCommandListSubmitInfo;
 
 typedef enum {
@@ -43,9 +45,11 @@ typedef enum {
 //   initiating a render, etc
 // commands are not unique, and as such are treated as primitives and may not
 //   refer to any specific unique index of a queue
+// TODO just rename to GpuCommand_
 typedef enum {
   PuleGpuAction_bindPipeline,
   PuleGpuAction_bindBuffer,
+  PuleGpuAction_resourceBarrier,
   PuleGpuAction_renderPassBegin,
   PuleGpuAction_renderPassEnd,
   PuleGpuAction_bindElementBuffer,
@@ -76,13 +80,64 @@ typedef struct {
   size_t byteLen;
 } PuleGpuActionBindBuffer;
 
+typedef enum {
+  PuleGpuResourceBarrierStage_top                   = 0x0001,
+  PuleGpuResourceBarrierStage_drawIndirect          = 0x0002,
+  PuleGpuResourceBarrierStage_vertexInput           = 0x0004,
+  PuleGpuResourceBarrierStage_shaderFragment        = 0x0008,
+  PuleGpuResourceBarrierStage_shaderVertex          = 0x0010,
+  PuleGpuResourceBarrierStage_shaderCompute         = 0x0020,
+  PuleGpuResourceBarrierStage_outputAttachmentColor = 0x0040,
+  PuleGpuResourceBarrierStage_transfer              = 0x0080,
+  PuleGpuResourceBarrierStage_bottom                = 0x0100,
+} PuleGpuResourceBarrierStage;
+
+typedef enum {
+  PuleGpuResourceAccess_none                 = 0x00000000,
+  PuleGpuResourceAccess_indirectCommandRead  = 0x00000001,
+  PuleGpuResourceAccess_indexRead            = 0x00000002,
+  PuleGpuResourceAccess_vertexAttributeRead  = 0x00000004,
+  PuleGpuResourceAccess_uniformRead          = 0x00000008,
+  PuleGpuResourceAccess_inputAttachmentRead  = 0x00000010,
+  PuleGpuResourceAccess_shaderRead           = 0x00000020,
+  PuleGpuResourceAccess_shaderWrite          = 0x00000040,
+  PuleGpuResourceAccess_attachmentColorRead  = 0x00000080,
+  PuleGpuResourceAccess_attachmentColorWrite = 0x00000100,
+  PuleGpuResourceAccess_attachmentDepthRead  = 0x00000200,
+  PuleGpuResourceAccess_attachmentDepthWrite = 0x00000400,
+  PuleGpuResourceAccess_transferRead         = 0x00000800,
+  PuleGpuResourceAccess_transferWrite        = 0x00001000,
+  PuleGpuResourceAccess_hostRead             = 0x00002000,
+  PuleGpuResourceAccess_hostWrite            = 0x00004000,
+  PuleGpuResourceAccess_memoryRead           = 0x00008000,
+  PuleGpuResourceAccess_memoryWrite          = 0x00010000,
+} PuleGpuResourceAccess;
+
+
+typedef struct {
+  PuleGpuImage image;
+  PuleGpuResourceAccess accessSrc;
+  PuleGpuResourceAccess accessDst;
+  PuleGpuImageLayout layoutSrc;
+  PuleGpuImageLayout layoutDst;
+  // TODO maybe subresource range
+} PuleGpuResourceBarrierImage;
+
+typedef struct {
+  PuleGpuAction action; // PuleGpuAction_resourceBarrier
+  PuleGpuResourceBarrierStage stageSrc;
+  PuleGpuResourceBarrierStage stageDst;
+  size_t resourceImageCount;
+  PuleGpuResourceBarrierImage const * resourceImages;
+} PuleGpuActionResourceBarrier;
+
 typedef struct {
   PuleGpuAction action; // PuleGpuAction_renderPassBegin
   PuleI32v2 viewportUpperLeft;
   PuleI32v2 viewportLowerRight;
-  size_t colorAttachmentCount;
-  PuleGpuImageAttachment colorAttachments[8];
-  PuleGpuImageAttachment depthAttachment;
+  size_t attachmentColorCount;
+  PuleGpuImageAttachment attachmentColor[8];
+  PuleGpuImageAttachment attachmentDepth;
 } PuleGpuActionRenderPassBegin;
 
 typedef struct {
@@ -151,6 +206,8 @@ typedef struct {
   float depth;
 } PuleGpuActionClearImageDepth;
 
+// TODO probably not necessary anymore,
+//      I believe Vulkan can predict this from the shader
 typedef union {
   float constantF32;
   PuleF32v2 constantF32v2;
@@ -163,6 +220,7 @@ typedef union {
   PuleF32m44 constantF32m44;
 } PuleGpuConstantValue;
 
+// TODO probably not necessary anymore
 typedef enum {
   PuleGpuConstantTypeTag_f32,
   PuleGpuConstantTypeTag_f32v2,
@@ -183,8 +241,10 @@ typedef struct {
 
 typedef struct {
   PuleGpuAction action; // PuleGpuAction_pushConstants
-  PuleGpuConstant const * constants;
-  size_t constantsLength;
+  PuleGpuDescriptorStage stage;
+  size_t byteLength;
+  size_t byteOffset;
+  void const * data;
 } PuleGpuActionPushConstants;
 
 typedef struct {
@@ -198,6 +258,7 @@ typedef union {
   PuleGpuActionBindFramebuffer bindFramebuffer;
   PuleGpuActionBindBuffer bindBuffer;
   PuleGpuActionRenderPassBegin renderPassBegin;
+  PuleGpuActionResourceBarrier resourceBarrier;
   PuleGpuActionRenderPassEnd renderPassEnd;
   PuleGpuActionBindElementBuffer bindElementBuffer;
   PuleGpuActionBindAttributeBuffer bindAttributeBuffer;
@@ -209,43 +270,6 @@ typedef union {
   PuleGpuActionPushConstants pushConstants;
   PuleGpuActionDispatchCommandList dispatchCommandList;
 } PuleGpuCommand;
-
-typedef enum {
-  PuleGpuCommandPayloadAccess_indirectCommandRead         = 0x000001,
-  PuleGpuCommandPayloadAccess_indexRead                   = 0x000002,
-  PuleGpuCommandPayloadAccess_vertexAttributeRead         = 0x000004,
-  PuleGpuCommandPayloadAccess_uniformRead                 = 0x000008,
-  PuleGpuCommandPayloadAccess_inputAttachmentRead         = 0x000010,
-  PuleGpuCommandPayloadAccess_shaderRead                  = 0x000020,
-  PuleGpuCommandPayloadAccess_shaderWrite                 = 0x000040,
-  PuleGpuCommandPayloadAccess_colorAttachmentRead         = 0x000080,
-  PuleGpuCommandPayloadAccess_colorAttachmentWrite        = 0x000100,
-  PuleGpuCommandPayloadAccess_depthStencilAttachmentRead  = 0x000200,
-  PuleGpuCommandPayloadAccess_depthStencilAttachmentWrite = 0x000400,
-  PuleGpuCommandPayloadAccess_transferRead                = 0x000800,
-  PuleGpuCommandPayloadAccess_transferWrite               = 0x001000,
-  PuleGpuCommandPayloadAccess_hostRead                    = 0x002000,
-  PuleGpuCommandPayloadAccess_hostWrite                   = 0x004000,
-  PuleGpuCommandPayloadAccess_memoryRead                  = 0x008000,
-  PuleGpuCommandPayloadAccess_memoryWrite                 = 0x010000,
-} PuleGpuCommandPayloadAccess;
-
-typedef struct {
-  PuleGpuImage image;
-  PuleGpuCommandPayloadAccess access;
-  PuleGpuImageLayout layout;
-} PuleGpuCommandPayloadImage;
-
-// these are the state of resources expected when starting to record. This can
-//   be either filled out manually or automated using PuleRenderGraph
-// Using resources without noting them in the payload can result in hazard
-//   tracking errors.
-// The resources can be in a different state up until they are expected to be
-//   submitted/executed.
-typedef struct {
-  size_t payloadImagesLength;
-  PuleGpuCommandPayloadImage * payloadImages;
-} PuleGpuCommandPayload;
 
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
@@ -264,13 +288,9 @@ PULE_exportFn PuleStringView puleGpuCommandListName(
 );
 
 PULE_exportFn PuleGpuCommandListRecorder puleGpuCommandListRecorder(
-  PuleGpuCommandList const commandList,
-  PuleGpuCommandPayload const beginCommandPayload
+  PuleGpuCommandList const commandList
 );
 PULE_exportFn void puleGpuCommandListRecorderFinish(
-  PuleGpuCommandListRecorder const commandListRecorder
-);
-PULE_exportFn void puleGpuCommandListRecorderReset(
   PuleGpuCommandListRecorder const commandListRecorder
 );
 
@@ -285,7 +305,38 @@ PULE_exportFn void puleGpuCommandListSubmit(
   PuleError * const error
 );
 
+PULE_exportFn void puleGpuCommandListSubmitAndPresent(
+  PuleGpuCommandListSubmitInfo const info,
+  PuleError * const error
+);
+
 PULE_exportFn void puleGpuCommandListDump(PuleGpuCommandList const commandList);
+
+//------------------------------------------------------------------------------
+//-- COMMAND LIST CHAIN --------------------------------------------------------
+//------------------------------------------------------------------------------
+
+// utility to allow recording to a command list while it is being submitted,
+// which occurs if double or triple buffering for present is enabled
+// It's an implementation detail if command lists are reused or destroyed
+typedef struct { uint64_t id; } PuleGpuCommandListChain;
+
+PULE_exportFn PuleGpuCommandListChain puleGpuCommandListChainCreate(
+  PuleAllocator const allocator,
+  PuleStringView const label
+);
+PULE_exportFn void puleGpuCommandListChainDestroy(
+  PuleGpuCommandListChain const commandListChain
+);
+
+PULE_exportFn PuleGpuCommandList puleGpuCommandListChainCurrent(
+  PuleGpuCommandListChain const commandListChain
+);
+
+// when submitting command list, be sure to set `fenceTargetFinish` to this
+PULE_exportFn PuleGpuFence puleGpuCommandListChainCurrentFence(
+  PuleGpuCommandListChain const commandListChain
+);
 
 #ifdef __cplusplus
 } // C

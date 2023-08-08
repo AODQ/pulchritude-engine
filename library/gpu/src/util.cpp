@@ -120,16 +120,9 @@ VkSwapchainKHR util::swapchainCreate() {
   return swapchain;
 }
 
-uint32_t util::swapchainAcquireNextImage(
-  VkSemaphore const signalSemaphore,
-  VkFence const fence
-) {
-  static auto clearSemaphoreTmp = VkSemaphore { nullptr };
-  if (clearSemaphoreTmp != nullptr) {
-    vkDestroySemaphore(util::ctx().device.logical, clearSemaphoreTmp, nullptr);
-  }
-
-  { // create clear semaphore
+uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
+  VkSemaphore imageAvailableSemaphore;
+  { // create image available semaphore
     auto semaphoreCi = VkSemaphoreCreateInfo {
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
       .pNext = nullptr,
@@ -138,251 +131,41 @@ uint32_t util::swapchainAcquireNextImage(
     PULE_assert(
       vkCreateSemaphore(
         util::ctx().device.logical,
-        &semaphoreCi, nullptr, &clearSemaphoreTmp
+        &semaphoreCi, nullptr,
+        &imageAvailableSemaphore
       ) == VK_SUCCESS
     );
   }
-  uint32_t imageIndex;
+  uint32_t imageIdx;
   PULE_assert(
     vkAcquireNextImageKHR(
       util::ctx().device.logical,
       util::ctx().swapchain,
-      50,
-      clearSemaphoreTmp, fence, &imageIndex
+      50, // nanosecond wait
+      imageAvailableSemaphore, fence, &imageIdx
     ) == VK_SUCCESS
   );
-  util::ctx().swapchainCurrentImageIdx = imageIndex;
+  util::ctx().swapchainCurrentImageIdx = imageIdx;
 
-
-  // -- set image to general layout
-  auto commandBuffer = util::ctx().utilCommandBuffer;
-  auto swapchainImage = (
-    util::ctx().swapchainImages[util::ctx().swapchainCurrentImageIdx]
+  // replace existing semaphore with new one
+  VkSemaphore & availableSemaphore = (
+    util::ctx().swapchainImageAvailableSemaphores[imageIdx]
   );
-  { // buffer begin
-    auto const bufferBeginInfo = VkCommandBufferBeginInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      .pNext = nullptr,
-      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-      .pInheritanceInfo = nullptr,
-    };
-    vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
-  }
-
-  auto const subresourceRange = VkImageSubresourceRange {
-    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-    .baseMipLevel = 0, .levelCount = 1,
-    .baseArrayLayer = 0, .layerCount = 1,
-  };
-
-  auto const barrierSwapchainImagePresentToClear  = VkImageMemoryBarrier {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-    .pNext = nullptr,
-    .srcAccessMask = 0,
-    .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-    .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .image = swapchainImage,
-    .subresourceRange = subresourceRange,
-  };
-
-  auto const clearColorValue = VkClearColorValue {
-    .float32 = { 0.5f, 0.1f, 0.1f, 1.0f, },
-  };
-  vkCmdPipelineBarrier(
-    commandBuffer,
-    VK_PIPELINE_STAGE_TRANSFER_BIT,
-    VK_PIPELINE_STAGE_TRANSFER_BIT,
-    0,
-    0, nullptr,
-    0, nullptr,
-    1, &barrierSwapchainImagePresentToClear
-  );
-  vkCmdClearColorImage(
-    commandBuffer,
-    swapchainImage,
-    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-    &clearColorValue,
-    1, &subresourceRange
-  );
-  PULE_assert(vkEndCommandBuffer(commandBuffer) == VK_SUCCESS);
-  auto waitSemaphoreSubmitInfo = VkSemaphoreSubmitInfoKHR {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR,
-    .pNext = nullptr,
-    .semaphore = clearSemaphoreTmp,
-    .value = 1,
-    .stageMask = VK_PIPELINE_STAGE_TRANSFER_BIT,
-    .deviceIndex = 0,
-  };
-  auto signalSemaphoreSubmitInfo = VkSemaphoreSubmitInfoKHR {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR,
-    .pNext = nullptr,
-    .semaphore = signalSemaphore,
-    .value = 1,
-    .stageMask = VK_PIPELINE_STAGE_TRANSFER_BIT,
-    .deviceIndex = 0,
-  };
-  auto commandBufferSubmitInfo = VkCommandBufferSubmitInfoKHR {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR,
-    .pNext = nullptr,
-    .commandBuffer = commandBuffer,
-    .deviceMask = 0,
-  };
-  auto submitInfo = VkSubmitInfo2KHR {
-    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR,
-    .pNext = nullptr,
-    .flags = 0,
-    .waitSemaphoreInfoCount = 1,
-    .pWaitSemaphoreInfos = &waitSemaphoreSubmitInfo,
-    .commandBufferInfoCount = 1,
-    .pCommandBufferInfos = &commandBufferSubmitInfo,
-    .signalSemaphoreInfoCount = 1u,
-    .pSignalSemaphoreInfos = &signalSemaphoreSubmitInfo,
-  };
-  vkQueueSubmit2KHR(
-    util::ctx().defaultQueue,
-    1, &submitInfo,
-    fence
-  );
-
-  return imageIndex;
-}
-
-void util::swapchainPresent(VkSemaphore const waitSemaphore) {
-  auto commandBufferCi = (
-    VkCommandBufferAllocateInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .pNext = nullptr,
-      .commandPool = util::ctx().defaultCommandPool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = 1,
-    }
-  );
-  auto commandBuffer = VkCommandBuffer { };
-  vkAllocateCommandBuffers(
-    util::ctx().device.logical,
-    &commandBufferCi,
-    &commandBuffer
-  );
-  // -- set image to present layout
-  vkDeviceWaitIdle(util::ctx().device.logical);
-  auto swapchainImage = (
-    util::ctx().swapchainImages[util::ctx().swapchainCurrentImageIdx]
-  );
-  { // buffer begin
-    auto const bufferBeginInfo = VkCommandBufferBeginInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      .pNext = nullptr,
-      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-      .pInheritanceInfo = nullptr,
-    };
-    PULE_assert(
-      vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo) == VK_SUCCESS
+  if (availableSemaphore != VK_NULL_HANDLE) {
+    vkDestroySemaphore(
+      util::ctx().device.logical,
+      availableSemaphore,
+      nullptr
     );
   }
-
-  auto const subresourceRange = VkImageSubresourceRange {
-    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-    .baseMipLevel = 0, .levelCount = 1,
-    .baseArrayLayer = 0, .layerCount = 1,
-  };
-
-  auto const barrierSwapchainImageTransferToPresent = VkImageMemoryBarrier {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-    .pNext = nullptr,
-    .srcAccessMask = 0,
-    .dstAccessMask = 0,
-    .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-    .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .image = swapchainImage,
-    .subresourceRange = subresourceRange,
-  };
-
-  vkCmdPipelineBarrier(
-    commandBuffer,
-    VK_PIPELINE_STAGE_TRANSFER_BIT,
-    VK_PIPELINE_STAGE_TRANSFER_BIT,
-    0,
-    0, nullptr,
-    0, nullptr,
-    1, &barrierSwapchainImageTransferToPresent
-  );
-  PULE_assert(vkEndCommandBuffer(commandBuffer) == VK_SUCCESS);
-  auto waitSemaphoreSubmitInfo = VkSemaphoreSubmitInfoKHR {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR,
-    .pNext = nullptr,
-    .semaphore = waitSemaphore,
-    .value = 1,
-    .stageMask = VK_PIPELINE_STAGE_TRANSFER_BIT,
-    .deviceIndex = 0,
-  };
-  auto commandBufferSubmitInfo = VkCommandBufferSubmitInfoKHR {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR,
-    .pNext = nullptr,
-    .commandBuffer = commandBuffer,
-    .deviceMask = 0,
-  };
-  VkSemaphore presentSemaphore = VK_NULL_HANDLE;
-  auto presentSemaphoreCi = VkSemaphoreCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-    .pNext = nullptr,
-    .flags = 0,
-  };
-  vkCreateSemaphore(
-    util::ctx().device.logical,
-    &presentSemaphoreCi,
-    nullptr,
-    &presentSemaphore
-  );
-  auto presentSemaphoreSubmitInfo = VkSemaphoreSubmitInfo {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR,
-    .pNext = nullptr,
-    .semaphore = presentSemaphore,
-    .value = 0,
-    .stageMask = VK_PIPELINE_STAGE_TRANSFER_BIT,
-    .deviceIndex = 0,
-  };
-  auto submitInfo = VkSubmitInfo2KHR {
-    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR,
-    .pNext = nullptr,
-    .flags = 0,
-    .waitSemaphoreInfoCount = 1,
-    .pWaitSemaphoreInfos = &waitSemaphoreSubmitInfo,
-    .commandBufferInfoCount = 1,
-    .pCommandBufferInfos = &commandBufferSubmitInfo,
-    .signalSemaphoreInfoCount = 1,
-    .pSignalSemaphoreInfos = &presentSemaphoreSubmitInfo,
-  };
-  vkQueueSubmit2KHR(util::ctx().defaultQueue, 1, &submitInfo, nullptr);
-  // -- present
-  auto const presentInfo = VkPresentInfoKHR {
-    .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-    .pNext = nullptr,
-    .waitSemaphoreCount = 1,
-    .pWaitSemaphores = &presentSemaphore,
-    .swapchainCount = 1,
-    .pSwapchains = &util::ctx().swapchain,
-    .pImageIndices = &util::ctx().swapchainCurrentImageIdx,
-    .pResults = nullptr,
-  };
-  PULE_assert(
-    vkQueuePresentKHR(util::ctx().defaultQueue, &presentInfo) == VK_SUCCESS
+  util::ctx().swapchainImageAvailableSemaphores[imageIdx] = (
+    imageAvailableSemaphore
   );
 
-  vkQueueWaitIdle(util::ctx().defaultQueue);
-
-  vkFreeCommandBuffers(
-    util::ctx().device.logical,
-    util::ctx().defaultCommandPool,
-    1, &commandBuffer
-  );
+  return imageIdx;
 }
 
-void util::swapchainImages() {
+void util::swapchainImagesCreate() {
   uint32_t swapchainImageCount = 0;
   PULE_assert(
     vkGetSwapchainImagesKHR(
@@ -391,13 +174,35 @@ void util::swapchainImages() {
       &swapchainImageCount, nullptr
     ) == VK_SUCCESS
   );
-  std::vector<VkImage> swapchainImages;
   util::ctx().swapchainImages.resize(swapchainImageCount);
+  util::ctx().swapchainImageAvailableSemaphores.resize(swapchainImageCount);
   vkGetSwapchainImagesKHR(
     util::ctx().device.logical,
     util::ctx().swapchain,
     &swapchainImageCount, util::ctx().swapchainImages.data()
   );
+}
+
+VkPipelineStageFlagBits util::toVkPipelineStageFlagBits(
+  PuleGpuPipelineStage const stage
+) {
+  switch (stage) {
+    default: PULE_assert(false);
+    case PuleGpuPipelineStage_vertexInput:
+      return VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+    case PuleGpuPipelineStage_vertexShader:
+      return VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    case PuleGpuPipelineStage_fragmentShader:
+      return VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    case PuleGpuPipelineStage_colorAttachmentOutput:
+      return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    case PuleGpuPipelineStage_computeShader:
+      return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    case PuleGpuPipelineStage_transfer:
+      return VK_PIPELINE_STAGE_TRANSFER_BIT;
+    case PuleGpuPipelineStage_bottom:
+      return VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+  }
 }
 
 VkShaderStageFlags util::toVkShaderStageFlags(
@@ -422,41 +227,41 @@ VkIndexType util::toVkIndexType(PuleGpuElementType const elementType) {
   }
 }
 
-VkAccessFlags util::toVkAccessFlags(PuleGpuCommandPayloadAccess const access) {
+VkAccessFlags util::toVkAccessFlags(PuleGpuResourceAccess const access) {
   VkAccessFlags flag = 0;
-  if (access & PuleGpuCommandPayloadAccess_indirectCommandRead)
+  if (access & PuleGpuResourceAccess_indirectCommandRead)
     flag |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_indexRead)
+  if (access & PuleGpuResourceAccess_indexRead)
     flag |= VK_ACCESS_INDEX_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_vertexAttributeRead)
+  if (access & PuleGpuResourceAccess_vertexAttributeRead)
     flag |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_uniformRead)
+  if (access & PuleGpuResourceAccess_uniformRead)
     flag |= VK_ACCESS_UNIFORM_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_inputAttachmentRead)
+  if (access & PuleGpuResourceAccess_inputAttachmentRead)
     flag |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_shaderRead)
+  if (access & PuleGpuResourceAccess_shaderRead)
     flag |= VK_ACCESS_SHADER_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_shaderWrite)
+  if (access & PuleGpuResourceAccess_shaderWrite)
     flag |= VK_ACCESS_SHADER_WRITE_BIT;
-  if (access & PuleGpuCommandPayloadAccess_colorAttachmentRead)
+  if (access & PuleGpuResourceAccess_attachmentColorRead)
     flag |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_colorAttachmentWrite)
+  if (access & PuleGpuResourceAccess_attachmentColorWrite)
     flag |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  if (access & PuleGpuCommandPayloadAccess_depthStencilAttachmentRead)
+  if (access & PuleGpuResourceAccess_attachmentDepthRead)
     flag |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_depthStencilAttachmentRead)
+  if (access & PuleGpuResourceAccess_attachmentDepthWrite)
     flag |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-  if (access & PuleGpuCommandPayloadAccess_transferRead)
+  if (access & PuleGpuResourceAccess_transferRead)
     flag |= VK_ACCESS_TRANSFER_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_transferWrite)
+  if (access & PuleGpuResourceAccess_transferWrite)
     flag |= VK_ACCESS_TRANSFER_WRITE_BIT;
-  if (access & PuleGpuCommandPayloadAccess_hostRead)
+  if (access & PuleGpuResourceAccess_hostRead)
     flag |= VK_ACCESS_HOST_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_hostWrite)
+  if (access & PuleGpuResourceAccess_hostWrite)
     flag |= VK_ACCESS_HOST_WRITE_BIT;
-  if (access & PuleGpuCommandPayloadAccess_memoryRead)
+  if (access & PuleGpuResourceAccess_memoryRead)
     flag |= VK_ACCESS_MEMORY_READ_BIT;
-  if (access & PuleGpuCommandPayloadAccess_memoryWrite)
+  if (access & PuleGpuResourceAccess_memoryWrite)
     flag |= VK_ACCESS_MEMORY_WRITE_BIT;
   return flag;
 }
@@ -476,9 +281,36 @@ VkImageLayout util::toVkImageLayout(
       return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     case PuleGpuImageLayout_transferSrc:
       return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    case PuleGpuImageLayout_presentSrc:
+      return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     case PuleGpuImageLayout_transferDst:
       return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
   }
+}
+
+VkPipelineStageFlags util::toVkPipelineStageFlags(
+  PuleGpuResourceBarrierStage const stage
+) {
+  VkPipelineStageFlags flag = 0;
+  if (stage & PuleGpuResourceBarrierStage_top)
+    flag |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+  if (stage & PuleGpuResourceBarrierStage_drawIndirect)
+    flag |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+  if (stage & PuleGpuResourceBarrierStage_vertexInput)
+    flag |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+  if (stage & PuleGpuResourceBarrierStage_shaderVertex)
+    flag |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+  if (stage & PuleGpuResourceBarrierStage_shaderFragment)
+    flag |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  if (stage & PuleGpuResourceBarrierStage_shaderCompute)
+    flag |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+  if (stage & PuleGpuResourceBarrierStage_outputAttachmentColor)
+    flag |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  if (stage & PuleGpuResourceBarrierStage_transfer)
+    flag |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+  if (stage & PuleGpuResourceBarrierStage_bottom)
+    flag |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+  return flag;
 }
 
 VkFormat util::toVkImageFormat(PuleGpuImageByteFormat const format) {

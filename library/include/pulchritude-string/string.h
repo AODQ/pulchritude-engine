@@ -32,7 +32,7 @@ typedef struct {
 // interfaces.
 typedef struct {
   char const * contents;
-  size_t len;
+  size_t len; // TODO rename to byteLen, as not to confuse with utf char count
 } PuleStringView;
 
 PULE_exportFn PuleString puleStringDefault(char const * const baseContents);

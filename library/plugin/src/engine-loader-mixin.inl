@@ -1810,11 +1810,6 @@
       ::loadSymbol("puleRenderGraph_commandListRecorder", layerName)
     )
   );
-  layer->renderGraph_commandPayload = (
-    reinterpret_cast<decltype(layer->renderGraph_commandPayload)>(
-      ::loadSymbol("puleRenderGraph_commandPayload", layerName)
-    )
-  );
   layer->renderGraphNodeRelationSet = (
     reinterpret_cast<decltype(layer->renderGraphNodeRelationSet)>(
       ::loadSymbol("puleRenderGraphNodeRelationSet", layerName)
@@ -1825,9 +1820,9 @@
       ::loadSymbol("puleRenderGraphFrameStart", layerName)
     )
   );
-  layer->renderGraphFrameEnd = (
-    reinterpret_cast<decltype(layer->renderGraphFrameEnd)>(
-      ::loadSymbol("puleRenderGraphFrameEnd", layerName)
+  layer->renderGraphFrameSubmit = (
+    reinterpret_cast<decltype(layer->renderGraphFrameSubmit)>(
+      ::loadSymbol("puleRenderGraphFrameSubmit", layerName)
     )
   );
   layer->renderGraphExecuteInOrder = (
@@ -1841,26 +1836,6 @@
     )
   );
   // gpu
-  layer->gpuFenceCreate = (
-    reinterpret_cast<decltype(layer->gpuFenceCreate)>(
-      ::loadSymbol("puleGpuFenceCreate", layerName)
-    )
-  );
-  layer->gpuFenceDestroy = (
-    reinterpret_cast<decltype(layer->gpuFenceDestroy)>(
-      ::loadSymbol("puleGpuFenceDestroy", layerName)
-    )
-  );
-  layer->gpuFenceCheckSignal = (
-    reinterpret_cast<decltype(layer->gpuFenceCheckSignal)>(
-      ::loadSymbol("puleGpuFenceCheckSignal", layerName)
-    )
-  );
-  layer->gpuMemoryBarrier = (
-    reinterpret_cast<decltype(layer->gpuMemoryBarrier)>(
-      ::loadSymbol("puleGpuMemoryBarrier", layerName)
-    )
-  );
   layer->gpuShaderModuleCreate = (
     reinterpret_cast<decltype(layer->gpuShaderModuleCreate)>(
       ::loadSymbol("puleGpuShaderModuleCreate", layerName)
@@ -1879,11 +1854,6 @@
   layer->gpuPipelineCreate = (
     reinterpret_cast<decltype(layer->gpuPipelineCreate)>(
       ::loadSymbol("puleGpuPipelineCreate", layerName)
-    )
-  );
-  layer->gpuPipelineUpdate = (
-    reinterpret_cast<decltype(layer->gpuPipelineUpdate)>(
-      ::loadSymbol("puleGpuPipelineUpdate", layerName)
     )
   );
   layer->gpuPipelineDestroy = (
@@ -1961,11 +1931,6 @@
       ::loadSymbol("puleGpuCommandListRecorderFinish", layerName)
     )
   );
-  layer->gpuCommandListRecorderReset = (
-    reinterpret_cast<decltype(layer->gpuCommandListRecorderReset)>(
-      ::loadSymbol("puleGpuCommandListRecorderReset", layerName)
-    )
-  );
   layer->gpuCommandListAppendAction = (
     reinterpret_cast<decltype(layer->gpuCommandListAppendAction)>(
       ::loadSymbol("puleGpuCommandListAppendAction", layerName)
@@ -1976,9 +1941,34 @@
       ::loadSymbol("puleGpuCommandListSubmit", layerName)
     )
   );
+  layer->gpuCommandListSubmitAndPresent = (
+    reinterpret_cast<decltype(layer->gpuCommandListSubmitAndPresent)>(
+      ::loadSymbol("puleGpuCommandListSubmitAndPresent", layerName)
+    )
+  );
   layer->gpuCommandListDump = (
     reinterpret_cast<decltype(layer->gpuCommandListDump)>(
       ::loadSymbol("puleGpuCommandListDump", layerName)
+    )
+  );
+  layer->gpuCommandListChainCreate = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainCreate)>(
+      ::loadSymbol("puleGpuCommandListChainCreate", layerName)
+    )
+  );
+  layer->gpuCommandListChainDestroy = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainDestroy)>(
+      ::loadSymbol("puleGpuCommandListChainDestroy", layerName)
+    )
+  );
+  layer->gpuCommandListChainCurrent = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainCurrent)>(
+      ::loadSymbol("puleGpuCommandListChainCurrent", layerName)
+    )
+  );
+  layer->gpuCommandListChainCurrentFence = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainCurrentFence)>(
+      ::loadSymbol("puleGpuCommandListChainCurrentFence", layerName)
     )
   );
   layer->gpuBufferCreate = (
@@ -2016,6 +2006,46 @@
       ::loadSymbol("puleGpuShutdown", layerName)
     )
   );
+  layer->gpuDebugPrint = (
+    reinterpret_cast<decltype(layer->gpuDebugPrint)>(
+      ::loadSymbol("puleGpuDebugPrint", layerName)
+    )
+  );
+  layer->gpuSemaphoreCreate = (
+    reinterpret_cast<decltype(layer->gpuSemaphoreCreate)>(
+      ::loadSymbol("puleGpuSemaphoreCreate", layerName)
+    )
+  );
+  layer->gpuSemaphoreDestroy = (
+    reinterpret_cast<decltype(layer->gpuSemaphoreDestroy)>(
+      ::loadSymbol("puleGpuSemaphoreDestroy", layerName)
+    )
+  );
+  layer->gpuFenceCreate = (
+    reinterpret_cast<decltype(layer->gpuFenceCreate)>(
+      ::loadSymbol("puleGpuFenceCreate", layerName)
+    )
+  );
+  layer->gpuFenceDestroy = (
+    reinterpret_cast<decltype(layer->gpuFenceDestroy)>(
+      ::loadSymbol("puleGpuFenceDestroy", layerName)
+    )
+  );
+  layer->gpuFenceWaitSignal = (
+    reinterpret_cast<decltype(layer->gpuFenceWaitSignal)>(
+      ::loadSymbol("puleGpuFenceWaitSignal", layerName)
+    )
+  );
+  layer->gpuFenceReset = (
+    reinterpret_cast<decltype(layer->gpuFenceReset)>(
+      ::loadSymbol("puleGpuFenceReset", layerName)
+    )
+  );
+  layer->gpuMemoryBarrier = (
+    reinterpret_cast<decltype(layer->gpuMemoryBarrier)>(
+      ::loadSymbol("puleGpuMemoryBarrier", layerName)
+    )
+  );
   layer->gpuFrameStart = (
     reinterpret_cast<decltype(layer->gpuFrameStart)>(
       ::loadSymbol("puleGpuFrameStart", layerName)
@@ -2024,10 +2054,5 @@
   layer->gpuFrameEnd = (
     reinterpret_cast<decltype(layer->gpuFrameEnd)>(
       ::loadSymbol("puleGpuFrameEnd", layerName)
-    )
-  );
-  layer->gpuDebugPrint = (
-    reinterpret_cast<decltype(layer->gpuDebugPrint)>(
-      ::loadSymbol("puleGpuDebugPrint", layerName)
     )
   );

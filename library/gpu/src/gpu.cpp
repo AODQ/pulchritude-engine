@@ -570,7 +570,7 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
     );
   }
   util::ctx().swapchain = util::swapchainCreate();
-  util::swapchainImages();
+  util::swapchainImagesCreate();
 }
 
 void puleGpuShutdown() {
@@ -810,26 +810,13 @@ void puleGpuBufferUnmap(PuleGpuBuffer const pBuffer) {
   vmaUnmapMemory(util::ctx().allocator, buffer.allocation);
 }
 
-VkSemaphore semaphore;
-
-void puleGpuFrameStart() {
-  auto semaphoreCi = VkSemaphoreCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-    .pNext = nullptr,
-    .flags = 0,
-  };
-  PULE_assert(
-    vkCreateSemaphore(
-      util::ctx().device.logical,
-      &semaphoreCi, nullptr, &semaphore
-    ) == VK_SUCCESS
+PuleGpuSemaphore puleGpuFrameStart() {
+  util::swapchainAcquireNextImage(nullptr);
+  size_t const swapchainImageIndex = util::ctx().swapchainCurrentImageIdx;
+  VkSemaphore const swapchainImageAvailableSemaphore = (
+    util::ctx().swapchainImageAvailableSemaphores[swapchainImageIndex]
   );
-  util::swapchainAcquireNextImage(semaphore, nullptr);
-}
-
-void puleGpuFrameEnd() {
-  util::swapchainPresent(semaphore);
-  vkDestroySemaphore(util::ctx().device.logical, semaphore, nullptr);
+  return { .id = (uint64_t)swapchainImageAvailableSemaphore, };
 }
 
 void puleGpuBufferMappedFlush(

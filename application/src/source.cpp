@@ -147,6 +147,7 @@ std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
   { "--error-segfaults", {.hasParameter = false, } },
   { "--plugin-layer",    {.hasParameter = true,  } },
   { "--plugin-path",     {.hasParameter = true,  } },
+  { "--early-exit",      {.hasParameter = false, } },
 };
 std::vector<ParameterInfo> programParameters;
 
@@ -220,6 +221,7 @@ int32_t main(
   }
 
   bool isGuiEditor = false;
+  bool isEarlyExit = false;
 
   std::vector<PuleStringView> pluginPaths;
   std::vector<PuleString> pluginLayers;
@@ -241,6 +243,8 @@ int32_t main(
       );
     } else if (param.label == "--gui-editor") {
       isGuiEditor = true;
+    } else if (param.label == "--early-exit") {
+      isEarlyExit = true;
     }
   }
 
@@ -693,14 +697,15 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
+  PuleGpuSemaphore swapchainAvailableSemaphore = { .id = 0, };
   while (hasUpdate) {
     puleLog("<--> frame start <-->");
     if (platform.id) {
-      puleGpuFrameStart();
+      swapchainAvailableSemaphore = puleGpuFrameStart();
       pulePlatformPollEvents(platform);
     }
     if (renderGraph.id != 0) {
-      pulBase.renderGraphFrameStart(renderGraph);
+      pulBase.renderGraphFrameStart(renderGraph, fetchResourceHandle);
     }
     if (isGuiEditor) {
       pulBase.imguiNewFrame();
@@ -750,10 +755,16 @@ int32_t main(
       }
     }
     if (renderGraph.id != 0) {
-      pulBase.renderGraphFrameEnd(renderGraph);
+      // TODO how to handle multiple render graphs? Should I just limit
+      // to one per scene? And only one scene is active at a time?
+      // You can still have recursive render graphs since they can
+      // be merged together.
+      pulBase.renderGraphFrameSubmit(
+        swapchainAvailableSemaphore,
+        renderGraph
+      );
     }
-    if (platform.id != 0) {
-      puleGpuFrameEnd();
+    if (platform.id != 0 && renderGraph.id == 0) {
       pulePlatformSwapFramebuffer(platform);
     }
     if (fileWatcherCheckAll) {
@@ -761,10 +772,10 @@ int32_t main(
     }
     pulBase.fileWatchCheckAll();
     puleLog("<--> frame end <-->");
-    //{ // debug early exit
-    //  static size_t frameCount = 0;
-    //  if (++frameCount > 2) { break; }
-    //}
+    if (isEarlyExit) { // debug early exit
+      static size_t frameCount = 0;
+      if (++frameCount > 2) { break; }
+    }
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

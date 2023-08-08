@@ -21,62 +21,62 @@ union GraphResource {
   PuleGpuCommandListRecorder commandListRecorder;
 };
 
-PuleGpuCommandPayloadAccess toPayloadAccess(PuleStringView const view) {
+PuleGpuResourceAccess toPayloadAccess(PuleStringView const view) {
   std::string const access = std::string(view.contents, view.len);
   uint64_t accessFlag = 0;
   if (access == "indirect-command-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_indirectCommandRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_indirectCommandRead;
   }
   if (access == "index-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_indexRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_indexRead;
   }
   if (access == "vertex-attribute-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_vertexAttributeRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_vertexAttributeRead;
   }
   if (access == "uniform-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_uniformRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_uniformRead;
   }
   if (access == "input-attachment-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_inputAttachmentRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_inputAttachmentRead;
   }
   if (access == "shader-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_shaderRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_shaderRead;
   }
   if (access == "shader-write") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_shaderWrite;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_shaderWrite;
   }
   if (access == "attachment-color-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_colorAttachmentRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_attachmentColorRead;
   }
   if (access == "attachment-color-write") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_colorAttachmentWrite;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_attachmentColorWrite;
   }
   if (access == "attachment-depth-stencil-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_depthStencilAttachmentRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_attachmentDepthRead;
   }
   if (access == "attachment-depth-stencil-write") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_depthStencilAttachmentWrite;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_attachmentDepthWrite;
   }
   if (access == "transfer-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_transferRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_transferRead;
   }
   if (access == "transfer-write") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_transferWrite;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_transferWrite;
   }
   if (access == "host-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_hostRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_hostRead;
   }
   if (access == "host-write") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_hostWrite;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_hostWrite;
   }
   if (access == "memory-read") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_memoryRead;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_memoryRead;
   }
   if (access == "memory-write") {
-    accessFlag |= (uint64_t)PuleGpuCommandPayloadAccess_memoryWrite;
+    accessFlag |= (uint64_t)PuleGpuResourceAccess_memoryWrite;
   }
   PULE_assert(accessFlag != 0);
-  return (PuleGpuCommandPayloadAccess)accessFlag;
+  return (PuleGpuResourceAccess)accessFlag;
 }
 
 PuleGpuImageLayout toPayloadLayout(PuleStringView const view) {
@@ -99,6 +99,7 @@ PuleGpuImageLayout toPayloadLayout(PuleStringView const view) {
   if (layout == "transfer-dst") {
     return PuleGpuImageLayout_transferDst;
   }
+  puleLogError("Unknown image layout: %s", layout.c_str());
   PULE_assert(false);
 }
 
@@ -164,21 +165,22 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
       );
       auto const dsResourceImage = puleDsObjectMember(dsNewResource, "image");
       if (dsResourceImage.id != 0) {
-        PuleStringView const exittanceLayout = (
-          puleDsMemberAsString(dsResourceImage, "exittance-layout")
+        PuleStringView const entranceLayout = (
+          puleDsMemberAsString(dsResourceImage, "layout")
         );
-        PuleStringView const exittanceAccess = (
-          puleDsMemberAsString(dsResourceImage, "exittance-access")
+        PuleStringView const entranceAccess = (
+          puleDsMemberAsString(dsResourceImage, "access")
         );
         puleRenderGraph_resourceAssign(
           graphNode,
           label,
           PuleRenderGraph_Resource {
             .image = {
-              .entrancePayloadAccess = (PuleGpuCommandPayloadAccess)0,
-              .exittancePayloadAccess = toPayloadAccess(exittanceAccess),
-              .entrancePayloadLayout = (PuleGpuImageLayout)0,
-              .exittancePayloadLayout = toPayloadLayout(exittanceLayout),
+              .payloadAccessEntrance = toPayloadAccess(entranceAccess),
+              .payloadAccessPreentrance = (PuleGpuResourceAccess)0, // later
+              .payloadLayoutEntrance = toPayloadLayout(entranceLayout),
+              .payloadLayoutPreentrance = (PuleGpuImageLayout)0, // done later
+              .isInitialized = false, // TODO user can specify
             },
             .resourceType = PuleRenderGraph_ResourceType_image,
           }

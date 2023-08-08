@@ -15,8 +15,11 @@
 //   implementation can change.
 
 #include <pulchritude-core/core.h>
-#include <pulchritude-platform/platform.h>
 #include <pulchritude-error/error.h>
+#include <pulchritude-gpu/synchronization.h>
+#include <pulchritude-platform/platform.h>
+
+#include <pulchritude-gpu/synchronization.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,9 +108,6 @@ PULE_exportFn void puleGpuInitialize(
   PuleError * const error
 );
 PULE_exportFn void puleGpuShutdown();
-
-PULE_exportFn void puleGpuFrameStart();
-PULE_exportFn void puleGpuFrameEnd(); // call before swapFramebuffer
 
 // prints all debug information
 // TODO this should just stream out or something maybe serialize

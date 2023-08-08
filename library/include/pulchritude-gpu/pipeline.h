@@ -11,6 +11,18 @@ extern "C" {
 #endif
 
 typedef enum {
+  PuleGpuPipelineStage_top = 0x01,
+  PuleGpuPipelineStage_drawIndirect = 0x02,
+  PuleGpuPipelineStage_vertexInput = 0x04,
+  PuleGpuPipelineStage_vertexShader = 0x08,
+  PuleGpuPipelineStage_fragmentShader = 0x10,
+  PuleGpuPipelineStage_colorAttachmentOutput = 0x20,
+  PuleGpuPipelineStage_computeShader = 0x40,
+  PuleGpuPipelineStage_transfer = 0x80,
+  PuleGpuPipelineStage_bottom = 0x100,
+} PuleGpuPipelineStage;
+
+typedef enum {
   PuleGpuDescriptorType_sampler,
   PuleGpuDescriptorType_uniformBuffer,
   PuleGpuDescriptorType_storageBuffer, // not supported
@@ -66,10 +78,16 @@ typedef struct {
   // TODO can store metadata but not texture
   PuleGpuDescriptorStage textureBindings[puleGpuPipelineDescriptorMax_texture];
   // TODO I guess pair with an optional sampler?
-} PuleGpuPipelineDescriptorSetLayout;
+} PuleGpuPipelineLayoutDescriptorSet;
 
-PULE_exportFn PuleGpuPipelineDescriptorSetLayout
+PULE_exportFn PuleGpuPipelineLayoutDescriptorSet
   puleGpuPipelineDescriptorSetLayout();
+
+typedef struct {
+  PuleGpuDescriptorStage stage;
+  size_t byteLength;
+  size_t byteOffset;
+} PuleGpuPipelineLayoutPushConstant;
 
 typedef struct {
   bool depthTestEnabled;
@@ -84,7 +102,9 @@ typedef struct {
 
 typedef struct {
   PuleGpuShaderModule shaderModule;
-  PuleGpuPipelineDescriptorSetLayout const * layout;
+  PuleGpuPipelineLayoutDescriptorSet const * layoutDescriptorSet;
+  size_t layoutPushConstantsCount;
+  PuleGpuPipelineLayoutPushConstant const * layoutPushConstants;
   PuleGpuPipelineConfig config;
 } PuleGpuPipelineCreateInfo;
 
@@ -96,17 +116,8 @@ PULE_exportFn PuleGpuPipeline puleGpuPipelineCreate(
   PuleGpuPipelineCreateInfo const * const createInfo,
   PuleError * const error
 );
-PULE_exportFn void puleGpuPipelineUpdate(
-  PuleGpuPipeline const pipeline,
-  PuleGpuPipelineCreateInfo  const * const updateInfo,
-  PuleError * const error
-);
-PULE_exportFn void puleGpuPipelineDestroy(PuleGpuPipeline const pipeline);
 
-typedef struct {
-  size_t index;
-  void * data;
-} PuleGpuPushConstant;
+PULE_exportFn void puleGpuPipelineDestroy(PuleGpuPipeline const pipeline);
 
 #ifdef __cplusplus
 } // C

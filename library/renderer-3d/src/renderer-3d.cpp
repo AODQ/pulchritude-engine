@@ -1,11 +1,11 @@
 #include <pulchritude-renderer-3d/renderer-3d.h>
 
 #include <pulchritude-ecs/ecs.h>
-#include <pulchritude-gpu/barrier.h>
 #include <pulchritude-gpu/commands.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/image.h>
 #include <pulchritude-gpu/pipeline.h>
+#include <pulchritude-gpu/synchronization.h>
 
 #include <cstring>
 #include <unordered_map>
@@ -69,7 +69,6 @@ static void renderer3DSystemCallback(PuleEcsIterator iter) {
   //   puleGpuCommandListSubmit(
   //     {
   //       .commandList = modelInstances[it].commandList,
-  //       .fenceTargetStart = nullptr,
   //       .fenceTargetFinish = nullptr,
   //     },
   //     &err

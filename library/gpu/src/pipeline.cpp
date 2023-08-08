@@ -19,7 +19,7 @@ void createPipelineVertexInputState(
 ) {
   // attribute bindings
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
-    auto const binding = info->layout->attributeBindings[it];
+    auto const binding = info->layoutDescriptorSet->attributeBindings[it];
     if (binding.numComponents == 0) {
       continue;
     }
@@ -39,7 +39,7 @@ void createPipelineVertexInputState(
   }
   // attribute buffer bindings
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
-    auto const binding = info->layout->attributeBufferBindings[it];
+    auto const binding = info->layoutDescriptorSet->attributeBufferBindings[it];
     if (binding.stridePerElement == 0) {
       continue;
     }
@@ -64,7 +64,7 @@ VkPipelineLayout createPipelineLayout(
   );
   // compactStorage buffers
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_uniform; ++ it) {
-    auto bufferStage = info->layout->bufferUniformBindings[it];
+    auto bufferStage = info->layoutDescriptorSet->bufferUniformBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)it,
@@ -76,7 +76,7 @@ VkPipelineLayout createPipelineLayout(
   }
   // storage buffers
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_storage; ++ it) {
-    auto bufferStage = info->layout->bufferStorageBindings[it];
+    auto bufferStage = info->layoutDescriptorSet->bufferStorageBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)it,
@@ -92,7 +92,7 @@ VkPipelineLayout createPipelineLayout(
     imageIt < puleGpuPipelineDescriptorMax_texture;
     ++ imageIt
   ) {
-    auto imageStage = info->layout->textureBindings[imageIt];
+    auto imageStage = info->layoutDescriptorSet->textureBindings[imageIt];
     if (imageStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)imageIt,
@@ -116,20 +116,23 @@ VkPipelineLayout createPipelineLayout(
       &descriptorSetLayout
     ) == VK_SUCCESS
   );
-  auto const pushConstantRange = VkPushConstantRange {
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-    .offset = 0,
-    .size = sizeof(float)*4*4,
-  };
+  std::vector<VkPushConstantRange> pushConstantRanges;
+  for (size_t pcIt = 0; pcIt < info->layoutPushConstantsCount; ++ pcIt) {
+    auto const & pushConstant = info->layoutPushConstants[pcIt];
+    pushConstantRanges.emplace_back( VkPushConstantRange {
+      .stageFlags = util::toVkShaderStageFlags(pushConstant.stage),
+      .offset = (uint32_t)pushConstant.byteOffset,
+      .size = (uint32_t)pushConstant.byteLength,
+    });
+  }
   auto pipelineLayoutCi = VkPipelineLayoutCreateInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
     .setLayoutCount = 1,
     .pSetLayouts = &descriptorSetLayout,
-// TODO::CRIT push constants
-    .pushConstantRangeCount = 1,
-    .pPushConstantRanges = &pushConstantRange,
+    .pushConstantRangeCount = (uint32_t)pushConstantRanges.size(),
+    .pPushConstantRanges = pushConstantRanges.data(),
   };
   auto pipelineLayout = VkPipelineLayout{};
   PULE_assert(
@@ -145,8 +148,8 @@ VkPipelineLayout createPipelineLayout(
 
 extern "C" {
 
-PuleGpuPipelineDescriptorSetLayout puleGpuPipelineDescriptorSetLayout() {
-  PuleGpuPipelineDescriptorSetLayout descriptorSetLayout;
+PuleGpuPipelineLayoutDescriptorSet puleGpuPipelineDescriptorSetLayout() {
+  PuleGpuPipelineLayoutDescriptorSet descriptorSetLayout;
   memset(
     &descriptorSetLayout.bufferUniformBindings[0],
     0,
@@ -174,117 +177,6 @@ PuleGpuPipelineDescriptorSetLayout puleGpuPipelineDescriptorSetLayout() {
     sizeof(decltype(descriptorSetLayout.textureBindings[0])) * 8
   );
   return descriptorSetLayout;
-}
-
-void puleGpuPipelineUpdate(
-  PuleGpuPipeline const pipeline,
-  PuleGpuPipelineCreateInfo const * const info,
-  PuleError * const error
-) {
-  (void)pipeline;(void)info;(void)error;
-  // TODO::CRITICAL
-  #if 0
-  util::Pipeline & utilPipeline = *util::pipeline(pipeline.id);
-
-  // buffer attribute bindings
-  for (size_t it = 0; it < 16; ++ it) {
-    PuleGpuPipelineAttributeDescriptorBinding const &
-      descriptorAttributeBinding = (
-        info->layout->bufferAttributeBindings[it]
-      )
-    ;
-    bool const usesBuffer = descriptorAttributeBinding.buffer.id > 0;
-    // if there are no components, this binding is disabled
-    if (descriptorAttributeBinding.numComponents == 0) {
-      glDisableVertexArrayAttrib(utilPipeline.attributeDescriptorHandle, it);
-      continue;
-    }
-    PULE_errorAssert(
-      descriptorAttributeBinding.numComponents != 0,
-      PuleErrorGfx_invalidDescriptorSet,
-    );
-    GLenum const attributeDataType = (
-      ::attributeDataTypeToGl(descriptorAttributeBinding.dataType, error)
-    );
-    if (error->id > 0) { return; }
-    PULE_errorAssert(
-      attributeDataType != 0,
-      PuleErrorGfx_invalidDescriptorSet,
-    );
-
-    if (usesBuffer) {
-      glVertexArrayVertexBuffer(
-        utilPipeline.attributeDescriptorHandle,
-        it,
-        descriptorAttributeBinding.buffer.id,
-        descriptorAttributeBinding.offsetIntoBuffer,
-        descriptorAttributeBinding.stridePerElement
-      );
-    }
-    glEnableVertexArrayAttrib(utilPipeline.attributeDescriptorHandle, it);
-    glVertexArrayAttribFormat(
-      utilPipeline.attributeDescriptorHandle,
-      it,
-      descriptorAttributeBinding.numComponents,
-      attributeDataType,
-      descriptorAttributeBinding.convertFixedDataTypeToNormalizedFloating,
-      0
-      //descriptorAttributeBinding.stridePerElement
-    );
-    glVertexArrayAttribBinding(utilPipeline.attributeDescriptorHandle, it, it);
-  }
-
-  // element binding
-  if (info->layout->bufferElementBinding.id != 0) {
-    glVertexArrayElementBuffer(
-      utilPipeline.attributeDescriptorHandle,
-      info->layout->bufferElementBinding.id
-    );
-  }
-
-  // collapse textures into a single array, such that if the pipeline layout
-  // were [0, 0, 5, 0, 6], we want [{5, 2}, {6, 4}]
-  utilPipeline.texturesLength = 0;
-  for (size_t it = 0; it < 8; ++ it) {
-    PuleGpuImage const texture = info->layout->textureBindings[it];
-    if (texture.id == 0) {
-      continue;
-    }
-    utilPipeline.textures[utilPipeline.texturesLength] = (
-      util::DescriptorSetImageBinding {
-        .imageHandle = static_cast<uint32_t>(texture.id),
-        .bindingSlot = static_cast<uint32_t>(it),
-      }
-    );
-    ++ utilPipeline.texturesLength;
-  }
-
-  // collapse storage buffers into array
-  utilPipeline.storagesLength = 0;
-  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_storage; ++ it) {
-    PuleGpuBuffer const buffer = info->layout->bufferStorageBindings[it];
-    if (buffer.id == 0) {
-      continue;
-    }
-    utilPipeline.storages[utilPipeline.storagesLength] = (
-      util::DescriptorSetStorageBinding {
-        .storageHandle = static_cast<uint32_t>(buffer.id),
-        .bindingSlot = static_cast<uint32_t>(it),
-      }
-    );
-    ++ utilPipeline.storagesLength;
-  }
-
-  utilPipeline.pipelineHandle     = pipeline.id;
-  utilPipeline.shaderModuleHandle = info->shaderModule.id;
-  utilPipeline.blendEnabled       = info->config.blendEnabled;
-  utilPipeline.depthTestEnabled   = info->config.depthTestEnabled;
-  utilPipeline.scissorTestEnabled = info->config.scissorTestEnabled;
-  utilPipeline.viewportUl         = info->config.viewportUl;
-  utilPipeline.viewportLr         = info->config.viewportLr;
-  utilPipeline.scissorUl          = info->config.scissorUl;
-  utilPipeline.scissorLr          = info->config.scissorLr;
-  #endif
 }
 
 PuleGpuPipeline puleGpuPipelineCreate(

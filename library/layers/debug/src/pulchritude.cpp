@@ -33,7 +33,7 @@
 #include <pulchritude-gpu/image.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/commands.h>
-#include <pulchritude-gpu/barrier.h>
+#include <pulchritude-gpu/synchronization.h>
 
 //#include <volk.h>
 

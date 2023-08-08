@@ -222,7 +222,7 @@ PuleGpuFence puleCameraSetRefresh(PuleCameraSet const pSet) {
     .byteOffset = 0,
     .byteLength = sizeof(CameraGpuData)*set.cameras.size(),
   });
-  return puleGpuFenceCreate(PuleGpuFenceConditionFlag_all);
+  return puleGpuFenceCreate();
 }
 
 } // extern C

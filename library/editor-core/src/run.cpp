@@ -42,6 +42,7 @@ bool editorBuildRunApplication(
     bool const isDebug = puleDsMemberAsBool(input, "debug");
     bool const isGuiEditor = puleDsMemberAsBool(input, "gui-editor");
     bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
+    bool const isEarlyExit = puleDsMemberAsBool(input, "early-exit");
     bool const gdb = puleDsMemberAsBool(input, "gdb");
     bool const debugLayer = puleDsMemberAsBool(input, "debug-layer");
     bool const clear = puleDsMemberAsBool(input, "clear");
@@ -73,6 +74,9 @@ bool editorBuildRunApplication(
     }
     if (isErrorSegfaults) {
       execute += "--error-segfaults ";
+    }
+    if (isEarlyExit) {
+      execute += "--early-exit ";
     }
     if (debugLayer) {
       execute += "--plugin-layer debug ";

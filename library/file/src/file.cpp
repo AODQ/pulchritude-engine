@@ -516,7 +516,7 @@ PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
   PuleString const pathAbs = puleFilesystemAbsolutePath(path);
   if (pathAbs.contents == nullptr) {
     puleLogError("file does not exist: '%s'", path.contents);
-    return {.value=0,};
+    return {.valueUnixTs=0,};
   }
   std::error_code errorcode;
   auto const filetime = std::filesystem::last_write_time(
@@ -525,10 +525,10 @@ PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
   );
   puleStringDestroy(pathAbs);
   if (errorcode) {
-    return {.value=0,};
+    return {.valueUnixTs=0,};
   }
   return {
-    .value = (
+    .valueUnixTs = (
       static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(
           filetime.time_since_epoch()
@@ -582,7 +582,7 @@ bool puleFileWatchCheckAll() {
     auto const timestamp = (
       puleFilesystemTimestamp(puleCStr(filewatch.filename.c_str()))
     );
-    if (filewatch.lastUpdated.value < timestamp.value) {
+    if (filewatch.lastUpdated.valueUnixTs < timestamp.valueUnixTs) {
       puleLogDebug("File updated: '%s'", filewatch.filename.c_str());
       anyFilesChanged = true;
       filewatch.lastUpdated = timestamp;

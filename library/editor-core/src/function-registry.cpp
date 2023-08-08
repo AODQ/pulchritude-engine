@@ -50,6 +50,7 @@ PuleDsValue puldRegisterCLICommands(
     gui: [
       { label: "debug", type: "bool", default-value: false, },
       { label: "error-segfaults", type: "bool", default-value: false, },
+      { label: "early-exit", type: "bool", default-value: false, },
       { label: "debug-layer", type: "bool", default-value: false, },
       { label: "gdb",   type: "bool", default-value: false, },
       { label: "clear", type: "bool", default-value: false, },
@@ -57,6 +58,7 @@ PuleDsValue puldRegisterCLICommands(
     run: [
       { label: "debug", type: "bool", default-value: false, },
       { label: "error-segfaults", type: "bool", default-value: false, },
+      { label: "early-exit", type: "bool", default-value: false, },
       { label: "debug-layer", type: "bool", default-value: false, },
       { label: "gdb",   type: "bool", default-value: false, },
       { label: "clear", type: "bool", default-value: false, },

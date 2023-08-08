@@ -1,9 +1,9 @@
 #include <pulchritude-gfx-debug/gfx-debug.h>
 
-#include <pulchritude-gpu/barrier.h>
 #include <pulchritude-gpu/commands.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/shader-module.h>
+#include <pulchritude-gpu/synchronization.h>
 
 namespace {
 
@@ -210,8 +210,7 @@ void puleGfxDebugRender(
   puleGpuCommandListSubmit(
     {
       .commandList = ctx.commandList,
-      .fenceTargetStart = nullptr,
-      .fenceTargetFinish = nullptr,
+      .fenceTargetFinish = { 0 },
     },
     &err
   );

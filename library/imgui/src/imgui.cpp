@@ -38,7 +38,7 @@ struct RenderData {
   size_t elementsBufferLength = 0;
 };
 
-PuleGpuPipelineDescriptorSetLayout createPipelineDescriptorSetLayout() {
+PuleGpuPipelineLayoutDescriptorSet createPipelineDescriptorSetLayout() {
   auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
   descriptorSetLayout.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(ImDrawVert),
@@ -120,9 +120,16 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
   createFontsTexture();
 
   auto const descriptorSetLayout = createPipelineDescriptorSetLayout();
+  auto const pushConstants = PuleGpuPipelineLayoutPushConstant {
+    .stage = PuleGpuDescriptorStage_vertex,
+    .byteLength = sizeof(float)*4*4,
+    .byteOffset = 0,
+  };
   auto const pipelineCI = PuleGpuPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
-    .layout = &descriptorSetLayout,
+    .layoutDescriptorSet = &descriptorSetLayout,
+    .layoutPushConstantsCount = 1,
+    .layoutPushConstants = &pushConstants,
     .config = {},
   };
 
@@ -293,8 +300,8 @@ void renderDrawData(
                 .x = framebufferWidth,
                 .y = framebufferHeight
               },
-              .colorAttachmentCount = 1,
-              .colorAttachments = {
+              .attachmentColorCount = 1,
+              .attachmentColor = {
                 PuleGpuImageAttachment {
                   .opLoad = PuleGpuImageAttachmentOpLoad_clear,
                   .opStore = PuleGpuImageAttachmentOpStore_store,
@@ -310,7 +317,7 @@ void renderDrawData(
                   ),
                 },
               },
-              .depthAttachment = {},
+              .attachmentDepth = {},
             },
           }
         );
@@ -339,15 +346,6 @@ void renderDrawData(
           }
         );
 
-        // puleGpuCommandListAppendAction(
-        //   commandListRecorder,
-        //   PuleGpuCommand {
-        //     .bindFramebuffer {
-        //       .action = PuleGpuAction_bindFramebuffer,
-        //       .framebuffer = puleGpuWindowImage(),
-        //     }
-        //   }
-        // );
         puleGpuCommandListAppendAction(
           commandListRecorder,
           PuleGpuCommand {
@@ -364,19 +362,15 @@ void renderDrawData(
           }
         );
 
-        PuleGpuConstant constants[1];
-        constants[0] = {
-          .value = { .constantF32m44 = orthographicProjection, },
-          .typeTag = PuleGpuConstantTypeTag_f32m44,
-          .bindingSlot = 0,
-        };
         puleGpuCommandListAppendAction(
           commandListRecorder,
           {
             .pushConstants = {
               .action = PuleGpuAction_pushConstants,
-              .constants = &constants[0],
-              .constantsLength = 1,
+              .stage = PuleGpuDescriptorStage_vertex,
+              .byteLength = sizeof(orthographicProjection),
+              .byteOffset = 0,
+              .data = &orthographicProjection,
             }
           }
         );

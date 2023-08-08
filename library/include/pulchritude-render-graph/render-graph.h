@@ -51,14 +51,22 @@ typedef enum {
 typedef struct {
   union {
     struct {
-      // this can be filled out for you based off 'depends on' exittance
-      PuleGpuCommandPayloadAccess entrancePayloadAccess;
-      PuleGpuCommandPayloadAccess exittancePayloadAccess;
-      // this can be filled out for you based off 'depends on' exittance
-      PuleGpuImageLayout entrancePayloadLayout;
-      PuleGpuImageLayout exittancePayloadLayout;
+      // TODO rename 'entrance' to '', and 'preentrance' to 'entrance'
+      // TODO possibly add an optional 'exittance' layout/access, in case
+      //      user modifies the access/layout, however this shouldn't
+      //      be necessary if the render graph is robust enough
+      PuleGpuResourceAccess payloadAccessEntrance;
+      // this will be filled out for you based off 'depends on' entrance
+      PuleGpuResourceAccess payloadAccessPreentrance;
+      PuleGpuImageLayout payloadLayoutEntrance;
+      // this will be filled out for you based off 'depends on' entrance
+      PuleGpuImageLayout payloadLayoutPreentrance;
+
+      bool isInitialized;
     } image;
     struct {
+      PuleGpuResourceAccess entrancePayloadAccess;
+      PuleGpuResourceAccess exittancePayloadAccess;
     } buffer;
   };
   PuleRenderGraph_ResourceType resourceType;
@@ -97,16 +105,6 @@ PULE_exportFn PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
   void * const userdata
 );
 
-// *must* manually free PuleGpuCommandPayload
-PULE_exportFn PuleGpuCommandPayload puleRenderGraph_commandPayload(
-  PuleRenderGraphNode const node,
-  PuleAllocator const payloadAllocator,
-  uint64_t (* const fetchResourceHandle)(
-    PuleStringView const label, void * const userdata
-  ),
-  void * const userdata
-);
-
 // -- render node | relations
 typedef enum {
   PuleRenderGraphNodeRelation_dependsOn,
@@ -119,8 +117,22 @@ PULE_exportFn void puleRenderGraphNodeRelationSet(
 
 // -- render node | operations
 
-PULE_exportFn void puleRenderGraphFrameStart(PuleRenderGraph const graph);
-PULE_exportFn void puleRenderGraphFrameEnd(PuleRenderGraph const graph);
+// prepares for rendering, needs to fetch resources to bake resource barriers
+// into command lists
+PULE_exportFn void puleRenderGraphFrameStart(
+  PuleRenderGraph const graph,
+  uint64_t (* const fetchResourceHandle)(
+    PuleStringView const label, void * const userdata
+  )
+);
+// submits the render graph's command lists to the GPU, and will present the
+// swapchain image. No further GPU work can be done until the next frame.
+// TODO probably want to return a semaphore that the user can use to
+//      manually present the swapchain image
+PULE_exportFn void puleRenderGraphFrameSubmit(
+  PuleGpuSemaphore const swapchainImageSemaphore,
+  PuleRenderGraph const graph
+);
 
 typedef struct {
   PuleRenderGraph const graph;
