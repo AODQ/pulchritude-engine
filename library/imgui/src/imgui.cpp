@@ -18,8 +18,9 @@
 #include <imgui/imgui.h>
 #pragma GCC diagnostic pop
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 //-- GRAPHICS ------------------------------------------------------------------
@@ -64,7 +65,6 @@ PuleGpuPipelineLayoutDescriptorSet createPipelineDescriptorSetLayout() {
     .convertFixedDataTypeToNormalizedFloating = true,
     .offsetIntoBuffer = offsetof(ImDrawVert, col),
   };
-  // descriptorSetLayout.bufferElementBinding = bd.elementsBuffer;
   descriptorSetLayout.textureBindings[0] = PuleGpuDescriptorStage_fragment;
   return descriptorSetLayout;
 }
@@ -116,13 +116,12 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
 
   bd.shaderModule = puleAssetShaderModuleHandle(assetShaderModule);
 
-  // TODO create vertex+elements buffer
   createFontsTexture();
 
   auto const descriptorSetLayout = createPipelineDescriptorSetLayout();
   auto const pushConstants = PuleGpuPipelineLayoutPushConstant {
     .stage = PuleGpuDescriptorStage_vertex,
-    .byteLength = sizeof(float)*4*4,
+    .byteLength = sizeof(float)*4,
     .byteOffset = 0,
   };
   auto const pipelineCI = PuleGpuPipelineCreateInfo {
@@ -130,7 +129,15 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
     .layoutDescriptorSet = &descriptorSetLayout,
     .layoutPushConstantsCount = 1,
     .layoutPushConstants = &pushConstants,
-    .config = {},
+    .config = { // TODO
+      .depthTestEnabled = false,
+      .blendEnabled = true,
+      .scissorTestEnabled = false,
+      .viewportMin = {.x = 0, .y = 0,},
+      .viewportMax = {.x = 800, .y = 600,},
+      .scissorMin = {.x = 0, .y = 0,},
+      .scissorMax = {.x = 800, .y = 600,},
+    },
   };
 
   PuleError err = puleError();
@@ -161,27 +168,59 @@ void renderDrawData(
     *reinterpret_cast<RenderData *>(ImGui::GetIO().BackendRendererUserData)
   );
 
-  PuleF32m44 orthographicProjection;
-  {
-    float const L = drawData->DisplayPos.x;
-    float const R = drawData->DisplayPos.x + drawData->DisplaySize.x;
-    float const T = drawData->DisplayPos.y;
-    float const B = drawData->DisplayPos.y + drawData->DisplaySize.y;
-    float const ortho[16] = {
-      2.0f/(R-L),  0.0f,         0.0f, 0.0f,
-      0.0f,        2.0f/(T-B),   0.0f, 0.0f,
-      0.0f,        0.0f,        -1.0f, 0.0f,
-      (R+L)/(L-R), (T+B)/(B-T),  0.0f, 1.0f,
-    };
-
-    orthographicProjection = puleF32m44PtrTranspose(&ortho[0]);
-  }
-
   ImVec2 clipOff = drawData->DisplayPos;
   ImVec2 clipScale = drawData->FramebufferScale;
 
-  PuleError err = puleError();
+  // update buffer lengths
+  if (bd.vertexBufferLength < (size_t)drawData->TotalVtxCount) {
+    bd.vertexBufferLength = (size_t)drawData->TotalVtxCount;
+    puleGpuBufferDestroy(bd.vertexBuffer);
+    bd.vertexBuffer = puleGpuBufferCreate(
+      puleCStr("imgui-vertex-buffer"),
+      nullptr,
+      bd.vertexBufferLength * sizeof(ImDrawVert),
+      PuleGpuBufferUsage_attribute,
+      PuleGpuBufferVisibilityFlag_hostWritable
+    );
+  }
 
+  if (bd.elementsBufferLength < (size_t)drawData->TotalIdxCount) {
+    bd.elementsBufferLength = (size_t)drawData->TotalIdxCount;
+    puleGpuBufferDestroy(bd.elementsBuffer);
+    bd.elementsBuffer = puleGpuBufferCreate(
+      puleCStr("imgui-elements-buffer"),
+      nullptr,
+      bd.elementsBufferLength * sizeof(ImDrawIdx),
+      PuleGpuBufferUsage_element,
+      PuleGpuBufferVisibilityFlag_hostWritable
+    );
+  }
+
+  // -- flatten the vertex/element buffers into a single buffer
+  size_t flattenedVtxCount = 0;
+  size_t flattenedIdxCount = 0;
+  std::vector<size_t> flattenedVtxOffsets;
+  std::vector<size_t> flattenedIdxOffsets;
+  uint8_t * const vtxMappedData = (
+      reinterpret_cast<uint8_t *>(
+        puleGpuBufferMap({
+        .buffer = bd.vertexBuffer,
+        .access = PuleGpuBufferMapAccess_hostWritable,
+        .byteOffset = 0,
+        .byteLength = (size_t)drawData->TotalVtxCount * sizeof(ImDrawVert),
+      })
+    )
+  );
+  uint8_t * const idxMappedData = (
+    reinterpret_cast<uint8_t *>(
+      puleGpuBufferMap({
+        .buffer = bd.elementsBuffer,
+        .access = PuleGpuBufferMapAccess_hostWritable,
+        .byteOffset = 0,
+        .byteLength = (size_t)drawData->TotalIdxCount * sizeof(ImDrawIdx),
+      })
+    )
+  );
   for (
     int32_t drawListIt = 0;
     drawListIt < drawData->CmdListsCount;
@@ -189,92 +228,148 @@ void renderDrawData(
   ) {
     ImDrawList const * drawList = drawData->CmdLists[drawListIt];
 
-    auto const vertexBufferLength = (
-      static_cast<size_t>(drawList->VtxBuffer.Size * sizeof(ImDrawVert))
+    flattenedVtxOffsets.emplace_back(flattenedVtxCount);
+    flattenedIdxOffsets.emplace_back(flattenedIdxCount);
+
+    // copy memory into mapped buffers at flattened location
+    memcpy(
+      vtxMappedData + (flattenedVtxCount * sizeof(ImDrawVert)),
+      reinterpret_cast<void *>(drawList->VtxBuffer.Data),
+      drawList->VtxBuffer.Size * sizeof(ImDrawVert)
     );
-    auto const elementsBufferLength = (
-      static_cast<size_t>(drawList->IdxBuffer.Size * sizeof(ImDrawIdx))
+    memcpy(
+      idxMappedData + (flattenedIdxCount * sizeof(ImDrawIdx)),
+      reinterpret_cast<void *>(drawList->IdxBuffer.Data),
+      drawList->IdxBuffer.Size * sizeof(ImDrawIdx)
     );
 
-    if (bd.vertexBufferLength < vertexBufferLength) {
-      bd.vertexBufferLength = vertexBufferLength;
-      puleGpuBufferDestroy(bd.vertexBuffer);
-      bd.vertexBuffer = puleGpuBufferCreate(
-        puleCStr("imgui-vertex-buffer"),
-        nullptr,//reinterpret_cast<void *>(drawList->VtxBuffer.Data),
-        bd.vertexBufferLength,
-        PuleGpuBufferUsage_attribute,
-        PuleGpuBufferVisibilityFlag_hostWritable
-      );
+    flattenedVtxCount += drawList->VtxBuffer.Size;
+    flattenedIdxCount += drawList->IdxBuffer.Size;
+  }
+
+  //static bool isFirst = true;
+  //if (isFirst) {
+  //  isFirst = false;
+  //  puleGpuCommandListAppendAction(
+  //    commandListRecorder,
+  //    PuleGpuCommand {
+  //      .resourceBarrier = {
+  //        .action = PuleGpuAction_resourceBarrier,
+  //        .resourceImageCount = 1,
+  //        .resourceImages = bd.fontImage,
+  //        .stageSrc = PuleGpuResourceBarrierStage_shaderFragment
+  //      },
+  //    }
+  //  );
+  //}
+
+  // bind render pass and buffers
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    PuleGpuCommand {
+      .renderPassBegin {
+        .action = PuleGpuAction_renderPassBegin,
+        .viewportMin = PuleI32v2 { .x = 0, .y = 0, },
+        .viewportMax = PuleI32v2 {
+          .x = framebufferWidth,
+          .y = framebufferHeight
+        },
+        .attachmentColorCount = 1,
+        .attachmentColor = {
+          PuleGpuImageAttachment {
+            .opLoad = PuleGpuImageAttachmentOpLoad_clear, // TODO don't clear?
+            .opStore = PuleGpuImageAttachmentOpStore_store,
+            .layout = PuleGpuImageLayout_attachmentColor,
+            .clearColor = { 0.0f, 0.0f, 0.0f, 0.0f},
+            .imageView = (
+              PuleGpuImageView {
+                .image = puleGpuWindowImage(),
+                .mipmapLevelStart = 0, .mipmapLevelCount = 1,
+                .arrayLayerStart = 0, .arrayLayerCount = 1,
+                .byteFormat = PuleGpuImageByteFormat_bgra8U,
+              }
+            ),
+          },
+        },
+        .attachmentDepth = {},
+      },
     }
+  );
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    PuleGpuCommand {
+      .bindPipeline {
+        .action = PuleGpuAction_bindPipeline,
+        .pipeline = bd.pipeline,
+      }
+    }
+  );
 
-    { // update vertex buffer
-      uint8_t * mappedData = (
-        reinterpret_cast<uint8_t *>(
-          puleGpuBufferMap({
-            .buffer = bd.vertexBuffer,
-            .access = PuleGpuBufferMapAccess_hostWritable,
-            .byteOffset = 0,
-            .byteLength = bd.vertexBufferLength,
-          })
-        )
-      );
-      memcpy(
-        mappedData,
-        reinterpret_cast<void *>(drawList->VtxBuffer.Data),
-        bd.vertexBufferLength
-      );
-      puleGpuBufferMappedFlush({
+  // pos , uv , col
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    PuleGpuCommand {
+      .bindAttributeBuffer {
+        .action = PuleGpuAction_bindAttributeBuffer,
+        .pipeline = bd.pipeline,
+        .bindingIndex = 0,
         .buffer = bd.vertexBuffer,
-        .byteOffset = 0,
-        .byteLength = bd.vertexBufferLength,
-      });
-      puleGpuBufferUnmap(bd.vertexBuffer);
+        .offset = 0,
+        .stride = sizeof(ImDrawVert),
+      }
     }
+  );
 
-    if (bd.elementsBufferLength < elementsBufferLength) {
-      bd.elementsBufferLength = elementsBufferLength;
-      puleGpuBufferDestroy(bd.elementsBuffer);
-      bd.elementsBuffer = puleGpuBufferCreate(
-        puleCStr("imgui-elements-buffer"),
-        nullptr,//reinterpret_cast<void *>(drawList->IdxBuffer.Data),
-        bd.elementsBufferLength,
-        PuleGpuBufferUsage_element,
-        PuleGpuBufferVisibilityFlag_hostWritable
-      );
-    }
-
-    { // update element buffer
-      uint8_t * mappedData = (
-        reinterpret_cast<uint8_t *>(
-          puleGpuBufferMap({
-            .buffer = bd.elementsBuffer,
-            .access = PuleGpuBufferMapAccess_hostWritable,
-            .byteOffset = 0,
-            .byteLength = bd.elementsBufferLength,
-          })
-        )
-      );
-      memcpy(
-        mappedData,
-        reinterpret_cast<void *>(drawList->IdxBuffer.Data),
-        bd.elementsBufferLength
-      );
-      puleGpuBufferMappedFlush({
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    PuleGpuCommand {
+      .bindElementBuffer {
+        .action = PuleGpuAction_bindElementBuffer,
         .buffer = bd.elementsBuffer,
-        .byteOffset = 0,
-        .byteLength = bd.elementsBufferLength,
-      });
-      puleGpuBufferUnmap(bd.elementsBuffer);
+        .offset = 0,
+        .elementType = (
+          sizeof(ImDrawIdx) == 2
+            ? PuleGpuElementType_u16
+            : PuleGpuElementType_u32
+        )
+      }
     }
+  );
 
-    puleGpuMemoryBarrier(PuleGpuMemoryBarrierFlag_bufferUpdate);
+  float pushConstants[4] = {
+    2.0f / drawData->DisplaySize.x, // scale
+    2.0f / drawData->DisplaySize.y,
+    0.0f, 0.0f, // translate
+  };
+  pushConstants[2] = -1.0f - drawData->DisplayPos.x * pushConstants[0];
+  pushConstants[3] = -1.0f - drawData->DisplayPos.y * pushConstants[1];
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    {
+      .pushConstants = {
+        .action = PuleGpuAction_pushConstants,
+        .stage = PuleGpuDescriptorStage_vertex,
+        .byteLength = sizeof(float) * 4,
+        .byteOffset = 0,
+        .data = &pushConstants[0],
+      }
+    }
+  );
 
+  // -- render out the flattened data
+  for (
+    int32_t drawListIt = 0;
+    drawListIt < drawData->CmdListsCount;
+    ++ drawListIt
+  ) {
+    ImDrawList const * drawList = drawData->CmdLists[drawListIt];
+    size_t flattenedVtxOffset = flattenedVtxOffsets[drawListIt];
+    size_t flattenedIdxOffset = flattenedIdxOffsets[drawListIt];
     for (int32_t drawIt = 0; drawIt < drawList->CmdBuffer.Size; ++ drawIt) {
       ImDrawCmd const & drawCmd = drawList->CmdBuffer[drawIt];
       if (drawCmd.UserCallback != nullptr) {
         drawCmd.UserCallback(drawList, &drawCmd);
-        continue;
+        continue; // TODO verify if should continue on UD
       }
       // project scissor/clipping rectangles
       auto clipMin = ImVec2 {
@@ -285,129 +380,79 @@ void renderDrawData(
         (drawCmd.ClipRect.z - clipOff.x) * clipScale.x,
         (drawCmd.ClipRect.w - clipOff.y) * clipScale.y,
       };
+      if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
+      if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
+      if (clipMax.x > 800.0f) { clipMax.x = 800.0f; }
+      if (clipMax.y > 600.0f) { clipMax.y = 600.0f; }
       if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y) {
         continue;
       }
 
-      {
-        puleGpuCommandListAppendAction(
-          commandListRecorder,
-          PuleGpuCommand {
-            .renderPassBegin {
-              .action = PuleGpuAction_renderPassBegin,
-              .viewportUpperLeft = PuleI32v2 { .x = 0, .y = 0, },
-              .viewportLowerRight = PuleI32v2 {
-                .x = framebufferWidth,
-                .y = framebufferHeight
-              },
-              .attachmentColorCount = 1,
-              .attachmentColor = {
-                PuleGpuImageAttachment {
-                  .opLoad = PuleGpuImageAttachmentOpLoad_clear,
-                  .opStore = PuleGpuImageAttachmentOpStore_store,
-                  .layout = PuleGpuImageLayout_attachmentColor,
-                  .clearColor = {},
-                  .imageView = (
-                    PuleGpuImageView {
-                      .image = puleGpuWindowImage(),
-                      .mipmapLevelStart = 0, .mipmapLevelCount = 1,
-                      .arrayLayerStart = 0, .arrayLayerCount = 1,
-                      .byteFormat = PuleGpuImageByteFormat_bgra8U,
-                    }
-                  ),
-                },
-              },
-              .attachmentDepth = {},
+      // TODO command setScissors
+      // This is behaving very oddly, i think possibly something I'm doing is
+      // causing the values coming from imgui to not be correct?
+      puleGpuCommandListAppendAction(
+        commandListRecorder,
+        {
+          .setScissor = {
+            .action = PuleGpuAction_setScissor,
+            .scissorMin = {
+              .x = 0,
+              .y = 0,
             },
-          }
-        );
-        puleGpuCommandListAppendAction(
-          commandListRecorder,
-          PuleGpuCommand {
-            .bindPipeline {
-              .action = PuleGpuAction_bindPipeline,
-              .pipeline = bd.pipeline,
-            }
-          }
-        );
+            .scissorMax = {
+              .x = 800,
+              .y = 600,
+            },
+          },
+        }
+      );
 
-        // pos , uv , col
+      if (drawCmd.TextureId != 0) {
         puleGpuCommandListAppendAction(
           commandListRecorder,
-          PuleGpuCommand {
-            .bindAttributeBuffer {
-              .action = PuleGpuAction_bindAttributeBuffer,
-              .pipeline = bd.pipeline,
+          {
+            .bindTexture = {
+              .action = PuleGpuAction_bindTexture,
               .bindingIndex = 0,
-              .buffer = bd.vertexBuffer,
-              .offset = 0,
-              .stride = sizeof(ImDrawVert),
-            }
-          }
-        );
-
-        puleGpuCommandListAppendAction(
-          commandListRecorder,
-          PuleGpuCommand {
-            .bindElementBuffer {
-              .action = PuleGpuAction_bindElementBuffer,
-              .buffer = bd.elementsBuffer,
-              .offset = 0,
-              .elementType = (
-                sizeof(ImDrawIdx) == 2
-                  ? PuleGpuElementType_u16
-                  : PuleGpuElementType_u32
-              )
-            }
-          }
-        );
-
-        puleGpuCommandListAppendAction(
-          commandListRecorder,
-          {
-            .pushConstants = {
-              .action = PuleGpuAction_pushConstants,
-              .stage = PuleGpuDescriptorStage_vertex,
-              .byteLength = sizeof(orthographicProjection),
-              .byteOffset = 0,
-              .data = &orthographicProjection,
-            }
-          }
-        );
-
-        puleLogDev(
-          "render element:: "
-          " numElements: %d,"
-          " elementOffset: %zu,"
-          " baseVertexOffset: %zu",
-          drawCmd.ElemCount,
-          drawCmd.IdxOffset * sizeof(ImDrawIdx),
-          drawCmd.VtxOffset
-        );
-        puleGpuCommandListAppendAction(
-          commandListRecorder,
-          {
-            .dispatchRenderElements = {
-              .action = PuleGpuAction_dispatchRenderElements,
-              .drawPrimitive = PuleGpuDrawPrimitive_triangle,
-              .numElements = drawCmd.ElemCount,
-              .elementOffset = drawCmd.IdxOffset * sizeof(ImDrawIdx),
-              .baseVertexOffset = drawCmd.VtxOffset,
-            },
-          }
-        );
-
-        puleGpuCommandListAppendAction(
-          commandListRecorder,
-          PuleGpuCommand {
-            .renderPassEnd {
-              .action = PuleGpuAction_renderPassEnd,
+              .imageView = (
+                PuleGpuImageView {
+                  .image = { .id = (uint64_t)drawCmd.TextureId, },
+                  .mipmapLevelStart = 0,
+                  .mipmapLevelCount = 1,
+                  .arrayLayerStart = 0,
+                  .arrayLayerCount = 1,
+                  .byteFormat = PuleGpuImageByteFormat_rgba8U,
+                }
+              ),
+              .imageLayout = PuleGpuImageLayout_storage,
             },
           }
         );
       }
+
+      PuleGpuCommand drawCommand = {
+        .dispatchRenderElements = {
+          .action = PuleGpuAction_dispatchRenderElements,
+          .drawPrimitive = PuleGpuDrawPrimitive_triangle,
+          .numElements = drawCmd.ElemCount,
+          .elementOffset = flattenedIdxOffset + drawCmd.IdxOffset,
+          .baseVertexOffset = flattenedVtxOffset + drawCmd.VtxOffset,
+        },
+      };
+      puleGpuCommandListAppendAction(commandListRecorder, drawCommand);
     }
   }
+
+  // finish renderpass
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    PuleGpuCommand {
+      .renderPassEnd {
+        .action = PuleGpuAction_renderPassEnd,
+      },
+    }
+  );
 }
 
 [[maybe_unused]]
@@ -777,6 +822,10 @@ void puleImguiShutdown() {
 void puleImguiNewFrame() {
   puleImguiWindowNewFrame();
   ImGui::NewFrame();
+  ImGui::Text("Pulchritude engine!");
+  ImGui::Separator();
+  bool isopen = true;
+  ImGui::ShowDemoWindow(&isopen);
 }
 
 void puleImguiRender(PuleGpuCommandListRecorder const recorder) {
@@ -849,12 +898,12 @@ void puleImguiText(char const * const format, ...) {
 void puleImguiImage(
   PuleGpuImage const image,
   PuleF32v2 const size,
-  PuleF32v2 const uvUl, PuleF32v2 const uvLr,
+  PuleF32v2 const uvMin, PuleF32v2 const uvMax,
   PuleF32v4 const border
 ) {
   ImGui::Image(
     ImTextureID{reinterpret_cast<void *>(image.id)},
-    ImVec2{size.x, size.y}, ImVec2{uvUl.x, uvUl.y}, ImVec2{uvLr.x, uvLr.y},
+    ImVec2{size.x, size.y}, ImVec2{uvMin.x, uvMin.y}, ImVec2{uvMax.x, uvMax.y},
     ImVec4(1,1,1,1), // bg color
     ImVec4{border.x, border.y, border.z, border.w}
   );

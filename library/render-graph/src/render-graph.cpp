@@ -268,10 +268,6 @@ void sortGraphNodes(RenderGraph & graph) {
     graph.nodes.at(lastSwapchainImageNode).isLastSwapchainUsage = true;
     graph.lastSwapchainUsageNodeId = lastSwapchainImageNode;
   }
-  puleLogDev(
-    "Last swapchain image: %s",
-    graph.nodes.at(graph.lastSwapchainUsageNodeId).label.c_str()
-  );
   // create command list chains
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
     RenderGraphNode & node = graph.nodes.at(nodeId);
@@ -498,8 +494,6 @@ PuleGpuCommandList puleRenderGraph_commandList(
     )
   );
 
-  // create command list recorder, same ID as command list
-  PULE_assert(puleGpuCommandListRecorder(commandList).id == commandList.id);
   return commandList;
 }
 
@@ -510,10 +504,11 @@ PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
   ),
   void * const userdata
 ) {
+  // TODO consider if want to allow multiple calls for the same command list
   return (
-    PuleGpuCommandListRecorder {
-      puleRenderGraph_commandList(node, fetchResourceHandle, userdata).id,
-    }
+    puleGpuCommandListRecorder(
+      puleRenderGraph_commandList(node, fetchResourceHandle, userdata)
+    )
   );
 }
 
@@ -679,7 +674,6 @@ void puleRenderGraphFrameSubmit(
       puleGpuCommandListRecorderFinish(
         PuleGpuCommandListRecorder { .id = commandList.id, }
       );
-      puleLogDev("is last swapchain usage? %d", node.isLastSwapchainUsage);
       if (node.isLastSwapchainUsage) {
         std::string const semaphoreLabel = (
           "render-graph-signal-semaphore-" + std::to_string(commandListIter)
@@ -690,7 +684,6 @@ void puleRenderGraphFrameSubmit(
         commandListSignalSemaphoreStages.emplace_back( // TODO use correct stage
           PuleGpuPipelineStage_colorAttachmentOutput
         );
-        puleLogDev("signal semaphore");
       }
       PuleGpuPipelineStage const waitSemaphoreStage = (
         PuleGpuPipelineStage_bottom
@@ -720,7 +713,11 @@ void puleRenderGraphFrameSubmit(
         .waitSemaphoreStages = commandListSignalSemaphoreStages.data(),
         .signalSemaphoreCount = 1,
         .signalSemaphores = &signalSwapSemaphore,
-        .fenceTargetFinish = { 0 },
+        .fenceTargetFinish = (
+          puleGpuCommandListChainCurrentFence(
+            node.transitionCommandListChainExit
+          )
+        ),
       }, &err);
       puleGpuFrameEnd(1, &signalSwapSemaphore);
     }

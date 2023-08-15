@@ -351,7 +351,7 @@ int32_t main(
       if (!pulBase.dsIsNull(payloadPlatform)) {
         puleLog("[PuleApplication] creating platform");
         size_t const defaultWidth = 800; // TODO get from window?
-        size_t const defaultHeight = 800;
+        size_t const defaultHeight = 600;
         PuleStringView const defaultName = pulBase.cStr("pulchritude app");
         size_t const width = (
           pulBase.dsMemberAsI64(payloadPlatform, "width") ?: defaultWidth
@@ -652,37 +652,8 @@ int32_t main(
       "[PuleApplication] Loaded %u gui editor functions",
       guiEditorFns.size()
     );
+    puleLog("Initializing imgui...");
     pulBase.imguiInitialize(platform);
-    // guiPrepareRenderCommandList = (
-    //   pulBase.gpuCommandListCreate(
-    //     puleAllocateDefault(), puleCStr("pule-gui-prepare-render")
-    //   )
-    // );
-    // PuleGpuCommandListRecorder const recorder = (
-    //   pulBase.gpuCommandListRecorder(guiPrepareRenderCommandList)
-    // );
-    // // TODO::CRIT
-    // // pulBase.gpuCommandListAppendAction(
-    // //   recorder,
-    // //   PuleGpuCommand {
-    // //     .clearImageColor = {
-    // //       .action = PuleGpuAction_clearImageColor,
-    // //       .framebuffer = pulBase.gpuFramebufferWindow(),
-    // //       .color = PuleF32v4{0.2f, 0.2f, 0.3f, 1.0f},
-    // //     },
-    // //   }
-    // // );
-    // // pulBase.gpuCommandListAppendAction(
-    // //   recorder,
-    // //   PuleGpuCommand {
-    // //     .clearImageDepth = {
-    // //       .action = PuleGpuAction_clearImageDepth,
-    // //       .framebuffer = pulBase.gpuFramebufferWindow(),
-    // //       .depth = 1.0f,
-    // //     },
-    // //   }
-    // // );
-    // pulBase.gpuCommandListRecorderFinish(recorder);
   }
 
   // get the render task graphs from plugins
@@ -699,7 +670,9 @@ int32_t main(
   bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   PuleGpuSemaphore swapchainAvailableSemaphore = { .id = 0, };
   while (hasUpdate) {
-    puleLog("<--> frame start <-->");
+    if (isEarlyExit) {
+      puleLog("<--> frame start <-->");
+    }
     if (platform.id) {
       swapchainAvailableSemaphore = puleGpuFrameStart();
       pulePlatformPollEvents(platform);
@@ -771,7 +744,9 @@ int32_t main(
       pulBase.fileWatchCheckAll();
     }
     pulBase.fileWatchCheckAll();
-    puleLog("<--> frame end <-->");
+    if (isEarlyExit) {
+      puleLog("<--> frame end <-->");
+    }
     if (isEarlyExit) { // debug early exit
       static size_t frameCount = 0;
       if (++frameCount > 2) { break; }

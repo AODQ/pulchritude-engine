@@ -62,10 +62,10 @@ void refreshContext(
   //       .depthTestEnabled = true,
   //       .blendEnabled = false,
   //       .scissorTestEnabled = false,
-  //       .viewportUl = PuleI32v2 { 0, 0, },
-  //       .viewportLr = pulePlatformWindowSize(ctx.platform),
-  //       .scissorUl = PuleI32v2 { 0, 0, },
-  //       .scissorLr = pulePlatformWindowSize(ctx.platform),
+  //       .viewportMin = PuleI32v2 { 0, 0, },
+  //       .viewportMax = pulePlatformWindowSize(ctx.platform),
+  //       .scissorMin = PuleI32v2 { 0, 0, },
+  //       .scissorMax = pulePlatformWindowSize(ctx.platform),
   //     },
   //   };
   //   puleGpuPipelineDestroy(ctx.lineRenderer.pipeline);
@@ -200,7 +200,6 @@ void puleGfxDebugRender(
     .byteOffset = 0,
     .byteLength = ctx.lineRenderer.requestedDraws*sizeof(MappedLine),
   });
-  puleGpuMemoryBarrier(PuleGpuMemoryBarrierFlag_bufferUpdate);
 
   PuleError err = puleError();
   refreshContext(framebuffer, transform, &err);

@@ -1,11 +1,15 @@
 #include <pulchritude-gpu/image.h>
 
+// module include
 #include <util.hpp>
 
+// pulchritude engine include
 #include <pulchritude-log/log.h>
 
+// third party include
 #include <volk.h>
 
+// stdlib include
 #include <unordered_map>
 
 namespace { // sampler
@@ -135,54 +139,211 @@ namespace { // image
 }
 #endif
 
+namespace {
+
+VkImageType toVkImageType(PuleGpuImageTarget const target) {
+  switch (target) {
+    default:
+      puleLogError("unknown image target: %d", target);
+      PULE_assert(false);
+    case PuleGpuImageTarget_i2D:
+      return VK_IMAGE_TYPE_2D;
+  }
+}
+
+uint32_t vkCalculateMemoryType(
+  VkMemoryPropertyFlags const properties, uint32_t const typeBits
+) {
+  auto const & propMem = util::ctx().device.propertiesMemory;
+  for (uint32_t it = 0; it < propMem.memoryTypeCount; ++ it) {
+    if (
+      (propMem.memoryTypes[it].propertyFlags & properties) == properties
+      && (typeBits & (1 << it))
+    ) {
+      return it;
+    }
+  }
+  PULE_assert(false && "could not find memory type");
+}
+
+struct InternalImage {
+  VkImage image;
+  VmaAllocation allocation;
+};
+
+std::unordered_map<uint64_t, InternalImage> internalImages;
+
+} // image
+
 extern "C" { // image
 
 PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
-  #if 0
-  GLuint textureHandle;
-  glCreateTextures(::imageTargetToGl(createInfo.target), 1, &textureHandle);
-  ::applySampler(textureHandle, createInfo.sampler);
+  auto const imageInfo = VkImageCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+    .imageType = toVkImageType(createInfo.target),
+    .format = util::toVkImageFormat(createInfo.byteFormat),
+    .extent = {
+      .width = createInfo.width,
+      .height = createInfo.height,
+      .depth = 1,
+    },
+    .mipLevels = 1, // TODO
+    .arrayLayers = 1, // TODO
+    .samples = VK_SAMPLE_COUNT_1_BIT,
+    .tiling = VK_IMAGE_TILING_LINEAR,
+    .usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,//TODO
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+  };
+  auto const allocCreateInfo = VmaAllocationCreateInfo {
+      .flags = 0,
+      .usage = VMA_MEMORY_USAGE_AUTO,
+      .requiredFlags = 0,
+      .preferredFlags = 0,
+      .memoryTypeBits = 0,
+      .pool = nullptr,
+      .pUserData = nullptr,
+      .priority = 1.0f,
+  };
+  VkImage image;
+  VmaAllocation imageAllocation;
+  VmaAllocationInfo imageAllocationInfo;
+  vmaCreateImage(
+    util::ctx().vmaAllocator,
+    &imageInfo,
+    &allocCreateInfo,
+    &image,
+    &imageAllocation,
+    &imageAllocationInfo
+  );
+  ::internalImages.emplace(
+    reinterpret_cast<uint64_t>(image),
+    InternalImage {
+      .image = image,
+      .allocation = imageAllocation,
+    }
+  );
 
-  switch (createInfo.target) {
-    default:
-      puleLogError("unknown image target: %d", createInfo.target);
-    [[fallthrough]];
-    case PuleGpuImageTarget_i2D:
-      glTextureStorage2D(
-        textureHandle,
-        1, // texture levels
-        byteFormatToGlInternalFormat(createInfo.byteFormat),
-        createInfo.width,
-        createInfo.height
-      );
-      if (createInfo.optionalInitialData) {
-        glTextureSubImage2D(
-          textureHandle,
-          0, 0, 0,
-          createInfo.width,
-          createInfo.height,
-          ::byteFormatToGlFormat(createInfo.byteFormat),
-          ::byteFormatToGlType(createInfo.byteFormat),
-          createInfo.optionalInitialData
-        );
+  // if the image starts with any memory, put it into a buffer,
+  // then copy buffer to image
+  if (createInfo.optionalInitialData) {
+    puleLog("Creating optional initial data");
+    // create temporary staging buffer
+    auto const uploadBuffer = puleGpuBufferCreate(
+      puleCStr("staging-image-buffer"),
+      createInfo.optionalInitialData,
+      imageAllocationInfo.size,
+      PuleGpuBufferUsage_storage,
+      PuleGpuBufferVisibilityFlag_hostWritable
+    );
+
+    auto const copyBarrier = VkImageMemoryBarrier {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+      .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = image,
+      .subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .levelCount = 1,
+        .layerCount = 1,
+      },
+    };
+    auto const beginInfo = VkCommandBufferBeginInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .pNext = nullptr,
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+      .pInheritanceInfo = nullptr,
+    };
+    PULE_assert(
+      vkBeginCommandBuffer(
+        util::ctx().utilCommandBuffer,
+        &beginInfo
+      ) == VK_SUCCESS
+    );
+    vkCmdPipelineBarrier(
+      util::ctx().utilCommandBuffer,
+      VK_PIPELINE_STAGE_HOST_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      0, // dependency
+      0, nullptr, // memory barrier
+      0, nullptr, // buffer barrier
+      1, &copyBarrier // image barrier
+    );
+
+    auto const region = VkBufferImageCopy {
+      .imageSubresource {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .layerCount = 1,
+      },
+      .imageExtent = {
+        .width = createInfo.width,
+        .height = createInfo.height,
+        .depth = 1,
       }
-    break;
+    };
+    vkCmdCopyBufferToImage(
+      util::ctx().utilCommandBuffer,
+      reinterpret_cast<VkBuffer>(uploadBuffer.id),
+      image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      1, &region
+    );
+
+    auto const usageBarrier = VkImageMemoryBarrier {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+      .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+      .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = image,
+      .subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .levelCount = 1,
+        .layerCount = 1,
+      },
+    };
+    vkCmdPipelineBarrier(
+      util::ctx().utilCommandBuffer,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+      0, // dependency
+      0, nullptr, // memory barrier
+      0, nullptr, // buffer barrier
+      1, &usageBarrier // image barrier
+    );
+    vkEndCommandBuffer(util::ctx().utilCommandBuffer);
+    auto stagingSubmitInfo = VkSubmitInfo {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext = nullptr,
+      .waitSemaphoreCount = 0, .pWaitSemaphores = nullptr,
+      .pWaitDstStageMask = nullptr,
+      .commandBufferCount = 1,
+      .pCommandBuffers = &util::ctx().utilCommandBuffer,
+      .signalSemaphoreCount = 0, .pSignalSemaphores = nullptr,
+    };
+    PULE_assert(
+      vkQueueSubmit(
+        util::ctx().defaultQueue,
+        1, &stagingSubmitInfo, nullptr
+      ) == VK_SUCCESS
+    );
+    // TODO replace with cmd pipeline barrier, or fence or something
+    vkDeviceWaitIdle(util::ctx().device.logical);
   }
 
-  return { textureHandle };
-  #endif
-  return { 0 };
+  return { .id = reinterpret_cast<uint64_t>(image), };
 }
 
 void puleGpuImageDestroy(PuleGpuImage const image) {
-  #if 0
   if (image.id == 0) { return; }
-  GLuint handle = static_cast<GLuint>(image.id);
-  if (handle != 0) {
-    glDeleteTextures(1, &handle);
-  }
+  auto const & info = ::internalImages.at(image.id);
+  vmaDestroyImage(util::ctx().vmaAllocator, info.image, info.allocation);
   // TODO... destroy image views in util
-  #endif
 }
 
 } // C

@@ -2041,11 +2041,6 @@
       ::loadSymbol("puleGpuFenceReset", layerName)
     )
   );
-  layer->gpuMemoryBarrier = (
-    reinterpret_cast<decltype(layer->gpuMemoryBarrier)>(
-      ::loadSymbol("puleGpuMemoryBarrier", layerName)
-    )
-  );
   layer->gpuFrameStart = (
     reinterpret_cast<decltype(layer->gpuFrameStart)>(
       ::loadSymbol("puleGpuFrameStart", layerName)

@@ -64,7 +64,6 @@ namespace util {
     uint64_t pipelineHandle = 0;
     uint64_t shaderModuleHandle = 0;
     VkPipelineLayout pipelineLayout;
-    VkDescriptorSet descriptorSet;
     VkDescriptorSetLayout descriptorSetLayout;
   };
   struct CommandList {
@@ -105,7 +104,7 @@ struct Context {
   VkDebugUtilsMessengerEXT debugMessenger;
   util::Device device;
   VkSurfaceKHR surface;
-  VmaAllocator allocator;
+  VmaAllocator vmaAllocator;
   std::unordered_map<uint64_t, util::Buffer> buffers;
   // TODO make unordered_map<uint32_t /*DeviceQueueIdx*/, vector<VkQueue>>
   VkQueue defaultQueue;
@@ -133,6 +132,7 @@ struct Context {
   uint32_t swapchainCurrentImageIdx;
   std::vector<VkImage> swapchainImages;
   std::vector<VkSemaphore> swapchainImageAvailableSemaphores;
+  VkSampler samplerDefault;
   size_t frameIdx = 1;
 };
 

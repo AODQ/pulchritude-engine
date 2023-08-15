@@ -357,10 +357,10 @@ PuleEcsComponent puleRenderer3DAttachComponentRender(
   //       .depthTestEnabled = true,
   //       .blendEnabled = false,
   //       .scissorTestEnabled = false,
-  //       .viewportUl = PuleI32v2 { 0, 0, },
-  //       .viewportLr = pulePlatformWindowSize(system.platform),
-  //       .scissorUl = PuleI32v2 { 0, 0, },
-  //       .scissorLr = pulePlatformWindowSize(system.platform),
+  //       .viewportMin = PuleI32v2 { 0, 0, },
+  //       .viewportMax = pulePlatformWindowSize(system.platform),
+  //       .scissorMin = PuleI32v2 { 0, 0, },
+  //       .scissorMax = pulePlatformWindowSize(system.platform),
   //     },
   //   };
   //

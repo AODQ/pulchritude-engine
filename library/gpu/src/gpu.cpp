@@ -273,7 +273,7 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
         &featuresRequest, &features8Bit,
         &featuresSync2,
         &featuresDynamicRendering,
-        &featuresImageAtomicInt64, &featuresAtomicInt64
+        &featuresImageAtomicInt64, &featuresAtomicInt64,
       }
     );
     std::vector<char const *> deviceExtensions = {
@@ -281,6 +281,7 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
       VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
       VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME,
       VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+      VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
     };
     auto deviceCi = VkDeviceCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -469,7 +470,7 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   ctx.debugMessenger = debugMessenger;
   ctx.device = device;
   ctx.surface = surface;
-  ctx.allocator = allocator;
+  ctx.vmaAllocator = allocator;
 
   vkGetDeviceQueue(
     ctx.device.logical,
@@ -562,7 +563,7 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
     };
     PULE_assert(
       vmaCreateBuffer(
-        util::ctx().allocator,
+        util::ctx().vmaAllocator,
         &stagingBufferCi, &stagingAllocationCi,
         &ctx.utilStagingBuffer, &ctx.utilStagingBufferAllocation,
         &ctx.utilStagingBufferAllocationInfo
@@ -571,6 +572,25 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   }
   util::ctx().swapchain = util::swapchainCreate();
   util::swapchainImagesCreate();
+
+  { // create default sampler
+    VkSamplerCreateInfo info = {
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      .flags = 0,
+      .magFilter = VK_FILTER_LINEAR,
+      .minFilter = VK_FILTER_LINEAR,
+      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+      .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      .maxAnisotropy = 1.0f,
+      .minLod = -1000,
+      .maxLod = +1000,
+    };
+    vkCreateSampler(
+      util::ctx().device.logical, &info, nullptr, &util::ctx().samplerDefault
+    );
+  }
 }
 
 void puleGpuShutdown() {
@@ -697,7 +717,7 @@ PuleGpuBuffer puleGpuBufferCreate(
   VmaAllocationInfo allocationInfo;
   PULE_assert(
     vmaCreateBuffer(
-      util::ctx().allocator,
+      util::ctx().vmaAllocator,
       &bufferCi, &allocationCi,
       &buffer, &allocation, &allocationInfo
     ) == VK_SUCCESS
@@ -714,7 +734,7 @@ PuleGpuBuffer puleGpuBufferCreate(
   if (optionalInitialData) {
     VkMemoryPropertyFlags memoryPropertyFlags;
     vmaGetAllocationMemoryProperties(
-      util::ctx().allocator,
+      util::ctx().vmaAllocator,
       allocation,
       &memoryPropertyFlags
     );
@@ -744,7 +764,7 @@ PuleGpuBuffer puleGpuBufferCreate(
         ) == VK_SUCCESS
       );
       vmaFlushAllocation(
-        util::ctx().allocator,
+        util::ctx().vmaAllocator,
         util::ctx().utilStagingBufferAllocation,
         0, VK_WHOLE_SIZE
       );
@@ -794,20 +814,20 @@ PuleGpuBuffer puleGpuBufferCreate(
 void puleGpuBufferDestroy(PuleGpuBuffer const pBuffer) {
   if (pBuffer.id == 0) { return; }
   util::Buffer & buffer = util::ctx().buffers.at(pBuffer.id);
-  vmaDestroyBuffer(util::ctx().allocator, buffer.vkHandle, buffer.allocation);
+  vmaDestroyBuffer(util::ctx().vmaAllocator, buffer.vkHandle, buffer.allocation);
 }
 
 void * puleGpuBufferMap(PuleGpuBufferMapRange const range) {
   void * mappedData = nullptr;
   util::Buffer & buffer = util::ctx().buffers.at(range.buffer.id);
-  vmaMapMemory(util::ctx().allocator, buffer.allocation, &mappedData);
+  vmaMapMemory(util::ctx().vmaAllocator, buffer.allocation, &mappedData);
   PULE_assert(mappedData);
   return mappedData;
 }
 
 void puleGpuBufferUnmap(PuleGpuBuffer const pBuffer) {
   util::Buffer & buffer = util::ctx().buffers.at(pBuffer.id);
-  vmaUnmapMemory(util::ctx().allocator, buffer.allocation);
+  vmaUnmapMemory(util::ctx().vmaAllocator, buffer.allocation);
 }
 
 PuleGpuSemaphore puleGpuFrameStart() {
@@ -824,7 +844,7 @@ void puleGpuBufferMappedFlush(
 ) {
   util::Buffer & buffer = util::ctx().buffers.at(range.buffer.id);
   vmaFlushAllocation(
-    util::ctx().allocator,
+    util::ctx().vmaAllocator,
     buffer.allocation,
     range.byteOffset,
     range.byteLength

@@ -49,6 +49,7 @@ typedef enum {
 typedef enum {
   PuleGpuAction_bindPipeline,
   PuleGpuAction_bindBuffer,
+  PuleGpuAction_bindTexture,
   PuleGpuAction_resourceBarrier,
   PuleGpuAction_renderPassBegin,
   PuleGpuAction_renderPassEnd,
@@ -62,6 +63,7 @@ typedef enum {
   PuleGpuAction_dispatchRenderIndirect,
   PuleGpuAction_pushConstants,
   PuleGpuAction_dispatchCommandList,
+  PuleGpuAction_setScissor,
 } PuleGpuAction;
 
 PULE_exportFn PuleStringView puleGpuActionToString(PuleGpuAction const action);
@@ -79,6 +81,14 @@ typedef struct {
   size_t offset;
   size_t byteLen;
 } PuleGpuActionBindBuffer;
+
+typedef struct {
+  PuleGpuAction action; // PuleGpuAction_bindBuffer
+  size_t bindingIndex;
+  PuleGpuImageView imageView;
+  PuleGpuImageLayout imageLayout;
+  // TODO sampler or allow constant
+} PuleGpuActionBindTexture;
 
 typedef enum {
   PuleGpuResourceBarrierStage_top                   = 0x0001,
@@ -133,8 +143,8 @@ typedef struct {
 
 typedef struct {
   PuleGpuAction action; // PuleGpuAction_renderPassBegin
-  PuleI32v2 viewportUpperLeft;
-  PuleI32v2 viewportLowerRight;
+  PuleI32v2 viewportMin;
+  PuleI32v2 viewportMax;
   size_t attachmentColorCount;
   PuleGpuImageAttachment attachmentColor[8];
   PuleGpuImageAttachment attachmentDepth;
@@ -252,11 +262,18 @@ typedef struct {
   PuleGpuCommandListSubmitInfo submitInfo; // TODO remove this
 } PuleGpuActionDispatchCommandList;
 
+typedef struct {
+  PuleGpuAction action; // PuleGpuAction_dispatchCommandList
+  PuleI32v2 scissorMin;
+  PuleI32v2 scissorMax;
+} PuleGpuActionSetScissor;
+
 typedef union {
   PuleGpuAction action;
   PuleGpuActionBindPipeline bindPipeline; // TODO need bindPipelineGfx/compute/rt
   PuleGpuActionBindFramebuffer bindFramebuffer;
   PuleGpuActionBindBuffer bindBuffer;
+  PuleGpuActionBindTexture bindTexture;
   PuleGpuActionRenderPassBegin renderPassBegin;
   PuleGpuActionResourceBarrier resourceBarrier;
   PuleGpuActionRenderPassEnd renderPassEnd;
@@ -269,6 +286,7 @@ typedef union {
   PuleGpuActionDispatchRenderElements dispatchRenderElements;
   PuleGpuActionPushConstants pushConstants;
   PuleGpuActionDispatchCommandList dispatchCommandList;
+  PuleGpuActionSetScissor setScissor;
 } PuleGpuCommand;
 
 //------------------------------------------------------------------------------

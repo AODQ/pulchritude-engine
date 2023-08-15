@@ -48,6 +48,8 @@ PuleStringView puleGpuActionToString(PuleGpuAction const action) {
       return puleCStr("bind-pipeline");
     case PuleGpuAction_bindBuffer:
       return puleCStr("bind-buffer");
+    case PuleGpuAction_bindTexture:
+      return puleCStr("bind-texture");
     case PuleGpuAction_bindElementBuffer:
       return puleCStr("bind-element-buffer");
     case PuleGpuAction_bindAttributeBuffer:
@@ -66,6 +68,8 @@ PuleStringView puleGpuActionToString(PuleGpuAction const action) {
       return puleCStr("push-constants");
     case PuleGpuAction_dispatchCommandList:
       return puleCStr("dispatch-command-list");
+    case PuleGpuAction_setScissor:
+      return puleCStr("set-scissor");
   }
 }
 
@@ -145,13 +149,6 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
       .deviceQueueIdx = util::ctx().device.queues.idxGTC,
     }
   );
-  puleLogDev(
-    "<> command buffer recorder %u, stored swapchain image %d",
-    cbRecorder.commandList.id,
-    reinterpret_cast<uint64_t>(
-      util::ctx().swapchainImages[util::ctx().swapchainCurrentImageIdx]
-    )
-  );
   util::ctx().commandBufferRecorders.emplace(commandList.id, cbRecorder);
   return { .id = reinterpret_cast<uint64_t>(commandBuffer), };
 }
@@ -160,7 +157,6 @@ void puleGpuCommandListRecorderFinish(
   [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
 ) {
   vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandListRecorder.id));
-  puleLogDev("Deleting CBR %u", commandListRecorder.id);
   util::ctx().commandBufferRecorders.erase(commandListRecorder.id);
 }
 
@@ -304,6 +300,41 @@ void puleGpuCommandListAppendAction(
       vkCmdExecuteCommands(subCommandBuffer, 1, &subCommandBuffer);
     }
     break;
+    case PuleGpuAction_bindTexture: {
+      auto const action = (
+        *reinterpret_cast<PuleGpuActionBindTexture const *>(&command)
+      );
+      // write descriptor set to command 'cache'
+      auto const imageInfo = VkDescriptorImageInfo {
+        .sampler = VK_NULL_HANDLE,
+        .imageView = util::fetchImageView(action.imageView),
+        .imageLayout = util::toVkImageLayout(action.imageLayout),
+      };
+      auto const writeDescriptorSet = VkWriteDescriptorSet {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = nullptr,
+        .dstSet = 0, // I believe this is ignored using pushDescriptorSet
+        .dstBinding = (uint32_t)action.bindingIndex,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .pImageInfo = &imageInfo,
+        .pBufferInfo = nullptr,
+        .pTexelBufferView = nullptr,
+      };
+      vkCmdPushDescriptorSetKHR(
+        commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // TODO support compute bindpoint
+        (
+          util::ctx()
+            .pipelines.at(recorderInfo.currentBoundPipeline.id)
+            .pipelineLayout
+        ),
+        0, 1, /* set, descriptorwrite count */
+        &writeDescriptorSet
+      );
+    }
+    break;
     case PuleGpuAction_bindBuffer: {
       auto const action = (
         *reinterpret_cast<PuleGpuActionBindBuffer const *>(&command)
@@ -317,11 +348,7 @@ void puleGpuCommandListAppendAction(
       auto const writeDescriptorSet = VkWriteDescriptorSet {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
         .pNext = nullptr,
-        .dstSet = (
-          util::ctx()
-            .pipelines.at(recorderInfo.currentBoundPipeline.id)
-            .descriptorSet
-        ),
+        .dstSet = 0,
         .dstBinding = (uint32_t)action.bindingIndex,
         .dstArrayElement = 0,
         .descriptorCount = 1,
@@ -338,7 +365,7 @@ void puleGpuCommandListAppendAction(
             .pipelines.at(recorderInfo.currentBoundPipeline.id)
             .pipelineLayout
         ),
-        1, 1, /* set, descriptorWriteCount */
+        0, 1, /* set, descriptorWriteCount */
         &writeDescriptorSet
       );
     }
@@ -385,7 +412,6 @@ void puleGpuCommandListAppendAction(
       auto const action = (
         *reinterpret_cast<PuleGpuActionRenderPassBegin const *>(&command)
       );
-      std::vector<VkImageMemoryBarrier> imageBarriers;
       VkRenderingAttachmentInfo colorAttachments[8];
       for (size_t it = 0; it <  8; ++ it) {
         if (action.attachmentColor[it].imageView.image.id == 0) {
@@ -407,12 +433,12 @@ void puleGpuCommandListAppendAction(
         .flags = 0,
         .renderArea = VkRect2D {
           .offset = VkOffset2D {
-            .x = action.viewportUpperLeft.x,
-            .y = action.viewportUpperLeft.y,
+            .x = action.viewportMin.x,
+            .y = action.viewportMin.y,
           },
           .extent = VkExtent2D {
-            .width = (uint32_t)action.viewportLowerRight.x,
-            .height = (uint32_t)action.viewportLowerRight.y,
+            .width = (uint32_t)action.viewportMax.x,
+            .height = (uint32_t)action.viewportMax.y,
           },
         },
         .layerCount = 1,
@@ -438,6 +464,22 @@ void puleGpuCommandListAppendAction(
         commandBuffer,
         buffer, action.offset, util::toVkIndexType(action.elementType)
       );
+    }
+    break;
+    case PuleGpuAction_setScissor: {
+      auto const action = (
+        *reinterpret_cast<PuleGpuActionSetScissor const *>(&command)
+      );
+      VkRect2D scissor;
+      scissor.offset.x = action.scissorMin.x;
+      scissor.offset.x = action.scissorMin.y;
+      scissor.extent.width = (
+        action.scissorMax.x - action.scissorMin.x
+      );
+      scissor.extent.height = (
+        action.scissorMax.y - action.scissorMin.y
+      );
+      vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     }
     break;
   }
@@ -507,6 +549,9 @@ void puleGpuFrameEnd(
     vkQueuePresentKHR(util::ctx().defaultQueue, &presentInfo) == VK_SUCCESS
   );
   util::ctx().frameIdx += 1;
+
+  // TODO remove this idle, something isn't being synchronized properly :/
+  vkQueueWaitIdle(util::ctx().defaultQueue);
 }
 
 } // extern C
@@ -666,9 +711,12 @@ PuleGpuCommandListChain puleGpuCommandListChainCreate(
   auto const id = commandListChainId ++;
   std::vector<ImplCommandListChainCommand> commandListChain;
   for (size_t it = 0; it < util::ctx().swapchainImages.size(); ++ it) {
+    std::string const fenceLabel = (
+      std::string(label.contents, label.len) + "-frame-" + std::to_string(it)
+    );
     commandListChain.emplace_back(ImplCommandListChainCommand{
       .commandList = PuleGpuCommandList{.id = 0,},
-      .fence = puleGpuFenceCreate(),
+      .fence = puleGpuFenceCreate(puleCStr(fenceLabel.c_str())),
       .label = std::string(label.contents, label.len),
       .frameIdx = 0,
     });
@@ -701,12 +749,6 @@ PuleGpuCommandList puleGpuCommandListChainCurrent(
   }
   // create command list, destroy previous one if needed
   if (currentCommandList.commandList.id != 0) {
-    puleLogDev(
-      "Destroying on frame %u (was created frame %u) frequency %u",
-      util::ctx().frameIdx,
-      currentCommandList.frameIdx,
-      util::ctx().swapchainImages.size()
-    );
     puleGpuFenceWaitSignal(
       currentCommandList.fence,
       PuleNanosecond { PuleGpuSignalTime_forever, }

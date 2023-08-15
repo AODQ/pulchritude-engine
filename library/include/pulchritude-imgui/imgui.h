@@ -51,7 +51,7 @@ PULE_exportFn void puleImguiText(char const * const format, ...);
 PULE_exportFn void puleImguiImage(
   PuleGpuImage const image,
   PuleF32v2 const size,
-  PuleF32v2 const uvUl, PuleF32v2 const uvLr,
+  PuleF32v2 const uvMin, PuleF32v2 const uvMax,
   PuleF32v4 const borderColor
 );
 

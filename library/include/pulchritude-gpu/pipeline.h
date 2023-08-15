@@ -94,10 +94,10 @@ typedef struct {
   bool blendEnabled;
   bool scissorTestEnabled;
   // TODO viewport/scissor like this shouldn't be in a viewport
-  PuleI32v2 viewportUl; // default 0, 0
-  PuleI32v2 viewportLr; // default 1, 1
-  PuleI32v2 scissorUl; // default 0, 0
-  PuleI32v2 scissorLr; // default 1, 1
+  PuleI32v2 viewportMin; // default 0, 0
+  PuleI32v2 viewportMax; // default 1, 1
+  PuleI32v2 scissorMin; // default 0, 0
+  PuleI32v2 scissorMax; // default 1, 1
 } PuleGpuPipelineConfig;
 
 typedef struct {

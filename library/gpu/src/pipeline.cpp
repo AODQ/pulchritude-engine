@@ -99,13 +99,13 @@ VkPipelineLayout createPipelineLayout(
       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
       .descriptorCount = 1,
       .stageFlags = util::toVkShaderStageFlags(imageStage),
-      .pImmutableSamplers = nullptr,
+      .pImmutableSamplers = &util::ctx().samplerDefault,
     });
   }
   auto descriptorSetLayoutCi = VkDescriptorSetLayoutCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .pNext = nullptr,
-    .flags = 0, // TODO probably need to change this?
+    .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
     .bindingCount = (uint32_t)descriptorSetLayoutBindings.size(),
     .pBindings = descriptorSetLayoutBindings.data(),
   };
@@ -231,30 +231,31 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .flags = 0,
     .patchControlPoints = 0,
   };
-  auto viewportUl = info->config.viewportUl;
-  auto viewportLr = info->config.viewportLr;
+  auto viewportMin = info->config.viewportMin;
+  auto viewportMax = info->config.viewportMax;
   if (
-    viewportUl.x == 0.0f && viewportUl.y == 0.0f
-    && viewportLr.x == 0.0f && viewportLr.y == 0.0f
+    viewportMin.x == 0.0f && viewportMin.y == 0.0f
+    && viewportMax.x == 0.0f && viewportMax.y == 0.0f
   ) {
-    viewportUl.x = viewportUl.y = 0.0f;
-    viewportLr.x = viewportLr.y = 800.0f;
+    viewportMin.x = viewportMin.y = 0.0f;
+    viewportMax.x = 800.0f;
+    viewportMax.y = 600.0f;
   }
   auto viewport = VkViewport {
-    .x = (float)viewportUl.x,
-    .y = (float)viewportUl.y,
-    .width = (float)(viewportLr.x - viewportUl.x),
-    .height = (float)(viewportLr.y - viewportUl.y),
+    .x = (float)viewportMin.x,
+    .y = (float)viewportMin.y,
+    .width = (float)(viewportMax.x - viewportMin.x),
+    .height = (float)(viewportMax.y - viewportMin.y),
     .minDepth = 0.0f, .maxDepth = 1.0f,
   };
   auto scissor = VkRect2D {
     .offset = VkOffset2D {
-      .x = info->config.scissorUl.x,
-      .y = info->config.scissorUl.y,
+      .x = info->config.scissorMin.x,
+      .y = info->config.scissorMin.y,
     },
     .extent = VkExtent2D {
-      .width = (uint32_t)info->config.scissorUl.x,
-      .height = (uint32_t)info->config.scissorUl.y,
+      .width = (uint32_t)info->config.scissorMin.x,
+      .height = (uint32_t)info->config.scissorMin.y,
     },
   };
   auto viewportStateCi = VkPipelineViewportStateCreateInfo {
@@ -263,7 +264,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .flags = 0,
     .viewportCount = 1,
     .pViewports = &viewport,
-    .scissorCount = 1,
+    .scissorCount = 1, // TODO reenable, but I should make it dynamic
     .pScissors = &scissor,
   };
   auto rasterizerStateCi = VkPipelineRasterizationStateCreateInfo {
@@ -311,15 +312,17 @@ PuleGpuPipeline puleGpuPipelineCreate(
     VkPipelineColorBlendAttachmentState {
       .blendEnable = info->config.blendEnabled,
       // TODO expose this
-      .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-      .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+      .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+      .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
       .colorBlendOp = VK_BLEND_OP_ADD,
       .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-      .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+      .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
       .alphaBlendOp = VK_BLEND_OP_ADD,
       .colorWriteMask = (
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
-        | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+        VK_COLOR_COMPONENT_R_BIT
+        | VK_COLOR_COMPONENT_G_BIT
+        | VK_COLOR_COMPONENT_B_BIT
+        | VK_COLOR_COMPONENT_A_BIT
       ),
     },
   };
@@ -327,14 +330,15 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .logicOpEnable = VK_TRUE,
+    .logicOpEnable = VK_FALSE,
     .logicOp = VK_LOGIC_OP_SET,
     .attachmentCount = (uint32_t)attachments.size(),
     .pAttachments = attachments.data(),
-    .blendConstants = { 0.0f, 0.0f, 0.0f, 1.0f, },
+    .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f, },
   };
   std::vector<VkDynamicState> dynamicStates = {
     VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
+    VK_DYNAMIC_STATE_SCISSOR,
   };
   auto dynamicStateCi = VkPipelineDynamicStateCreateInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -344,7 +348,9 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .pDynamicStates = dynamicStates.data(),
   };
   VkDescriptorSetLayout descriptorSetLayout = nullptr;
-  VkPipelineLayout pipelineLayout = createPipelineLayout(info, descriptorSetLayout);
+  VkPipelineLayout pipelineLayout = (
+    createPipelineLayout(info, descriptorSetLayout)
+  );
   puleLog("pipelineLayout: %p", pipelineLayout);
   auto pipelineCi = VkGraphicsPipelineCreateInfo {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -382,30 +388,12 @@ PuleGpuPipeline puleGpuPipelineCreate(
     {.id = 0}
   );
   auto gfxPipelineId = reinterpret_cast<uint64_t>(gfxPipeline);
-  VkDescriptorSet descriptorSet;
-  { // create descriptor set
-    auto const descriptorSetAllocateInfo = VkDescriptorSetAllocateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .pNext = nullptr,
-      .descriptorPool = util::ctx().defaultDescriptorPool,
-      .descriptorSetCount = 1,
-      .pSetLayouts = &descriptorSetLayout,
-    };
-    PULE_assert(
-      vkAllocateDescriptorSets(
-        util::ctx().device.logical,
-        &descriptorSetAllocateInfo,
-        &descriptorSet
-      ) == VK_SUCCESS
-    );
-  }
   util::ctx().pipelines.emplace(
     gfxPipelineId,
     util::Pipeline {
       .pipelineHandle = reinterpret_cast<uint64_t>(gfxPipeline),
       .shaderModuleHandle = info->shaderModule.id,
       .pipelineLayout = pipelineCi.layout,
-      .descriptorSet = descriptorSet,
       .descriptorSetLayout = descriptorSetLayout,
     }
   );

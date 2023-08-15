@@ -45,7 +45,7 @@ void puleGpuSemaphoreDestroy(PuleGpuSemaphore const semaphore) {
 
 extern "C" {
 
-PuleGpuFence puleGpuFenceCreate() {
+PuleGpuFence puleGpuFenceCreate(PuleStringView const label) {
   VkFence fence = VK_NULL_HANDLE;
   VkFenceCreateInfo fenceCreateInfo = {
     .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -53,6 +53,16 @@ PuleGpuFence puleGpuFenceCreate() {
     .flags = 0,
   };
   vkCreateFence(util::ctx().device.logical, &fenceCreateInfo, nullptr, &fence);
+  { // name the semaphore
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {
+      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+      .pNext = nullptr,
+      .objectType = VK_OBJECT_TYPE_FENCE,
+      .objectHandle = reinterpret_cast<uint64_t>(fence),
+      .pObjectName = label.contents
+    };
+    vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
+  }
   return { .id = reinterpret_cast<uint64_t>(fence) };
 }
 void puleGpuFenceDestroy(PuleGpuFence const fence) {
@@ -78,7 +88,8 @@ bool puleGpuFenceWaitSignal(
     case VK_SUCCESS: return true;
     case VK_TIMEOUT:
       if (timeout.valueNano == PuleGpuSignalTime_forever) {
-        PULE_assert(false);
+        puleLogError("waited forever for fence");
+        //PULE_assert(false);
       }
       return false;
     default: PULE_assert(false);
@@ -90,14 +101,6 @@ void puleGpuFenceReset(PuleGpuFence const fence) {
     util::ctx().device.logical,
     1, reinterpret_cast<VkFence const *>(&fence.id)
   );
-}
-
-void puleGpuMemoryBarrier(
-  PuleGpuMemoryBarrierFlag const barrier
-) {
-  #if 0
-  glMemoryBarrier(memoryBarrierToGl(barrier));
-  #endif
 }
 
 }

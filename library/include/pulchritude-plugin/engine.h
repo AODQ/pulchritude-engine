@@ -476,11 +476,10 @@ typedef struct PuleEngineLayer {
   void (* gpuDebugPrint)();
   PuleGpuSemaphore (* gpuSemaphoreCreate)(PuleStringView const);
   void (* gpuSemaphoreDestroy)(PuleGpuSemaphore const);
-  PuleGpuFence (* gpuFenceCreate)();
+  PuleGpuFence (* gpuFenceCreate)(PuleStringView const);
   void (* gpuFenceDestroy)(PuleGpuFence const);
   bool (* gpuFenceWaitSignal)(PuleGpuFence const, PuleNanosecond const);
   void (* gpuFenceReset)(PuleGpuFence const);
-  void (* gpuMemoryBarrier)(PuleGpuMemoryBarrierFlag const);
   PuleGpuSemaphore (* gpuFrameStart)();
   void (* gpuFrameEnd)(size_t const, PuleGpuSemaphore const * const);
 } PuleEngineLayer;

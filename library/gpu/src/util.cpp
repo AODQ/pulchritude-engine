@@ -135,6 +135,20 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
         &imageAvailableSemaphore
       ) == VK_SUCCESS
     );
+
+    std::string label = (
+      std::string("imageAvailableSemaphore-")
+      + std::to_string(util::ctx().frameIdx)
+    );
+
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {
+      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+      .pNext = nullptr,
+      .objectType = VK_OBJECT_TYPE_SEMAPHORE,
+      .objectHandle = reinterpret_cast<uint64_t>(imageAvailableSemaphore),
+      .pObjectName = label.c_str(),
+    };
+    vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
   uint32_t imageIdx;
   PULE_assert(
@@ -346,14 +360,14 @@ VkFormat util::toVkBufferFormat(
     case PuleGpuAttributeDataType_unsignedByte:
       switch (numComponents) {
         case 1:
-          return (normalize ? VK_FORMAT_R8_USCALED : VK_FORMAT_R8_UINT);
+          return (normalize ? VK_FORMAT_R8_UNORM : VK_FORMAT_R8_UINT);
         case 2:
-          return (normalize ? VK_FORMAT_R8G8_USCALED : VK_FORMAT_R8G8_UINT);
+          return (normalize ? VK_FORMAT_R8G8_UNORM : VK_FORMAT_R8G8_UINT);
         case 3:
-          return (normalize ? VK_FORMAT_R8G8B8_USCALED : VK_FORMAT_R8G8B8_UINT);
+          return (normalize ? VK_FORMAT_R8G8B8_UNORM : VK_FORMAT_R8G8B8_UINT);
         case 4:
           return (
-            normalize ? VK_FORMAT_R8G8B8A8_USCALED : VK_FORMAT_R8G8B8A8_UINT
+            normalize ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R8G8B8A8_UINT
           );
       }
       PULE_assert(false);
