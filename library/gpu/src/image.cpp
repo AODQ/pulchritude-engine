@@ -70,6 +70,7 @@ PuleGpuSampler puleGpuSamplerCreate(
 ) {
   auto const prevSamplerIt = samplersIt;
   samplersIt += 1;
+  puleLogDebug("creating sampler %u", prevSamplerIt);
 
   ::samplers.emplace(prevSamplerIt, createInfo);
   return { prevSamplerIt };
@@ -178,6 +179,9 @@ std::unordered_map<uint64_t, InternalImage> internalImages;
 extern "C" { // image
 
 PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
+  if (createInfo.width == 0 || createInfo.height == 0) {
+    PULE_assert(false && "image width or height is 0");
+  }
   auto const imageInfo = VkImageCreateInfo {
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
     .imageType = toVkImageType(createInfo.target),
@@ -190,10 +194,17 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     .mipLevels = 1, // TODO
     .arrayLayers = 1, // TODO
     .samples = VK_SAMPLE_COUNT_1_BIT,
-    .tiling = VK_IMAGE_TILING_LINEAR,
-    .usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,//TODO
+    .tiling = VK_IMAGE_TILING_OPTIMAL,
+    .usage = (
+        VK_IMAGE_USAGE_SAMPLED_BIT
+      | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+      | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+      | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+
+     ),
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+
   };
   auto const allocCreateInfo = VmaAllocationCreateInfo {
       .flags = 0,
@@ -215,6 +226,13 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     &image,
     &imageAllocation,
     &imageAllocationInfo
+  );
+  puleLog(
+    "extent { %u, %u, %u }, size %u",
+    imageInfo.extent.width,
+    imageInfo.extent.height,
+    imageInfo.extent.depth,
+    imageAllocationInfo.size
   );
   ::internalImages.emplace(
     reinterpret_cast<uint64_t>(image),
@@ -336,6 +354,24 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     vkDeviceWaitIdle(util::ctx().device.logical);
   }
 
+  util::ctx().images.emplace(
+    reinterpret_cast<uint64_t>(image),
+    util::ImageInfo {
+      .label = std::string(createInfo.label.contents, createInfo.label.len),
+    }
+  );
+
+  { // name image
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {
+      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+      .pNext = nullptr,
+      .objectType = VK_OBJECT_TYPE_IMAGE,
+      .objectHandle = reinterpret_cast<uint64_t>(image),
+      .pObjectName = createInfo.label.contents,
+    };
+    vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
+  }
+
   return { .id = reinterpret_cast<uint64_t>(image), };
 }
 
@@ -344,6 +380,10 @@ void puleGpuImageDestroy(PuleGpuImage const image) {
   auto const & info = ::internalImages.at(image.id);
   vmaDestroyImage(util::ctx().vmaAllocator, info.image, info.allocation);
   // TODO... destroy image views in util
+}
+
+PuleStringView puleGpuImageLabel(PuleGpuImage const image) {
+  
 }
 
 } // C
@@ -447,6 +487,25 @@ PuleGpuFramebufferAttachments puleGpuFramebufferAttachments(
   PuleGpuFramebuffer const framebuffer
 ) {
   PULE_assert(0);
+}
+
+PuleStringView puleGpuImageLayoutLabel(PuleGpuImageLayout const layout) {
+  switch (layout) {
+    case PuleGpuImageLayout_uninitialized:
+      return puleCStr("uninitialized");
+    case PuleGpuImageLayout_storage:
+      return puleCStr("storage");
+    case PuleGpuImageLayout_attachmentColor:
+      return puleCStr("attachmentColor");
+    case PuleGpuImageLayout_attachmentDepth:
+      return puleCStr("attachmentDepth");
+    case PuleGpuImageLayout_transferSrc:
+      return puleCStr("transferSrc");
+    case PuleGpuImageLayout_transferDst:
+      return puleCStr("transferDst");
+    case PuleGpuImageLayout_presentSrc:
+      return puleCStr("presentSrc");
+  }
 }
 
 } // C

@@ -10,7 +10,7 @@ target_sources(
 set_target_properties(
   pulchritude-camera
     PROPERTIES
-      COMPILE_FLAGS "-Wshadow -Wdouble-promotion -Wformat=2 -Wundef"
+      COMPILE_FLAGS "-Wshadow -Wdouble-promotion -Wformat=2 -Wundef -Wno-missing-braces"
     POSITION_INDEPENDENT_CODE ON
 )
 

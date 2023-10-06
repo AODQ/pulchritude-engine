@@ -1,7 +1,8 @@
 #pragma once
 
-#include <pulchritude-string/string.h>
 #include <pulchritude-gpu/commands.h>
+#include <pulchritude-gpu/resource.h>
+#include <pulchritude-string/string.h>
 
 // A task graph to help parallelize render tasks, and track the usage of
 // resources within each task. Can be built up from multiple graphs from
@@ -48,61 +49,103 @@ typedef enum {
   PuleRenderGraph_ResourceType_buffer,
 } PuleRenderGraph_ResourceType;
 
+typedef enum {
+  PuleRenderGraph_ResourceUsage_read,
+  PuleRenderGraph_ResourceUsage_write,
+  PuleRenderGraph_ResourceUsage_readWrite,
+} PuleRenderGraph_ResourceUsage;
+
 typedef struct {
   union {
     struct {
-      // TODO rename 'entrance' to '', and 'preentrance' to 'entrance'
-      // TODO possibly add an optional 'exittance' layout/access, in case
-      //      user modifies the access/layout, however this shouldn't
-      //      be necessary if the render graph is robust enough
-      PuleGpuResourceAccess payloadAccessEntrance;
-      // this will be filled out for you based off 'depends on' entrance
-      PuleGpuResourceAccess payloadAccessPreentrance;
-      PuleGpuImageLayout payloadLayoutEntrance;
-      // this will be filled out for you based off 'depends on' entrance
-      PuleGpuImageLayout payloadLayoutPreentrance;
+      PuleString referenceResourceLabel; // TODO deallocate
+      float scaleWidth;
+      float scaleHeight;
+    } dimensionsScaleRelative;
+    struct {
+      uint32_t width;
+      uint32_t height;
+    } dimensionsAbsolute;
+  };
+  bool areDimensionsAbsolute;
+  PuleBufferView nullableInitialData;
+  PuleRenderGraph_ResourceUsage resourceUsage;
+  bool isAttachment;
+  PuleGpuImageByteFormat byteFormat;
+  PuleGpuSampler sampler;
+  PuleGpuImageTarget target;
+  uint32_t mipmapLevels;
+  uint32_t arrayLayers;
+} PuleRenderGraph_Resource_Image_DataManagement_Automatic;
 
-      bool isInitialized;
+typedef struct {
+  // TODO this should be some reference to an external resource handle
+  uint8_t reserved;
+} PuleRenderGraph_Resource_Image_DataManagement_Manual;
+
+// tracks all metadata of a resource relating to the render graph.
+typedef struct {
+  PuleStringView resourceLabel;
+  union {
+    struct {
+      union {
+        PuleRenderGraph_Resource_Image_DataManagement_Automatic automatic;
+        PuleRenderGraph_Resource_Image_DataManagement_Manual manual;
+      } dataManagement;
+      bool isAutomatic;
+      PuleGpuImageReference imageReference;
     } image;
     struct {
-      PuleGpuResourceAccess entrancePayloadAccess;
-      PuleGpuResourceAccess exittancePayloadAccess;
+      uint8_t reserved;
     } buffer;
   };
   PuleRenderGraph_ResourceType resourceType;
 } PuleRenderGraph_Resource;
 
-PULE_exportFn void puleRenderGraph_resourceAssign(
-  PuleRenderGraphNode const node,
-  PuleStringView const resourceLabel,
+// contains relationship of a resource to a node, e.g. if the node's command
+// list plans to use it.
+typedef struct {
+  PuleStringView resourceLabel;
+  PuleGpuResourceAccess access;
+  PuleGpuResourceAccess accessEntrance;
+  union {
+    struct {
+      PuleGpuImageLayout layout;
+      PuleGpuImageLayout layoutEntrance;
+    } image;
+    struct {
+      uint8_t reserved;
+    } buffer;
+  };
+} PuleRenderGraph_Node_Resource;
+
+PULE_exportFn void puleRenderGraph_resourceCreate(
+  PuleRenderGraph const graph,
   PuleRenderGraph_Resource const resource
 );
 
 PULE_exportFn PuleRenderGraph_Resource puleRenderGraph_resource(
-  PuleRenderGraphNode const node,
+  PuleRenderGraph const graph,
   PuleStringView const resourceLabel
 );
 
 PULE_exportFn void puleRenderGraph_resourceRemove(
-  PuleRenderGraphNode const node,
+  PuleRenderGraph const graph,
   PuleStringView const resourceLabel
+);
+
+PULE_exportFn void puleRenderGraph_node_resourceAssign(
+  PuleRenderGraphNode const node,
+  PuleRenderGraph_Node_Resource const resourceUsage
 );
 
 // -- render node | command list
 
 PULE_exportFn PuleGpuCommandList puleRenderGraph_commandList(
-  PuleRenderGraphNode const node,
-  uint64_t (* const fetchResourceHandle)(
-    PuleStringView const label, void * const userdata
-  ),
-  void * const userdata
+  PuleRenderGraphNode const node
 );
 PULE_exportFn PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
-  PuleRenderGraphNode const node,
-  uint64_t (* const fetchResourceHandle)(
-    PuleStringView const label, void * const userdata
-  ),
-  void * const userdata
+  PuleRenderGraphNode const node
 );
 
 // -- render node | relations
@@ -120,10 +163,7 @@ PULE_exportFn void puleRenderGraphNodeRelationSet(
 // prepares for rendering, needs to fetch resources to bake resource barriers
 // into command lists
 PULE_exportFn void puleRenderGraphFrameStart(
-  PuleRenderGraph const graph,
-  uint64_t (* const fetchResourceHandle)(
-    PuleStringView const label, void * const userdata
-  )
+  PuleRenderGraph const graph
 );
 // submits the render graph's command lists to the GPU, and will present the
 // swapchain image. No further GPU work can be done until the next frame.

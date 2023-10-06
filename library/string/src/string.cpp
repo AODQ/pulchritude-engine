@@ -9,25 +9,31 @@
 
 extern "C" {
 
+PuleString puleStringCopy(
+  PuleAllocator const allocator,
+  PuleStringView const base
+) {
+  PuleAllocateInfo allocateInfo = {
+    .zeroOut = false,
+    .numBytes = base.len+1,
+    .alignment = 0,
+  };
+  char * data = (char *)(puleAllocate(allocator, allocateInfo));
+  memcpy(data, base.contents, base.len);
+  data[base.len] = '\0';
+  PuleString str = {
+    .contents = data,
+    .len = base.len,
+    .allocator = allocator,
+  };
+  return str;
+}
+
 PuleString puleString(
   PuleAllocator const allocator,
   char const * const baseContents
 ) {
-  size_t const len = strlen(baseContents);
-  PuleAllocateInfo allocateInfo = {
-    .zeroOut = false,
-    .numBytes = len+1,
-    .alignment = 0,
-  };
-  char * data = (char *)(puleAllocate(allocator, allocateInfo));
-  memcpy(data, baseContents, len);
-  data[len] = '\0';
-  PuleString str = {
-    .contents = data,
-    .len = len,
-    .allocator = allocator,
-  };
-  return str;
+  return puleStringCopy(allocator, puleCStr(baseContents));
 }
 
 PuleString puleStringDefault(char const * const baseContents) {

@@ -70,6 +70,8 @@ PuleStringView puleGpuActionToString(PuleGpuAction const action) {
       return puleCStr("dispatch-command-list");
     case PuleGpuAction_setScissor:
       return puleCStr("set-scissor");
+    case PuleGpuAction_copyImageToImage:
+      return puleCStr("copy-image-to-image");
   }
 }
 
@@ -188,7 +190,7 @@ void puleGpuCommandListAppendAction(
           recorderInfo.currentBoundPipeline.id
         );
         (void)pipelineInfo;
-        // TODO
+        // TODO why are these not supported again? Is this Vulkan's API fault?
         PULE_assert(false && "zero strides not supported yet");
         //pipelineInfo.attributes.at(action.attributeIndex).stride;
       }
@@ -398,6 +400,31 @@ void puleGpuCommandListAppendAction(
           }
         );
       }
+      puleLogDebug(
+        "resource barrier src %s dst %s,\n -> %zu image barriers [[",
+        puleGpuResourceBarrierStageLabel(action.stageSrc).contents,
+        puleGpuResourceBarrierStageLabel(action.stageDst).contents,
+        action.resourceImageCount
+      );
+      for (size_t it = 0; it < action.resourceImageCount; ++ it) {
+        puleLogDebug(
+          "  access %s -> %s, layout %s -> %s, label %s",
+          puleGpuResourceAccessLabel(
+            action.resourceImages[it].accessSrc
+          ).contents,
+          puleGpuResourceAccessLabel(
+            action.resourceImages[it].accessDst
+          ).contents,
+          puleGpuImageLayoutLabel(
+            action.resourceImages[it].layoutSrc
+          ).contents,
+          puleGpuImageLayoutLabel(
+            action.resourceImages[it].layoutDst
+          ).contents,
+          puleGpuImageLabel(action.resourceImages[it].image).contents
+        );
+      }
+      puleLogDebug("]]");
       vkCmdPipelineBarrier(
         commandBuffer,
         util::toVkPipelineStageFlags(action.stageSrc),
@@ -480,6 +507,52 @@ void puleGpuCommandListAppendAction(
         action.scissorMax.y - action.scissorMin.y
       );
       vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    }
+    break;
+    case PuleGpuAction_copyImageToImage: {
+      auto const action = (
+        *reinterpret_cast<PuleGpuActionCopyImageToImage const *>(&command)
+      );
+      auto const imageCopyRegion = VkImageCopy2KHR {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
+        .pNext = nullptr,
+        .srcSubresource = { // TODO::CRIT
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .mipLevel = 0,
+          .baseArrayLayer = 0,
+          .layerCount = 1,
+        },
+        .srcOffset = VkOffset3D {
+          .x = (int32_t)action.srcOffset.x,
+          .y = (int32_t)action.srcOffset.y,
+          .z = (int32_t)action.srcOffset.z,
+        },
+        .dstSubresource = { // TODO::CRIT
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .mipLevel = 0,
+          .baseArrayLayer = 0,
+          .layerCount = 1,
+        },
+        .dstOffset = VkOffset3D {
+          .x = (int32_t)action.dstOffset.x,
+          .y = (int32_t)action.dstOffset.y,
+          .z = (int32_t)action.dstOffset.z,
+        },
+        .extent = VkExtent3D {
+          .width = action.extent.x,
+          .height = action.extent.y,
+          .depth = action.extent.z,
+        },
+      };
+      auto const imageCopy = VkCopyImageInfo2KHR {
+        .sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR,
+        .pNext = nullptr,
+        .srcImage = reinterpret_cast<VkImage>(action.srcImage.id),
+        .dstImage = reinterpret_cast<VkImage>(action.dstImage.id),
+        .regionCount = 1,
+        .pRegions = &imageCopyRegion,
+      };
+      vkCmdCopyImage2KHR(commandBuffer, &imageCopy);
     }
     break;
   }
@@ -779,6 +852,72 @@ PuleGpuFence puleGpuCommandListChainCurrentFence(
   PULE_assert(currentCommandList.fence.id != 0);
   PULE_assert(currentCommandList.frameIdx == util::ctx().frameIdx);
   return currentCommandList.fence;
+}
+
+PuleStringView puleGpuResourceBarrierStageLabel(
+  PuleGpuResourceBarrierStage const stage
+) {
+  switch (stage) {
+    case PuleGpuResourceBarrierStage_top:
+      return puleCStr("top");
+    case PuleGpuResourceBarrierStage_drawIndirect:
+      return puleCStr("drawIndirect");
+    case PuleGpuResourceBarrierStage_vertexInput:
+      return puleCStr("vertexInput");
+    case PuleGpuResourceBarrierStage_shaderFragment:
+      return puleCStr("shaderFragment");
+    case PuleGpuResourceBarrierStage_shaderVertex:
+      return puleCStr("shaderVertex");
+    case PuleGpuResourceBarrierStage_shaderCompute:
+      return puleCStr("shaderCompute");
+    case PuleGpuResourceBarrierStage_outputAttachmentColor:
+      return puleCStr("outputAttachmentColor");
+    case PuleGpuResourceBarrierStage_transfer:
+      return puleCStr("transfer");
+    case PuleGpuResourceBarrierStage_bottom:
+      return puleCStr("bottom");
+  }
+}
+
+PuleStringView puleGpuResourceAccessLabel(PuleGpuResourceAccess const access) {
+  switch (access) {
+    case PuleGpuResourceAccess_none:
+      return puleCStr("PuleGpuResourceAccess_none");
+    case PuleGpuResourceAccess_indirectCommandRead:
+      return puleCStr("PuleGpuResourceAccess_indirectCommandRead");
+    case PuleGpuResourceAccess_indexRead:
+      return puleCStr("PuleGpuResourceAccess_indexRead");
+    case PuleGpuResourceAccess_vertexAttributeRead:
+      return puleCStr("PuleGpuResourceAccess_vertexAttributeRead");
+    case PuleGpuResourceAccess_uniformRead:
+      return puleCStr("PuleGpuResourceAccess_uniformRead");
+    case PuleGpuResourceAccess_inputAttachmentRead:
+      return puleCStr("PuleGpuResourceAccess_inputAttachmentRead");
+    case PuleGpuResourceAccess_shaderRead:
+      return puleCStr("PuleGpuResourceAccess_shaderRead");
+    case PuleGpuResourceAccess_shaderWrite:
+      return puleCStr("PuleGpuResourceAccess_shaderWrite");
+    case PuleGpuResourceAccess_attachmentColorRead:
+      return puleCStr("PuleGpuResourceAccess_attachmentColorRead");
+    case PuleGpuResourceAccess_attachmentColorWrite:
+      return puleCStr("PuleGpuResourceAccess_attachmentColorWrite");
+    case PuleGpuResourceAccess_attachmentDepthRead:
+      return puleCStr("PuleGpuResourceAccess_attachmentDepthRead");
+    case PuleGpuResourceAccess_attachmentDepthWrite:
+      return puleCStr("PuleGpuResourceAccess_attachmentDepthWrite");
+    case PuleGpuResourceAccess_transferRead:
+      return puleCStr("PuleGpuResourceAccess_transferRead");
+    case PuleGpuResourceAccess_transferWrite:
+      return puleCStr("PuleGpuResourceAccess_transferWrite");
+    case PuleGpuResourceAccess_hostRead:
+      return puleCStr("PuleGpuResourceAccess_hostRead");
+    case PuleGpuResourceAccess_hostWrite:
+      return puleCStr("PuleGpuResourceAccess_hostWrite");
+    case PuleGpuResourceAccess_memoryRead:
+      return puleCStr("PuleGpuResourceAccess_memoryRead");
+    case PuleGpuResourceAccess_memoryWrite:
+      return puleCStr("PuleGpuResourceAccess_memoryWrite");
+  }
 }
 
 } // extern C

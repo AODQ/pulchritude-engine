@@ -26,15 +26,16 @@ PULE_exportFn void pulePluginsLoad(
 PULE_exportFn void pulePluginsFree();
 PULE_exportFn void pulePluginsReload();
 PULE_exportFn size_t pulePluginIdFromName(char const * const pluginNameCStr);
+PULE_exportFn char const * pulePluginName(size_t const pluginId);
 PULE_exportFn void * pulePluginLoadFn(
   size_t const pluginId,
   char const * const fnCStr
 );
-PULE_exportFn void * puleTryPluginLoadFn(
+PULE_exportFn void * pulePluginLoadFnTry(
   size_t const pluginId,
   char const * const fnCStr
 );
-PULE_exportFn void puleIteratePlugins(
+PULE_exportFn void pulePluginIterate(
   void (* const fn)(PulePluginInfo const plugin, void * const userdata),
   void * const userdata
 );

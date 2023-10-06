@@ -13,7 +13,7 @@ set_target_properties(
   pulchritude-asset-script-task-graph
     PROPERTIES
       COMPILE_FLAGS
-        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
+        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef -Wno-missing-braces"
     POSITION_INDEPENDENT_CODE ON
 )
 

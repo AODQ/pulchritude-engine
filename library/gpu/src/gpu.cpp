@@ -74,6 +74,7 @@ VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance const instance) {
 }
 
 VkInstance createInstance(PuleError * const error) {
+  puleLogDebug("[Pule|Vk] creating instance");
   auto applicationInfo = VkApplicationInfo {
     .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
     .pNext = nullptr,
@@ -141,6 +142,7 @@ VkInstance createInstance(PuleError * const error) {
 }
 
 util::Device createDevice(VkInstance const instance, PuleError * const error) {
+  puleLogDebug("[Gfx|Vk] creating device: %u", (uint64_t)instance);
   // TODO pick the best GPU or whatever, for now, who cares
   util::Device device {};
   puleLogDebug("[Gfx|Vk] creating physical device");
@@ -665,6 +667,10 @@ PuleGpuBuffer puleGpuBufferCreate(
   [[maybe_unused]] PuleGpuBufferUsage const usage,
   PuleGpuBufferVisibilityFlag const visibility
 ) {
+  puleLogDebug(
+    "[Gfx|Vk] creating buffer: %s initial data: %p size: %zu usage: ",
+    name.contents
+  );
   VkBufferUsageFlags usageVk = util::toBufferUsageFlags(usage);
   usageVk |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
   usageVk |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -683,11 +689,6 @@ PuleGpuBuffer puleGpuBufferCreate(
     .queueFamilyIndexCount = 0,
     .pQueueFamilyIndices = nullptr, // TODO probably want to use concurrent l8r?
   };
-
-  puleLogDev(
-    "Creating buffer and allocation for %s; usage flags: %d",
-    name.contents, usageVk
-  );
 
   auto allocationFlags = VmaAllocationCreateFlags { 0 };
   VkMemoryPropertyFlags bufferMemoryProperties = 0;
@@ -715,12 +716,12 @@ PuleGpuBuffer puleGpuBufferCreate(
   VkBuffer buffer;
   VmaAllocation allocation;
   VmaAllocationInfo allocationInfo;
-  PULE_assert(
+  PULE_vkError(
     vmaCreateBuffer(
       util::ctx().vmaAllocator,
       &bufferCi, &allocationCi,
       &buffer, &allocation, &allocationInfo
-    ) == VK_SUCCESS
+    )
   );
   util::ctx().buffers.emplace(
     reinterpret_cast<uint64_t>(buffer),
@@ -855,6 +856,19 @@ void puleGpuBufferMappedFlush(
 
 void puleGpuDebugPrint() {
   // util::printCommandsDebug();
+}
+
+PuleStringView puleGpuBufferUsageLabel(PuleGpuBufferUsage const usage) {
+  switch (usage) {
+    case PuleGpuBufferUsage_attribute: return puleCStr("attribute");
+    case PuleGpuBufferUsage_element: return puleCStr("element");
+    case PuleGpuBufferUsage_uniform: return puleCStr("uniform");
+    case PuleGpuBufferUsage_storage: return puleCStr("storage");
+    case PuleGpuBufferUsage_accelerationStructure:
+      return puleCStr("accelerationStructure");
+    case PuleGpuBufferUsage_indirect: return puleCStr("indirect");
+    default: return puleCStr("unknown");
+  }
 }
 
 } // extern C

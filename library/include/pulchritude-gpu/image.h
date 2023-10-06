@@ -1,7 +1,7 @@
 #pragma once
 
-#include <pulchritude-gpu/shader-module.h>
 #include <pulchritude-gpu/gpu.h>
+#include <pulchritude-gpu/shader-module.h>
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
@@ -59,15 +59,18 @@ typedef struct {
   PuleGpuImageTarget target;
   PuleGpuImageByteFormat byteFormat;
   PuleGpuSampler sampler; // TODO this should technically be changable
+  PuleStringView label;
   void const * optionalInitialData;
 } PuleGpuImageCreateInfo;
 
-PULE_exportFn PuleGpuImage puleGpuImageCreate(
-  PuleGpuImageCreateInfo const imageCreateInfo
-);
+PULE_exportFn PuleStringView puleGpuImageLabel(PuleGpuImage const image);
 
 PULE_exportFn void puleGpuImageDestroy(
   PuleGpuImage const image
+);
+
+PULE_exportFn PuleGpuImage puleGpuImageCreate(
+  PuleGpuImageCreateInfo const imageCreateInfo
 );
 
 typedef struct {
@@ -118,7 +121,6 @@ PULE_exportFn PuleGpuFramebuffer puleGpuFramebufferCreate(
 PULE_exportFn void puleGpuFramebufferDestroy(
   PuleGpuFramebuffer const framebuffer
 );
-PULE_exportFn PuleGpuImage puleGpuWindowImage();
 PuleGpuFramebufferAttachments puleGpuFramebufferAttachments(
   PuleGpuFramebuffer const framebuffer
 );
@@ -160,6 +162,10 @@ typedef struct {
   PuleF32v4 clearColor;
   PuleGpuImageView imageView;
 } PuleGpuImageAttachment;
+
+PULE_exportFn PuleStringView puleGpuImageLayoutLabel(
+  PuleGpuImageLayout const layout
+);
 
 #ifdef __cplusplus
 } // C

@@ -79,11 +79,6 @@ void shaderWatchFileUpdatedCallback(
       &err
     )
   );
-  puleLogDev(
-    "reloaded shader module '%s' with id %d",
-    assetShaderModule.label.c_str(),
-    assetShaderModule.shaderModule
-  );
   puleErrorConsume(&err);
 }
 

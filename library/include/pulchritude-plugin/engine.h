@@ -40,6 +40,9 @@
 #include <pulchritude-gpu/commands.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/synchronization.h>
+#include <pulchritude-gpu/resource.h>
+#include <pulchritude-physx/collision.h>
+#include <pulchritude-physx/physx2d.h>
 
 
 typedef struct PuleEngineLayer {
@@ -244,7 +247,7 @@ typedef struct PuleEngineLayer {
   void (* imguiInitialize)(PulePlatform const);
   void (* imguiShutdown)();
   void (* imguiNewFrame)();
-  void (* imguiRender)(PuleGpuCommandListRecorder const);
+  void (* imguiRender)(PuleRenderGraph const);
   void (* imguiJoinNext)();
   bool (* imguiSliderF32)(char const * const, float * const, float const, float const);
   bool (* imguiSliderZu)(char const * const, size_t * const, size_t const, size_t const);
@@ -287,6 +290,7 @@ typedef struct PuleEngineLayer {
   PuleF32v3 (* f32v3Sub)(PuleF32v3 const, PuleF32v3 const);
   PuleF32v3 (* f32v3Neg)(PuleF32v3 const);
   PuleF32v3 (* f32v3Mul)(PuleF32v3 const, PuleF32v3 const);
+  PuleF32v3 (* f32v3MulScalar)(PuleF32v3 const, float const);
   PuleF32v3 (* f32v3Div)(PuleF32v3 const, PuleF32v3 const);
   float (* f32v3Dot)(PuleF32v3 const, PuleF32v3 const);
   float (* f32v3Length)(PuleF32v3 const);
@@ -296,6 +300,8 @@ typedef struct PuleEngineLayer {
   PuleF32m44 (* f32m44)(float const);
   PuleF32m44 (* f32m44Ptr)(float const * const);
   PuleF32m44 (* f32m44PtrTranspose)(float const * const);
+  PuleF32m44 (* f32m44Inverse)(PuleF32m44 const);
+  PuleF32v4 (* f32m44MulV4)(PuleF32m44 const, PuleF32v4 const);
   void (* f32m44DumpToStdout)(PuleF32m44);
   PuleF32m44 (* projectionPerspective)(float const, float const, float const, float const);
   PuleF32m44 (* viewLookAt)(PuleF32v3 const, PuleF32v3 const, PuleF32v3 const);
@@ -340,9 +346,10 @@ typedef struct PuleEngineLayer {
   void (* pluginsFree)();
   void (* pluginsReload)();
   size_t (* pluginIdFromName)(char const * const);
+  char const * (* pluginName)(size_t const);
   void * (* pluginLoadFn)(size_t const, char const * const);
-  void * (* tryPluginLoadFn)(size_t const, char const * const);
-  void (* iteratePlugins)(void (* )(PulePluginInfo const, void * const), void * const);
+  void * (* pluginLoadFnTry)(size_t const, char const * const);
+  void (* pluginIterate)(void (* )(PulePluginInfo const, void * const), void * const);
   // raycast
   PuleRaycastTriangleResult (* raycastTriangles)(PuleF32v3 const, PuleF32v3 const, PuleArrayView const);
   // renderer-3d
@@ -382,6 +389,7 @@ typedef struct PuleEngineLayer {
   // string
   PuleString (* stringDefault)(char const * const);
   PuleString (* string)(PuleAllocator const, char const * const);
+  PuleString (* stringCopy)(PuleAllocator const, PuleStringView const);
   void (* stringDestroy)(PuleString const);
   void (* stringAppend)(PuleString * const, PuleStringView const);
   PuleString (* stringFormat)(PuleAllocator const, char const * const, ...);
@@ -428,13 +436,14 @@ typedef struct PuleEngineLayer {
   void (* renderGraphNodeRemove)(PuleRenderGraphNode const);
   PuleStringView (* renderGraphNodeLabel)(PuleRenderGraphNode const);
   PuleRenderGraphNode (* renderGraphNodeFetch)(PuleRenderGraph const, PuleStringView const);
-  void (* renderGraph_resourceAssign)(PuleRenderGraphNode const, PuleStringView const, PuleRenderGraph_Resource const);
-  PuleRenderGraph_Resource (* renderGraph_resource)(PuleRenderGraphNode const, PuleStringView const);
-  void (* renderGraph_resourceRemove)(PuleRenderGraphNode const, PuleStringView const);
-  PuleGpuCommandList (* renderGraph_commandList)(PuleRenderGraphNode const, uint64_t (* )(PuleStringView const, void * const), void * const);
-  PuleGpuCommandListRecorder (* renderGraph_commandListRecorder)(PuleRenderGraphNode const, uint64_t (* )(PuleStringView const, void * const), void * const);
+  void (* renderGraph_resourceCreate)(PuleRenderGraph const, PuleRenderGraph_Resource const);
+  PuleRenderGraph_Resource (* renderGraph_resource)(PuleRenderGraph const, PuleStringView const);
+  void (* renderGraph_resourceRemove)(PuleRenderGraph const, PuleStringView const);
+  void (* renderGraph_node_resourceAssign)(PuleRenderGraphNode const, PuleRenderGraph_Node_Resource const);
+  PuleGpuCommandList (* renderGraph_commandList)(PuleRenderGraphNode const);
+  PuleGpuCommandListRecorder (* renderGraph_commandListRecorder)(PuleRenderGraphNode const);
   void (* renderGraphNodeRelationSet)(PuleRenderGraphNode const, PuleRenderGraphNodeRelation const, PuleRenderGraphNode const);
-  void (* renderGraphFrameStart)(PuleRenderGraph const, uint64_t (* )(PuleStringView const, void * const));
+  void (* renderGraphFrameStart)(PuleRenderGraph const);
   void (* renderGraphFrameSubmit)(PuleGpuSemaphore const, PuleRenderGraph const);
   void (* renderGraphExecuteInOrder)(PuleRenderGraphExecuteInfo const);
   bool (* renderGraphNodeExists)(PuleRenderGraphNode const);
@@ -446,12 +455,13 @@ typedef struct PuleEngineLayer {
   void (* gpuPipelineDestroy)(PuleGpuPipeline const);
   PuleGpuSampler (* gpuSamplerCreate)(PuleGpuSamplerCreateInfo const);
   void (* gpuSamplerDestroy)(PuleGpuSampler const);
-  PuleGpuImage (* gpuImageCreate)(PuleGpuImageCreateInfo const);
+  PuleStringView (* gpuImageLabel)(PuleGpuImage const);
   void (* gpuImageDestroy)(PuleGpuImage const);
+  PuleGpuImage (* gpuImageCreate)(PuleGpuImageCreateInfo const);
   PuleGpuFramebufferCreateInfo (* gpuFramebufferCreateInfo)();
   PuleGpuFramebuffer (* gpuFramebufferCreate)(PuleGpuFramebufferCreateInfo const, PuleError * const);
   void (* gpuFramebufferDestroy)(PuleGpuFramebuffer const);
-  PuleGpuImage (* gpuWindowImage)();
+  PuleStringView (* gpuImageLayoutLabel)(PuleGpuImageLayout const);
   PuleStringView (* gpuActionToString)(PuleGpuAction const);
   PuleGpuCommandList (* gpuCommandListCreate)(PuleAllocator const, PuleStringView const);
   void (* gpuCommandListDestroy)(PuleGpuCommandList const);
@@ -466,6 +476,8 @@ typedef struct PuleEngineLayer {
   void (* gpuCommandListChainDestroy)(PuleGpuCommandListChain const);
   PuleGpuCommandList (* gpuCommandListChainCurrent)(PuleGpuCommandListChain const);
   PuleGpuFence (* gpuCommandListChainCurrentFence)(PuleGpuCommandListChain const);
+  PuleStringView (* gpuResourceBarrierStageLabel)(PuleGpuResourceBarrierStage const);
+  PuleStringView (* gpuResourceAccessLabel)(PuleGpuResourceAccess const);
   PuleGpuBuffer (* gpuBufferCreate)(PuleStringView const, void const * const, size_t const, PuleGpuBufferUsage const, PuleGpuBufferVisibilityFlag const);
   void (* gpuBufferDestroy)(PuleGpuBuffer const);
   void * (* gpuBufferMap)(PuleGpuBufferMapRange const);
@@ -474,6 +486,7 @@ typedef struct PuleEngineLayer {
   void (* gpuInitialize)(PulePlatform const, PuleError * const);
   void (* gpuShutdown)();
   void (* gpuDebugPrint)();
+  PuleStringView (* gpuBufferUsageLabel)(PuleGpuBufferUsage const);
   PuleGpuSemaphore (* gpuSemaphoreCreate)(PuleStringView const);
   void (* gpuSemaphoreDestroy)(PuleGpuSemaphore const);
   PuleGpuFence (* gpuFenceCreate)(PuleStringView const);
@@ -482,6 +495,32 @@ typedef struct PuleEngineLayer {
   void (* gpuFenceReset)(PuleGpuFence const);
   PuleGpuSemaphore (* gpuFrameStart)();
   void (* gpuFrameEnd)(size_t const, PuleGpuSemaphore const * const);
+  PuleGpuImageChain (* gpuImageChain_create)(PuleAllocator const, PuleStringView const, PuleGpuImageCreateInfo const);
+  void (* gpuImageChain_destroy)(PuleGpuImageChain const);
+  PuleGpuImage (* gpuImageChain_current)(PuleGpuImageChain const);
+  PuleGpuImageReference (* gpuImageReference_createImageChain)(PuleGpuImageChain const);
+  PuleGpuImageReference (* gpuImageReference_createImage)(PuleGpuImage const);
+  void (* gpuImageReference_updateImageChain)(PuleGpuImageChain const, PuleGpuImageChain const);
+  void (* gpuImageReference_updateImage)(PuleGpuImage const, PuleGpuImage const);
+  void (* gpuImageReference_destroy)(PuleGpuImageReference const);
+  PuleGpuImage (* gpuImageReference_image)(PuleGpuImageReference const);
+  PuleGpuImage (* gpuWindowSwapchainImage)();
+  PuleGpuImageReference (* gpuWindowSwapchainImageReference)();
+  // physx
+  PulePhysxCollisionResultShape (* physxRaycastShape)(PulePhysxMode const, PulePhysxRay const, PuleF32m44 const, PulePhysxCollisionShape const);
+  PulePhysxCollisionResultMesh (* physxRaycastMesh)(PulePhysxMode const, PulePhysxRay const, PuleF32m44 const, PulePhysxCollisionMesh const);
+  bool (* physxShapeOverlapShape)(PulePhysxMode const, PuleF32m44 const, PulePhysxCollisionShape const, PuleF32m44 const, PulePhysxCollisionShape const);
+  bool (* physxShapeOverlapMesh)(PulePhysxMode const, PuleF32m44 const, PulePhysxCollisionShape const, PuleF32m44 const, PulePhysxCollisionMesh const);
+  PulePhysx2DWorld (* physx2DWorldCreate)();
+  void (* physx2DWorldDestroy)(PulePhysx2DWorld const);
+  void (* physx2DWorldGravitySet)(PulePhysx2DWorld const, PuleF32v2 const);
+  void (* physx2DWorldStep)(PulePhysx2DWorld const, float const, int const, int const);
+  PulePhysx2DBody (* physx2DBodyCreate)(PulePhysx2DWorld const, PulePhysx2DBodyCreateInfo const);
+  void (* physx2DBodyDestroy)(PulePhysx2DWorld const, PulePhysx2DBody const);
+  PuleF32v2 (* physx2DBodyPosition)(PulePhysx2DWorld const, PulePhysx2DBody const);
+  float (* physx2DBodyAngle)(PulePhysx2DWorld const, PulePhysx2DBody const);
+  void (* physx2DBodyAttachShape)(PulePhysx2DWorld const, PulePhysx2DBody const, PulePhysx2DShape const, PulePhysx2DBodyAttachShapeCreateInfo const);
+  PulePhysx2DShape (* physx2DShapeCreateConvexPolygonAsBox)(PuleF32v2 const, PuleF32v2 const, float const);
 } PuleEngineLayer;
 
 

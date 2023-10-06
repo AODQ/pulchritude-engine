@@ -10,7 +10,7 @@ set_target_properties(
   puledit
   PROPERTIES
     COMPILE_FLAGS
-      "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
+      "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef -Wno-missing-braces"
     ENABLE_EXPORTS ON
 )
 

@@ -20,7 +20,7 @@ PULE_exportFn void puleImguiInitialize(PulePlatform const window);
 PULE_exportFn void puleImguiShutdown();
 PULE_exportFn void puleImguiNewFrame();
 PULE_exportFn void puleImguiRender(
-  PuleGpuCommandListRecorder const recorder
+  PuleRenderGraph const renderGraph
 );
 
 PULE_exportFn void puleImguiJoinNext();

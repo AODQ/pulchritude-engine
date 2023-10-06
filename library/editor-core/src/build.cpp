@@ -54,6 +54,7 @@ void dumpToFile(
     }
   );
   puleFileClose(masterFile);
+  puleLog("Wrote file: %s", filename.c_str());
 }
 
 static void generateMasterCmakefile(PuleDsValue const projectValue) {

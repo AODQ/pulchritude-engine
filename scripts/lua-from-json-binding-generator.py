@@ -224,7 +224,7 @@ def extractCopy(fieldType, ftLabel, stackTop):
       f" {ftLabel} = ({fieldTypeStr})(lua_tointeger(state, {stackTop}));\n"
     )
   else:
-    print(f"err: unhandled {fieldType} / {ftLabel}")
+    #print(f"err: unhandled {fieldType} / {ftLabel}")
     return ''
 
 def extractPush(fieldType, ftLabel):
@@ -251,7 +251,7 @@ def extractPush(fieldType, ftLabel):
   elif (isEnum(fieldType[0])):
     return f"lua_pushinteger(state, {ftLabel});\n"
   else:
-    print(f"err: unhandled {fieldType} / {ftLabel}")
+    #print(f"err: unhandled {fieldType} / {ftLabel}")
     return ''
 
 def extractPop(
@@ -316,7 +316,7 @@ def extractPop(
       pout + f"  {ftLabel} = lua_tointeger(state, newStackTop);\n  }}\n" + append
     )
   else:
-    print(f"err: unhandled {fieldType} / {ftLabel}")
+    #print(f"err: unhandled {fieldType} / {ftLabel}")
     return ''
 
 
@@ -346,7 +346,7 @@ for symbol in inputJson:
   )
   # first just check if we even want bindings for this
   if (not symbolIsSupported(symbol)):
-    print(f"Unsupported symbol: {symbol['label']}");
+    #print(f"Unsupported symbol: {symbol['label']}");
     continue
 
   # now proceed to bind

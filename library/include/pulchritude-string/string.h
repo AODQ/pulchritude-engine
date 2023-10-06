@@ -40,6 +40,10 @@ PULE_exportFn PuleString puleString(
   PuleAllocator const allocator,
   char const * const baseContents
 );
+PULE_exportFn PuleString puleStringCopy(
+  PuleAllocator const allocator,
+  PuleStringView const base
+);
 
 PULE_exportFn void puleStringDestroy(PuleString const puleStringInout);
 

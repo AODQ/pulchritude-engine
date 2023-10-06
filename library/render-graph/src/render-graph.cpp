@@ -28,6 +28,38 @@ size_t uniqueThreadId() {
 
 namespace {
 
+PuleGpuResourceBarrierStage toResourceBarrierStage(
+  PuleGpuResourceAccess const access
+) {
+  switch (access) {
+    //default: PULE_assert(false && unknown access);
+    case PuleGpuResourceAccess_none:
+      return PuleGpuResourceBarrierStage_top;
+    case PuleGpuResourceAccess_hostRead:
+    case PuleGpuResourceAccess_hostWrite:
+    case PuleGpuResourceAccess_memoryRead:
+    case PuleGpuResourceAccess_memoryWrite:
+    case PuleGpuResourceAccess_transferRead:
+    case PuleGpuResourceAccess_transferWrite:
+      return PuleGpuResourceBarrierStage_transfer;
+    case PuleGpuResourceAccess_attachmentColorRead:
+    case PuleGpuResourceAccess_attachmentColorWrite:
+    case PuleGpuResourceAccess_attachmentDepthRead:
+    case PuleGpuResourceAccess_attachmentDepthWrite:
+      return PuleGpuResourceBarrierStage_outputAttachmentColor;
+      return PuleGpuResourceBarrierStage_transfer;
+    case PuleGpuResourceAccess_shaderRead:
+    case PuleGpuResourceAccess_shaderWrite:
+    case PuleGpuResourceAccess_vertexAttributeRead:
+    case PuleGpuResourceAccess_indirectCommandRead:
+    case PuleGpuResourceAccess_indexRead:
+    case PuleGpuResourceAccess_uniformRead:
+      return PuleGpuResourceBarrierStage_shaderVertex;
+    case PuleGpuResourceAccess_inputAttachmentRead:
+      return PuleGpuResourceBarrierStage_vertexInput;
+  }
+}
+
 struct RenderGraphNode {
   std::string label;
   std::unordered_map<
@@ -35,8 +67,7 @@ struct RenderGraphNode {
   > perThreadCommandList;
   PuleGpuCommandListChain transitionCommandListChainEnter;
   PuleGpuCommandListChain transitionCommandListChainExit;
-  std::unordered_map<uint64_t, PuleRenderGraph_Resource> resources;
-  std::unordered_map<uint64_t, std::string> resourceLabels;
+  std::unordered_map<uint64_t, PuleRenderGraph_Node_Resource> resourceUsage;
   std::vector<uint64_t> relationDependsOn;
   bool usesSwapchain;
   bool isLastSwapchainUsage;
@@ -45,25 +76,27 @@ struct RenderGraphNode {
 struct RenderGraph {
   PuleAllocator allocator;
   std::unordered_map<uint64_t, RenderGraphNode> nodes = {};
+  std::unordered_map<uint64_t, PuleRenderGraph_Resource> resources = {};
+  std::unordered_map<uint64_t, std::string> resourceLabels;
   std::vector<uint64_t> nodesInRelationOrder = {};
   bool needsResort = false;
   uint64_t lastSwapchainUsageNodeId = 0;
 };
 
-std::unordered_map<uint64_t, RenderGraph> renderGraphs;
-uint64_t renderGraphCounter = 1;
+pule::ResourceContainer<::RenderGraph> renderGraphs;
 
 std::unordered_map<uint64_t, uint64_t> renderGraphNodeToGraph;
 
 void nodeDependencyCalculateResourceIntersection(
+  RenderGraph & graph,
   RenderGraphNode & node,
   RenderGraphNode & dependNode
 ) {
-  for (auto & resourcePair : node.resources) {
+  for (auto & resourcePair : node.resourceUsage) {
     auto dependNodeResourceIt = (
-      dependNode.resources.find(resourcePair.first)
+      dependNode.resourceUsage.find(resourcePair.first)
     );
-    if (dependNodeResourceIt == dependNode.resources.end()) { continue; }
+    if (dependNodeResourceIt == dependNode.resourceUsage.end()) { continue; }
     // tie dependNode resource to the current node, so for example
     // if current node resource layout is "attachment-color", then we
     // know that for any nodes that depend on it, they must transition
@@ -73,21 +106,88 @@ void nodeDependencyCalculateResourceIntersection(
     // image, and I have no idea how to handle that.
     // though theoretically this would be illegal behavior as parallel
     // operations would occur on the same resource in this scenario.
-    PuleRenderGraph_Resource & resource = resourcePair.second;
-    PuleRenderGraph_Resource const & dependResource = (
+    PuleRenderGraph_Node_Resource & resource = resourcePair.second;
+    PuleRenderGraph_Node_Resource const & dependResource = (
       dependNodeResourceIt->second
     );
-    PULE_assert(resource.resourceType == dependResource.resourceType);
-    switch (resource.resourceType) {
+    PuleRenderGraph_Resource const & graphResource = (
+      graph.resources.at(resourcePair.first)
+    );
+    switch (graphResource.resourceType) {
       case PuleRenderGraph_ResourceType_image: {
-        auto & image = resource.image;
-        auto & depImage = dependResource.image;
-        image.payloadAccessPreentrance = depImage.payloadAccessEntrance;
-        image.payloadLayoutPreentrance = depImage.payloadLayoutEntrance;
+        resource.accessEntrance = dependResource.accessEntrance;
+        resource.image.layoutEntrance = dependResource.image.layoutEntrance;
       } break;
       case PuleRenderGraph_ResourceType_buffer:
       break;
     }
+  }
+}
+
+void graphCreateResourceImage(
+  RenderGraph & graph,
+  PuleRenderGraph_Resource & resource
+) {
+  PULE_assert(resource.image.isAutomatic);
+  auto & image = resource.image;
+  auto & data = resource.image.dataManagement.automatic;
+  PuleU32v2 dimensions = { .x = 0, .y = 0, };
+  // calculate dimensions
+  if (data.areDimensionsAbsolute) {
+    dimensions.x = data.dimensionsAbsolute.width;
+    dimensions.y = data.dimensionsAbsolute.width;
+  } else {
+    // TODO need to create a list of acyclic dependencies of resources for below
+    if (
+      puleStringViewEqCStr(
+        puleStringView(data.dimensionsScaleRelative.referenceResourceLabel),
+        "window-swapchain-image"
+      )
+    ) {
+      // TODO grab correct window dimensions
+      dimensions.x = std::round(800 * data.dimensionsScaleRelative.scaleWidth);
+      dimensions.y = std::round(600 * data.dimensionsScaleRelative.scaleHeight);
+    } else {
+      puleLogError("Unimplemented [relative dimensions to resource]");
+    }
+  }
+
+  auto const imageCreateInfo = PuleGpuImageCreateInfo {
+    .width = dimensions.x,
+    .height = dimensions.y,
+    .target = PuleGpuImageTarget_i2D, // TODO allow other than 2D
+    .byteFormat = data.byteFormat,
+    .sampler = data.sampler,
+    .label = resource.resourceLabel,
+    .optionalInitialData = data.nullableInitialData.data,
+  };
+
+  bool isChain = false;
+  switch (data.resourceUsage) {
+    case PuleRenderGraph_ResourceUsage_read:
+      isChain = false;
+    break;
+    case PuleRenderGraph_ResourceUsage_readWrite:
+      isChain = true;
+    break;
+    case PuleRenderGraph_ResourceUsage_write:
+      isChain = true;
+    break;
+  }
+  if (isChain) {
+    resource.image.imageReference = (
+      puleGpuImageReference_createImageChain(
+        puleGpuImageChain_create(
+          graph.allocator, // TODO change allocator?
+          resource.resourceLabel,
+          imageCreateInfo
+        )
+      )
+    );
+  } else {
+    resource.image.imageReference = (
+      puleGpuImageReference_createImage(puleGpuImageCreate(imageCreateInfo))
+    );
   }
 }
 
@@ -157,7 +257,7 @@ void sortGraphNodes(RenderGraph & graph) {
       //      resource X, C uses X, but B does not use X. In this case,
       //      C will not have found X in A, and so will have an undefined
       //      layout.
-      nodeDependencyCalculateResourceIntersection(node, dependNode);
+      nodeDependencyCalculateResourceIntersection(graph, node, dependNode);
     }
     if (node.relationDependsOn.size() == 0) {
       // node has no dependencies, thus it's root. Preentrance resources
@@ -197,18 +297,18 @@ void sortGraphNodes(RenderGraph & graph) {
       // if both are used by the same node, and if so, set the preentrance
       // to the entrance of that node (thus completing the lifecycle of that
       // resource in this frame)
-      for (auto & resourcePair : node.resources) {
+      for (auto & resPair : node.resourceUsage) {
         // check if this resource is a window swapchain image
         if (
-          node.resourceLabels.at(resourcePair.first) == "window-swapchain-image"
+          graph.resourceLabels.at(resPair.first) == "window-swapchain-image"
         ) {
           // we know the layout and access for this, and it can't be
           // computed implicitly as swapping isn't part of the render-graph
           // TODO on the first pass, this should be undefined
-          resourcePair.second.image.payloadAccessPreentrance = (
+          resPair.second.accessEntrance = (
             PuleGpuResourceAccess_none
           );
-          resourcePair.second.image.payloadLayoutPreentrance = (
+          resPair.second.image.layoutEntrance = (
             PuleGpuImageLayout_presentSrc
           );
           continue;
@@ -223,23 +323,26 @@ void sortGraphNodes(RenderGraph & graph) {
             graph.nodes.at(dependentNodeId)
           );
           auto dependentNodeResourceIt = (
-            dependentNode.resources.find(resourcePair.first)
+            dependentNode.resourceUsage.find(resPair.first)
           );
-          if (dependentNodeResourceIt == dependentNode.resources.end()) {
+          if (dependentNodeResourceIt == dependentNode.resourceUsage.end()) {
             continue; // resource not used by this node, check next node
           }
           // resource used by this node, set preentrance to entrance of
           // this node
-          PuleRenderGraph_Resource & resource = resourcePair.second;
-          PuleRenderGraph_Resource const & dependResource = (
+          PuleRenderGraph_Node_Resource & resource = resPair.second;
+          PuleRenderGraph_Resource & graphResource = (
+            graph.resources.at(resPair.first)
+          );
+          PuleRenderGraph_Node_Resource const & dependResource = (
             dependentNodeResourceIt->second
           );
-          switch (resource.resourceType) {
+          switch (graphResource.resourceType) {
             case PuleRenderGraph_ResourceType_image: {
-              auto & image = resource.image;
-              auto & depImage = dependResource.image;
-              image.payloadAccessPreentrance = depImage.payloadAccessEntrance;
-              image.payloadLayoutPreentrance = depImage.payloadLayoutEntrance;
+              resource.accessEntrance = dependResource.accessEntrance;
+              resource.image.layoutEntrance = (
+                dependResource.image.layoutEntrance
+              );
             } break;
             case PuleRenderGraph_ResourceType_buffer:
             break;
@@ -256,8 +359,10 @@ void sortGraphNodes(RenderGraph & graph) {
     RenderGraphNode & node = graph.nodes.at(nodeId);
     node.usesSwapchain = false;
     node.isLastSwapchainUsage = false;
-    for (auto const & resourcePair : node.resourceLabels) {
-      std::string const & label = resourcePair.second;
+    for (auto const & resourcePair : node.resourceUsage) {
+      std::string const & label = (
+        std::string(resourcePair.second.resourceLabel.contents)
+      );
       if (label != "window-swapchain-image") { continue; }
       lastSwapchainImageNode = nodeId; // overwrite previous value
       node.usesSwapchain = true;
@@ -304,32 +409,76 @@ PuleRenderGraph puleRenderGraphCreate(PuleAllocator const allocator) {
   RenderGraph graph = {
     .allocator = allocator,
     .nodes = {},
+    .resources = { },
+    .resourceLabels = { },
     .nodesInRelationOrder = {},
     .needsResort = false,
   };
-  renderGraphs.emplace(renderGraphCounter, graph);
-  return PuleRenderGraph { .id = renderGraphCounter ++, };
+  uint64_t const graphId = renderGraphs.create(graph);
+  puleRenderGraph_resourceCreate(
+    { .id = graphId, },
+    PuleRenderGraph_Resource {
+      .resourceLabel = puleCStr("window-swapchain-image"),
+      .image = {
+        .dataManagement = {
+          .manual = {},
+        },
+        .isAutomatic = false,
+        .imageReference = puleGpuWindowSwapchainImageReference(),
+      },
+      .resourceType = PuleRenderGraph_ResourceType_image,
+    }
+  );
+  return PuleRenderGraph { .id = graphId, };
 }
 
 void puleRenderGraphDestroy(PuleRenderGraph const pGraph) {
   if (pGraph.id == 0) { return; }
-  auto & graph = ::renderGraphs.at(pGraph.id);
+  auto & graph = *::renderGraphs.at(pGraph.id);
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
     auto & node = graph.nodes.at(nodeId);
     puleGpuCommandListChainDestroy(node.transitionCommandListChainEnter);
     puleGpuCommandListChainDestroy(node.transitionCommandListChainExit);
     ::renderGraphNodeToGraph.erase(nodeId);
   }
-  ::renderGraphs.erase(pGraph.id);
+  // deallocate resource strings
+  for (auto & resourcePair : graph.resources) {
+    PuleRenderGraph_Resource & resource = resourcePair.second;
+    switch (resource.resourceType) {
+      case PuleRenderGraph_ResourceType_image: {
+        auto & image = resource.image;
+        if (
+          image.isAutomatic && image.isAutomatic
+          && !image.dataManagement.automatic.areDimensionsAbsolute
+        ) {
+          puleStringDestroy(
+            image
+              .dataManagement.automatic.dimensionsScaleRelative
+              .referenceResourceLabel
+          );
+        }
+      } break;
+      case PuleRenderGraph_ResourceType_buffer:
+      break;
+    }
+  }
+  ::renderGraphs.destroy(pGraph.id);
 }
 
 void puleRenderGraphMerge(
   PuleRenderGraph const puPrimary, PuleRenderGraph const puSecondary
 ) {
   if (puSecondary.id == 0) {return;}
-  ::RenderGraph & primary = ::renderGraphs.at(puPrimary.id);
-  ::RenderGraph & secondary = ::renderGraphs.at(puSecondary.id);
-  // fix relations to be the future correct node id
+  ::RenderGraph * primaryPtr = ::renderGraphs.at(puPrimary.id);
+  ::RenderGraph * secondaryPtr = ::renderGraphs.at(puSecondary.id);
+  if (primaryPtr == nullptr || secondaryPtr == nullptr) {
+    puleLogError("primaryPtr %p secondaryPtr %p", primaryPtr, secondaryPtr);
+    PULE_assert(false);
+  }
+  ::RenderGraph & primary = *primaryPtr;
+  ::RenderGraph & secondary = *secondaryPtr;
+
+  // fix relations to be the correct node id
   for (auto & secondaryNodePair : secondary.nodes) {
     RenderGraphNode & secondaryNode = secondaryNodePair.second;
     for (size_t rit = 0; rit < secondaryNode.relationDependsOn.size(); ++ rit) {
@@ -368,13 +517,53 @@ void puleRenderGraphMerge(
     renderGraphNodeToGraph.erase(secondaryNodePair.first);
     renderGraphNodeToGraph.emplace(newNodeId, puPrimary.id);
   }
+
+  // copy over resource labels
+  for (auto secondaryResourceLabel : secondary.resourceLabels) {
+    if (primary.resourceLabels.contains(secondaryResourceLabel.first)) {
+      continue;
+    }
+    primary.resourceLabels.emplace(
+      secondaryResourceLabel.first,
+      secondaryResourceLabel.second
+    );
+  }
+
+  // copy over resources
+  for (auto & secondaryResource : secondary.resources) {
+    if (primary.resources.contains(secondaryResource.first)) {
+      continue;
+    }
+    auto resourceCopy = secondaryResource.second;
+    resourceCopy.resourceLabel = (
+      PuleStringView {
+        .contents = primary.resourceLabels.at(secondaryResource.first).c_str(),
+        .len = primary.resourceLabels.at(secondaryResource.first).size(),
+      }
+    );
+    primary.resources.emplace(secondaryResource.first, resourceCopy);
+  }
+
+  // fix resource usage label string views
+  for (auto & node : primary.nodes) {
+    for (auto & resourcePair : node.second.resourceUsage) {
+      PuleRenderGraph_Node_Resource & resource = resourcePair.second;
+      resource.resourceLabel = (
+        PuleStringView {
+          .contents = primary.resourceLabels.at(resourcePair.first).c_str(),
+          .len = primary.resourceLabels.at(resourcePair.first).size(),
+        }
+      );
+    }
+  }
+
   puleRenderGraphDestroy(puSecondary);
 }
 
 PuleRenderGraphNode puleRenderGraphNodeCreate(
   PuleRenderGraph const pGraph, PuleStringView const label
 ) {
-  RenderGraph & graph = ::renderGraphs.at(pGraph.id);
+  RenderGraph & graph = *::renderGraphs.at(pGraph.id);
   // create ID by hashing label with graph ID
   std::string const labelToHash = (
     std::string(label.contents) + "--" + std::to_string(pGraph.id)
@@ -391,8 +580,7 @@ PuleRenderGraphNode puleRenderGraphNodeCreate(
       .perThreadCommandList = {},
       .transitionCommandListChainEnter = { .id = 0, },
       .transitionCommandListChainExit =  { .id = 0, },
-      .resources = {},
-      .resourceLabels = {},
+      .resourceUsage = {},
       .relationDependsOn = {},
       .usesSwapchain = false,
       .isLastSwapchainUsage = false,
@@ -403,14 +591,14 @@ PuleRenderGraphNode puleRenderGraphNodeCreate(
 }
 
 void puleRenderGraphNodeRemove(PuleRenderGraphNode const node) {
-  RenderGraph & graph = ::renderGraphs.at(renderGraphNodeToGraph.at(node.id));
+  RenderGraph & graph = *::renderGraphs.at(renderGraphNodeToGraph.at(node.id));
   renderGraphNodeToGraph.erase(node.id);
   graph.nodes.erase(node.id);
   graph.needsResort = true;
 }
 
 PuleStringView puleRenderGraphNodeLabel(PuleRenderGraphNode const pNode) {
-  RenderGraph & graph = ::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
+  RenderGraph & graph = *::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
   RenderGraphNode & node = graph.nodes.at(pNode.id);
   return puleCStr(node.label.c_str());
 }
@@ -418,7 +606,7 @@ PuleStringView puleRenderGraphNodeLabel(PuleRenderGraphNode const pNode) {
 PuleRenderGraphNode puleRenderGraphNodeFetch(
   PuleRenderGraph const pGraph, PuleStringView const label
 ) {
-  [[maybe_unused]] RenderGraph & graph = ::renderGraphs.at(pGraph.id);
+  [[maybe_unused]] RenderGraph & graph = *::renderGraphs.at(pGraph.id);
   std::string const labelToHash = (
     std::string(label.contents) + "--" + std::to_string(pGraph.id)
   );
@@ -427,49 +615,90 @@ PuleRenderGraphNode puleRenderGraphNodeFetch(
   return PuleRenderGraphNode { .id = id, };
 }
 
-void puleRenderGraph_resourceAssign(
-  PuleRenderGraphNode const pNode,
-  PuleStringView const resourceLabel,
-  PuleRenderGraph_Resource const resource
+void puleRenderGraph_resourceCreate(
+  PuleRenderGraph const pGraph,
+  PuleRenderGraph_Resource const pResource
 ) {
-  PULE_assert(resourceLabel.len > 0);
-  RenderGraph & graph = ::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
-  RenderGraphNode & node = graph.nodes.at(pNode.id);
-  node.resources.emplace(puleStringViewHash(resourceLabel), resource);
-  node.resourceLabels.emplace(
-    puleStringViewHash(resourceLabel),
-    std::string(resourceLabel.contents, resourceLabel.len)
+  RenderGraph & graph = *::renderGraphs.at(pGraph.id);
+  PULE_assert(
+    !graph.resources.contains(puleStringViewHash(pResource.resourceLabel))
   );
+  graph.resources.emplace(puleStringViewHash(pResource.resourceLabel), pResource);
+  graph.resourceLabels.emplace(
+    puleStringViewHash(pResource.resourceLabel),
+    std::string(pResource.resourceLabel.contents, pResource.resourceLabel.len)
+  );
+  auto & resource = (
+    graph.resources.at(puleStringViewHash(pResource.resourceLabel))
+  );
+  auto & resourceLabel = (
+    graph.resourceLabels.at(puleStringViewHash(pResource.resourceLabel))
+  );
+  resource.resourceLabel = (
+    PuleStringView {
+      .contents = resourceLabel.c_str(),
+      .len = resourceLabel.size(),
+    }
+  );
+  switch (resource.resourceType) {
+    case PuleRenderGraph_ResourceType_image: {
+      auto & image = resource.image;
+      // create image if user requests
+      if (image.isAutomatic) {
+        graphCreateResourceImage(graph, resource);
+      }
+    } break;
+    case PuleRenderGraph_ResourceType_buffer:
+      // TODO
+    break;
+  }
 }
 
 PuleRenderGraph_Resource puleRenderGraph_resource(
-  PuleRenderGraphNode const pNode,
+  PuleRenderGraph const pGraph,
   PuleStringView const resourceLabel
 ) {
-  RenderGraph & graph = ::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
-  RenderGraphNode & node = graph.nodes.at(pNode.id);
-  return node.resources.at(puleStringViewHash(resourceLabel));
+  RenderGraph & graph = *::renderGraphs.at(pGraph.id);
+  auto & resource = (
+    graph.resources.at(puleStringViewHash(resourceLabel))
+  );
+  return graph.resources.at(puleStringViewHash(resourceLabel));
 }
 
 void puleRenderGraph_resourceRemove(
-  PuleRenderGraphNode const pGraphNode,
+  PuleRenderGraph const pGraph,
   PuleStringView const resourceLabel
 ) {
-  RenderGraph & graph = (
-    ::renderGraphs.at(renderGraphNodeToGraph.at(pGraphNode.id))
+  RenderGraph & graph = *::renderGraphs.at(pGraph.id);
+  // TODO::CRIT destroy resource if it's managed automatically
+  graph.resources.erase(puleStringViewHash(resourceLabel));
+}
+
+void puleRenderGraph_node_resourceAssign(
+  PuleRenderGraphNode const pNode,
+  PuleRenderGraph_Node_Resource const pResourceUsage
+) {
+  RenderGraph & graph = *::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
+  RenderGraphNode & node = graph.nodes.at(pNode.id);
+  PULE_assert(
+    graph.resources.contains(puleStringViewHash(pResourceUsage.resourceLabel))
   );
-  RenderGraphNode & node = graph.nodes.at(pGraphNode.id);
-  node.resources.erase(puleStringViewHash(resourceLabel));
+  // create new resource usage, using the allocated label
+  PuleRenderGraph_Node_Resource newResourceUsage = pResourceUsage;
+  auto & resource = (
+    graph.resources.at(puleStringViewHash(pResourceUsage.resourceLabel))
+  );
+  newResourceUsage.resourceLabel = resource.resourceLabel;
+  node.resourceUsage.emplace(
+    puleStringViewHash(pResourceUsage.resourceLabel),
+    newResourceUsage
+  );
 }
 
 PuleGpuCommandList puleRenderGraph_commandList(
-  PuleRenderGraphNode const pNode,
-  uint64_t (*fetchResourceHandle)(
-    PuleStringView const label, void * const data
-  ),
-  void * const userdata
+  PuleRenderGraphNode const pNode
 ) {
-  RenderGraph & graph = ::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
+  RenderGraph & graph = *::renderGraphs.at(renderGraphNodeToGraph.at(pNode.id));
   RenderGraphNode & node = graph.nodes.at(pNode.id);
   auto threadId = std::this_thread::get_id();
   if (node.perThreadCommandList.contains(threadId)) {
@@ -498,17 +727,11 @@ PuleGpuCommandList puleRenderGraph_commandList(
 }
 
 PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
-  PuleRenderGraphNode const node,
-  uint64_t (*fetchResourceHandle)(
-    PuleStringView const label, void * const data
-  ),
-  void * const userdata
+  PuleRenderGraphNode const node
 ) {
   // TODO consider if want to allow multiple calls for the same command list
   return (
-    puleGpuCommandListRecorder(
-      puleRenderGraph_commandList(node, fetchResourceHandle, userdata)
-    )
+    puleGpuCommandListRecorder(puleRenderGraph_commandList(node))
   );
 }
 
@@ -519,19 +742,14 @@ void puleRenderGraphNodeRelationSet(
 ) {
   PULE_assert(relation == PuleRenderGraphNodeRelation_dependsOn);
   RenderGraph & graph = (
-    ::renderGraphs.at(renderGraphNodeToGraph.at(pNodePri.id))
+    *::renderGraphs.at(renderGraphNodeToGraph.at(pNodePri.id))
   );
   RenderGraphNode & nodePri = graph.nodes.at(pNodePri.id);
   nodePri.relationDependsOn.emplace_back(pNodeSec.id);
 }
 
-void puleRenderGraphFrameStart(
-  PuleRenderGraph const pGraph,
-  uint64_t (* const fetchResourceHandle)(
-    PuleStringView const label, void * const data
-  )
-) {
-  auto & graph = renderGraphs.at(pGraph.id);
+void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
+  auto & graph = *::renderGraphs.at(pGraph.id);
   sortGraphNodes(graph);
 
   // create entrance and potentially exittance command list (for last node) for
@@ -539,57 +757,64 @@ void puleRenderGraphFrameStart(
   // post-transition
   for (auto & nodePair : graph.nodes) {
     auto & node = nodePair.second;
-    // build up barriers
-    std::vector<PuleGpuResourceBarrierImage> barrierImages;
-    for (auto & resourcePair : node.resources) {
-      PuleRenderGraph_Resource & resource = resourcePair.second;
-      switch (resource.resourceType) {
-        case PuleRenderGraph_ResourceType_image: {
-          auto const imageId = (
-            fetchResourceHandle(
-              puleCStr(node.resourceLabels.at(resourcePair.first).c_str()),
-              nullptr // userdata
-            )
-          );
-          barrierImages.emplace_back(
-            PuleGpuResourceBarrierImage {
-              .image = PuleGpuImage { .id = imageId, },
-              .accessSrc = (
-                resource.image.isInitialized
-                   ? resource.image.payloadAccessPreentrance
-                   : PuleGpuResourceAccess_none
-              ),
-              .accessDst = resource.image.payloadAccessEntrance,
-              .layoutSrc = (
-                resource.image.isInitialized
-                  ? resource.image.payloadLayoutPreentrance
-                  : PuleGpuImageLayout_uninitialized
-              ),
-              .layoutDst = resource.image.payloadLayoutEntrance,
-            }
-          );
-        } break;
-        case PuleRenderGraph_ResourceType_buffer:
-        break;
-      }
-    }
     auto const transitionEntranceRecorder = (
       puleGpuCommandListRecorder(
         puleGpuCommandListChainCurrent(node.transitionCommandListChainEnter)
       )
     );
-    puleGpuCommandListAppendAction(
-      transitionEntranceRecorder,
-      PuleGpuCommand {
-        .resourceBarrier {
-          .action = PuleGpuAction_resourceBarrier,
-          .stageSrc = PuleGpuResourceBarrierStage_transfer,
-          .stageDst = PuleGpuResourceBarrierStage_outputAttachmentColor,
-          .resourceImageCount = barrierImages.size(),
-          .resourceImages = barrierImages.data(),
-        },
+    // build up barriers
+    std::vector<PuleGpuResourceBarrierImage> barrierImages;
+    for (auto & resourcePair : node.resourceUsage) {
+      PuleRenderGraph_Node_Resource & resource = resourcePair.second;
+      PuleRenderGraph_Resource & graphResource = (
+        graph.resources.at(resourcePair.first)
+      );
+      // try to narrow the stage down to the minimum required
+      PuleGpuResourceBarrierStage stageSrc = (
+        PuleGpuResourceBarrierStage_top
+      );
+      PuleGpuResourceBarrierStage stageDst = (
+        PuleGpuResourceBarrierStage_bottom
+      );
+      switch (graphResource.resourceType) {
+        case PuleRenderGraph_ResourceType_image: {
+          auto const image = (
+            puleGpuImageReference_image(
+              puleRenderGraph_resource(
+                pGraph,
+                resourcePair.second.resourceLabel
+              )
+              .image.imageReference
+            )
+          );
+          barrierImages.emplace_back(
+            PuleGpuResourceBarrierImage {
+              .image = image,
+              .accessSrc = resource.accessEntrance,
+              .accessDst = resource.access,
+              .layoutSrc = resource.image.layoutEntrance,
+              .layoutDst = resource.image.layout,
+            }
+          );
+          stageSrc = toResourceBarrierStage(resource.accessEntrance);
+          stageDst = toResourceBarrierStage(resource.access);
+        } break;
+        case PuleRenderGraph_ResourceType_buffer:
+        break;
       }
-    );
+      puleGpuCommandListAppendAction(
+        transitionEntranceRecorder,
+        PuleGpuCommand {
+          .resourceBarrier {
+            .action = PuleGpuAction_resourceBarrier,
+            .stageSrc = stageSrc,
+            .stageDst = stageDst,
+            .resourceImageCount = barrierImages.size(),
+            .resourceImages = barrierImages.data(),
+          },
+        }
+      );
+    }
     puleGpuCommandListRecorderFinish(transitionEntranceRecorder);
   }
   // create exit command list for swapping swapchain images
@@ -597,7 +822,9 @@ void puleRenderGraphFrameStart(
     auto & node = nodePair.second;
     if (!node.isLastSwapchainUsage) { continue; }
     auto const swapchainResource = (
-      node.resources.at(puleStringViewHash(puleCStr("window-swapchain-image")))
+      node.resourceUsage.at(
+        puleStringViewHash(puleCStr("window-swapchain-image"))
+      )
     );
     auto const transitionExittanceRecorder = (
       puleGpuCommandListRecorder(
@@ -606,10 +833,10 @@ void puleRenderGraphFrameStart(
     );
     auto const barrierImage = (
       PuleGpuResourceBarrierImage {
-        .image = PuleGpuImage { .id = puleGpuWindowImage().id, },
-        .accessSrc = swapchainResource.image.payloadAccessEntrance,
+        .image = puleGpuWindowSwapchainImage(),
+        .accessSrc = swapchainResource.access,
         .accessDst = PuleGpuResourceAccess_none,
-        .layoutSrc = swapchainResource.image.payloadLayoutEntrance,
+        .layoutSrc = swapchainResource.image.layout,
         .layoutDst = PuleGpuImageLayout_presentSrc,
       }
     );
@@ -633,7 +860,7 @@ void puleRenderGraphFrameSubmit(
   PuleGpuSemaphore const swapchainImageSemaphore,
   PuleRenderGraph const pGraph
 ) {
-  auto & graph = renderGraphs.at(pGraph.id);
+  auto & graph = *::renderGraphs.at(pGraph.id);
   sortGraphNodes(graph);
   PuleError err = puleError();
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
@@ -726,7 +953,7 @@ void puleRenderGraphFrameSubmit(
 
 void puleRenderGraphExecuteInOrder(PuleRenderGraphExecuteInfo const execute) {
   assert(!execute.multithreaded && "multithreaded support not yet implemented");
-  RenderGraph & graph = ::renderGraphs.at(execute.graph.id);
+  RenderGraph & graph = *::renderGraphs.at(execute.graph.id);
   sortGraphNodes(graph);
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
     execute.callback(PuleRenderGraphNode { .id = nodeId, }, execute.userdata);

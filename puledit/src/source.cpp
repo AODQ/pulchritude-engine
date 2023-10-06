@@ -21,7 +21,7 @@ namespace { // command registry
 
 template <typename T>
 void tryLoadFn(T & fn, size_t const pluginId, char const * const label) {
-  fn = reinterpret_cast<T>(puleTryPluginLoadFn(pluginId, label));
+  fn = reinterpret_cast<T>(pulePluginLoadFnTry(pluginId, label));
 }
 
 struct CommandRegistry {
@@ -423,7 +423,7 @@ int32_t main(
   PuleDsValue const cliArgumentLayout = (
     puleDsCreateObject(puleAllocateDefault())
   );
-  puleIteratePlugins(
+  pulePluginIterate(
     ::loadEditorDataFromPlugins,
     const_cast<PuleDsValue *>(&cliArgumentLayout)
   );

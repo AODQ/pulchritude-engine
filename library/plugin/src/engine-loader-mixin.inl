@@ -1124,6 +1124,11 @@
       ::loadSymbol("puleF32v3Mul", layerName)
     )
   );
+  layer->f32v3MulScalar = (
+    reinterpret_cast<decltype(layer->f32v3MulScalar)>(
+      ::loadSymbol("puleF32v3MulScalar", layerName)
+    )
+  );
   layer->f32v3Div = (
     reinterpret_cast<decltype(layer->f32v3Div)>(
       ::loadSymbol("puleF32v3Div", layerName)
@@ -1167,6 +1172,16 @@
   layer->f32m44PtrTranspose = (
     reinterpret_cast<decltype(layer->f32m44PtrTranspose)>(
       ::loadSymbol("puleF32m44PtrTranspose", layerName)
+    )
+  );
+  layer->f32m44Inverse = (
+    reinterpret_cast<decltype(layer->f32m44Inverse)>(
+      ::loadSymbol("puleF32m44Inverse", layerName)
+    )
+  );
+  layer->f32m44MulV4 = (
+    reinterpret_cast<decltype(layer->f32m44MulV4)>(
+      ::loadSymbol("puleF32m44MulV4", layerName)
     )
   );
   layer->f32m44DumpToStdout = (
@@ -1381,19 +1396,24 @@
       ::loadSymbol("pulePluginIdFromName", layerName)
     )
   );
+  layer->pluginName = (
+    reinterpret_cast<decltype(layer->pluginName)>(
+      ::loadSymbol("pulePluginName", layerName)
+    )
+  );
   layer->pluginLoadFn = (
     reinterpret_cast<decltype(layer->pluginLoadFn)>(
       ::loadSymbol("pulePluginLoadFn", layerName)
     )
   );
-  layer->tryPluginLoadFn = (
-    reinterpret_cast<decltype(layer->tryPluginLoadFn)>(
-      ::loadSymbol("puleTryPluginLoadFn", layerName)
+  layer->pluginLoadFnTry = (
+    reinterpret_cast<decltype(layer->pluginLoadFnTry)>(
+      ::loadSymbol("pulePluginLoadFnTry", layerName)
     )
   );
-  layer->iteratePlugins = (
-    reinterpret_cast<decltype(layer->iteratePlugins)>(
-      ::loadSymbol("puleIteratePlugins", layerName)
+  layer->pluginIterate = (
+    reinterpret_cast<decltype(layer->pluginIterate)>(
+      ::loadSymbol("pulePluginIterate", layerName)
     )
   );
   // raycast
@@ -1569,6 +1589,11 @@
   layer->string = (
     reinterpret_cast<decltype(layer->string)>(
       ::loadSymbol("puleString", layerName)
+    )
+  );
+  layer->stringCopy = (
+    reinterpret_cast<decltype(layer->stringCopy)>(
+      ::loadSymbol("puleStringCopy", layerName)
     )
   );
   layer->stringDestroy = (
@@ -1785,9 +1810,9 @@
       ::loadSymbol("puleRenderGraphNodeFetch", layerName)
     )
   );
-  layer->renderGraph_resourceAssign = (
-    reinterpret_cast<decltype(layer->renderGraph_resourceAssign)>(
-      ::loadSymbol("puleRenderGraph_resourceAssign", layerName)
+  layer->renderGraph_resourceCreate = (
+    reinterpret_cast<decltype(layer->renderGraph_resourceCreate)>(
+      ::loadSymbol("puleRenderGraph_resourceCreate", layerName)
     )
   );
   layer->renderGraph_resource = (
@@ -1798,6 +1823,11 @@
   layer->renderGraph_resourceRemove = (
     reinterpret_cast<decltype(layer->renderGraph_resourceRemove)>(
       ::loadSymbol("puleRenderGraph_resourceRemove", layerName)
+    )
+  );
+  layer->renderGraph_node_resourceAssign = (
+    reinterpret_cast<decltype(layer->renderGraph_node_resourceAssign)>(
+      ::loadSymbol("puleRenderGraph_node_resourceAssign", layerName)
     )
   );
   layer->renderGraph_commandList = (
@@ -1871,14 +1901,19 @@
       ::loadSymbol("puleGpuSamplerDestroy", layerName)
     )
   );
-  layer->gpuImageCreate = (
-    reinterpret_cast<decltype(layer->gpuImageCreate)>(
-      ::loadSymbol("puleGpuImageCreate", layerName)
+  layer->gpuImageLabel = (
+    reinterpret_cast<decltype(layer->gpuImageLabel)>(
+      ::loadSymbol("puleGpuImageLabel", layerName)
     )
   );
   layer->gpuImageDestroy = (
     reinterpret_cast<decltype(layer->gpuImageDestroy)>(
       ::loadSymbol("puleGpuImageDestroy", layerName)
+    )
+  );
+  layer->gpuImageCreate = (
+    reinterpret_cast<decltype(layer->gpuImageCreate)>(
+      ::loadSymbol("puleGpuImageCreate", layerName)
     )
   );
   layer->gpuFramebufferCreateInfo = (
@@ -1896,9 +1931,9 @@
       ::loadSymbol("puleGpuFramebufferDestroy", layerName)
     )
   );
-  layer->gpuWindowImage = (
-    reinterpret_cast<decltype(layer->gpuWindowImage)>(
-      ::loadSymbol("puleGpuWindowImage", layerName)
+  layer->gpuImageLayoutLabel = (
+    reinterpret_cast<decltype(layer->gpuImageLayoutLabel)>(
+      ::loadSymbol("puleGpuImageLayoutLabel", layerName)
     )
   );
   layer->gpuActionToString = (
@@ -1971,6 +2006,16 @@
       ::loadSymbol("puleGpuCommandListChainCurrentFence", layerName)
     )
   );
+  layer->gpuResourceBarrierStageLabel = (
+    reinterpret_cast<decltype(layer->gpuResourceBarrierStageLabel)>(
+      ::loadSymbol("puleGpuResourceBarrierStageLabel", layerName)
+    )
+  );
+  layer->gpuResourceAccessLabel = (
+    reinterpret_cast<decltype(layer->gpuResourceAccessLabel)>(
+      ::loadSymbol("puleGpuResourceAccessLabel", layerName)
+    )
+  );
   layer->gpuBufferCreate = (
     reinterpret_cast<decltype(layer->gpuBufferCreate)>(
       ::loadSymbol("puleGpuBufferCreate", layerName)
@@ -2011,6 +2056,11 @@
       ::loadSymbol("puleGpuDebugPrint", layerName)
     )
   );
+  layer->gpuBufferUsageLabel = (
+    reinterpret_cast<decltype(layer->gpuBufferUsageLabel)>(
+      ::loadSymbol("puleGpuBufferUsageLabel", layerName)
+    )
+  );
   layer->gpuSemaphoreCreate = (
     reinterpret_cast<decltype(layer->gpuSemaphoreCreate)>(
       ::loadSymbol("puleGpuSemaphoreCreate", layerName)
@@ -2049,5 +2099,131 @@
   layer->gpuFrameEnd = (
     reinterpret_cast<decltype(layer->gpuFrameEnd)>(
       ::loadSymbol("puleGpuFrameEnd", layerName)
+    )
+  );
+  layer->gpuImageChain_create = (
+    reinterpret_cast<decltype(layer->gpuImageChain_create)>(
+      ::loadSymbol("puleGpuImageChain_create", layerName)
+    )
+  );
+  layer->gpuImageChain_destroy = (
+    reinterpret_cast<decltype(layer->gpuImageChain_destroy)>(
+      ::loadSymbol("puleGpuImageChain_destroy", layerName)
+    )
+  );
+  layer->gpuImageChain_current = (
+    reinterpret_cast<decltype(layer->gpuImageChain_current)>(
+      ::loadSymbol("puleGpuImageChain_current", layerName)
+    )
+  );
+  layer->gpuImageReference_createImageChain = (
+    reinterpret_cast<decltype(layer->gpuImageReference_createImageChain)>(
+      ::loadSymbol("puleGpuImageReference_createImageChain", layerName)
+    )
+  );
+  layer->gpuImageReference_createImage = (
+    reinterpret_cast<decltype(layer->gpuImageReference_createImage)>(
+      ::loadSymbol("puleGpuImageReference_createImage", layerName)
+    )
+  );
+  layer->gpuImageReference_updateImageChain = (
+    reinterpret_cast<decltype(layer->gpuImageReference_updateImageChain)>(
+      ::loadSymbol("puleGpuImageReference_updateImageChain", layerName)
+    )
+  );
+  layer->gpuImageReference_updateImage = (
+    reinterpret_cast<decltype(layer->gpuImageReference_updateImage)>(
+      ::loadSymbol("puleGpuImageReference_updateImage", layerName)
+    )
+  );
+  layer->gpuImageReference_destroy = (
+    reinterpret_cast<decltype(layer->gpuImageReference_destroy)>(
+      ::loadSymbol("puleGpuImageReference_destroy", layerName)
+    )
+  );
+  layer->gpuImageReference_image = (
+    reinterpret_cast<decltype(layer->gpuImageReference_image)>(
+      ::loadSymbol("puleGpuImageReference_image", layerName)
+    )
+  );
+  layer->gpuWindowSwapchainImage = (
+    reinterpret_cast<decltype(layer->gpuWindowSwapchainImage)>(
+      ::loadSymbol("puleGpuWindowSwapchainImage", layerName)
+    )
+  );
+  layer->gpuWindowSwapchainImageReference = (
+    reinterpret_cast<decltype(layer->gpuWindowSwapchainImageReference)>(
+      ::loadSymbol("puleGpuWindowSwapchainImageReference", layerName)
+    )
+  );
+  // physx
+  layer->physxRaycastShape = (
+    reinterpret_cast<decltype(layer->physxRaycastShape)>(
+      ::loadSymbol("pulePhysxRaycastShape", layerName)
+    )
+  );
+  layer->physxRaycastMesh = (
+    reinterpret_cast<decltype(layer->physxRaycastMesh)>(
+      ::loadSymbol("pulePhysxRaycastMesh", layerName)
+    )
+  );
+  layer->physxShapeOverlapShape = (
+    reinterpret_cast<decltype(layer->physxShapeOverlapShape)>(
+      ::loadSymbol("pulePhysxShapeOverlapShape", layerName)
+    )
+  );
+  layer->physxShapeOverlapMesh = (
+    reinterpret_cast<decltype(layer->physxShapeOverlapMesh)>(
+      ::loadSymbol("pulePhysxShapeOverlapMesh", layerName)
+    )
+  );
+  layer->physx2DWorldCreate = (
+    reinterpret_cast<decltype(layer->physx2DWorldCreate)>(
+      ::loadSymbol("pulePhysx2DWorldCreate", layerName)
+    )
+  );
+  layer->physx2DWorldDestroy = (
+    reinterpret_cast<decltype(layer->physx2DWorldDestroy)>(
+      ::loadSymbol("pulePhysx2DWorldDestroy", layerName)
+    )
+  );
+  layer->physx2DWorldGravitySet = (
+    reinterpret_cast<decltype(layer->physx2DWorldGravitySet)>(
+      ::loadSymbol("pulePhysx2DWorldGravitySet", layerName)
+    )
+  );
+  layer->physx2DWorldStep = (
+    reinterpret_cast<decltype(layer->physx2DWorldStep)>(
+      ::loadSymbol("pulePhysx2DWorldStep", layerName)
+    )
+  );
+  layer->physx2DBodyCreate = (
+    reinterpret_cast<decltype(layer->physx2DBodyCreate)>(
+      ::loadSymbol("pulePhysx2DBodyCreate", layerName)
+    )
+  );
+  layer->physx2DBodyDestroy = (
+    reinterpret_cast<decltype(layer->physx2DBodyDestroy)>(
+      ::loadSymbol("pulePhysx2DBodyDestroy", layerName)
+    )
+  );
+  layer->physx2DBodyPosition = (
+    reinterpret_cast<decltype(layer->physx2DBodyPosition)>(
+      ::loadSymbol("pulePhysx2DBodyPosition", layerName)
+    )
+  );
+  layer->physx2DBodyAngle = (
+    reinterpret_cast<decltype(layer->physx2DBodyAngle)>(
+      ::loadSymbol("pulePhysx2DBodyAngle", layerName)
+    )
+  );
+  layer->physx2DBodyAttachShape = (
+    reinterpret_cast<decltype(layer->physx2DBodyAttachShape)>(
+      ::loadSymbol("pulePhysx2DBodyAttachShape", layerName)
+    )
+  );
+  layer->physx2DShapeCreateConvexPolygonAsBox = (
+    reinterpret_cast<decltype(layer->physx2DShapeCreateConvexPolygonAsBox)>(
+      ::loadSymbol("pulePhysx2DShapeCreateConvexPolygonAsBox", layerName)
     )
   );

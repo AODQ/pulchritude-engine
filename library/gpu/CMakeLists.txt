@@ -28,12 +28,13 @@ target_include_directories(
 target_sources(
   pulchritude-gpu
   PRIVATE
-    src/synchronization.cpp
     src/commands.cpp
     src/gpu.cpp
     src/image.cpp
     src/pipeline.cpp
+    src/resource.cpp
     src/shader-module.cpp
+    src/synchronization.cpp
     src/util.cpp
     src/util-str.cpp
     src/vulkan-memory-allocator.cpp
@@ -43,7 +44,7 @@ set_target_properties(
   pulchritude-gpu
     PROPERTIES
       COMPILE_FLAGS
-        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
+        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef -Wno-missing-braces"
     POSITION_INDEPENDENT_CODE ON
     ENABLE_EXPORTS ON
 )

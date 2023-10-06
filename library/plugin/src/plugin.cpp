@@ -175,7 +175,7 @@ void Plugin::open() {
 }
 
 void loadPluginFromFile(std::filesystem::path path) {
-  /* puleLogDebug("Loading plugin %s", path.c_str()); */
+  puleLogDebug("Loading plugin %s", path.c_str());
   ::plugins.emplace_back(std::make_unique<::Plugin>(path));
   auto & pluginEnd = ::plugins.back();
 
@@ -246,6 +246,10 @@ size_t pulePluginIdFromName(char const * const pluginNameCStr) {
   return ::plugins.size()-1;
 }
 
+char const * pulePluginName(size_t const pluginId) {
+  return ::plugins[pluginId]->pluginName.c_str();
+}
+
 void * pulePluginLoadFn(
   size_t const pluginId,
   char const * const fnCStr
@@ -253,14 +257,14 @@ void * pulePluginLoadFn(
   return ::plugins[pluginId]->loadFunction(fnCStr, true);
 }
 
-void * puleTryPluginLoadFn(
+void * pulePluginLoadFnTry(
   size_t const pluginId,
   char const * const fnCStr
 ) {
   return ::plugins[pluginId]->loadFunction(fnCStr, false);
 }
 
-void puleIteratePlugins(
+void pulePluginIterate(
   void (*fn)(PulePluginInfo const, void * const userdata),
   void * userdata
 ) {

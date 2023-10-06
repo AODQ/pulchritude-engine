@@ -21,5 +21,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)                                           \n
 set(CMAKE_CXX_EXTENSIONS OFF)                                                 \n
 set(CMAKE_CXX_FLAGS "-march=x86-64")                                          \n
                                                                               \n
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                                         \n
+                                                                              \n
 %add_subdirs                                                                  \n
 );

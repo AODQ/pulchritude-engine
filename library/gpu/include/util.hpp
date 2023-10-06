@@ -1,11 +1,13 @@
 #include <pulchritude-gpu/commands.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/pipeline.h>
+#include <pulchritude-gpu/resource.h>
 
 #include <pulchritude-math/math.h>
 
 #include <volk.h>
 
+#include <array>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -27,7 +29,19 @@
     return RetValue; \
   }
 
+// macro to convert vulkan error to string print
+#define PULE_vkError(X) \
+  if (X != VK_SUCCESS) { \
+    puleLogError( \
+      "vulkan error with %s: %s", \
+      #X, \
+      util::vkErrorToString(X) \
+    ); \
+  }
+
 namespace util {
+
+  char const * vkErrorToString(VkResult const result);
 
   struct DeviceQueues {
     uint32_t idxCompute = 0;
@@ -99,6 +113,41 @@ struct CommandBufferRecorder {
   PuleGpuCommandList commandList = { .id = 0, };
 };
 
+struct ImageChainImage {
+  PuleGpuImage image;
+  std::string label;
+  uint64_t frameIdx;
+};
+
+struct ImageChain {
+  std::vector<ImageChainImage> chain = {};
+  PuleAllocator allocator = {
+    .implementation = nullptr,
+    .allocate = nullptr,
+    .reallocate = nullptr,
+    .deallocate = nullptr,
+  };
+};
+
+enum struct ImageReferenceType {
+  imageChain,
+  image,
+  size,
+};
+
+struct ImageReference {
+  union {
+    PuleGpuImageChain imageChain;
+    PuleGpuImage image;
+  };
+  ImageReferenceType type;
+  int32_t ownerCount; // simple lifetime tracking
+};
+
+struct ImageInfo {
+  std::string label;
+};
+
 struct Context {
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
@@ -125,6 +174,7 @@ struct Context {
   std::unordered_map<uint64_t, util::CommandList> commandLists;
   std::unordered_map<uint64_t, util::Pipeline> pipelines;
   std::unordered_map<uint64_t, util::ShaderModule> shaderModules;
+  std::unordered_map<uint64_t, util::ImageInfo> images;
   std::unordered_map<
     uint64_t, util::CommandBufferRecorder
   > commandBufferRecorders;
@@ -134,6 +184,19 @@ struct Context {
   std::vector<VkSemaphore> swapchainImageAvailableSemaphores;
   VkSampler samplerDefault;
   size_t frameIdx = 1;
+
+  pule::ResourceContainer<util::ImageChain> imageChains;
+  pule::ResourceContainer<util::ImageReference> imageReferences;
+
+  // this tracks underlying image references (images, image chains, etc)
+  // and maps them to the reference. This way, if any image/image chain
+  // reference is requested which is already referenced, then that reference
+  // can be returned. Thusly, if any image is 'updated', the sole underlying
+  // reference can have its handle remapped to the new image
+  std::array<
+    std::unordered_map<uint64_t, uint64_t>,
+    (size_t)util::ImageReferenceType::size
+  > imageHandleToReference = {};
 };
 
 Context & ctx();

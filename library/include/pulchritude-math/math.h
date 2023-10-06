@@ -99,6 +99,7 @@ PULE_exportFn PuleF32v3 puleF32v3Add(PuleF32v3 const a, PuleF32v3 const b);
 PULE_exportFn PuleF32v3 puleF32v3Sub(PuleF32v3 const a, PuleF32v3 const b);
 PULE_exportFn PuleF32v3 puleF32v3Neg(PuleF32v3 const a);
 PULE_exportFn PuleF32v3 puleF32v3Mul(PuleF32v3 const a, PuleF32v3 const b);
+PULE_exportFn PuleF32v3 puleF32v3MulScalar(PuleF32v3 const a, float const b);
 PULE_exportFn PuleF32v3 puleF32v3Div(PuleF32v3 const a, PuleF32v3 const b);
 PULE_exportFn float puleF32v3Dot(PuleF32v3 const a, PuleF32v3 const b);
 PULE_exportFn float puleF32v3Length(PuleF32v3 const a);
@@ -126,12 +127,15 @@ PULE_exportFn PuleF32v4 puleF32v4(float const identity);
 //   <12, 13, 14, 15>
 
 typedef struct {
-  float elements[16];
+  float elem[16];
 } PuleF32m44;
 
 PULE_exportFn PuleF32m44 puleF32m44(float const identity);
 PULE_exportFn PuleF32m44 puleF32m44Ptr(float const * const data);
 PULE_exportFn PuleF32m44 puleF32m44PtrTranspose(float const * const data);
+
+PULE_exportFn PuleF32m44 puleF32m44Inverse(PuleF32m44 const a);
+PULE_exportFn PuleF32v4 puleF32m44MulV4(PuleF32m44 const a, PuleF32v4 const b);
 
 PULE_exportFn void puleF32m44DumpToStdout(PuleF32m44 const);
 
@@ -152,5 +156,5 @@ PULE_exportFn PuleF32m44 puleViewLookAt(
 );
 
 #ifdef __cplusplus
-} // C
+} // extern C
 #endif

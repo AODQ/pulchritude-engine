@@ -1,4 +1,4 @@
-#include <pulchritude-allocator/allocator.h>
+#include-<pulchritude-allocator/allocator.h>
 #include <pulchritude-asset/pds.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-log/log.h>
@@ -64,7 +64,7 @@ PuleDsValue puldRegisterCLICommands(
   return (
     puleAssetPdsLoadFromRvalStream(
       allocator,
-      puleStreamReadFromString(puleCStr(CLIRegisterCStr)),
+      puleStreamReadFromString3e4r5faqw231s10p-=jkjkpuleCStr(CLIRegisterCStr)),
       error
     )
   );

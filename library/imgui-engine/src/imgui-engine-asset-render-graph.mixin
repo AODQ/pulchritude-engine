@@ -5,7 +5,7 @@ std::string const assetRenderGraphStr = MULTILINESTRING(
       label: "imgui-render",
       resources: [
         {
-          label: "window-swapchain-image",
+          label: "imgui-framebuffer-image",
           image: {
             layout: "attachment-color",
             access: "attachment-color-write",
@@ -14,6 +14,48 @@ std::string const assetRenderGraphStr = MULTILINESTRING(
       ],
       depends-on: [],
     },
+    {
+      label: "imgui-blit",
+      resources: [
+        {
+          label: "imgui-framebuffer-image",
+          image: {
+            layout: "transfer-src",
+            access: "transfer-read",
+          },
+        },
+        {
+          label: "window-swapchain-image",
+          image: {
+            layout: "transfer-dst",
+            access: "transfer-write",
+          },
+        },
+      ],
+    },
+  ],
+  render-graph-resources: [
+    {
+      type: "image",
+      name: "imgui-framebuffer-image",
+      data-management: {
+        type: "automatic",
+        render-graph-usage: "read-write",
+        is-attachment: true,
+        scale-dimensions-relative: {
+          reference-image: "window-swapchain-image",
+          scale-width: 1.0,
+          scale-height: 1.0,
+        },
+        initial-data: "",
+        target: "2d",
+        byte-format: "rgba8u",
+        mipmap-levels: 1,
+        array-layers: 1,
+      },
+    },
   ],
 );
 #undef MULTILINESTRING
+
+// TODO I need to add imgui-font image to the render graph

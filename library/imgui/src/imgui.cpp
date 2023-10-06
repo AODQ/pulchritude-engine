@@ -92,6 +92,7 @@ void createFontsTexture() {
       .target = PuleGpuImageTarget_i2D,
       .byteFormat = PuleGpuImageByteFormat_rgba8U,
       .sampler = bd.fontImageSampler,
+      .label = puleCStr("imgui-font-image"),
       .optionalInitialData = pixels,
     })
   );
@@ -147,7 +148,8 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
 
 void renderDrawData(
   ImDrawData * const drawData,
-  PuleGpuCommandListRecorder const commandListRecorder
+  PuleGpuCommandListRecorder const renderRecorder,
+  PuleGpuImage const imguiImage
 ) {
   // don't render when minized
   int32_t const framebufferWidth = (
@@ -251,7 +253,7 @@ void renderDrawData(
   //if (isFirst) {
   //  isFirst = false;
   //  puleGpuCommandListAppendAction(
-  //    commandListRecorder,
+  //    renderRecorder,
   //    PuleGpuCommand {
   //      .resourceBarrier = {
   //        .action = PuleGpuAction_resourceBarrier,
@@ -265,7 +267,7 @@ void renderDrawData(
 
   // bind render pass and buffers
   puleGpuCommandListAppendAction(
-    commandListRecorder,
+    renderRecorder,
     PuleGpuCommand {
       .renderPassBegin {
         .action = PuleGpuAction_renderPassBegin,
@@ -283,7 +285,7 @@ void renderDrawData(
             .clearColor = { 0.0f, 0.0f, 0.0f, 0.0f},
             .imageView = (
               PuleGpuImageView {
-                .image = puleGpuWindowImage(),
+                .image = imguiImage,
                 .mipmapLevelStart = 0, .mipmapLevelCount = 1,
                 .arrayLayerStart = 0, .arrayLayerCount = 1,
                 .byteFormat = PuleGpuImageByteFormat_bgra8U,
@@ -296,7 +298,7 @@ void renderDrawData(
     }
   );
   puleGpuCommandListAppendAction(
-    commandListRecorder,
+    renderRecorder,
     PuleGpuCommand {
       .bindPipeline {
         .action = PuleGpuAction_bindPipeline,
@@ -307,7 +309,7 @@ void renderDrawData(
 
   // pos , uv , col
   puleGpuCommandListAppendAction(
-    commandListRecorder,
+    renderRecorder,
     PuleGpuCommand {
       .bindAttributeBuffer {
         .action = PuleGpuAction_bindAttributeBuffer,
@@ -321,7 +323,7 @@ void renderDrawData(
   );
 
   puleGpuCommandListAppendAction(
-    commandListRecorder,
+    renderRecorder,
     PuleGpuCommand {
       .bindElementBuffer {
         .action = PuleGpuAction_bindElementBuffer,
@@ -344,7 +346,7 @@ void renderDrawData(
   pushConstants[2] = -1.0f - drawData->DisplayPos.x * pushConstants[0];
   pushConstants[3] = -1.0f - drawData->DisplayPos.y * pushConstants[1];
   puleGpuCommandListAppendAction(
-    commandListRecorder,
+    renderRecorder,
     {
       .pushConstants = {
         .action = PuleGpuAction_pushConstants,
@@ -392,7 +394,7 @@ void renderDrawData(
       // This is behaving very oddly, i think possibly something I'm doing is
       // causing the values coming from imgui to not be correct?
       puleGpuCommandListAppendAction(
-        commandListRecorder,
+        renderRecorder,
         {
           .setScissor = {
             .action = PuleGpuAction_setScissor,
@@ -410,7 +412,7 @@ void renderDrawData(
 
       if (drawCmd.TextureId != 0) {
         puleGpuCommandListAppendAction(
-          commandListRecorder,
+          renderRecorder,
           {
             .bindTexture = {
               .action = PuleGpuAction_bindTexture,
@@ -440,16 +442,44 @@ void renderDrawData(
           .baseVertexOffset = flattenedVtxOffset + drawCmd.VtxOffset,
         },
       };
-      puleGpuCommandListAppendAction(commandListRecorder, drawCommand);
+      puleGpuCommandListAppendAction(renderRecorder, drawCommand);
     }
   }
 
   // finish renderpass
   puleGpuCommandListAppendAction(
-    commandListRecorder,
+    renderRecorder,
     PuleGpuCommand {
       .renderPassEnd {
         .action = PuleGpuAction_renderPassEnd,
+      },
+    }
+  );
+}
+
+void blitDrawData(
+  ImDrawData * const drawData,
+  PuleGpuCommandListRecorder const blitRecorder,
+  PuleGpuImage const imguiImage,
+  PuleGpuImage const windowImage
+) {
+  // blit/copy image-to-image from the framebuffer (which we know
+  //   has an alpha channel) to the swapchain (which might not have
+  //   an alpha channel apparently...)
+  // I believe render graph should take care of the resource barriers too
+  puleGpuCommandListAppendAction(
+    blitRecorder,
+    PuleGpuCommand {
+      .copyImageToImage = {
+        .action = PuleGpuAction_copyImageToImage,
+        .srcImage = imguiImage,
+        .dstImage = windowImage,
+        .srcOffset = { .x = 0, .y = 0, },
+        .dstOffset = { .x = 0, .y = 0, },
+        .extent = {
+          .x = static_cast<uint32_t>(drawData->DisplaySize.x),
+          .y = static_cast<uint32_t>(drawData->DisplaySize.y),
+        },
       },
     }
   );
@@ -828,9 +858,37 @@ void puleImguiNewFrame() {
   ImGui::ShowDemoWindow(&isopen);
 }
 
-void puleImguiRender(PuleGpuCommandListRecorder const recorder) {
+void puleImguiRender(
+  PuleRenderGraph const renderGraph
+) {
   ImGui::Render();
-  renderDrawData(ImGui::GetDrawData(), recorder);
+  renderDrawData(
+    ImGui::GetDrawData(),
+    puleRenderGraph_commandListRecorder(
+      puleRenderGraphNodeFetch(renderGraph, puleCStr("imgui-render"))
+    ),
+    puleGpuImageReference_image(
+      puleRenderGraph_resource(
+        renderGraph, puleCStr("imgui-framebuffer-image")
+      ).image.imageReference
+    )
+  );
+  blitDrawData(
+    ImGui::GetDrawData(),
+    puleRenderGraph_commandListRecorder(
+      puleRenderGraphNodeFetch(renderGraph, puleCStr("imgui-blit"))
+    ),
+    puleGpuImageReference_image(
+      puleRenderGraph_resource(
+        renderGraph, puleCStr("imgui-framebuffer-image")
+      ).image.imageReference
+    ),
+    puleGpuImageReference_image(
+      puleRenderGraph_resource(
+        renderGraph, puleCStr("window-swapchain-image")
+      ).image.imageReference
+    )
+  );
 }
 
 void puleImguiJoinNext() {

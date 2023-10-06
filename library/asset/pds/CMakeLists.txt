@@ -12,7 +12,7 @@ set_target_properties(
   pulchritude-asset-pds
     PROPERTIES
       COMPILE_FLAGS
-        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef"
+        "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef -Wno-missing-braces"
     POSITION_INDEPENDENT_CODE ON
     ENABLE_EXPORTS ON
 )

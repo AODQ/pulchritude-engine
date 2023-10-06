@@ -70,7 +70,7 @@ typedef enum {
 
 PULE_exportFn PuleGpuBuffer puleGpuBufferCreate(
   PuleStringView const name,
-  void const * const optionalInitialData,
+  void const * const optionalInitialData, // TODO switch to PuleBufferView
   size_t const byteLength, // must be >0
   PuleGpuBufferUsage const usage,
   PuleGpuBufferVisibilityFlag const visibility
@@ -112,6 +112,10 @@ PULE_exportFn void puleGpuShutdown();
 // prints all debug information
 // TODO this should just stream out or something maybe serialize
 PULE_exportFn void puleGpuDebugPrint();
+
+PULE_exportFn PuleStringView puleGpuBufferUsageLabel(
+  PuleGpuBufferUsage const usage
+);
 
 #ifdef __cplusplus
 } // extern C

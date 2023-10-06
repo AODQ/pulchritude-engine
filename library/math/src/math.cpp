@@ -133,18 +133,18 @@ PuleF32m44 puleViewLookAt(
   PuleF32v3 const u = puleF32v3Normalize(puleF32v3Cross(f, s));
 
   PuleF32m44 result = puleF32m44(1.0f);
-  result.elements[0  + 0] = s.x;
-  result.elements[4  + 0] = s.y;
-  result.elements[8  + 0] = s.z;
-  result.elements[0  + 1] = u.x;
-  result.elements[4  + 1] = u.y;
-  result.elements[8  + 1] = u.z;
-  result.elements[0  + 2] = f.x;
-  result.elements[4  + 2] = f.y;
-  result.elements[8  + 2] = f.z;
-  result.elements[12 + 0] = -puleF32v3Dot(s, origin);
-  result.elements[12 + 1] = -puleF32v3Dot(u, origin);
-  result.elements[12 + 2] = -puleF32v3Dot(f, origin);
+  result.elem[0  + 0] = s.x;
+  result.elem[4  + 0] = s.y;
+  result.elem[8  + 0] = s.z;
+  result.elem[0  + 1] = u.x;
+  result.elem[4  + 1] = u.y;
+  result.elem[8  + 1] = u.z;
+  result.elem[0  + 2] = f.x;
+  result.elem[4  + 2] = f.y;
+  result.elem[8  + 2] = f.z;
+  result.elem[12 + 0] = -puleF32v3Dot(s, origin);
+  result.elem[12 + 1] = -puleF32v3Dot(u, origin);
+  result.elem[12 + 2] = -puleF32v3Dot(f, origin);
   return result;
 }
 
@@ -156,12 +156,21 @@ PuleF32m44 puleProjectionPerspective(
 ) {
   float const halfTanFov = tanf(fieldOfViewRadians*0.5f);
   return PuleF32m44 {
-    .elements = {
+    .elem = {
       1.0f / (aspectRatio * halfTanFov), 0.0f, 0.0f, 0.0f,
       0.0f, 1.0f / halfTanFov, 0.0f, 0.0f,
       0.0f, 0.0f, far/(far-near), 1.0f,
       0.0f, 0.0f, -(far*near)/(far-near), 0.0f,
     },
+  };
+}
+
+PuleF32v4 puleF32m44MulV4(PuleF32m44 const a, PuleF32v4 const b) {
+  return PuleF32v4 {
+    .x = a.elem[0]*b.x + a.elem[4]*b.y + a.elem[8]*b.z + a.elem[12]*b.w,
+    .y = a.elem[1]*b.x + a.elem[5]*b.y + a.elem[9]*b.z + a.elem[13]*b.w,
+    .z = a.elem[2]*b.x + a.elem[6]*b.y + a.elem[10]*b.z + a.elem[14]*b.w,
+    .w = a.elem[3]*b.x + a.elem[7]*b.y + a.elem[11]*b.z + a.elem[15]*b.w,
   };
 }
 
@@ -173,10 +182,10 @@ void puleF32m44DumpToStdout(PuleF32m44 const m) {
     "\n\t| %.2f , %.2f , %.2f , %.2f |"
     "\n\t| %.2f , %.2f , %.2f , %.2f |"
     "\n\t| %.2f , %.2f , %.2f , %.2f |\n",
-    m.elements[0],  m.elements[1],  m.elements[2],  m.elements[3],
-    m.elements[4],  m.elements[5],  m.elements[6],  m.elements[7],
-    m.elements[8],  m.elements[9],  m.elements[10], m.elements[11],
-    m.elements[12], m.elements[13], m.elements[14], m.elements[15]
+    m.elem[0],  m.elem[1],  m.elem[2],  m.elem[3],
+    m.elem[4],  m.elem[5],  m.elem[6],  m.elem[7],
+    m.elem[8],  m.elem[9],  m.elem[10], m.elem[11],
+    m.elem[12], m.elem[13], m.elem[14], m.elem[15]
   );
 #pragma GCC diagnostic pop
 }

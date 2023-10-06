@@ -147,6 +147,138 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
   }
 
   // -- create resources
+  PuleDsValueArray const dsGraphResources = (
+    puleDsMemberAsArray(dsRenderGraphValue, "render-graph-resources")
+  );
+  for (size_t it = 0; it < dsGraphResources.length; ++ it) {
+    PuleDsValue const dsGraphResource = dsGraphResources.values[it];
+    PuleStringView const type = puleDsMemberAsString(dsGraphResource, "type");
+    PuleStringView const label = puleDsMemberAsString(dsGraphResource, "name");
+    if (puleStringViewEqCStr(type, "image")) {
+      PuleDsValue const dsDataManagement = (
+        puleDsObjectMember(dsGraphResource, "data-management")
+      );
+      PuleStringView const dataManagementType = (
+        puleDsMemberAsString(dsDataManagement, "type")
+      );
+      PuleRenderGraph_Resource resource;
+      if (puleStringViewEqCStr(dataManagementType, "automatic")) {
+        PuleRenderGraph_Resource_Image_DataManagement_Automatic dataManagement;
+        // clear fields that might not be initialized by pds
+        memset(
+          &dataManagement,
+          0,
+          sizeof(PuleRenderGraph_Resource_Image_DataManagement_Automatic)
+        );
+        PuleStringView const renderGraphUsage = (
+          puleDsMemberAsString(dsDataManagement, "render-graph-usage")
+        );
+        if (puleStringViewEqCStr(renderGraphUsage, "read")) {
+          dataManagement.resourceUsage = PuleRenderGraph_ResourceUsage_read;
+        } else if (puleStringViewEqCStr(renderGraphUsage, "write")) {
+          dataManagement.resourceUsage = PuleRenderGraph_ResourceUsage_write;
+        } else if (puleStringViewEqCStr(renderGraphUsage, "read-write")) {
+          dataManagement.resourceUsage = (
+            PuleRenderGraph_ResourceUsage_readWrite
+          );
+        } else {
+          PULE_assert(false && "unknown usage");
+        }
+        dataManagement.isAttachment = (
+          puleDsMemberAsBool(dsDataManagement, "is-attachment")
+        );
+        PuleStringView const initialData = (
+          puleDsMemberAsString(dsDataManagement, "initial-data")
+        );
+        (void)initialData;
+        // TODO load initial data
+        PuleStringView const target = (
+          puleDsMemberAsString(dsDataManagement, "target")
+        );
+        if (puleStringViewEqCStr(target, "2d")) {
+          dataManagement.target = PuleGpuImageTarget_i2D;
+        } else {
+          PULE_assert(false && "unknown target");
+        }
+        PuleStringView const byteFormat = (
+          puleDsMemberAsString(dsDataManagement, "byte-format")
+        );
+        if (puleStringViewEqCStr(byteFormat, "rgba8u")) {
+          dataManagement.byteFormat = PuleGpuImageByteFormat_rgba8U;
+        } else if (puleStringViewEqCStr(byteFormat, "rgb8u")) {
+          dataManagement.byteFormat = PuleGpuImageByteFormat_rgb8U;
+        } else if (puleStringViewEqCStr(byteFormat, "r8u")) {
+          dataManagement.byteFormat = PuleGpuImageByteFormat_r8U;
+        } else if (puleStringViewEqCStr(byteFormat, "bgra8u")) {
+          dataManagement.byteFormat = PuleGpuImageByteFormat_bgra8U;
+        } else if (puleStringViewEqCStr(byteFormat, "depth16")) {
+          dataManagement.byteFormat = PuleGpuImageByteFormat_depth16;
+        } else {
+          PULE_assert(false && "unknown byte format");
+        }
+        dataManagement.mipmapLevels = (
+          static_cast<uint32_t>(
+            puleDsMemberAsI64(dsDataManagement, "mipmap-levels")
+          )
+        );
+        dataManagement.arrayLayers = (
+          static_cast<uint32_t>(
+            puleDsMemberAsI64(dsDataManagement, "array-layers")
+          )
+        );
+        PuleDsValue const scaleDimensionsRelative = (
+          puleDsObjectMember(dsDataManagement, "scale-dimensions-relative")
+        );
+        PuleDsValue const scaleDimensionsAbsolute = (
+          puleDsObjectMember(dsDataManagement, "scale-dimensions-absolute")
+        );
+        if (scaleDimensionsRelative.id != 0) {
+          dataManagement.dimensionsScaleRelative.referenceResourceLabel = (
+            puleString(
+              puleAllocateDefault(),
+              puleDsMemberAsString(
+                scaleDimensionsRelative, "reference-image"
+              ).contents
+            )
+          );
+          dataManagement.dimensionsScaleRelative.scaleHeight = (
+            puleDsMemberAsF64(scaleDimensionsRelative, "scale-height")
+          );
+          dataManagement.dimensionsScaleRelative.scaleWidth = (
+            puleDsMemberAsF64(scaleDimensionsRelative, "scale-width")
+          );
+          PULE_assert(
+            dataManagement.dimensionsScaleRelative.scaleHeight != 0.0f
+            && dataManagement.dimensionsScaleRelative.scaleWidth != 0.0f
+          );
+          dataManagement.areDimensionsAbsolute = false;
+        } else if (scaleDimensionsAbsolute.id != 0) {
+          dataManagement.dimensionsAbsolute.width = (
+            puleDsMemberAsI64(scaleDimensionsAbsolute, "width")
+          );
+          dataManagement.dimensionsAbsolute.height = (
+            puleDsMemberAsI64(scaleDimensionsAbsolute, "height")
+          );
+          dataManagement.areDimensionsAbsolute = true;
+        } else {
+          PULE_assert(false && "needs scale dimensions");
+        }
+        resource.image.dataManagement.automatic = dataManagement;
+        resource.image.isAutomatic = true;
+      } else {
+        PULE_assert(false && "unknown data management type");
+        resource.image.isAutomatic = false;
+      }
+      resource.resourceLabel = label;
+      resource.resourceType = PuleRenderGraph_ResourceType_image;
+      resource.image.imageReference = { .id = 0, }; // created for us
+      puleRenderGraph_resourceCreate(graph, resource);
+    } else {
+      PULE_assert(false && "unknown type");
+    }
+  }
+
+  // -- create resource usage/dependencies
   for (size_t it = 0; it < dsGraphNodes.length; ++ it) {
     PuleDsValue const dsGraphNode = dsGraphNodes.values[it];
     PuleRenderGraphNode const graphNode = (
@@ -171,18 +303,16 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
         PuleStringView const entranceAccess = (
           puleDsMemberAsString(dsResourceImage, "access")
         );
-        puleRenderGraph_resourceAssign(
+        puleRenderGraph_node_resourceAssign(
           graphNode,
-          label,
-          PuleRenderGraph_Resource {
+          PuleRenderGraph_Node_Resource {
+            .resourceLabel = label,
+            .access = toPayloadAccess(entranceAccess),
+            .accessEntrance = (PuleGpuResourceAccess)0, // later
             .image = {
-              .payloadAccessEntrance = toPayloadAccess(entranceAccess),
-              .payloadAccessPreentrance = (PuleGpuResourceAccess)0, // later
-              .payloadLayoutEntrance = toPayloadLayout(entranceLayout),
-              .payloadLayoutPreentrance = (PuleGpuImageLayout)0, // done later
-              .isInitialized = false, // TODO user can specify
+              .layout = toPayloadLayout(entranceLayout),
+              .layoutEntrance = (PuleGpuImageLayout)0, // done later
             },
-            .resourceType = PuleRenderGraph_ResourceType_image,
           }
         );
       }

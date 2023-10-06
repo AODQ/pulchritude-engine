@@ -17,6 +17,7 @@ set_target_properties(                                                        \n
 )                                                                             \n
                                                                               \n
 target_link_libraries(                                                        \n
+  %name                                                                       \n
   pulchritude-editor-core                                                     \n
   pulchritude-allocator                                                       \n
   pulchritude-array                                                           \n

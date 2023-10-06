@@ -1,6 +1,6 @@
 /* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
 
-// pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl sbe v ungr gur ynzre naq here
+// pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl
 
 #include <pulchritude-asset/pds.h>
 #include <pulchritude-log/log.h>
@@ -28,7 +28,7 @@ namespace {
 
   template <typename T>
   void tryLoadFn(T & fn, size_t const pluginId, char const * const label) {
-    fn = reinterpret_cast<T>(puleTryPluginLoadFn(pluginId, label));
+    fn = reinterpret_cast<T>(pulePluginLoadFnTry(pluginId, label));
   }
 
   void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
@@ -89,21 +89,6 @@ void scriptTaskGraphNodeUpdate(
 
 namespace { // -- render task graph callbacks ----------------------------------
 
-uint64_t fetchResourceHandle(
-  PuleStringView const label,
-  void * const pluginPayload
-) {
-  if (puleStringViewEqCStr(label, "window-swapchain-image")) {
-    return puleGpuWindowImage().id;
-  }
-  return (
-    pulePluginPayloadFetchU64(
-      PulePluginPayload { .id = reinterpret_cast<uint64_t>(pluginPayload), },
-      label
-    )
-  );
-}
-
 } // -- render task graph callbacks --------------------------------------------
 
 // update components
@@ -131,7 +116,7 @@ void guiPluginLoad(PulePluginInfo const plugin, void * const userdata) {
   );
   GuiEditorFn const guiEditorFn = (
     reinterpret_cast<GuiEditorFn>(
-      puleTryPluginLoadFn(plugin.id, "puldGuiEditor")
+      pulePluginLoadFnTry(plugin.id, "puldGuiEditor")
     )
   );
   if (guiEditorFn) {
@@ -295,7 +280,7 @@ int32_t main(
   assert(layers.size() > 0);
 
   std::vector<size_t> componentPluginIds;
-  puleIteratePlugins(
+  pulePluginIterate(
     ::iteratePlugins,
     reinterpret_cast<void *>(&componentPluginIds)
   );
@@ -617,8 +602,15 @@ int32_t main(
     // try to load component
     void (*componentLoadFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
+    puleLog(
+      "[PuleApplication] zzz Loading plugin %s",
+      pulePluginName(componentPluginId)
+    );
     if (componentLoadFn) {
-      puleLogDebug("[PuleApplication] Loading function");
+      puleLogDebug(
+        "[PuleApplication] Loading function for plugin %d",
+        componentPluginId
+      );
       componentLoadFn(payload);
     }
 
@@ -635,7 +627,7 @@ int32_t main(
       .renderGraph = renderGraph,
       .platform = platform,
     };
-    puleIteratePlugins(
+    pulePluginIterate(
       ::iteratePluginsCollectRenderGraphs, &renderGraphInfo
     );
   }
@@ -644,7 +636,7 @@ int32_t main(
   assert(isGuiEditor ? platform.id : true);
   std::vector<GuiEditorFn> guiEditorFns;
   if (isGuiEditor) {
-    puleIteratePlugins(
+    pulePluginIterate(
       ::guiPluginLoad,
       reinterpret_cast<void *>(&guiEditorFns)
     );
@@ -678,7 +670,7 @@ int32_t main(
       pulePlatformPollEvents(platform);
     }
     if (renderGraph.id != 0) {
-      pulBase.renderGraphFrameStart(renderGraph, fetchResourceHandle);
+      pulBase.renderGraphFrameStart(renderGraph);
     }
     if (isGuiEditor) {
       pulBase.imguiNewFrame();
@@ -713,15 +705,7 @@ int32_t main(
         guiFn(puleAllocateDefault(), platform, pulBase);
       }
       // render out
-      pulBase.imguiRender(
-        pulBase.renderGraph_commandListRecorder(
-          pulBase.renderGraphNodeFetch(
-            renderGraph, pulBase.cStr("imgui-render")
-          ),
-          &fetchResourceHandle,
-          reinterpret_cast<void *>(payload.id)
-        )
-      );
+      pulBase.imguiRender(renderGraph);
     } else {
       for (auto const componentUpdateFn : updateableComponents) {
         componentUpdateFn(payload);
@@ -795,5 +779,4 @@ int32_t main(
   return 0;
 }
 
-// jryy znlor guvf pbhyq or gur raqvat jvgu abguvat yrsg bs lbh n uhaqerq
-// jvfurf pbhyqa'g fnl v qba'g jnag gb
+// jryy znlor guvf pbhyq or gur raqvat jvgu abguvat yrsg bs lbh

@@ -64,6 +64,7 @@ typedef enum {
   PuleGpuAction_pushConstants,
   PuleGpuAction_dispatchCommandList,
   PuleGpuAction_setScissor,
+  PuleGpuAction_copyImageToImage,
 } PuleGpuAction;
 
 PULE_exportFn PuleStringView puleGpuActionToString(PuleGpuAction const action);
@@ -263,10 +264,20 @@ typedef struct {
 } PuleGpuActionDispatchCommandList;
 
 typedef struct {
-  PuleGpuAction action; // PuleGpuAction_dispatchCommandList
+  PuleGpuAction action; // PuleGpuAction_setScissor
   PuleI32v2 scissorMin;
   PuleI32v2 scissorMax;
 } PuleGpuActionSetScissor;
+
+typedef struct {
+  PuleGpuAction action; // PuleGpuAction_copyImageToImage
+  PuleGpuImage srcImage;
+  PuleGpuImage dstImage;
+  // TODO subresource layers
+  PuleU32v3 srcOffset;
+  PuleU32v3 dstOffset;
+  PuleU32v3 extent;
+} PuleGpuActionCopyImageToImage;
 
 typedef union {
   PuleGpuAction action;
@@ -287,6 +298,7 @@ typedef union {
   PuleGpuActionPushConstants pushConstants;
   PuleGpuActionDispatchCommandList dispatchCommandList;
   PuleGpuActionSetScissor setScissor;
+  PuleGpuActionCopyImageToImage copyImageToImage;
 } PuleGpuCommand;
 
 //------------------------------------------------------------------------------
@@ -354,6 +366,13 @@ PULE_exportFn PuleGpuCommandList puleGpuCommandListChainCurrent(
 // when submitting command list, be sure to set `fenceTargetFinish` to this
 PULE_exportFn PuleGpuFence puleGpuCommandListChainCurrentFence(
   PuleGpuCommandListChain const commandListChain
+);
+
+PULE_exportFn PuleStringView puleGpuResourceBarrierStageLabel(
+  PuleGpuResourceBarrierStage const stage
+);
+PULE_exportFn PuleStringView puleGpuResourceAccessLabel(
+  PuleGpuResourceAccess const access
 );
 
 #ifdef __cplusplus

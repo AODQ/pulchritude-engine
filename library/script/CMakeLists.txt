@@ -1,4 +1,3 @@
-# then add library
 add_library(pulchritude-script SHARED)
 
 option(PULCHRITUDE_SCRIPT_BIND_ALLOCATOR "bind allocator" ON)
@@ -43,7 +42,7 @@ set_target_properties(
   pulchritude-script
     PROPERTIES
       COMPILE_FLAGS
-        "-Wshadow -Wall -Wformat=2 -Wextra -Wundef"
+        "-Wshadow -Wall -Wformat=2 -Wextra -Wundef -Wno-missing-braces"
     POSITION_INDEPENDENT_CODE ON
     ENABLE_EXPORTS ON
 )

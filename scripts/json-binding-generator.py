@@ -40,8 +40,21 @@ def comment_remover(text):
   )
   return re.sub(pattern, replacer, text)
 
+def macro_remover(text):
+  import re
+  # remove all instances of PULE_param
+  return re.sub(r' PULE_param\(.*?\);', ';', text);
+
 def exportJsonFromFile(contents, modulename, header):
-  contents = comment_remover(contents)
+  contents = macro_remover(comment_remover(contents))
+  # dump the contents to a file for debugging, if directory debug-binding exists
+  #print("Exporting json for " + header + " from " + modulename + "...")
+  if (not os.path.isdir("debug-binding")):
+    os.mkdir("debug-binding")
+  file = open("debug-binding/" + modulename + "-" + header, "w+")
+  file.write(contents)
+  file.close()
+
   exportedSymbols = []
 
   contentLen = len(contents)
@@ -435,7 +448,6 @@ for objkey, obj in enumerate(exportJson):
       if (character == "["):
         it = zit
         break
-    print(field)
     assert(it > 0)
     exportJson[objkey][fieldsOrPameter][fieldkey]["type"] = (
       field["type"] + [field["label"][it:]]
@@ -447,22 +459,19 @@ for objkey, obj in enumerate(exportJson):
 # interesting, now before I stamp these papers, make sure this information is
 #   correct
 for symbol in exportJson:
-  pprint(f"symbol: {symbol}")
+  #print(f"symbol: {symbol}")
   def symAssertStr(member, label):
-    if (label not in member or member[label] == ""):
-      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
-
-  def symAssertStr(member, label):
-    if (label not in member or member[label] == ""):
-      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+    pass
+    #if (label not in member or member[label] == ""):
+    #  print(f"------ str invalid '{label}' in '{member}' [{symbol['label']}]: ");
 
   def symAssertArray(member, label, minLen):
     if (label not in member or len(member[label]) < minLen):
-      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+      print(f"------ arr invalid '{label}' in '{member}' [{symbol['label']}]: ");
 
   def symAssertEnum(member, label):
     if (label not in member or member[label] < 0):
-      print(f"------ invalid '{label}' in '{member}' [{symbol['label']}]: ");
+      print(f"------ enum invalid '{label}' in '{member}' [{symbol['label']}]: ");
 
   if (symbol["type"] == "function"):
     symAssertStr(symbol, "return-type")
