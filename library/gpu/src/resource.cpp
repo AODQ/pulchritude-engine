@@ -39,6 +39,18 @@ PuleGpuImageChain puleGpuImageChain_create(
       .frameIdx = it,
     });
   }
+  puleLog(
+    "Created image chain '%s', size %zu ->",
+    createInfo.label.contents,
+    imageChain.chain.size()
+  );
+  for (size_t it = 0; it < util::ctx().swapchainImages.size(); ++ it) {
+    puleLog(
+      "  %zu: %zu",
+      it,
+      imageChain.chain[it].image.id
+    );
+  }
   return { .id = util::ctx().imageChains.create(imageChain), };
 }
 
@@ -49,12 +61,8 @@ void puleGpuImageChain_destroy(PuleGpuImageChain const imageChain) {
 PuleGpuImage puleGpuImageChain_current(
   PuleGpuImageChain const imageChain
 ) {
-  puleLog("Returning image chain current for index %zu", util::ctx().frameIdx);
-  return (
-    util::ctx()
-    .imageChains.at(imageChain.id)
-    ->chain[util::ctx().frameIdx].image
-  );
+  auto & chain = util::ctx().imageChains.at(imageChain.id)->chain;
+  return chain.at(util::ctx().frameIdx % chain.size()).image;
 }
 
 } // C
