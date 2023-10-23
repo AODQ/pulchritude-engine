@@ -65,9 +65,7 @@ typedef struct {
 
 PULE_exportFn PuleStringView puleGpuImageLabel(PuleGpuImage const image);
 
-PULE_exportFn void puleGpuImageDestroy(
-  PuleGpuImage const image
-);
+PULE_exportFn void puleGpuImageDestroy(PuleGpuImage const image);
 
 PULE_exportFn PuleGpuImage puleGpuImageCreate(
   PuleGpuImageCreateInfo const imageCreateInfo

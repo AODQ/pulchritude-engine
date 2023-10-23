@@ -237,7 +237,7 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
     );
 
     std::string label = (
-      std::string("imageAvailableSemaphore-")
+      std::string("image-available-semaphore-")
       + std::to_string(util::ctx().frameIdx)
     );
 
@@ -259,16 +259,18 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
       imageAvailableSemaphore, fence, &imageIdx
     ) == VK_SUCCESS
   );
+  puleLog("<><><> waiting on semaphore %d %zu", imageIdx, (util::ctx().frameIdx));
+  puleLog("Image avilable semaphore %zu", imageAvailableSemaphore);
   util::ctx().swapchainCurrentImageIdx = imageIdx;
 
   // replace existing semaphore with new one
-  VkSemaphore & availableSemaphore = (
+  VkSemaphore & previousAvailableSemaphore = (
     util::ctx().swapchainImageAvailableSemaphores[imageIdx]
   );
-  if (availableSemaphore != VK_NULL_HANDLE) {
+  if (previousAvailableSemaphore != VK_NULL_HANDLE) {
     vkDestroySemaphore(
       util::ctx().device.logical,
-      availableSemaphore,
+      previousAvailableSemaphore,
       nullptr
     );
   }
@@ -295,6 +297,18 @@ void util::swapchainImagesCreate() {
     util::ctx().swapchain,
     &swapchainImageCount, util::ctx().swapchainImages.data()
   );
+  for (size_t it = 0; it < swapchainImageCount; ++ it) {
+    puleLogDebug(
+      "labelling swapchain image %zu ",
+      reinterpret_cast<uint64_t>(util::ctx().swapchainImages[it])
+    );
+    util::ctx().images.emplace(
+      reinterpret_cast<uint64_t>(util::ctx().swapchainImages[it]),
+      util::ImageInfo {
+        .label = "window-swapchain-image-" + std::to_string(it),
+      }
+    );
+  }
 }
 
 VkPipelineStageFlagBits util::toVkPipelineStageFlagBits(

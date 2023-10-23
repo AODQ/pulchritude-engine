@@ -5,255 +5,266 @@
 #include <pulchritude-gpu/shader-module.h>
 #include <pulchritude-gpu/synchronization.h>
 
-namespace {
+#include <string>
+#include <vector>
 
-struct ShapeRenderer {
-  PuleGpuShaderModule shaderModule { 0 };
-  PuleGpuPipeline pipeline { 0 };
-  size_t requestedDraws = 0;
+namespace in {
+
+struct DebugRecorder {
+  PuleGpuCommandListRecorder commandListRecorder;
+  PuleF32m44 transform;
+  bool initialized;
+  PuleGfxDebugRenderType previousRenderType;
 };
 
-struct MappedLine {
-  PuleF32v3 start;
-  PuleF32v3 color;
-  PuleF32v3 end;
-  PuleF32v3 reserved;
-};
+pule::ResourceContainer<in::DebugRecorder> debugRecorder;
 
-struct Context {
-  PulePlatform platform;
-  PuleGpuBuffer mappedBuffer { 0 };
-  uint8_t * mappedBufferContents = nullptr;
-  size_t bufferByteLength { 0 };
-  ShapeRenderer lineRenderer { 0 };
-  PuleGpuCommandList commandList { 0 };
-};
-Context ctx { };
+PuleGpuPipeline linePipeline;
+PuleGpuShaderModule lineShaderModule;
 
-void refreshContext(
-  [[maybe_unused]] PuleGpuFramebuffer const framebuffer,
-  [[maybe_unused]] PuleF32m44 const transform,
-  PuleError * const err
-) {
-  // // have to do this because pipelines depend on viewports, but they really
-  // // shouldn't
-  // static int32_t prevWidth = 0, prevHeight = 0;
-  // auto const windowSize = pulePlatformWindowSize(ctx.platform);
-  // if (prevWidth == windowSize.x && prevHeight == windowSize.y) {
-  //   return;
-  // }
-  // prevWidth = windowSize.x;
-  // prevHeight = windowSize.y;
-  //
-  // { // line pipeline layout
-  //   auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
-  //   descriptorSetLayout.bufferAttributeBindings[0] = {
-  //     .dataType = PuleGpuAttributeDataType_float,
-  //     .numComponents = 3,
-  //     .convertFixedDataTypeToNormalizedFloating = false,
-  //     .stridePerElement = sizeof(PuleF32v3)*2,
-  //     .offsetIntoBuffer = 0,
-  //   };
-  //
-  //   auto pipelineInfo = PuleGpuPipelineCreateInfo {
-  //     .shaderModule = ctx.lineRenderer.shaderModule,
-  //     .layout = &descriptorSetLayout,
-  //     .config = {
-  //       .depthTestEnabled = true,
-  //       .blendEnabled = false,
-  //       .scissorTestEnabled = false,
-  //       .viewportMin = PuleI32v2 { 0, 0, },
-  //       .viewportMax = pulePlatformWindowSize(ctx.platform),
-  //       .scissorMin = PuleI32v2 { 0, 0, },
-  //       .scissorMax = pulePlatformWindowSize(ctx.platform),
-  //     },
-  //   };
-  //   puleGpuPipelineDestroy(ctx.lineRenderer.pipeline);
-  //   ctx.lineRenderer.pipeline = puleGpuPipelineCreate(&pipelineInfo, err);
-  //   if (puleErrorExists(err)) {
-  //     return;
-  //   }
-  // }
-  //
-  // puleGpuCommandListDestroy(ctx.commandList);
-  // ctx.commandList = (
-  //   puleGpuCommandListCreate(
-  //     puleAllocateDefault(),
-  //     puleCStr("pule-gfx-debug")
-  //   )
-  // );
-  // { // record command list
-  //   auto commandListRecorder = puleGpuCommandListRecorder(ctx.commandList);
-  //
-  //   if (ctx.lineRenderer.requestedDraws == 0) {
-  //     goto finishLineRendering;
-  //   }
-  //   puleGpuCommandListAppendAction(
-  //     commandListRecorder,
-  //     PuleGpuCommand {
-  //       .bindPipeline = {
-  //         .action = PuleGpuAction_bindPipeline,
-  //         .pipeline = ctx.lineRenderer.pipeline,
-  //       },
-  //     }
-  //   );
-  //   puleGpuCommandListAppendAction(
-  //     commandListRecorder,
-  //     PuleGpuCommand {
-  //       .dispatchRender = {
-  //         .action = PuleGpuAction_dispatchRender,
-  //         .drawPrimitive = PuleGpuDrawPrimitive_line,
-  //         .vertexOffset = 0,
-  //         .numVertices = ctx.lineRenderer.requestedDraws*2,
-  //       },
-  //     }
-  //   );
-  //   finishLineRendering:
-  //
-  //   puleGpuCommandListRecorderFinish(commandListRecorder);
-  // }
-}
 
-} // namespace
+} // namespace in
 
 extern "C" {
 
 void puleGfxDebugInitialize(PulePlatform const platform) {
-  ctx.platform = platform;
-  ctx.bufferByteLength = 8192;
-  ctx.mappedBuffer = (
-    puleGpuBufferCreate(
-      puleCStr("pule-gfx-mapped-debug-buffer"),
-      nullptr,
-      ctx.bufferByteLength,
-      PuleGpuBufferUsage_storage,
-      PuleGpuBufferVisibilityFlag_hostWritable
-    )
-  );
-  ctx.mappedBufferContents = nullptr;
-  ctx.mappedBufferContents = (
-    reinterpret_cast<uint8_t *>(
-      puleGpuBufferMap( PuleGpuBufferMapRange {
-        .buffer = ctx.mappedBuffer,
-        .access = PuleGpuBufferMapAccess_hostWritable,
+
+  #include "autogen-debug-gfx-line.frag.spv"
+  #include "autogen-debug-gfx-line.vert.spv"
+
+  PuleError err = puleError();
+
+  std::string vertexShaderSource = "";
+  std::string fragmentShaderSource = "";
+
+  { // line renderer
+    in::lineShaderModule = (
+      puleGpuShaderModuleCreate(
+        PuleBufferView {
+          .data = debugGfxLineVert,
+          .byteLength = sizeof(debugGfxLineVert),
+        },
+        PuleBufferView {
+          .data = debugGfxLineFrag,
+          .byteLength = sizeof(debugGfxLineFrag),
+        },
+        &err
+      )
+    );
+    if (puleErrorConsume(&err)) {
+      return;
+    }
+
+    auto layoutDescriptorSet = puleGpuPipelineDescriptorSetLayout();
+
+    auto pushConstant = (
+      PuleGpuPipelineLayoutPushConstant {
+        .stage = PuleGpuDescriptorStage_vertex,
+        .byteLength = sizeof(float)*4,
         .byteOffset = 0,
-        .byteLength = ctx.bufferByteLength,
-      })
-    )
-  );
-  puleLog("mapped buffer %p", ctx.mappedBufferContents);
+      }
+    );
 
-  char const * const moduleShaderSource = "TODO";
-  /*   "#version 460 core\n" \
-  //   PULE_multilineString(
-  //     uniform layout(location = 0) mat4 transform;
-  //     in layout(location = 0) vec2 attributeOrigin;
-  //     out layout(location = 0) flat int outVertexId;
-  //     void main() {
-  //       gl_Position = vec4(attributeOrigin.xy, 0.0f, 1.0f);
-  //       outVertexId = gl_VertexID;
-  //     }
-  //   )
-  // );
-  //
-  // char const * const fragmentShaderSource = (
-  //   "#version 460 core\n" \
-  //   PULE_multilineString(
-  //     in layout(location = 0) flat int inVertexId;
-  //     out layout(location = 0) vec4 outColor;
-  //     void main() {
-  //       outColor = vec4(1.0f);
-  //     }
-  //   )
-  // );
+    auto pipelineInfo = (
+      PuleGpuPipelineCreateInfo {
+        .shaderModule = in::lineShaderModule,
+        .layoutDescriptorSet = &layoutDescriptorSet,
+        .layoutPushConstantsCount = 1,
+        .layoutPushConstants = &pushConstant,
+        .config = {
+          .depthTestEnabled = false,
+          .blendEnabled = false,
+          .scissorTestEnabled = false,
+          .viewportMin = {0, 0},
+          .viewportMax = {800, 600}, // TODO FIX
+          .scissorMin = {0, 0},
+          .scissorMax = {0, 0},
+        },
+      }
+    );
 
-  // PuleError err = puleError();
+    in::linePipeline = (
+      puleGpuPipelineCreate(
+        &pipelineInfo,
+        &err
+      )
+    );
 
-  // { // line renderer
-  //   ctx.lineRenderer.shaderModule = (
-  //     puleGpuShaderModuleCreate(
-  //       puleCStr(moduleShaderSource),
-  //       &err
-  //     )
-  //   );
-  //   if (puleErrorConsume(&err)) {
-  //     return;
-  //   }
-  // }
-  */
+    if (puleErrorConsume(&err)) {
+      return;
+    }
+  }
 }
 
 void puleGfxDebugShutdown() {
 }
 
-void puleGfxDebugFrameStart() {
-  ctx.lineRenderer.requestedDraws = 0;
+PuleGfxDebugRecorder puleGfxDebugStart(
+  PuleGpuCommandListRecorder const commandListRecorder,
+  PuleGpuActionRenderPassBegin const renderPassBegin,
+  PuleF32m44 const transform
+) {
+  puleGpuCommandListAppendAction(
+    commandListRecorder,
+    PuleGpuCommand {
+      .renderPassBegin = renderPassBegin,
+    }
+  );
+  return PuleGfxDebugRecorder {
+    .id = in::debugRecorder.create(
+      in::DebugRecorder {
+        .commandListRecorder = commandListRecorder,
+        .transform = transform,
+        .initialized = false,
+        .previousRenderType = PuleGfxDebugRenderType_line,
+      }
+    )
+  };
+}
+
+void puleGfxDebugEnd(PuleGfxDebugRecorder const recorder) {
+  puleGpuCommandListAppendAction(
+    in::debugRecorder.at(recorder.id)->commandListRecorder,
+    PuleGpuCommand {
+      .renderPassEnd = {},
+    }
+  );
+  in::debugRecorder.destroy(recorder.id);
 }
 
 void puleGfxDebugRender(
-  PuleGpuFramebuffer const framebuffer,
-  PuleF32m44 const transform
+  PuleGfxDebugRecorder const puDebugRecorder,
+  PuleGfxDebugRenderParam const param
 ) {
-  // update GPU info
-  puleGpuBufferMappedFlush({
-    .buffer = ctx.mappedBuffer,
-    .byteOffset = 0,
-    .byteLength = ctx.lineRenderer.requestedDraws*sizeof(MappedLine),
-  });
-
-  PuleError err = puleError();
-  refreshContext(framebuffer, transform, &err);
-  if (puleErrorConsume(&err)) {
-    return;
+  in::DebugRecorder & debugRecorder = (
+    *in::debugRecorder.at(puDebugRecorder.id)
+  );
+  // bind pipeline if needed
+  if (
+       !debugRecorder.initialized
+    || debugRecorder.previousRenderType != param.type
+  ) {
+    switch (param.type) {
+      case PuleGfxDebugRenderType_line:
+      case PuleGfxDebugRenderType_quad: // use same pipeline for now
+      {
+        puleGpuCommandListAppendAction(
+          debugRecorder.commandListRecorder,
+          PuleGpuCommand {
+            .bindPipeline = {
+              .action = PuleGpuAction_bindPipeline,
+              .pipeline = in::linePipeline,
+            }
+          }
+        );
+      } break;
+    }
   }
-  puleGpuCommandListSubmit(
+  debugRecorder.previousRenderType = param.type;
+
+  // scissor
+  puleGpuCommandListAppendAction(
+    debugRecorder.commandListRecorder,
     {
-      .commandList = ctx.commandList,
-      .fenceTargetFinish = { 0 },
-    },
-    &err
+      .setScissor = {
+        .action = PuleGpuAction_setScissor,
+        .scissorMin = { .x = 0, .y = 0, },
+        .scissorMax = { .x = 800, .y = 600, },
+      },
+    }
   );
-  if (puleErrorConsume(&err)) {
-    return;
+
+  // bind push constants
+  switch (param.type) {
+    default:
+      puleLogError("Unimplemented debug render type %d", param.type);
+      PULE_assert(false && "unimplemented");
+    case PuleGfxDebugRenderType_quad: {
+      PuleF32v2 const ul = (
+        PuleF32v2 {
+          param.quad.originCenter.x - param.quad.dimensionsHalf.x,
+          param.quad.originCenter.y - param.quad.dimensionsHalf.y
+        }
+      );
+      PuleF32v2 const ur = (
+        PuleF32v2 {
+          param.quad.originCenter.x + param.quad.dimensionsHalf.x,
+          param.quad.originCenter.y - param.quad.dimensionsHalf.y
+        }
+      );
+      PuleF32v2 const ll = (
+        PuleF32v2 {
+          param.quad.originCenter.x - param.quad.dimensionsHalf.x,
+          param.quad.originCenter.y + param.quad.dimensionsHalf.y
+        }
+      );
+      PuleF32v2 const lr = (
+        PuleF32v2 {
+          param.quad.originCenter.x + param.quad.dimensionsHalf.x,
+          param.quad.originCenter.y + param.quad.dimensionsHalf.y
+        }
+      );
+      std::vector<PuleF32v2> vertices = {
+        ul, ur, ur, lr, lr, ll, ll, ul,
+      };
+      for (size_t it = 0; it < 4; ++ it) {
+        puleGpuCommandListAppendAction(
+          debugRecorder.commandListRecorder,
+          PuleGpuCommand {
+            .pushConstants = {
+              .stage = PuleGpuDescriptorStage_vertex,
+              .byteLength = sizeof(float)*4,
+              .byteOffset = 0,
+              .data = &vertices[it*2],
+            }
+          }
+        );
+        puleGpuCommandListAppendAction(
+          debugRecorder.commandListRecorder,
+          PuleGpuCommand {
+            .dispatchRender = {
+              .drawPrimitive = PuleGpuDrawPrimitive_line,
+              .vertexOffset = 0,
+              .numVertices = 2,
+            }
+          }
+        );
+      }
+    }
+    case PuleGfxDebugRenderType_line: {
+      float const vertices[4] = {
+        param.line.a.x,
+        param.line.a.y,
+        param.line.b.x,
+        param.line.b.y,
+      };
+      puleGpuCommandListAppendAction(
+        debugRecorder.commandListRecorder,
+        PuleGpuCommand {
+          .pushConstants = {
+            .stage = PuleGpuDescriptorStage_vertex,
+            .byteLength = sizeof(float)*4,
+            .byteOffset = 0,
+            .data = vertices,
+          }
+        }
+      );
+
+      // draw
+      puleGpuCommandListAppendAction(
+        debugRecorder.commandListRecorder,
+        PuleGpuCommand {
+          .dispatchRender = {
+            .drawPrimitive = PuleGpuDrawPrimitive_line,
+            .vertexOffset = 0,
+            .numVertices = 2,
+          }
+        }
+      );
+    } break;
   }
+
 }
 
-void puleGfxDebugRenderLine(
-  PuleF32v3 const originStart,
-  PuleF32v3 const originEnd,
-  [[maybe_unused]] PuleF32v3 const color
-) {
-  MappedLine & mappedLine = *(
-    reinterpret_cast<MappedLine *>(
-      ctx.mappedBufferContents
-      + (
-        sizeof(MappedLine)*ctx.lineRenderer.requestedDraws
-      )
-    )
-  );
-  mappedLine.start = originStart;
-  mappedLine.end = originEnd;
-  ctx.lineRenderer.requestedDraws += 1;
-}
-
-void puleGfxDebugRenderRectOutline(
-  PuleF32v3 const originCenter,
-  PuleF32v2 const dimensions,
-  PuleF32v3 const color
-) {
-  PuleF32v3 const bounds[4] = {
-    PuleF32v3{-dimensions.x, -dimensions.y, 0.0f},
-    PuleF32v3{ dimensions.x, -dimensions.y, 0.0f},
-    PuleF32v3{ dimensions.x,  dimensions.y, 0.0f},
-    PuleF32v3{-dimensions.x,  dimensions.y, 0.0f},
-  };
-  for (size_t it = 0; it < 4; ++ it) {
-    puleGfxDebugRenderLine(
-      puleF32v3Add(originCenter, bounds[it]),
-      puleF32v3Add(originCenter, bounds[(it+1)%4]),
-      color
-    );
-  }
-}
 
 } // C

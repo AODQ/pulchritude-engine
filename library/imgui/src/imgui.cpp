@@ -135,7 +135,7 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
       .blendEnabled = true,
       .scissorTestEnabled = false,
       .viewportMin = {.x = 0, .y = 0,},
-      .viewportMax = {.x = 800, .y = 600,},
+      .viewportMax = {.x = 800, .y = 600,}, // TODO FIX
       .scissorMin = {.x = 0, .y = 0,},
       .scissorMax = {.x = 800, .y = 600,},
     },
@@ -442,7 +442,7 @@ void renderDrawData(
           .baseVertexOffset = flattenedVtxOffset + drawCmd.VtxOffset,
         },
       };
-      puleGpuCommandListAppendAction(renderRecorder, drawCommand);
+      //puleGpuCommandListAppendAction(renderRecorder, drawCommand);
     }
   }
 
@@ -479,6 +479,7 @@ void blitDrawData(
         .extent = {
           .x = static_cast<uint32_t>(drawData->DisplaySize.x),
           .y = static_cast<uint32_t>(drawData->DisplaySize.y),
+          .z = 1,
         },
       },
     }

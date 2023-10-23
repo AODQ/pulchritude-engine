@@ -859,29 +859,14 @@
       ::loadSymbol("puleGfxDebugShutdown", layerName)
     )
   );
-  layer->gfxDebugRenderLine = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderLine)>(
-      ::loadSymbol("puleGfxDebugRenderLine", layerName)
+  layer->gfxDebugStart = (
+    reinterpret_cast<decltype(layer->gfxDebugStart)>(
+      ::loadSymbol("puleGfxDebugStart", layerName)
     )
   );
-  layer->gfxDebugRenderRectOutline = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderRectOutline)>(
-      ::loadSymbol("puleGfxDebugRenderRectOutline", layerName)
-    )
-  );
-  layer->gfxDebugRenderCircle = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderCircle)>(
-      ::loadSymbol("puleGfxDebugRenderCircle", layerName)
-    )
-  );
-  layer->gfxDebugRenderPoint = (
-    reinterpret_cast<decltype(layer->gfxDebugRenderPoint)>(
-      ::loadSymbol("puleGfxDebugRenderPoint", layerName)
-    )
-  );
-  layer->gfxDebugFrameStart = (
-    reinterpret_cast<decltype(layer->gfxDebugFrameStart)>(
-      ::loadSymbol("puleGfxDebugFrameStart", layerName)
+  layer->gfxDebugEnd = (
+    reinterpret_cast<decltype(layer->gfxDebugEnd)>(
+      ::loadSymbol("puleGfxDebugEnd", layerName)
     )
   );
   layer->gfxDebugRender = (

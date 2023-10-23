@@ -372,6 +372,8 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
 
+  puleLog("created image %u, label %s", reinterpret_cast<uint64_t>(image), createInfo.label.contents);
+
   return { .id = reinterpret_cast<uint64_t>(image), };
 }
 
@@ -383,7 +385,15 @@ void puleGpuImageDestroy(PuleGpuImage const image) {
 }
 
 PuleStringView puleGpuImageLabel(PuleGpuImage const image) {
-  
+  if (image.id == 0) {
+    PULE_assert(false && "image id is 0");
+  }
+  if (!util::ctx().images.contains(image.id)) {
+    puleLog("image id %zu not found", image.id);
+    return puleCStr("[unknown image]");
+  }
+  auto const & info = util::ctx().images.at(image.id);
+  return puleCStr(info.label.c_str());
 }
 
 } // C

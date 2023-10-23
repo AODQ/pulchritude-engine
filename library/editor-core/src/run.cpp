@@ -1,6 +1,7 @@
 #include "util.h"
 
 #include <pulchritude-allocator/allocator.h>
+#include <pulchritude-error/error.h>
 #include <pulchritude-file/file.h>
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-imgui/imgui.h>
@@ -43,15 +44,23 @@ bool editorBuildRunApplication(
     bool const isGuiEditor = puleDsMemberAsBool(input, "gui-editor");
     bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
     bool const isEarlyExit = puleDsMemberAsBool(input, "early-exit");
-    bool const gdb = puleDsMemberAsBool(input, "gdb");
+    bool const runWithGdb = puleDsMemberAsBool(input, "gdb");
+    bool const runWithValgrind = puleDsMemberAsBool(input, "valgrind");
     bool const debugLayer = puleDsMemberAsBool(input, "debug-layer");
     bool const clear = puleDsMemberAsBool(input, "clear");
+    PULE_assert(
+      !runWithValgrind || !runWithGdb
+      && "Cannot run with valgrind and gdb at the same time"
+    );
     if (clear) {
       execute += " clear ; ";
     }
     execute += "exec ";
-    if (gdb) {
+    if (runWithGdb) {
       execute += "gdb -ex run --args ";
+    }
+    if (runWithValgrind) {
+      execute += "valgrind ";
     }
     execute += "./pulchritude-application ";
     execute += "--plugin-path " + std::string(exePath.contents) + "/plugins/ ";

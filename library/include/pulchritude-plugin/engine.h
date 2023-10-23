@@ -233,12 +233,9 @@ typedef struct PuleEngineLayer {
   // gfx-debug
   void (* gfxDebugInitialize)(PulePlatform const);
   void (* gfxDebugShutdown)();
-  void (* gfxDebugRenderLine)(PuleF32v3 const, PuleF32v3 const, PuleF32v3 const);
-  void (* gfxDebugRenderRectOutline)(PuleF32v3 const, PuleF32v2 const, PuleF32v3 const);
-  void (* gfxDebugRenderCircle)(PuleF32v3 const, float const, PuleF32v3 const, PuleF32v3 const);
-  void (* gfxDebugRenderPoint)(PuleF32v3 const, float const, PuleF32v3 const);
-  void (* gfxDebugFrameStart)();
-  void (* gfxDebugRender)(PuleGpuFramebuffer const, PuleF32m44 const);
+  PuleGfxDebugRecorder (* gfxDebugStart)(PuleGpuCommandListRecorder const, PuleGpuActionRenderPassBegin const, PuleF32m44 const);
+  void (* gfxDebugEnd)(PuleGfxDebugRecorder const);
+  void (* gfxDebugRender)(PuleGfxDebugRecorder const, PuleGfxDebugRenderParam const);
   // gfx-mesh
   void (* gfxMeshRender)(PuleGfxMesh const * const, PuleGpuBuffer const, PuleGpuFramebuffer const, PuleGpuCommandListRecorder const);
   // imgui-engine
@@ -476,7 +473,7 @@ typedef struct PuleEngineLayer {
   void (* gpuCommandListChainDestroy)(PuleGpuCommandListChain const);
   PuleGpuCommandList (* gpuCommandListChainCurrent)(PuleGpuCommandListChain const);
   PuleGpuFence (* gpuCommandListChainCurrentFence)(PuleGpuCommandListChain const);
-  PuleStringView (* gpuResourceBarrierStageLabel)(PuleGpuResourceBarrierStage const);
+  PuleString (* gpuResourceBarrierStageLabel)(PuleGpuResourceBarrierStage const);
   PuleStringView (* gpuResourceAccessLabel)(PuleGpuResourceAccess const);
   PuleGpuBuffer (* gpuBufferCreate)(PuleStringView const, void const * const, size_t const, PuleGpuBufferUsage const, PuleGpuBufferVisibilityFlag const);
   void (* gpuBufferDestroy)(PuleGpuBuffer const);

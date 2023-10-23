@@ -78,10 +78,25 @@ PuleEcsComponent puleEcsComponentCreate(
   PuleEcsComponentCreateInfo const info
 ) {
   ecs_component_desc_t desc = { 0 };
-  desc.entity.name = info.label;
-  desc.entity.symbol = info.label;
-  desc.size = info.byteLength;
-  desc.alignment = info.byteAlignment;
+  auto entityDesc = ecs_entity_desc_t {
+    .id = 0,
+    .name = info.label,
+    .sep = nullptr,
+    .root_sep = nullptr,
+    .symbol = info.label,
+    .use_low_id = true, // reserved for components
+    .add = { 0 },
+    .add_expr = nullptr,
+  };
+  desc.entity = (
+    ecs_entity_init(
+      reinterpret_cast<ecs_world_t *>(world.id),
+      &entityDesc
+    )
+  );
+  desc.type.size = info.byteLength;
+  desc.type.alignment = info.byteAlignment;
+  desc.type.name = info.label;
 
   ecs_entity_t componentEntity = (
     ecs_component_init(
@@ -114,9 +129,9 @@ void puleEcsEntityIterateComponents(
   ecs_world_t * const world = reinterpret_cast<ecs_world_t *>(info.world.id);
   ecs_entity_t const entity = info.entity.id;
 
-  ecs_type_t const type = ecs_get_type(world, info.entity.id);
-  ecs_id_t * typeIds = ecs_vector_first(type, ecs_id_t);
-  int32_t const count = ecs_vector_count(type);
+  ecs_type_t const * type = ecs_get_type(world, info.entity.id);
+  ecs_id_t * typeIds = ecs_vec_first_t((ecs_vec_t*)type, ecs_id_t);
+  int32_t const count = ecs_vec_count((ecs_vec_t*)type);
 
   for (size_t it = 0; it < count; ++ it) {
     ecs_id_t const id = typeIds[it];
@@ -233,7 +248,9 @@ void * puleEcsIteratorQueryComponents(
   size_t const componentByteLength
 ) {
   auto iter = reinterpret_cast<ecs_iter_t *>(iterator.id);
-  return ecs_term_w_size(iter, componentByteLength, componentIndex+1);
+  // TODO
+  return nullptr;
+  //return ecs_term_w_size(iter, componentByteLength, componentIndex+1);
 }
 
 PuleEcsEntity * puleEcsIteratorQueryEntities(
@@ -268,7 +285,6 @@ static ecs_entity_t callbackFrequencyToFlecs(
 ) {
   switch (frequency) {
     default: PULE_assert(false);
-    case PuleEcsSystemCallbackFrequency_none:       return EcsInactive;
     case PuleEcsSystemCallbackFrequency_preUpdate:  return EcsPreUpdate;
     case PuleEcsSystemCallbackFrequency_onUpdate:   return EcsOnUpdate;
     case PuleEcsSystemCallbackFrequency_postUpdate: return EcsPostUpdate;
@@ -280,8 +296,22 @@ PuleEcsSystem puleEcsSystemCreate(
   PuleEcsSystemCreateInfo const info
 ) {
   ecs_system_desc_t desc = { 0 };
-  desc.entity.name = info.label;
-  desc.entity.add[0] = callbackFrequencyToFlecs(info.callbackFrequency);
+  auto entityDesc = ecs_entity_desc_t {
+    .id = 0,
+    .name = info.label,
+    .sep = nullptr,
+    .root_sep = nullptr,
+    .symbol = info.label,
+    .use_low_id = true, // reserved for components
+    .add = { callbackFrequencyToFlecs(info.callbackFrequency) },
+    .add_expr = nullptr,
+  };
+  desc.entity = (
+    ecs_entity_init(
+      reinterpret_cast<ecs_world_t *>(world.id),
+      &entityDesc
+    )
+  );
   desc.query.filter.expr = info.commaSeparatedComponentLabels;
   desc.callback = reinterpret_cast<void (*)(ecs_iter_t *)>(info.callback);
   ecs_entity_t system = (
@@ -369,7 +399,7 @@ PuleEcsQuery puleEcsQueryByComponent(
 ) {
   ecs_world_t * const world = reinterpret_cast<ecs_world_t *>(puWorld.id);
   ecs_query_desc_t queryDescription = {};
-  if (puComponentListSize < ECS_TERM_DESC_CACHE_SIZE) {
+  if (puComponentListSize < ECS_MEMBER_DESC_CACHE_SIZE) {
     queryDescription.filter.terms_buffer_count = 0;
     queryDescription.filter.terms_buffer = nullptr;
     for (size_t it = 0; it < puComponentListSize; ++ it) {

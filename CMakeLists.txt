@@ -159,6 +159,17 @@ if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not generate lua bindings")
 endif()
 
+execute_process(
+  COMMAND
+    python3
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compile-engine-shaders.py"
+    "--dir"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+  RESULT_VARIABLE processFinished
+)
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not compile shaders")
+endif()
 #watchfile(
 #  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
 #)

@@ -15,7 +15,7 @@
 #include <GLFW/glfw3.h>
 
 #include "../include/vulkan-memory-allocator.hpp"
-
+#include "pulchritude-math/math.h"
 
 namespace {
   std::unordered_set<std::string> loggedErrorMessages;
@@ -563,6 +563,7 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
       .pUserData = nullptr,
       .priority = 1.0f,
     };
+    puleLog("Creating staging buffer with size: %zu", 65'536);
     PULE_assert(
       vmaCreateBuffer(
         util::ctx().vmaAllocator,
@@ -716,6 +717,7 @@ PuleGpuBuffer puleGpuBufferCreate(
   VkBuffer buffer;
   VmaAllocation allocation;
   VmaAllocationInfo allocationInfo;
+  puleLog("Creating buffer with size: %zu", byteLength);
   PULE_vkError(
     vmaCreateBuffer(
       util::ctx().vmaAllocator,

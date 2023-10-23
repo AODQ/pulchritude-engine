@@ -2,6 +2,7 @@
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>
+#include <pulchritude-gpu/commands.h>
 #include <pulchritude-gpu/image.h>
 #include <pulchritude-math/math.h>
 #include <pulchritude-platform/platform.h>
@@ -13,36 +14,47 @@ extern "C" {
 PULE_exportFn void puleGfxDebugInitialize(PulePlatform const platform);
 PULE_exportFn void puleGfxDebugShutdown();
 
-PULE_exportFn void puleGfxDebugRenderLine(
-  PuleF32v3 const originStart,
-  PuleF32v3 const originEnd,
-  PuleF32v3 const color
+typedef struct {
+  uint64_t const id;
+} PuleGfxDebugRecorder;
+
+PULE_exportFn PuleGfxDebugRecorder puleGfxDebugStart(
+  PuleGpuCommandListRecorder const commandListRecorder,
+  PuleGpuActionRenderPassBegin const renderPassBegin,
+  PuleF32m44 const transform
+);
+PULE_exportFn void puleGfxDebugEnd(
+  PuleGfxDebugRecorder const recorder
 );
 
-PULE_exportFn void puleGfxDebugRenderRectOutline(
-  PuleF32v3 const originCenter,
-  PuleF32v2 const dimensions,
-  PuleF32v3 const color
-);
+typedef enum {
+  PuleGfxDebugRenderType_line,
+  PuleGfxDebugRenderType_quad,
+} PuleGfxDebugRenderType;
 
-PULE_exportFn void puleGfxDebugRenderCircle(
-  PuleF32v3 const origin,
-  float const radius,
-  PuleF32v3 const colorSurface,
-  PuleF32v3 const colorInner
-);
+typedef struct PuleGfxDebugRenderLine {
+  PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_line);
+  PuleF32v2 const a;
+  PuleF32v2 const b;
+  PuleF32v3 const color;
+} PuleGfxDebugRenderLine;
 
-PULE_exportFn void puleGfxDebugRenderPoint(
-  PuleF32v3 const origin,
-  float const pointWidth,
-  PuleF32v3 const color
-);
+typedef struct PuleGfxDebugRenderQuad {
+  PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_quad);
+  PuleF32v2 const originCenter;
+  PuleF32v2 const dimensionsHalf;
+  PuleF32v3 const color;
+} PuleGfxDebugRenderQuad;
 
-PULE_exportFn void puleGfxDebugFrameStart();
+typedef union PuleGfxDebugRenderParam {
+  PuleGfxDebugRenderType type;
+  PuleGfxDebugRenderLine line;
+  PuleGfxDebugRenderQuad quad;
+} PuleGfxDebugRenderParam;
 
 PULE_exportFn void puleGfxDebugRender(
-  PuleGpuFramebuffer const framebuffer,
-  PuleF32m44 const transform
+  PuleGfxDebugRecorder const debugRecorder,
+  PuleGfxDebugRenderParam const param
 );
 
 #ifdef __cplusplus

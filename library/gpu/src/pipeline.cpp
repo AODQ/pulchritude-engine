@@ -337,9 +337,22 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f, },
   };
   std::vector<VkDynamicState> dynamicStates = {
-    VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
     VK_DYNAMIC_STATE_SCISSOR,
   };
+  { // if there are any attribute bindings, enable dynamic strides on pipeline
+    bool hasAnyAttributeBindings = false;
+    for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
+      auto const binding = info->layoutDescriptorSet->attributeBindings[it];
+      if (binding.numComponents == 0) {
+        continue;
+      }
+      hasAnyAttributeBindings = true;
+      break;
+    }
+    if (hasAnyAttributeBindings) {
+      dynamicStates.emplace_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE);
+    }
+  }
   auto dynamicStateCi = VkPipelineDynamicStateCreateInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
     .pNext = nullptr,

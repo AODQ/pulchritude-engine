@@ -662,6 +662,8 @@ int32_t main(
   bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   PuleGpuSemaphore swapchainAvailableSemaphore = { .id = 0, };
   while (hasUpdate) {
+    puleLog("<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
+    puleLog("Frame start");
     if (isEarlyExit) {
       puleLog("<--> frame start <-->");
     }

@@ -166,7 +166,6 @@ PULE_exportFn PuleEcsSystem puleEcsIteratorSystem(
 PULE_exportFn void * puleEcsIteratorUserData(PuleEcsIterator const iterator);
 
 typedef enum {
-  PuleEcsSystemCallbackFrequency_none,
   PuleEcsSystemCallbackFrequency_preUpdate,
   PuleEcsSystemCallbackFrequency_onUpdate,
   PuleEcsSystemCallbackFrequency_postUpdate,

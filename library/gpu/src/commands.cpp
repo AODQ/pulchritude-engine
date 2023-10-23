@@ -83,7 +83,7 @@ extern "C" {
 
 PuleGpuCommandList puleGpuCommandListCreate(
   [[maybe_unused]] PuleAllocator const allocator,
-  [[maybe_unused]] PuleStringView const label
+  PuleStringView const label
 ) {
   auto cmdBufferCi = VkCommandBufferAllocateInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -100,7 +100,20 @@ PuleGpuCommandList puleGpuCommandListCreate(
       &cmdBuffer
     ) == VK_SUCCESS
   );
-  // TODO name object
+  { // name the command list object
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {
+      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+      .pNext = nullptr,
+      .objectType = VK_OBJECT_TYPE_COMMAND_BUFFER,
+      .objectHandle = reinterpret_cast<uint64_t>(cmdBuffer),
+      .pObjectName = label.contents,
+    };
+    vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
+  }
+  puleLog(
+    "Creating command buffer %zu with label '%s'",
+    cmdBuffer, label.contents
+  );
   util::ctx().commandLists.emplace(
     reinterpret_cast<uint64_t>(cmdBuffer),
     util::CommandList { .label = std::string(label.contents), }
@@ -137,6 +150,7 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
     .pInheritanceInfo = nullptr,
   };
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(commandList.id);
+  puleLog("beginning command buffer %zu", commandList.id);
   PULE_assert(vkBeginCommandBuffer(commandBuffer, &beginInfo) == VK_SUCCESS);
   util::CommandBufferRecorder cbRecorder;
   cbRecorder.commandList = commandList;
@@ -158,6 +172,7 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
 void puleGpuCommandListRecorderFinish(
   [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
 ) {
+  puleLog("Ending command list %zu", commandListRecorder.id);
   vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandListRecorder.id));
   util::ctx().commandBufferRecorders.erase(commandListRecorder.id);
 }
@@ -385,6 +400,12 @@ void puleGpuCommandListAppendAction(
           .baseMipLevel = 0, .levelCount = 1,
           .baseArrayLayer = 0, .layerCount = 1,
         };
+        puleLog(
+          "Image '%s', barrier layout %s -> %s",
+          puleGpuImageLabel(imageBarrier.image).contents,
+          puleGpuImageLayoutLabel(imageBarrier.layoutSrc).contents,
+          puleGpuImageLayoutLabel(imageBarrier.layoutDst).contents
+        );
         imageBarriers.emplace_back(
           VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -400,29 +421,47 @@ void puleGpuCommandListAppendAction(
           }
         );
       }
+      auto srcLabel = puleGpuResourceBarrierStageLabel(action.stageSrc);
+      auto dstLabel = puleGpuResourceBarrierStageLabel(action.stageSrc);
       puleLogDebug(
         "resource barrier src %s dst %s,\n -> %zu image barriers [[",
-        puleGpuResourceBarrierStageLabel(action.stageSrc).contents,
-        puleGpuResourceBarrierStageLabel(action.stageDst).contents,
+        srcLabel.contents,
+        dstLabel.contents,
         action.resourceImageCount
       );
+      puleStringDestroy(srcLabel);
+      puleStringDestroy(dstLabel);
       for (size_t it = 0; it < action.resourceImageCount; ++ it) {
+        auto accessSrcLabel = (
+          puleGpuResourceAccessLabel(
+              action.resourceImages[it].accessSrc
+          )
+        );
+        auto accessDstLabel = (
+          puleGpuResourceAccessLabel(
+              action.resourceImages[it].accessDst
+          )
+        );
+        auto layoutSrcLabel = (
+          puleGpuImageLayoutLabel(
+              action.resourceImages[it].layoutSrc
+          )
+        );
+        auto layoutDstLabel = (
+          puleGpuImageLayoutLabel(
+              action.resourceImages[it].layoutDst
+          )
+        );
         puleLogDebug(
           "  access %s -> %s, layout %s -> %s, label %s",
-          puleGpuResourceAccessLabel(
-            action.resourceImages[it].accessSrc
-          ).contents,
-          puleGpuResourceAccessLabel(
-            action.resourceImages[it].accessDst
-          ).contents,
-          puleGpuImageLayoutLabel(
-            action.resourceImages[it].layoutSrc
-          ).contents,
-          puleGpuImageLayoutLabel(
-            action.resourceImages[it].layoutDst
-          ).contents,
+          accessSrcLabel.contents,
+          accessDstLabel.contents,
+          layoutSrcLabel.contents,
+          layoutDstLabel.contents,
           puleGpuImageLabel(action.resourceImages[it].image).contents
         );
+        puleStringDestroy(accessSrcLabel);
+        puleStringDestroy(accessDstLabel);
       }
       puleLogDebug("]]");
       vkCmdPipelineBarrier(
@@ -544,15 +583,19 @@ void puleGpuCommandListAppendAction(
           .depth = action.extent.z,
         },
       };
+      puleLog("extent depth %zu", imageCopyRegion.extent.depth);
+      // TODO have support for general image layout too
       auto const imageCopy = VkCopyImageInfo2KHR {
         .sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR,
         .pNext = nullptr,
         .srcImage = reinterpret_cast<VkImage>(action.srcImage.id),
+        .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         .dstImage = reinterpret_cast<VkImage>(action.dstImage.id),
+        .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .regionCount = 1,
         .pRegions = &imageCopyRegion,
       };
-      vkCmdCopyImage2KHR(commandBuffer, &imageCopy);
+      vkCmdCopyImage2(commandBuffer, &imageCopy);
     }
     break;
   }
@@ -563,6 +606,7 @@ void puleGpuCommandListSubmit(
   PuleError * const error
 ) {
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(info.commandList.id);
+  puleLog("Submitting command buffer %zu", info.commandList.id);
   for (size_t it = 0; it < info.signalSemaphoreCount; ++ it) {
     if (info.signalSemaphores[it].id > 0) { continue; }
     // create semaphore if user's semaphore is null
@@ -854,70 +898,75 @@ PuleGpuFence puleGpuCommandListChainCurrentFence(
   return currentCommandList.fence;
 }
 
-PuleStringView puleGpuResourceBarrierStageLabel(
+PuleString puleGpuResourceBarrierStageLabel(
   PuleGpuResourceBarrierStage const stage
 ) {
-  switch (stage) {
-    case PuleGpuResourceBarrierStage_top:
-      return puleCStr("top");
-    case PuleGpuResourceBarrierStage_drawIndirect:
-      return puleCStr("drawIndirect");
-    case PuleGpuResourceBarrierStage_vertexInput:
-      return puleCStr("vertexInput");
-    case PuleGpuResourceBarrierStage_shaderFragment:
-      return puleCStr("shaderFragment");
-    case PuleGpuResourceBarrierStage_shaderVertex:
-      return puleCStr("shaderVertex");
-    case PuleGpuResourceBarrierStage_shaderCompute:
-      return puleCStr("shaderCompute");
-    case PuleGpuResourceBarrierStage_outputAttachmentColor:
-      return puleCStr("outputAttachmentColor");
-    case PuleGpuResourceBarrierStage_transfer:
-      return puleCStr("transfer");
-    case PuleGpuResourceBarrierStage_bottom:
-      return puleCStr("bottom");
-  }
+  puleLogDebug("stage %d", stage);
+  std::string label = "[";
+  if (stage & PuleGpuResourceBarrierStage_top)
+    label += "top; ";
+  if (stage & PuleGpuResourceBarrierStage_drawIndirect)
+    label += "drawIndirect; ";
+  if (stage & PuleGpuResourceBarrierStage_vertexInput)
+    label += "vertexInput; ";
+  if (stage & PuleGpuResourceBarrierStage_shaderFragment)
+    label += "shaderFragment; ";
+  if (stage & PuleGpuResourceBarrierStage_shaderVertex)
+    label += "shaderVertex; ";
+  if (stage & PuleGpuResourceBarrierStage_shaderCompute)
+    label += "shaderCompute; ";
+  if (stage & PuleGpuResourceBarrierStage_outputAttachmentColor)
+    label += "outputAttachmentColor; ";
+  if (stage & PuleGpuResourceBarrierStage_transfer)
+    label += "transfer; ";
+  if (stage & PuleGpuResourceBarrierStage_bottom)
+    label += "bottom; ";
+  label += "] ";
+  PuleString str = puleString(puleAllocateDefault(), label.c_str());
+  return str;
 }
 
-PuleStringView puleGpuResourceAccessLabel(PuleGpuResourceAccess const access) {
-  switch (access) {
-    case PuleGpuResourceAccess_none:
-      return puleCStr("PuleGpuResourceAccess_none");
-    case PuleGpuResourceAccess_indirectCommandRead:
-      return puleCStr("PuleGpuResourceAccess_indirectCommandRead");
-    case PuleGpuResourceAccess_indexRead:
-      return puleCStr("PuleGpuResourceAccess_indexRead");
-    case PuleGpuResourceAccess_vertexAttributeRead:
-      return puleCStr("PuleGpuResourceAccess_vertexAttributeRead");
-    case PuleGpuResourceAccess_uniformRead:
-      return puleCStr("PuleGpuResourceAccess_uniformRead");
-    case PuleGpuResourceAccess_inputAttachmentRead:
-      return puleCStr("PuleGpuResourceAccess_inputAttachmentRead");
-    case PuleGpuResourceAccess_shaderRead:
-      return puleCStr("PuleGpuResourceAccess_shaderRead");
-    case PuleGpuResourceAccess_shaderWrite:
-      return puleCStr("PuleGpuResourceAccess_shaderWrite");
-    case PuleGpuResourceAccess_attachmentColorRead:
-      return puleCStr("PuleGpuResourceAccess_attachmentColorRead");
-    case PuleGpuResourceAccess_attachmentColorWrite:
-      return puleCStr("PuleGpuResourceAccess_attachmentColorWrite");
-    case PuleGpuResourceAccess_attachmentDepthRead:
-      return puleCStr("PuleGpuResourceAccess_attachmentDepthRead");
-    case PuleGpuResourceAccess_attachmentDepthWrite:
-      return puleCStr("PuleGpuResourceAccess_attachmentDepthWrite");
-    case PuleGpuResourceAccess_transferRead:
-      return puleCStr("PuleGpuResourceAccess_transferRead");
-    case PuleGpuResourceAccess_transferWrite:
-      return puleCStr("PuleGpuResourceAccess_transferWrite");
-    case PuleGpuResourceAccess_hostRead:
-      return puleCStr("PuleGpuResourceAccess_hostRead");
-    case PuleGpuResourceAccess_hostWrite:
-      return puleCStr("PuleGpuResourceAccess_hostWrite");
-    case PuleGpuResourceAccess_memoryRead:
-      return puleCStr("PuleGpuResourceAccess_memoryRead");
-    case PuleGpuResourceAccess_memoryWrite:
-      return puleCStr("PuleGpuResourceAccess_memoryWrite");
-  }
+PuleString puleGpuResourceAccessLabel(PuleGpuResourceAccess const access) {
+  std::string label = "[";
+  if (access == PuleGpuResourceAccess_none)
+    label += "PuleGpuResourceAccess_none; ";
+  if (access == PuleGpuResourceAccess_indirectCommandRead)
+    label += "PuleGpuResourceAccess_indirectCommandRead; ";
+  if (access == PuleGpuResourceAccess_indexRead)
+    label += "PuleGpuResourceAccess_indexRead; ";
+  if (access == PuleGpuResourceAccess_vertexAttributeRead)
+    label += "PuleGpuResourceAccess_vertexAttributeRead; ";
+  if (access == PuleGpuResourceAccess_uniformRead)
+    label += "PuleGpuResourceAccess_uniformRead; ";
+  if (access == PuleGpuResourceAccess_inputAttachmentRead)
+    label += "PuleGpuResourceAccess_inputAttachmentRead; ";
+  if (access == PuleGpuResourceAccess_shaderRead)
+    label += "PuleGpuResourceAccess_shaderRead; ";
+  if (access == PuleGpuResourceAccess_shaderWrite)
+    label += "PuleGpuResourceAccess_shaderWrite; ";
+  if (access == PuleGpuResourceAccess_attachmentColorRead)
+    label += "PuleGpuResourceAccess_attachmentColorRead; ";
+  if (access == PuleGpuResourceAccess_attachmentColorWrite)
+    label += "PuleGpuResourceAccess_attachmentColorWrite; ";
+  if (access == PuleGpuResourceAccess_attachmentDepthRead)
+    label += "PuleGpuResourceAccess_attachmentDepthRead; ";
+  if (access == PuleGpuResourceAccess_attachmentDepthWrite)
+    label += "PuleGpuResourceAccess_attachmentDepthWrite; ";
+  if (access == PuleGpuResourceAccess_transferRead)
+    label += "PuleGpuResourceAccess_transferRead; ";
+  if (access == PuleGpuResourceAccess_transferWrite)
+    label += "PuleGpuResourceAccess_transferWrite; ";
+  if (access == PuleGpuResourceAccess_hostRead)
+    label += "PuleGpuResourceAccess_hostRead; ";
+  if (access == PuleGpuResourceAccess_hostWrite)
+    label += "PuleGpuResourceAccess_hostWrite; ";
+  if (access == PuleGpuResourceAccess_memoryRead)
+    label += "PuleGpuResourceAccess_memoryRead; ";
+  if (access == PuleGpuResourceAccess_memoryWrite)
+    label += "PuleGpuResourceAccess_memoryWrite; ";
+  label += "]";
+  PuleString str = puleString(puleAllocateDefault(), label.c_str());
+  return str;
 }
 
 } // extern C

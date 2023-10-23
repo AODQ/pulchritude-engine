@@ -53,6 +53,7 @@ PuleDsValue puldRegisterCLICommands(
       { label: "early-exit", type: "bool", default-value: false, },
       { label: "debug-layer", type: "bool", default-value: false, },
       { label: "gdb",   type: "bool", default-value: false, },
+      { label: "valgrind",   type: "bool", default-value: false, },
       { label: "clear", type: "bool", default-value: false, },
     ],
     run: [
@@ -61,6 +62,7 @@ PuleDsValue puldRegisterCLICommands(
       { label: "early-exit", type: "bool", default-value: false, },
       { label: "debug-layer", type: "bool", default-value: false, },
       { label: "gdb",   type: "bool", default-value: false, },
+      { label: "valgrind",   type: "bool", default-value: false, },
       { label: "clear", type: "bool", default-value: false, },
     ],
     plugin: {
