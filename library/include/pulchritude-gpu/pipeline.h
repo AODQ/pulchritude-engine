@@ -103,8 +103,8 @@ typedef struct {
 typedef struct {
   PuleGpuShaderModule shaderModule;
   PuleGpuPipelineLayoutDescriptorSet const * layoutDescriptorSet;
-  size_t layoutPushConstantsCount;
   PuleGpuPipelineLayoutPushConstant const * layoutPushConstants;
+  size_t layoutPushConstantsCount;
   PuleGpuPipelineConfig config;
 } PuleGpuPipelineCreateInfo;
 

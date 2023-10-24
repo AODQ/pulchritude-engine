@@ -259,8 +259,6 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
       imageAvailableSemaphore, fence, &imageIdx
     ) == VK_SUCCESS
   );
-  puleLog("<><><> waiting on semaphore %d %zu", imageIdx, (util::ctx().frameIdx));
-  puleLog("Image avilable semaphore %zu", imageAvailableSemaphore);
   util::ctx().swapchainCurrentImageIdx = imageIdx;
 
   // replace existing semaphore with new one

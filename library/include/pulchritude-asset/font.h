@@ -1,9 +1,11 @@
 #pragma once
 
-#include <pulchritude-array/array.h>
 #include <pulchritude-core/core.h>
+
+#include <pulchritude-array/array.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-math/math.h>
+#include <pulchritude-string/string.h>
 #include <pulchritude-string/string.h>
 
 // simple font library rendering text into textures

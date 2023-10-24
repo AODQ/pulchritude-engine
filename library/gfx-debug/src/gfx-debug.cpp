@@ -69,8 +69,8 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
       PuleGpuPipelineCreateInfo {
         .shaderModule = in::lineShaderModule,
         .layoutDescriptorSet = &layoutDescriptorSet,
-        .layoutPushConstantsCount = 1,
         .layoutPushConstants = &pushConstant,
+        .layoutPushConstantsCount = 1,
         .config = {
           .depthTestEnabled = false,
           .blendEnabled = false,

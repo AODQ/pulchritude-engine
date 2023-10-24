@@ -765,7 +765,6 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
         puleGpuCommandListChainCurrent(node.transitionCommandListChainEnter)
       )
     );
-    puleLog("Creating barriers for %s", node.label.c_str());
     // build up barriers
     for (auto & resourcePair : node.resourceUsage) {
       std::vector<PuleGpuResourceBarrierImage> barrierImages;
@@ -780,7 +779,6 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
       PuleGpuResourceBarrierStage stageDst = (
         PuleGpuResourceBarrierStage_bottom
       );
-      puleLog("Resource %s", graphResource.resourceLabel.contents);
       switch (graphResource.resourceType) {
         case PuleRenderGraph_ResourceType_image: {
           auto const image = (
@@ -792,13 +790,6 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
               .image.imageReference
             )
           );
-          puleLog("Image id %zu %zu", image.id, image.id);
-          puleLog(
-            "Image is being transitioned [%zu]: %s ",
-            image.id,
-            resourcePair.second.resourceLabel.contents
-          );
-          puleLog("Image id %zu", image.id);
           barrierImages.emplace_back(
             PuleGpuResourceBarrierImage {
               .image = image,
@@ -808,23 +799,11 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
               .layoutDst = resource.image.layout,
             }
           );
-          puleLog("Image emplaced %zu", barrierImages.back().image.id);
           stageSrc = toResourceBarrierStage(resource.accessEntrance);
           stageDst = toResourceBarrierStage(resource.access);
         } break;
         case PuleRenderGraph_ResourceType_buffer:
         break;
-      }
-      puleLog("creating transition entrance recorder");
-      for (auto & barrierImage : barrierImages) {
-        puleLog(
-          "Image %zu: %d %d %d %d",
-          barrierImage.image.id,
-          barrierImage.accessSrc,
-          barrierImage.accessDst,
-          barrierImage.layoutSrc,
-          barrierImage.layoutDst
-        );
       }
       puleGpuCommandListAppendAction(
         transitionEntranceRecorder,
@@ -844,10 +823,6 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
   // create exit command list for swapping swapchain images
   for (auto & nodePair : graph.nodes) {
     auto & node = nodePair.second;
-    puleLog(
-      "Node uses swapchain? %s %d",
-      node.label.c_str(), node.usesSwapchain
-    );
     if (!node.isLastSwapchainUsage) { continue; }
     auto const swapchainResource = (
       node.resourceUsage.at(
@@ -868,7 +843,6 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
         .layoutDst = PuleGpuImageLayout_presentSrc,
       }
     );
-    puleLog("creating transition exit recorder");
     node.transitionCommandListChainExitHasCommands = true;
     puleGpuCommandListAppendAction(
       transitionExittanceRecorder,
@@ -902,7 +876,6 @@ void puleRenderGraphFrameSubmit(
       std::vector<PuleGpuSemaphore> waitSemaphores;
       std::vector<PuleGpuPipelineStage> waitSemaphoreStages;
       if (node.usesSwapchain && !swapchainSemaphoreWaited) {
-        puleLog("Waiting on swapchain semaphore %zu", swapchainImageSemaphore.id);
         waitSemaphores.emplace_back(swapchainImageSemaphore.id);
         waitSemaphoreStages.emplace_back(
           PuleGpuPipelineStage_colorAttachmentOutput

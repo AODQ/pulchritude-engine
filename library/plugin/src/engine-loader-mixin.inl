@@ -2212,3 +2212,19 @@
       ::loadSymbol("pulePhysx2DShapeCreateConvexPolygonAsBox", layerName)
     )
   );
+  // text
+  layer->textRendererCreate = (
+    reinterpret_cast<decltype(layer->textRendererCreate)>(
+      ::loadSymbol("puleTextRendererCreate", layerName)
+    )
+  );
+  layer->textRendererDestroy = (
+    reinterpret_cast<decltype(layer->textRendererDestroy)>(
+      ::loadSymbol("puleTextRendererDestroy", layerName)
+    )
+  );
+  layer->textRender = (
+    reinterpret_cast<decltype(layer->textRender)>(
+      ::loadSymbol("puleTextRender", layerName)
+    )
+  );

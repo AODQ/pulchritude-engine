@@ -43,6 +43,7 @@
 #include <pulchritude-gpu/resource.h>
 #include <pulchritude-physx/collision.h>
 #include <pulchritude-physx/physx2d.h>
+#include <pulchritude-text/text.h>
 
 
 typedef struct PuleEngineLayer {
@@ -474,7 +475,7 @@ typedef struct PuleEngineLayer {
   PuleGpuCommandList (* gpuCommandListChainCurrent)(PuleGpuCommandListChain const);
   PuleGpuFence (* gpuCommandListChainCurrentFence)(PuleGpuCommandListChain const);
   PuleString (* gpuResourceBarrierStageLabel)(PuleGpuResourceBarrierStage const);
-  PuleStringView (* gpuResourceAccessLabel)(PuleGpuResourceAccess const);
+  PuleString (* gpuResourceAccessLabel)(PuleGpuResourceAccess const);
   PuleGpuBuffer (* gpuBufferCreate)(PuleStringView const, void const * const, size_t const, PuleGpuBufferUsage const, PuleGpuBufferVisibilityFlag const);
   void (* gpuBufferDestroy)(PuleGpuBuffer const);
   void * (* gpuBufferMap)(PuleGpuBufferMapRange const);
@@ -518,6 +519,10 @@ typedef struct PuleEngineLayer {
   float (* physx2DBodyAngle)(PulePhysx2DWorld const, PulePhysx2DBody const);
   void (* physx2DBodyAttachShape)(PulePhysx2DWorld const, PulePhysx2DBody const, PulePhysx2DShape const, PulePhysx2DBodyAttachShapeCreateInfo const);
   PulePhysx2DShape (* physx2DShapeCreateConvexPolygonAsBox)(PuleF32v2 const, PuleF32v2 const, float const);
+  // text
+  PuleTextRenderer (* textRendererCreate)(PuleAssetFont const, PuleTextType const);
+  void (* textRendererDestroy)(PuleTextRenderer const);
+  void (* textRender)(PuleTextRenderer const, PuleGpuCommandList const, PuleTextRenderInfo const * const, size_t const);
 } PuleEngineLayer;
 
 

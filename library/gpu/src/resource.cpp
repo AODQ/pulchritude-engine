@@ -39,18 +39,6 @@ PuleGpuImageChain puleGpuImageChain_create(
       .frameIdx = it,
     });
   }
-  puleLog(
-    "Created image chain '%s', size %zu ->",
-    createInfo.label.contents,
-    imageChain.chain.size()
-  );
-  for (size_t it = 0; it < util::ctx().swapchainImages.size(); ++ it) {
-    puleLog(
-      "  %zu: %zu",
-      it,
-      imageChain.chain[it].image.id
-    );
-  }
   return { .id = util::ctx().imageChains.create(imageChain), };
 }
 
@@ -198,7 +186,6 @@ void puleGpuImageReference_destroy(
 PuleGpuImage puleGpuImageReference_image(
   PuleGpuImageReference const reference
 ) {
-  puleLogDebug("puleGpuImageReference_image %zu", reference.id);
   if (reference.id == (size_t)-1) {
     return {
       .id = reinterpret_cast<uint64_t>(
@@ -210,10 +197,8 @@ PuleGpuImage puleGpuImageReference_image(
   switch (imageReference.type) {
     default: assert(false && "unknown image reference type");
     case util::ImageReferenceType::image:
-      puleLog("Returning image reference image %zu", imageReference.image.id);
       return imageReference.image;
     case util::ImageReferenceType::imageChain: {
-      puleLog("Returning image reference chain");
       return (
         puleGpuImageChain_current(imageReference.imageChain)
       );

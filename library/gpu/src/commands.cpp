@@ -110,10 +110,6 @@ PuleGpuCommandList puleGpuCommandListCreate(
     };
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
-  puleLog(
-    "Creating command buffer %zu with label '%s'",
-    cmdBuffer, label.contents
-  );
   util::ctx().commandLists.emplace(
     reinterpret_cast<uint64_t>(cmdBuffer),
     util::CommandList { .label = std::string(label.contents), }
@@ -150,7 +146,6 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
     .pInheritanceInfo = nullptr,
   };
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(commandList.id);
-  puleLog("beginning command buffer %zu", commandList.id);
   PULE_assert(vkBeginCommandBuffer(commandBuffer, &beginInfo) == VK_SUCCESS);
   util::CommandBufferRecorder cbRecorder;
   cbRecorder.commandList = commandList;
@@ -172,7 +167,6 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
 void puleGpuCommandListRecorderFinish(
   [[maybe_unused]] PuleGpuCommandListRecorder const commandListRecorder
 ) {
-  puleLog("Ending command list %zu", commandListRecorder.id);
   vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandListRecorder.id));
   util::ctx().commandBufferRecorders.erase(commandListRecorder.id);
 }
@@ -277,6 +271,7 @@ void puleGpuCommandListAppendAction(
       auto const action = (
         *reinterpret_cast<PuleGpuActionDispatchRenderElements const *>(&command)
       );
+      puleLog("Dispatching render elements %zu", action.numElements);
       vkCmdDrawIndexed(
         commandBuffer,
         action.numElements, 1,
@@ -400,12 +395,6 @@ void puleGpuCommandListAppendAction(
           .baseMipLevel = 0, .levelCount = 1,
           .baseArrayLayer = 0, .layerCount = 1,
         };
-        puleLog(
-          "Image '%s', barrier layout %s -> %s",
-          puleGpuImageLabel(imageBarrier.image).contents,
-          puleGpuImageLayoutLabel(imageBarrier.layoutSrc).contents,
-          puleGpuImageLayoutLabel(imageBarrier.layoutDst).contents
-        );
         imageBarriers.emplace_back(
           VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -421,49 +410,6 @@ void puleGpuCommandListAppendAction(
           }
         );
       }
-      auto srcLabel = puleGpuResourceBarrierStageLabel(action.stageSrc);
-      auto dstLabel = puleGpuResourceBarrierStageLabel(action.stageSrc);
-      puleLogDebug(
-        "resource barrier src %s dst %s,\n -> %zu image barriers [[",
-        srcLabel.contents,
-        dstLabel.contents,
-        action.resourceImageCount
-      );
-      puleStringDestroy(srcLabel);
-      puleStringDestroy(dstLabel);
-      for (size_t it = 0; it < action.resourceImageCount; ++ it) {
-        auto accessSrcLabel = (
-          puleGpuResourceAccessLabel(
-              action.resourceImages[it].accessSrc
-          )
-        );
-        auto accessDstLabel = (
-          puleGpuResourceAccessLabel(
-              action.resourceImages[it].accessDst
-          )
-        );
-        auto layoutSrcLabel = (
-          puleGpuImageLayoutLabel(
-              action.resourceImages[it].layoutSrc
-          )
-        );
-        auto layoutDstLabel = (
-          puleGpuImageLayoutLabel(
-              action.resourceImages[it].layoutDst
-          )
-        );
-        puleLogDebug(
-          "  access %s -> %s, layout %s -> %s, label %s",
-          accessSrcLabel.contents,
-          accessDstLabel.contents,
-          layoutSrcLabel.contents,
-          layoutDstLabel.contents,
-          puleGpuImageLabel(action.resourceImages[it].image).contents
-        );
-        puleStringDestroy(accessSrcLabel);
-        puleStringDestroy(accessDstLabel);
-      }
-      puleLogDebug("]]");
       vkCmdPipelineBarrier(
         commandBuffer,
         util::toVkPipelineStageFlags(action.stageSrc),
@@ -538,7 +484,7 @@ void puleGpuCommandListAppendAction(
       );
       VkRect2D scissor;
       scissor.offset.x = action.scissorMin.x;
-      scissor.offset.x = action.scissorMin.y;
+      scissor.offset.y = action.scissorMin.y;
       scissor.extent.width = (
         action.scissorMax.x - action.scissorMin.x
       );
@@ -583,7 +529,6 @@ void puleGpuCommandListAppendAction(
           .depth = action.extent.z,
         },
       };
-      puleLog("extent depth %zu", imageCopyRegion.extent.depth);
       // TODO have support for general image layout too
       auto const imageCopy = VkCopyImageInfo2KHR {
         .sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR,
@@ -606,7 +551,6 @@ void puleGpuCommandListSubmit(
   PuleError * const error
 ) {
   auto commandBuffer = reinterpret_cast<VkCommandBuffer>(info.commandList.id);
-  puleLog("Submitting command buffer %zu", info.commandList.id);
   for (size_t it = 0; it < info.signalSemaphoreCount; ++ it) {
     if (info.signalSemaphores[it].id > 0) { continue; }
     // create semaphore if user's semaphore is null

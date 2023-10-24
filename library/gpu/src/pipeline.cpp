@@ -272,7 +272,6 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .pNext = nullptr,
     .flags = 0,
     .depthClampEnable = VK_FALSE, // TODO do I want this?
-    //.rasterizerDiscardEnable = VK_TRUE,
     .rasterizerDiscardEnable = VK_FALSE,
     .polygonMode = VK_POLYGON_MODE_FILL,
     .cullMode = VK_CULL_MODE_NONE, // TODO cull proper
@@ -310,16 +309,16 @@ PuleGpuPipeline puleGpuPipelineCreate(
   };
   auto attachments = std::vector<VkPipelineColorBlendAttachmentState> {
     VkPipelineColorBlendAttachmentState {
-      .blendEnable = info->config.blendEnabled,
+      .blendEnable = VK_TRUE,
       // TODO expose this
       .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
       .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
       .colorBlendOp = VK_BLEND_OP_ADD,
-      .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+      .srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
       .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
       .alphaBlendOp = VK_BLEND_OP_ADD,
       .colorWriteMask = (
-        VK_COLOR_COMPONENT_R_BIT
+          VK_COLOR_COMPONENT_R_BIT
         | VK_COLOR_COMPONENT_G_BIT
         | VK_COLOR_COMPONENT_B_BIT
         | VK_COLOR_COMPONENT_A_BIT
@@ -330,8 +329,8 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .logicOpEnable = VK_FALSE,
-    .logicOp = VK_LOGIC_OP_SET,
+    .logicOpEnable = VK_TRUE,
+    .logicOp = VK_LOGIC_OP_COPY,
     .attachmentCount = (uint32_t)attachments.size(),
     .pAttachments = attachments.data(),
     .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f, },

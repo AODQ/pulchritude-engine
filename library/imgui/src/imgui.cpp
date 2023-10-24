@@ -128,8 +128,8 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
   auto const pipelineCI = PuleGpuPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
     .layoutDescriptorSet = &descriptorSetLayout,
-    .layoutPushConstantsCount = 1,
     .layoutPushConstants = &pushConstants,
+    .layoutPushConstantsCount = 1,
     .config = { // TODO
       .depthTestEnabled = false,
       .blendEnabled = true,
@@ -282,7 +282,7 @@ void renderDrawData(
             .opLoad = PuleGpuImageAttachmentOpLoad_clear, // TODO don't clear?
             .opStore = PuleGpuImageAttachmentOpStore_store,
             .layout = PuleGpuImageLayout_attachmentColor,
-            .clearColor = { 0.0f, 0.0f, 0.0f, 0.0f},
+            .clearColor = { 1.0f, 1.0f, 1.0f, 0.0f},
             .imageView = (
               PuleGpuImageView {
                 .image = imguiImage,
@@ -359,6 +359,7 @@ void renderDrawData(
   );
 
   // -- render out the flattened data
+  puleLog("rendering %zu draw lists", drawData->CmdListsCount);
   for (
     int32_t drawListIt = 0;
     drawListIt < drawData->CmdListsCount;
@@ -367,6 +368,7 @@ void renderDrawData(
     ImDrawList const * drawList = drawData->CmdLists[drawListIt];
     size_t flattenedVtxOffset = flattenedVtxOffsets[drawListIt];
     size_t flattenedIdxOffset = flattenedIdxOffsets[drawListIt];
+    puleLog("rendering draw list with %d commands", drawList->CmdBuffer.Size);
     for (int32_t drawIt = 0; drawIt < drawList->CmdBuffer.Size; ++ drawIt) {
       ImDrawCmd const & drawCmd = drawList->CmdBuffer[drawIt];
       if (drawCmd.UserCallback != nullptr) {
@@ -387,6 +389,7 @@ void renderDrawData(
       if (clipMax.x > 800.0f) { clipMax.x = 800.0f; }
       if (clipMax.y > 600.0f) { clipMax.y = 600.0f; }
       if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y) {
+        puleLog("skipping draw command with invalid clip rect");
         continue;
       }
 
@@ -398,14 +401,8 @@ void renderDrawData(
         {
           .setScissor = {
             .action = PuleGpuAction_setScissor,
-            .scissorMin = {
-              .x = 0,
-              .y = 0,
-            },
-            .scissorMax = {
-              .x = 800,
-              .y = 600,
-            },
+            .scissorMin = { .x = 0, .y = 0, },
+            .scissorMax = { .x = 800, .y = 600, },
           },
         }
       );
@@ -420,10 +417,8 @@ void renderDrawData(
               .imageView = (
                 PuleGpuImageView {
                   .image = { .id = (uint64_t)drawCmd.TextureId, },
-                  .mipmapLevelStart = 0,
-                  .mipmapLevelCount = 1,
-                  .arrayLayerStart = 0,
-                  .arrayLayerCount = 1,
+                  .mipmapLevelStart = 0, .mipmapLevelCount = 1,
+                  .arrayLayerStart = 0,  .arrayLayerCount = 1,
                   .byteFormat = PuleGpuImageByteFormat_rgba8U,
                 }
               ),
@@ -442,7 +437,7 @@ void renderDrawData(
           .baseVertexOffset = flattenedVtxOffset + drawCmd.VtxOffset,
         },
       };
-      //puleGpuCommandListAppendAction(renderRecorder, drawCommand);
+      puleGpuCommandListAppendAction(renderRecorder, drawCommand);
     }
   }
 
