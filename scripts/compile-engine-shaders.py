@@ -49,3 +49,15 @@ compileShader(
   "shaders/debug-gfx-line.frag",
   "library/gfx-debug/src/autogen-debug-gfx-line.frag.spv"
 )
+
+compileShader(
+  "textBitmapVert",
+  "shaders/text-bitmap.vert",
+  "library/text/src/autogen-text-bitmap.vert.spv"
+)
+
+compileShader(
+  "textBitmapFrag",
+  "shaders/text-bitmap.frag",
+  "library/text/src/autogen-text-bitmap.frag.spv"
+)

@@ -34,9 +34,6 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
 
   PuleError err = puleError();
 
-  std::string vertexShaderSource = "";
-  std::string fragmentShaderSource = "";
-
   { // line renderer
     in::lineShaderModule = (
       puleGpuShaderModuleCreate(

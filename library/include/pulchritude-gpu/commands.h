@@ -146,8 +146,8 @@ typedef struct PuleGpuActionRenderPassBegin {
   PuleGpuAction action PULE_param(PuleGpuAction_renderPassBegin);
   PuleI32v2 viewportMin;
   PuleI32v2 viewportMax;
-  size_t attachmentColorCount;
   PuleGpuImageAttachment attachmentColor[8];
+  size_t attachmentColorCount;
   PuleGpuImageAttachment attachmentDepth;
 } PuleGpuActionRenderPassBegin;
 

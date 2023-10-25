@@ -25,6 +25,10 @@ PULE_exportFn PuleAssetFont puleAssetFontLoad(
   PuleBufferView const fontSource,
   PuleError * const error
 );
+PULE_exportFn PuleAssetFont puleAssetFontLoadFromPath(
+  PuleStringView const path,
+  PuleError * const error
+);
 PULE_exportFn void puleAssetFontDestroy(PuleAssetFont const font);
 
 typedef struct {

@@ -1,5 +1,7 @@
 #include <pulchritude-asset/font.h>
 
+#include <pulchritude-file/file.h>
+
 #include <schrift.h>
 
 #include <vector>
@@ -15,6 +17,38 @@ PuleAssetFont puleAssetFontLoad(
     return {};
   }
   return PuleAssetFont { .id = reinterpret_cast<uint64_t>(font), };
+}
+
+PuleAssetFont puleAssetFontLoadFromPath(
+  PuleStringView const path,
+  PuleError * const error
+) {
+  PuleError err = puleError();
+  PuleFile const file = (
+    puleFileOpen(path, PuleFileDataMode_binary, PuleFileOpenMode_read, &err)
+  );
+  if (puleErrorConsume(&err)) { return {.id = 0,}; }
+  uint64_t const filesize = puleFileSize(file);
+  std::vector<uint8_t> filedata;
+  filedata.resize(filesize);
+  puleFileReadBytes(
+    file,
+    PuleArrayViewMutable {
+      .data = filedata.data(),
+      .elementStride = 1,
+      .elementCount = filesize,
+    }
+  );
+  puleFileClose(file);
+  return (
+    puleAssetFontLoad(
+      PuleBufferView {
+        .data = filedata.data(),
+        .byteLength = filesize,
+      },
+      error
+    )
+  );
 }
 
 void puleAssetFontDestroy(PuleAssetFont const font) {

@@ -22,6 +22,7 @@ typedef enum {
   PuleTextTypeSize
 } PuleTextType;
 
+// TODO - should the font be copied? right now it's not
 PULE_exportFn PuleTextRenderer puleTextRendererCreate(
   PuleAssetFont const font,
   PuleTextType const type

@@ -276,7 +276,6 @@ void renderDrawData(
           .x = framebufferWidth,
           .y = framebufferHeight
         },
-        .attachmentColorCount = 1,
         .attachmentColor = {
           PuleGpuImageAttachment {
             .opLoad = PuleGpuImageAttachmentOpLoad_clear, // TODO don't clear?
@@ -293,6 +292,7 @@ void renderDrawData(
             ),
           },
         },
+        .attachmentColorCount = 1,
         .attachmentDepth = {},
       },
     }
