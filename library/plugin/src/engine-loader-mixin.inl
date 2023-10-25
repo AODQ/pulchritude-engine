@@ -160,12 +160,6 @@
       ::loadSymbol("puleAssetPdsLoadFromCommandLineArguments", layerName)
     )
   );
-  // asset-render-graph
-  layer->assetRenderGraphFromPds = (
-    reinterpret_cast<decltype(layer->assetRenderGraphFromPds)>(
-      ::loadSymbol("puleAssetRenderGraphFromPds", layerName)
-    )
-  );
   // asset-shader-module
   layer->assetShaderModuleCreateFromPaths = (
     reinterpret_cast<decltype(layer->assetShaderModuleCreateFromPaths)>(
@@ -185,6 +179,12 @@
   layer->assetShaderModuleHandle = (
     reinterpret_cast<decltype(layer->assetShaderModuleHandle)>(
       ::loadSymbol("puleAssetShaderModuleHandle", layerName)
+    )
+  );
+  // asset-render-graph
+  layer->assetRenderGraphFromPds = (
+    reinterpret_cast<decltype(layer->assetRenderGraphFromPds)>(
+      ::loadSymbol("puleAssetRenderGraphFromPds", layerName)
     )
   );
   // camera
@@ -1759,7 +1759,168 @@
       ::loadSymbol("puleTuiWindowDim", layerName)
     )
   );
+  // render-graph
+  layer->renderGraphCreate = (
+    reinterpret_cast<decltype(layer->renderGraphCreate)>(
+      ::loadSymbol("puleRenderGraphCreate", layerName)
+    )
+  );
+  layer->renderGraphDestroy = (
+    reinterpret_cast<decltype(layer->renderGraphDestroy)>(
+      ::loadSymbol("puleRenderGraphDestroy", layerName)
+    )
+  );
+  layer->renderGraphMerge = (
+    reinterpret_cast<decltype(layer->renderGraphMerge)>(
+      ::loadSymbol("puleRenderGraphMerge", layerName)
+    )
+  );
+  layer->renderGraphNodeCreate = (
+    reinterpret_cast<decltype(layer->renderGraphNodeCreate)>(
+      ::loadSymbol("puleRenderGraphNodeCreate", layerName)
+    )
+  );
+  layer->renderGraphNodeRemove = (
+    reinterpret_cast<decltype(layer->renderGraphNodeRemove)>(
+      ::loadSymbol("puleRenderGraphNodeRemove", layerName)
+    )
+  );
+  layer->renderGraphNodeLabel = (
+    reinterpret_cast<decltype(layer->renderGraphNodeLabel)>(
+      ::loadSymbol("puleRenderGraphNodeLabel", layerName)
+    )
+  );
+  layer->renderGraphNodeFetch = (
+    reinterpret_cast<decltype(layer->renderGraphNodeFetch)>(
+      ::loadSymbol("puleRenderGraphNodeFetch", layerName)
+    )
+  );
+  layer->renderGraph_resourceCreate = (
+    reinterpret_cast<decltype(layer->renderGraph_resourceCreate)>(
+      ::loadSymbol("puleRenderGraph_resourceCreate", layerName)
+    )
+  );
+  layer->renderGraph_resource = (
+    reinterpret_cast<decltype(layer->renderGraph_resource)>(
+      ::loadSymbol("puleRenderGraph_resource", layerName)
+    )
+  );
+  layer->renderGraph_resourceRemove = (
+    reinterpret_cast<decltype(layer->renderGraph_resourceRemove)>(
+      ::loadSymbol("puleRenderGraph_resourceRemove", layerName)
+    )
+  );
+  layer->renderGraph_node_resourceAssign = (
+    reinterpret_cast<decltype(layer->renderGraph_node_resourceAssign)>(
+      ::loadSymbol("puleRenderGraph_node_resourceAssign", layerName)
+    )
+  );
+  layer->renderGraph_commandList = (
+    reinterpret_cast<decltype(layer->renderGraph_commandList)>(
+      ::loadSymbol("puleRenderGraph_commandList", layerName)
+    )
+  );
+  layer->renderGraph_commandListRecorder = (
+    reinterpret_cast<decltype(layer->renderGraph_commandListRecorder)>(
+      ::loadSymbol("puleRenderGraph_commandListRecorder", layerName)
+    )
+  );
+  layer->renderGraphNodeRelationSet = (
+    reinterpret_cast<decltype(layer->renderGraphNodeRelationSet)>(
+      ::loadSymbol("puleRenderGraphNodeRelationSet", layerName)
+    )
+  );
+  layer->renderGraphFrameStart = (
+    reinterpret_cast<decltype(layer->renderGraphFrameStart)>(
+      ::loadSymbol("puleRenderGraphFrameStart", layerName)
+    )
+  );
+  layer->renderGraphFrameSubmit = (
+    reinterpret_cast<decltype(layer->renderGraphFrameSubmit)>(
+      ::loadSymbol("puleRenderGraphFrameSubmit", layerName)
+    )
+  );
+  layer->renderGraphExecuteInOrder = (
+    reinterpret_cast<decltype(layer->renderGraphExecuteInOrder)>(
+      ::loadSymbol("puleRenderGraphExecuteInOrder", layerName)
+    )
+  );
+  layer->renderGraphNodeExists = (
+    reinterpret_cast<decltype(layer->renderGraphNodeExists)>(
+      ::loadSymbol("puleRenderGraphNodeExists", layerName)
+    )
+  );
   // gpu
+  layer->gpuShaderModuleCreate = (
+    reinterpret_cast<decltype(layer->gpuShaderModuleCreate)>(
+      ::loadSymbol("puleGpuShaderModuleCreate", layerName)
+    )
+  );
+  layer->gpuShaderModuleDestroy = (
+    reinterpret_cast<decltype(layer->gpuShaderModuleDestroy)>(
+      ::loadSymbol("puleGpuShaderModuleDestroy", layerName)
+    )
+  );
+  layer->gpuPipelineDescriptorSetLayout = (
+    reinterpret_cast<decltype(layer->gpuPipelineDescriptorSetLayout)>(
+      ::loadSymbol("puleGpuPipelineDescriptorSetLayout", layerName)
+    )
+  );
+  layer->gpuPipelineCreate = (
+    reinterpret_cast<decltype(layer->gpuPipelineCreate)>(
+      ::loadSymbol("puleGpuPipelineCreate", layerName)
+    )
+  );
+  layer->gpuPipelineDestroy = (
+    reinterpret_cast<decltype(layer->gpuPipelineDestroy)>(
+      ::loadSymbol("puleGpuPipelineDestroy", layerName)
+    )
+  );
+  layer->gpuSamplerCreate = (
+    reinterpret_cast<decltype(layer->gpuSamplerCreate)>(
+      ::loadSymbol("puleGpuSamplerCreate", layerName)
+    )
+  );
+  layer->gpuSamplerDestroy = (
+    reinterpret_cast<decltype(layer->gpuSamplerDestroy)>(
+      ::loadSymbol("puleGpuSamplerDestroy", layerName)
+    )
+  );
+  layer->gpuImageLabel = (
+    reinterpret_cast<decltype(layer->gpuImageLabel)>(
+      ::loadSymbol("puleGpuImageLabel", layerName)
+    )
+  );
+  layer->gpuImageDestroy = (
+    reinterpret_cast<decltype(layer->gpuImageDestroy)>(
+      ::loadSymbol("puleGpuImageDestroy", layerName)
+    )
+  );
+  layer->gpuImageCreate = (
+    reinterpret_cast<decltype(layer->gpuImageCreate)>(
+      ::loadSymbol("puleGpuImageCreate", layerName)
+    )
+  );
+  layer->gpuFramebufferCreateInfo = (
+    reinterpret_cast<decltype(layer->gpuFramebufferCreateInfo)>(
+      ::loadSymbol("puleGpuFramebufferCreateInfo", layerName)
+    )
+  );
+  layer->gpuFramebufferCreate = (
+    reinterpret_cast<decltype(layer->gpuFramebufferCreate)>(
+      ::loadSymbol("puleGpuFramebufferCreate", layerName)
+    )
+  );
+  layer->gpuFramebufferDestroy = (
+    reinterpret_cast<decltype(layer->gpuFramebufferDestroy)>(
+      ::loadSymbol("puleGpuFramebufferDestroy", layerName)
+    )
+  );
+  layer->gpuImageLayoutLabel = (
+    reinterpret_cast<decltype(layer->gpuImageLayoutLabel)>(
+      ::loadSymbol("puleGpuImageLayoutLabel", layerName)
+    )
+  );
   layer->gpuActionToString = (
     reinterpret_cast<decltype(layer->gpuActionToString)>(
       ::loadSymbol("puleGpuActionToString", layerName)
@@ -1885,64 +2046,44 @@
       ::loadSymbol("puleGpuBufferUsageLabel", layerName)
     )
   );
-  layer->gpuSamplerCreate = (
-    reinterpret_cast<decltype(layer->gpuSamplerCreate)>(
-      ::loadSymbol("puleGpuSamplerCreate", layerName)
+  layer->gpuSemaphoreCreate = (
+    reinterpret_cast<decltype(layer->gpuSemaphoreCreate)>(
+      ::loadSymbol("puleGpuSemaphoreCreate", layerName)
     )
   );
-  layer->gpuSamplerDestroy = (
-    reinterpret_cast<decltype(layer->gpuSamplerDestroy)>(
-      ::loadSymbol("puleGpuSamplerDestroy", layerName)
+  layer->gpuSemaphoreDestroy = (
+    reinterpret_cast<decltype(layer->gpuSemaphoreDestroy)>(
+      ::loadSymbol("puleGpuSemaphoreDestroy", layerName)
     )
   );
-  layer->gpuImageLabel = (
-    reinterpret_cast<decltype(layer->gpuImageLabel)>(
-      ::loadSymbol("puleGpuImageLabel", layerName)
+  layer->gpuFenceCreate = (
+    reinterpret_cast<decltype(layer->gpuFenceCreate)>(
+      ::loadSymbol("puleGpuFenceCreate", layerName)
     )
   );
-  layer->gpuImageDestroy = (
-    reinterpret_cast<decltype(layer->gpuImageDestroy)>(
-      ::loadSymbol("puleGpuImageDestroy", layerName)
+  layer->gpuFenceDestroy = (
+    reinterpret_cast<decltype(layer->gpuFenceDestroy)>(
+      ::loadSymbol("puleGpuFenceDestroy", layerName)
     )
   );
-  layer->gpuImageCreate = (
-    reinterpret_cast<decltype(layer->gpuImageCreate)>(
-      ::loadSymbol("puleGpuImageCreate", layerName)
+  layer->gpuFenceWaitSignal = (
+    reinterpret_cast<decltype(layer->gpuFenceWaitSignal)>(
+      ::loadSymbol("puleGpuFenceWaitSignal", layerName)
     )
   );
-  layer->gpuFramebufferCreateInfo = (
-    reinterpret_cast<decltype(layer->gpuFramebufferCreateInfo)>(
-      ::loadSymbol("puleGpuFramebufferCreateInfo", layerName)
+  layer->gpuFenceReset = (
+    reinterpret_cast<decltype(layer->gpuFenceReset)>(
+      ::loadSymbol("puleGpuFenceReset", layerName)
     )
   );
-  layer->gpuFramebufferCreate = (
-    reinterpret_cast<decltype(layer->gpuFramebufferCreate)>(
-      ::loadSymbol("puleGpuFramebufferCreate", layerName)
+  layer->gpuFrameStart = (
+    reinterpret_cast<decltype(layer->gpuFrameStart)>(
+      ::loadSymbol("puleGpuFrameStart", layerName)
     )
   );
-  layer->gpuFramebufferDestroy = (
-    reinterpret_cast<decltype(layer->gpuFramebufferDestroy)>(
-      ::loadSymbol("puleGpuFramebufferDestroy", layerName)
-    )
-  );
-  layer->gpuImageLayoutLabel = (
-    reinterpret_cast<decltype(layer->gpuImageLayoutLabel)>(
-      ::loadSymbol("puleGpuImageLayoutLabel", layerName)
-    )
-  );
-  layer->gpuPipelineDescriptorSetLayout = (
-    reinterpret_cast<decltype(layer->gpuPipelineDescriptorSetLayout)>(
-      ::loadSymbol("puleGpuPipelineDescriptorSetLayout", layerName)
-    )
-  );
-  layer->gpuPipelineCreate = (
-    reinterpret_cast<decltype(layer->gpuPipelineCreate)>(
-      ::loadSymbol("puleGpuPipelineCreate", layerName)
-    )
-  );
-  layer->gpuPipelineDestroy = (
-    reinterpret_cast<decltype(layer->gpuPipelineDestroy)>(
-      ::loadSymbol("puleGpuPipelineDestroy", layerName)
+  layer->gpuFrameEnd = (
+    reinterpret_cast<decltype(layer->gpuFrameEnd)>(
+      ::loadSymbol("puleGpuFrameEnd", layerName)
     )
   );
   layer->gpuImageChain_create = (
@@ -1998,56 +2139,6 @@
   layer->gpuWindowSwapchainImageReference = (
     reinterpret_cast<decltype(layer->gpuWindowSwapchainImageReference)>(
       ::loadSymbol("puleGpuWindowSwapchainImageReference", layerName)
-    )
-  );
-  layer->gpuShaderModuleCreate = (
-    reinterpret_cast<decltype(layer->gpuShaderModuleCreate)>(
-      ::loadSymbol("puleGpuShaderModuleCreate", layerName)
-    )
-  );
-  layer->gpuShaderModuleDestroy = (
-    reinterpret_cast<decltype(layer->gpuShaderModuleDestroy)>(
-      ::loadSymbol("puleGpuShaderModuleDestroy", layerName)
-    )
-  );
-  layer->gpuSemaphoreCreate = (
-    reinterpret_cast<decltype(layer->gpuSemaphoreCreate)>(
-      ::loadSymbol("puleGpuSemaphoreCreate", layerName)
-    )
-  );
-  layer->gpuSemaphoreDestroy = (
-    reinterpret_cast<decltype(layer->gpuSemaphoreDestroy)>(
-      ::loadSymbol("puleGpuSemaphoreDestroy", layerName)
-    )
-  );
-  layer->gpuFenceCreate = (
-    reinterpret_cast<decltype(layer->gpuFenceCreate)>(
-      ::loadSymbol("puleGpuFenceCreate", layerName)
-    )
-  );
-  layer->gpuFenceDestroy = (
-    reinterpret_cast<decltype(layer->gpuFenceDestroy)>(
-      ::loadSymbol("puleGpuFenceDestroy", layerName)
-    )
-  );
-  layer->gpuFenceWaitSignal = (
-    reinterpret_cast<decltype(layer->gpuFenceWaitSignal)>(
-      ::loadSymbol("puleGpuFenceWaitSignal", layerName)
-    )
-  );
-  layer->gpuFenceReset = (
-    reinterpret_cast<decltype(layer->gpuFenceReset)>(
-      ::loadSymbol("puleGpuFenceReset", layerName)
-    )
-  );
-  layer->gpuFrameStart = (
-    reinterpret_cast<decltype(layer->gpuFrameStart)>(
-      ::loadSymbol("puleGpuFrameStart", layerName)
-    )
-  );
-  layer->gpuFrameEnd = (
-    reinterpret_cast<decltype(layer->gpuFrameEnd)>(
-      ::loadSymbol("puleGpuFrameEnd", layerName)
     )
   );
   // physx
@@ -2121,94 +2212,19 @@
       ::loadSymbol("pulePhysx2DShapeCreateConvexPolygonAsBox", layerName)
     )
   );
-  // render-graph
-  layer->renderGraphCreate = (
-    reinterpret_cast<decltype(layer->renderGraphCreate)>(
-      ::loadSymbol("puleRenderGraphCreate", layerName)
+  // text
+  layer->textRendererCreate = (
+    reinterpret_cast<decltype(layer->textRendererCreate)>(
+      ::loadSymbol("puleTextRendererCreate", layerName)
     )
   );
-  layer->renderGraphDestroy = (
-    reinterpret_cast<decltype(layer->renderGraphDestroy)>(
-      ::loadSymbol("puleRenderGraphDestroy", layerName)
+  layer->textRendererDestroy = (
+    reinterpret_cast<decltype(layer->textRendererDestroy)>(
+      ::loadSymbol("puleTextRendererDestroy", layerName)
     )
   );
-  layer->renderGraphMerge = (
-    reinterpret_cast<decltype(layer->renderGraphMerge)>(
-      ::loadSymbol("puleRenderGraphMerge", layerName)
-    )
-  );
-  layer->renderGraphNodeCreate = (
-    reinterpret_cast<decltype(layer->renderGraphNodeCreate)>(
-      ::loadSymbol("puleRenderGraphNodeCreate", layerName)
-    )
-  );
-  layer->renderGraphNodeRemove = (
-    reinterpret_cast<decltype(layer->renderGraphNodeRemove)>(
-      ::loadSymbol("puleRenderGraphNodeRemove", layerName)
-    )
-  );
-  layer->renderGraphNodeLabel = (
-    reinterpret_cast<decltype(layer->renderGraphNodeLabel)>(
-      ::loadSymbol("puleRenderGraphNodeLabel", layerName)
-    )
-  );
-  layer->renderGraphNodeFetch = (
-    reinterpret_cast<decltype(layer->renderGraphNodeFetch)>(
-      ::loadSymbol("puleRenderGraphNodeFetch", layerName)
-    )
-  );
-  layer->renderGraph_resourceCreate = (
-    reinterpret_cast<decltype(layer->renderGraph_resourceCreate)>(
-      ::loadSymbol("puleRenderGraph_resourceCreate", layerName)
-    )
-  );
-  layer->renderGraph_resource = (
-    reinterpret_cast<decltype(layer->renderGraph_resource)>(
-      ::loadSymbol("puleRenderGraph_resource", layerName)
-    )
-  );
-  layer->renderGraph_resourceRemove = (
-    reinterpret_cast<decltype(layer->renderGraph_resourceRemove)>(
-      ::loadSymbol("puleRenderGraph_resourceRemove", layerName)
-    )
-  );
-  layer->renderGraph_node_resourceAssign = (
-    reinterpret_cast<decltype(layer->renderGraph_node_resourceAssign)>(
-      ::loadSymbol("puleRenderGraph_node_resourceAssign", layerName)
-    )
-  );
-  layer->renderGraph_commandList = (
-    reinterpret_cast<decltype(layer->renderGraph_commandList)>(
-      ::loadSymbol("puleRenderGraph_commandList", layerName)
-    )
-  );
-  layer->renderGraph_commandListRecorder = (
-    reinterpret_cast<decltype(layer->renderGraph_commandListRecorder)>(
-      ::loadSymbol("puleRenderGraph_commandListRecorder", layerName)
-    )
-  );
-  layer->renderGraphNodeRelationSet = (
-    reinterpret_cast<decltype(layer->renderGraphNodeRelationSet)>(
-      ::loadSymbol("puleRenderGraphNodeRelationSet", layerName)
-    )
-  );
-  layer->renderGraphFrameStart = (
-    reinterpret_cast<decltype(layer->renderGraphFrameStart)>(
-      ::loadSymbol("puleRenderGraphFrameStart", layerName)
-    )
-  );
-  layer->renderGraphFrameSubmit = (
-    reinterpret_cast<decltype(layer->renderGraphFrameSubmit)>(
-      ::loadSymbol("puleRenderGraphFrameSubmit", layerName)
-    )
-  );
-  layer->renderGraphExecuteInOrder = (
-    reinterpret_cast<decltype(layer->renderGraphExecuteInOrder)>(
-      ::loadSymbol("puleRenderGraphExecuteInOrder", layerName)
-    )
-  );
-  layer->renderGraphNodeExists = (
-    reinterpret_cast<decltype(layer->renderGraphNodeExists)>(
-      ::loadSymbol("puleRenderGraphNodeExists", layerName)
+  layer->textRender = (
+    reinterpret_cast<decltype(layer->textRender)>(
+      ::loadSymbol("puleTextRender", layerName)
     )
   );
