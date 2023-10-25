@@ -29,3 +29,8 @@ add_subdirectory(string)
 add_subdirectory(task-graph)
 add_subdirectory(time)
 add_subdirectory(tui)
+
+# experimental libraries
+if (PULCHRITUDE_FEATURE_TEXT)
+  add_subdirectory(text)
+endif()

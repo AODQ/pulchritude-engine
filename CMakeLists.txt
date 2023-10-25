@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 cmake_policy(VERSION 3.0)
 
+#### DEVELOPMENT FEATURES ######################################################
+# unless turned off here, features should only be here (and enabled) under
+#   puldev or below
+
+option(PULCHRITUDE_FEATURE_TEXT "pulchritude-text" ON)
+if (PULCHRITUDE_FEATURE_TEXT)
+  add_compile_definitions(PULCHRITUDE_FEATURE_TEXT)
+endif()
+
+################################################################################
+
 if (PULCHRITUDE_PLATFORM STREQUAL "Win64")
   message("*-- compiling for Windows 64-bit platform")
   include(CMakeModules/win64.cmake)

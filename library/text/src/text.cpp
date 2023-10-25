@@ -1,5 +1,7 @@
 #include <pulchritude-text/text.h>
 
+#if defined(PULCHRITUDE_FEATURE_TEXT)
+
 #include <pulchritude-asset/shader-module.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-gpu/module.h>
@@ -195,3 +197,5 @@ void puleTextRender(
     };
   }
 }
+
+#endif

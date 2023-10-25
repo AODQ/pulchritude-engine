@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(PULCHRITUDE_FEATURE_TEXT)
+
 #include <pulchritude-core/core.h>
 
 #include <pulchritude-asset/font.h>
@@ -43,3 +45,5 @@ PULE_exportFn void puleTextRender(
 #ifdef __cplusplus
 } // extern C
 #endif
+
+#endif // PULCHRITUDE_FEATURE_TEXT
