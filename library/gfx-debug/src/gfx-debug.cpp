@@ -76,6 +76,7 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
           .viewportMax = {800, 600}, // TODO FIX
           .scissorMin = {0, 0},
           .scissorMax = {0, 0},
+          .drawPrimitive = PuleGpuDrawPrimitive_line,
         },
       }
     );
@@ -201,6 +202,12 @@ void puleGfxDebugRender(
           param.quad.originCenter.y + param.quad.dimensionsHalf.y
         }
       );
+      puleLog("ul <%f, %f> ur <%f, %f> ll <%f, %f> lr <%f, %f>",
+        ul.x, ul.y,
+        ur.x, ur.y,
+        ll.x, ll.y,
+        lr.x, lr.y
+      );
       std::vector<PuleF32v2> vertices = {
         ul, ur, ur, lr, lr, ll, ll, ul,
       };
@@ -220,7 +227,6 @@ void puleGfxDebugRender(
           debugRecorder.commandListRecorder,
           PuleGpuCommand {
             .dispatchRender = {
-              .drawPrimitive = PuleGpuDrawPrimitive_line,
               .vertexOffset = 0,
               .numVertices = 2,
             }
@@ -252,7 +258,6 @@ void puleGfxDebugRender(
         debugRecorder.commandListRecorder,
         PuleGpuCommand {
           .dispatchRender = {
-            .drawPrimitive = PuleGpuDrawPrimitive_line,
             .vertexOffset = 0,
             .numVertices = 2,
           }

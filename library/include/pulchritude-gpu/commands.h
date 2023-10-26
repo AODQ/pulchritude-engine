@@ -176,30 +176,20 @@ typedef struct PuleGpuActionBindFramebuffer {
   PuleGpuFramebuffer framebuffer;
 } PuleGpuActionBindFramebuffer;
 
-typedef enum {
-  PuleGpuDrawPrimitive_triangle,
-  PuleGpuDrawPrimitive_triangleStrip,
-  PuleGpuDrawPrimitive_point,
-  PuleGpuDrawPrimitive_line,
-} PuleGpuDrawPrimitive;
-
 typedef struct PuleGpuActionDispatchRender {
   PuleGpuAction action PULE_param(PuleGpuAction_dispatchRender);
-  PuleGpuDrawPrimitive drawPrimitive;
   size_t vertexOffset;
   size_t numVertices;
 } PuleGpuActionDispatchRender;
 
 typedef struct PuleGpuActionDispatchRenderIndirect {
   PuleGpuAction action PULE_param(PuleGpuAction_dispatchRenderIndirect);
-  PuleGpuDrawPrimitive drawPrimitive;
   PuleGpuBuffer bufferIndirect;
   size_t byteOffset;
 } PuleGpuActionDispatchRenderIndirect;
 
 typedef struct PuleGpuActionDispatchRenderElements {
   PuleGpuAction action PULE_param(PuleGpuAction_dispatchRenderElements);
-  PuleGpuDrawPrimitive drawPrimitive;
   size_t numElements;
   size_t elementOffset; // can be 0
   size_t baseVertexOffset; // can be 0

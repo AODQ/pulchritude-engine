@@ -138,6 +138,7 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
       .viewportMax = {.x = 800, .y = 600,}, // TODO FIX
       .scissorMin = {.x = 0, .y = 0,},
       .scissorMax = {.x = 800, .y = 600,},
+      .drawPrimitive = PuleGpuDrawPrimitive_triangle,
     },
   };
 
@@ -431,7 +432,6 @@ void renderDrawData(
       PuleGpuCommand drawCommand = {
         .dispatchRenderElements = {
           .action = PuleGpuAction_dispatchRenderElements,
-          .drawPrimitive = PuleGpuDrawPrimitive_triangle,
           .numElements = drawCmd.ElemCount,
           .elementOffset = flattenedIdxOffset + drawCmd.IdxOffset,
           .baseVertexOffset = flattenedVtxOffset + drawCmd.VtxOffset,

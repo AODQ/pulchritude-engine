@@ -104,6 +104,7 @@ void initialize() {
         .viewportMax = {800, 600},
         .scissorMin = {0, 0},
         .scissorMax = {800, 600},
+        .drawPrimitive = PuleGpuDrawPrimitive_triangle,
       },
     }
   );
@@ -347,7 +348,6 @@ void puleTextRender(
         PuleGpuCommand {
           .dispatchRender = {
             .action = PuleGpuAction_dispatchRender,
-            .drawPrimitive = PuleGpuDrawPrimitive_triangle,
             .vertexOffset = 0u,
             .numVertices = 6u,
           },

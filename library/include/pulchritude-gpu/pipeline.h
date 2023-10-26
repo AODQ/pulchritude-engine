@@ -89,6 +89,13 @@ typedef struct {
   size_t byteOffset;
 } PuleGpuPipelineLayoutPushConstant;
 
+typedef enum {
+  PuleGpuDrawPrimitive_triangle,
+  PuleGpuDrawPrimitive_triangleStrip,
+  PuleGpuDrawPrimitive_point,
+  PuleGpuDrawPrimitive_line,
+} PuleGpuDrawPrimitive;
+
 typedef struct {
   bool depthTestEnabled;
   bool blendEnabled;
@@ -98,6 +105,7 @@ typedef struct {
   PuleI32v2 viewportMax; // default 1, 1
   PuleI32v2 scissorMin; // default 0, 0
   PuleI32v2 scissorMax; // default 1, 1
+  PuleGpuDrawPrimitive drawPrimitive;
 } PuleGpuPipelineConfig;
 
 typedef struct {

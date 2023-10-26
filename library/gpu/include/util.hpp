@@ -237,6 +237,10 @@ VkAttachmentStoreOp toVkAttachmentOpStore(
 
 VkImageView fetchImageView(PuleGpuImageView const imageView);
 
+VkPrimitiveTopology toVkPrimitiveTopology(
+  PuleGpuDrawPrimitive const primitiveTopology
+);
+
 } // ::util
 
 namespace util::str {

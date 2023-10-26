@@ -581,3 +581,18 @@ VkImageView util::fetchImageView(PuleGpuImageView const imageView) {
 
   return imageViewIt->second;
 }
+
+VkPrimitiveTopology util::toVkPrimitiveTopology(
+  PuleGpuDrawPrimitive const primitiveTopology
+) {
+  switch (primitiveTopology) {
+    case PuleGpuDrawPrimitive_triangle:
+      return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case PuleGpuDrawPrimitive_triangleStrip:
+      return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    case PuleGpuDrawPrimitive_line:
+      return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    case PuleGpuDrawPrimitive_point:
+      return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+  }
+}
