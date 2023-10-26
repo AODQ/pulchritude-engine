@@ -159,6 +159,11 @@ PULE_exportFn PuleF32m44 puleViewLookAt(
 
 PULE_exportFn PuleF32m44 puleF32m44Viewport(float const width, float const height);
 
+PULE_exportFn PuleF32m44 puleF32m44Rotation(
+  float const radians,
+  PuleF32v3 const axis
+);
+
 #ifdef __cplusplus
 } // extern C
 #endif

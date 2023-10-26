@@ -178,39 +178,28 @@ void puleGfxDebugRender(
       puleLogError("Unimplemented debug render type %d", param.type);
       PULE_assert(false && "unimplemented");
     case PuleGfxDebugRenderType_quad: {
-      PuleF32v2 const ul = (
-        PuleF32v2 {
-          param.quad.originCenter.x - param.quad.dimensionsHalf.x,
-          param.quad.originCenter.y - param.quad.dimensionsHalf.y
-        }
+      PuleF32v2 const ul = (PuleF32v2 { -1.0f, -1.0f, });
+      PuleF32v2 const ur = (PuleF32v2 { +1.0f, -1.0f, });
+      PuleF32v2 const ll = (PuleF32v2 { -1.0f, +1.0f, });
+      PuleF32v2 const lr = (PuleF32v2 { +1.0f, +1.0f, });
+      std::vector<PuleF32v2> vertices = { ul, ur, ur, lr, lr, ll, ll, ul, };
+      // create rotation matrix
+      PuleF32m44 const rotation = (
+        puleF32m44Rotation(param.quad.angle, PuleF32v3 { 0.0f, 0.0f, 1.0f, })
       );
-      PuleF32v2 const ur = (
-        PuleF32v2 {
-          param.quad.originCenter.x + param.quad.dimensionsHalf.x,
-          param.quad.originCenter.y - param.quad.dimensionsHalf.y
-        }
-      );
-      PuleF32v2 const ll = (
-        PuleF32v2 {
-          param.quad.originCenter.x - param.quad.dimensionsHalf.x,
-          param.quad.originCenter.y + param.quad.dimensionsHalf.y
-        }
-      );
-      PuleF32v2 const lr = (
-        PuleF32v2 {
-          param.quad.originCenter.x + param.quad.dimensionsHalf.x,
-          param.quad.originCenter.y + param.quad.dimensionsHalf.y
-        }
-      );
-      puleLog("ul <%f, %f> ur <%f, %f> ll <%f, %f> lr <%f, %f>",
-        ul.x, ul.y,
-        ur.x, ur.y,
-        ll.x, ll.y,
-        lr.x, lr.y
-      );
-      std::vector<PuleF32v2> vertices = {
-        ul, ur, ur, lr, lr, ll, ll, ul,
-      };
+      // apply rotation
+      for (auto & vertex : vertices) {
+        // rotate point
+        PuleF32v4 vtx = PuleF32v4{vertex.x, vertex.y, 0.0f, 1.0f};
+        vtx = puleF32m44MulV4(rotation, vtx);
+        vertex.x = vtx.x;
+        vertex.y = vtx.y;
+        // scale
+        vertex.x *= param.quad.dimensionsHalf.x;
+        vertex.y *= param.quad.dimensionsHalf.y;
+        // add origin
+        vertex = puleF32v2Add(vertex, param.quad.originCenter);
+      }
       for (size_t it = 0; it < 4; ++ it) {
         std::vector<PuleF32v4> data = {
           PuleF32v4 {
@@ -243,6 +232,7 @@ void puleGfxDebugRender(
         );
       }
     }
+    break;
     case PuleGfxDebugRenderType_line: {
       float const vertices[4] = {
         param.line.a.x,

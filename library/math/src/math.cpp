@@ -226,4 +226,27 @@ PuleF32m44 puleF32m44Translate(PuleF32v3 const translate) {
   return result;
 }
 
+PULE_exportFn PuleF32m44 puleF32m44Rotation(
+  float const radians,
+  PuleF32v3 const axis
+) {
+  return PuleF32m44 {
+    .elem = {
+      cosf(radians) + axis.x*axis.x*(1.0f-cosf(radians)),
+      axis.x*axis.y*(1.0f-cosf(radians)) - axis.z*sinf(radians),
+      axis.x*axis.z*(1.0f-cosf(radians)) + axis.y*sinf(radians),
+      0.0f,
+      axis.y*axis.x*(1.0f-cosf(radians)) + axis.z*sinf(radians),
+      cosf(radians) + axis.y*axis.y*(1.0f-cosf(radians)),
+      axis.y*axis.z*(1.0f-cosf(radians)) - axis.x*sinf(radians),
+      0.0f,
+      axis.z*axis.x*(1.0f-cosf(radians)) - axis.y*sinf(radians),
+      axis.z*axis.y*(1.0f-cosf(radians)) + axis.x*sinf(radians),
+      cosf(radians) + axis.z*axis.z*(1.0f-cosf(radians)),
+      0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f,
+    },
+  };
+}
+
 } // extern C

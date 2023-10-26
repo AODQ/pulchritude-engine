@@ -34,16 +34,17 @@ typedef enum {
 
 typedef struct PuleGfxDebugRenderLine {
   PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_line);
-  PuleF32v2 const a;
-  PuleF32v2 const b;
-  PuleF32v3 const color;
+  PuleF32v2 a;
+  PuleF32v2 b;
+  PuleF32v3 color;
 } PuleGfxDebugRenderLine;
 
 typedef struct PuleGfxDebugRenderQuad {
   PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_quad);
-  PuleF32v2 const originCenter;
-  PuleF32v2 const dimensionsHalf;
-  PuleF32v3 const color;
+  PuleF32v2 originCenter;
+  float angle;
+  PuleF32v2 dimensionsHalf;
+  PuleF32v3 color;
 } PuleGfxDebugRenderQuad;
 
 typedef union PuleGfxDebugRenderParam {
