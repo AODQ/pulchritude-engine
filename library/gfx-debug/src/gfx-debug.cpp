@@ -57,7 +57,7 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
     auto pushConstant = (
       PuleGpuPipelineLayoutPushConstant {
         .stage = PuleGpuDescriptorStage_vertex,
-        .byteLength = sizeof(float)*4,
+        .byteLength = sizeof(float)*8,
         .byteOffset = 0,
       }
     );
@@ -212,14 +212,23 @@ void puleGfxDebugRender(
         ul, ur, ur, lr, lr, ll, ll, ul,
       };
       for (size_t it = 0; it < 4; ++ it) {
+        std::vector<PuleF32v4> data = {
+          PuleF32v4 {
+            vertices[it*2].x, vertices[it*2].y,
+            vertices[it*2+1].x, vertices[it*2+1].y
+          },
+          PuleF32v4 {
+            param.line.color.x, param.line.color.y, param.line.color.z, 1.0f,
+          },
+        };
         puleGpuCommandListAppendAction(
           debugRecorder.commandListRecorder,
           PuleGpuCommand {
             .pushConstants = {
               .stage = PuleGpuDescriptorStage_vertex,
-              .byteLength = sizeof(float)*4,
+              .byteLength = sizeof(float)*8,
               .byteOffset = 0,
-              .data = &vertices[it*2],
+              .data = data.data(),
             }
           }
         );
