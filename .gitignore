@@ -1,2 +1,4 @@
 bindings/
 *.spv
+.cache
+compile_commands.json

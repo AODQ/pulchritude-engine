@@ -43,6 +43,20 @@ PULE_exportFn void puleTextRender(
   size_t const textInfoCount
 );
 
+typedef struct PuleTextRender2DInfo {
+  size_t fontScale;
+  PuleI32v2 position;
+  PuleF32v4 color;
+  PuleStringView text;
+} PuleTextRender2DInfo;
+
+PULE_exportFn void puleTextRender2D(
+  PuleTextRenderer const textRenderer,
+  PuleGpuCommandListRecorder const commandListRecorder,
+  PuleTextRender2DInfo const * const textInfo,
+  size_t const textInfoCount
+);
+
 #ifdef __cplusplus
 } // extern C
 #endif

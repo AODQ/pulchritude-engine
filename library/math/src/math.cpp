@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+extern "C" {
+
 PuleF32v2 puleF32v2(float const identity) {
   return PuleF32v2 {
     .x = identity,
@@ -189,3 +191,39 @@ void puleF32m44DumpToStdout(PuleF32m44 const m) {
   );
 #pragma GCC diagnostic pop
 }
+
+PuleF32m44 puleF32m44Viewport(float const width, float const height) {
+  float const scaleX =  width / 2.0f;
+  float const scaleY = -height / 2.0f;
+  float const translateX = -width / 2.0f;
+  float const translateY = height / 2.0f;
+  return PuleF32m44 {
+    .elem = {
+      scaleX, 0.0f,   0.0f, 0.0f,
+      0.0f,   scaleY, 0.0f, 0.0f,
+      0.0f,   0.0f,   1.0f, 0.0f,
+      translateX, translateY, 0.0f, 1.0f,
+    },
+  };
+}
+
+PuleF32m44 puleF32m44Mul(PuleF32m44 const a, PuleF32m44 const b) {
+  PuleF32m44 result = puleF32m44(0.0f);
+  for (size_t x = 0; x < 4; ++ x)
+  for (size_t y = 0; y < 4; ++ y) {
+    for (size_t z = 0; z < 4; ++ z) {
+      result.elem[x*4 + y] += a.elem[x*4 + z] * b.elem[z*4 + y];
+    }
+  }
+  return result;
+}
+
+PuleF32m44 puleF32m44Translate(PuleF32v3 const translate) {
+  PuleF32m44 result = puleF32m44(1.0f);
+  result.elem[12] = translate.x;
+  result.elem[13] = translate.y;
+  result.elem[14] = translate.z;
+  return result;
+}
+
+} // extern C

@@ -14,10 +14,20 @@
 
 namespace pint {
 
+struct GlyphImageInfo {
+  PuleGpuImage image;
+  int32_t fontWidth;
+  int32_t fontHeight;
+  int32_t cols;
+  int32_t rows;
+  int32_t imageWidth;
+  int32_t imageHeight;
+};
+
 struct TextRenderer {
   PuleAssetFont font;
   PuleTextType type;
-  std::unordered_map<size_t, PuleGpuImage> glyphImages;
+  std::unordered_map<size_t, GlyphImageInfo> glyphImages;
 };
 
 bool initialized = false;
@@ -114,60 +124,81 @@ void createGlyphImage(
   if (textRenderer.glyphImages.contains(fontScale)) {
     return;
   }
+  pint::GlyphImageInfo info = {
+    .image = {},
+    .fontWidth = static_cast<int32_t>(fontScale*0.5f),
+    .fontHeight = static_cast<int32_t>(fontScale),
+    .cols = 16,
+    .rows = pint::glyphCount / 16 + (pint::glyphCount % 16 != 0),
+  };
+  info.imageWidth = info.cols * info.fontWidth;
+  info.imageHeight = info.rows * info.fontHeight;
   puleLog("creating the glyph data");
   std::vector<uint8_t> glyphsetData;
-  uint32_t const fontWidth = static_cast<uint32_t>(fontScale * 0.5f);
-  uint32_t const fontHeight = static_cast<uint32_t>(fontScale);
-  uint32_t const rows = 16u;
-  uint32_t const cols = (
-    pint::glyphCount / rows + (pint::glyphCount % rows != 0)
-  );
-  uint32_t const imageWidth = rows * fontWidth;
-  uint32_t const imageHeight = cols * fontHeight;
-  glyphsetData.resize(imageWidth * imageHeight);
+  glyphsetData.resize(info.imageWidth * info.imageHeight);
   for (size_t glyphIt = 0; pint::glyphArray[glyphIt] != '\0'; ++ glyphIt) {
     PuleError err = puleError();
     // render to temporary buffer
     std::vector<uint8_t> tempBuffer;
-    tempBuffer.resize(fontWidth * fontScale);
+    tempBuffer.resize(info.fontWidth * fontScale);
     puleAssetFontRenderToU8Buffer(
       PuleAssetFontRenderInfo {
         .font = textRenderer.font,
         .fontScale = PuleF32v2 {
-          .x = (float)(fontWidth), .y = (float)fontHeight,
+          .x = (float)(info.fontWidth), .y = (float)info.fontHeight,
         },
         .fontOffset = {0.f, 0.f},
-        .renderFlippedY = false,
+        .renderFlippedY = true,
         .glyphCodepoint = static_cast<uint32_t>(pint::glyphArray[glyphIt]),
         .destinationBuffer = {
           .data = tempBuffer.data(),
           .byteLength = tempBuffer.size(),
         },
         .destinationBufferDim = { // TODO deal with the integer artefacts prior
-          .x = fontWidth,
-          .y = fontHeight,
+          .x = (uint32_t)info.fontWidth,
+          .y = (uint32_t)info.fontHeight,
         },
       },
       &err
     );
+    if (puleErrorConsume(&err)) {
+      continue;
+    }
+    // print out the glyph
+    puleLog(
+      "---- glyph for letter '%c' [%dx%d]\n",
+      pint::glyphArray[glyphIt],
+      info.fontWidth, info.fontHeight
+    );
+    for (int32_t itx = 0; itx < info.fontWidth; ++ itx) {
+      for (int32_t ity = 0; ity < info.fontHeight; ++ ity) {
+        printf("%c", tempBuffer[itx*info.fontHeight + ity] == 0 ? ' ' : '#');
+      }
+      printf("\n");
+    }
     // copy to glyphset
-    for (size_t itx = 0; itx < fontWidth; ++ itx)
-    for (size_t ity = 0; ity < fontHeight; ++ ity) {
-      uint32_t const pixelRow = (glyphIt%rows)*fontWidth + itx;
-      uint32_t const pixelColOffset = ity*imageWidth;
-      glyphsetData[pixelRow + pixelColOffset] = tempBuffer[itx + ity*fontWidth];
+    for (int32_t itx = 0; itx < info.fontWidth; ++ itx)
+    for (int32_t ity = 0; ity < info.fontHeight; ++ ity) {
+      uint32_t const glyphCol = glyphIt%info.cols;
+      uint32_t const glyphRow = glyphIt/info.cols;
+      uint32_t const pixelIt = (
+        glyphCol*info.fontWidth
+        + glyphRow*info.fontHeight*info.imageWidth
+        + itx
+        + ity*info.imageWidth
+      );
+      glyphsetData[pixelIt] = (tempBuffer[ity*info.fontWidth + itx]);
     }
   }
   // create the image
   puleLog("creating the glyph image");
   // TODO use font name in the label
   std::string imageLabel = "pule-text-glyphset-" + std::to_string(fontScale);
-  textRenderer.glyphImages.emplace(
-    fontScale,
+  info.image = (
     puleGpuImageCreate(
       PuleGpuImageCreateInfo {
-        .width = imageWidth,
-        .height = imageHeight,
+        .width = (uint32_t)info.imageWidth,
+        .height = (uint32_t)info.imageHeight,
         .target = PuleGpuImageTarget_i2D,
         .byteFormat = PuleGpuImageByteFormat_r8U,
         .sampler = puleGpuSamplerCreate({
@@ -181,6 +212,7 @@ void createGlyphImage(
       }
     )
   );
+  textRenderer.glyphImages.emplace(fontScale, info);
 }
 
 } // namespace pint
@@ -236,9 +268,7 @@ void puleTextRender(
   );
   for (size_t it = 0; it < textInfoCount; ++ it) {
     auto const & info = textInfo[it];
-    uint32_t const fontWidth = static_cast<uint32_t>(info.fontScale * 0.5f);
-    uint32_t const fontHeight = static_cast<uint32_t>(info.fontScale);
-    uint32_t const rows = 16u;
+    auto const & fontInfo = trend.glyphImages.at(info.fontScale);
     puleLog("Rendering text '%s'", info.text.contents);
     for (size_t textCharIt = 0; textCharIt < info.text.len; ++ textCharIt) {
       // shitty way to get the glyph index
@@ -254,15 +284,21 @@ void puleTextRender(
       } vertPc;
       vertPc.transform = info.transform;
       vertPc.offset = PuleF32v2 {
-        .x = (float)(textCharIt*fontWidth),
+        .x = (float)(textCharIt*fontInfo.fontWidth),
         .y = 0.f,
       };
       PuleF32v4 glyphVertices = {
-        .x = (float)(glyphIt%rows)*fontWidth,
-        .y = std::floor(glyphIt/(float)rows)*fontHeight,
-        .z = (float)fontWidth,
-        .w = (float)fontHeight,
+        .x = (float)(glyphIt%fontInfo.cols)*fontInfo.fontWidth,
+        .y = std::floor(glyphIt/(float)fontInfo.cols)*fontInfo.fontHeight,
+        .z = (float)fontInfo.fontWidth,
+        .w = (float)fontInfo.fontHeight,
       };
+      puleLog("glyph vertices: %f %f %f %f", glyphVertices.x, glyphVertices.y, glyphVertices.z, glyphVertices.w);
+      // normalize
+      glyphVertices.x /= (float)fontInfo.imageWidth;
+      glyphVertices.y /= (float)fontInfo.imageHeight;
+      glyphVertices.z /= (float)fontInfo.imageWidth;
+      glyphVertices.w /= (float)fontInfo.imageHeight;
       puleGpuCommandListAppendAction(
         commandListRecorder,
         PuleGpuCommand {
@@ -295,7 +331,7 @@ void puleTextRender(
             .bindingIndex = 0,
             .imageView = (
               PuleGpuImageView {
-                .image = trend.glyphImages.at(info.fontScale),
+                .image = trend.glyphImages.at(info.fontScale).image,
                 .mipmapLevelStart = 0, .mipmapLevelCount = 1,
                 .arrayLayerStart = 0,  .arrayLayerCount = 1,
                 .byteFormat = PuleGpuImageByteFormat_r8U,
@@ -319,6 +355,41 @@ void puleTextRender(
       );
     }
   }
+}
+
+void puleTextRender2D(
+  PuleTextRenderer const textRenderer,
+  PuleGpuCommandListRecorder const commandListRecorder,
+  PuleTextRender2DInfo const * const textInfo,
+  size_t const textInfoCount
+) {
+  // TODO get viewport dimensions from renderpass bound to command list recorder
+  PuleF32v2 const viewport = { .x = 4800.f, .y = 4600.f, };
+  std::vector<PuleTextRenderInfo> textRenderInfos;
+  for (size_t it = 0; it < textInfoCount; ++ it) {
+    auto const & info = textInfo[it];
+    PuleF32m44 transform = puleF32m44Viewport(viewport.x, viewport.y);
+    //transform = (
+    //  puleF32m44Mul(
+    //    transform,
+    //    puleF32m44Translate(PuleF32v3 {
+    //      .x = (float)info.position.x,
+    //      .y = (float)info.position.y,
+    //      .z = 0.f,
+    //    })
+    //  )
+    //);
+    textRenderInfos.emplace_back(PuleTextRenderInfo {
+      .fontScale = info.fontScale,
+      .transform = transform,
+      .color = info.color,
+      .text = info.text,
+    });
+  }
+  puleTextRender(
+    textRenderer, commandListRecorder,
+    textRenderInfos.data(), textRenderInfos.size()
+  );
 }
 
 #endif

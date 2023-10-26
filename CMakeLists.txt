@@ -193,3 +193,8 @@ endif()
 #watchfile(
 #  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-ecs-components-from-json-binding-generator.py"
 #)
+
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.frag)
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.vert)
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.frag)
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.vert)

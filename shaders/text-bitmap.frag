@@ -11,11 +11,8 @@ uniform layout(set = 0, binding = 0) sampler2D fontTexture;
 out layout(location = 0) vec4 outColor;
 
 void main() {
-  float alpha = (
-    texture(fontTexture, textureOffset.xy + textureOffset.zw*inUv).r
-  );
-  if (alpha < 0.9f) {
-    discard;
-  }
+  vec2 offset = textureOffset.xy + textureOffset.zw*inUv;
+  float alpha = texture(fontTexture, offset).r;
+  if (alpha < 0.1f) discard;
   outColor = vec4(alpha);
 }

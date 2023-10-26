@@ -136,6 +136,8 @@ PULE_exportFn PuleF32m44 puleF32m44PtrTranspose(float const * const data);
 
 PULE_exportFn PuleF32m44 puleF32m44Inverse(PuleF32m44 const a);
 PULE_exportFn PuleF32v4 puleF32m44MulV4(PuleF32m44 const a, PuleF32v4 const b);
+PULE_exportFn PuleF32m44 puleF32m44Mul(PuleF32m44 const a, PuleF32m44 const b);
+PULE_exportFn PuleF32m44 puleF32m44Translate(PuleF32v3 const translate);
 
 PULE_exportFn void puleF32m44DumpToStdout(PuleF32m44 const);
 
@@ -154,6 +156,8 @@ PULE_exportFn PuleF32m44 puleViewLookAt(
   PuleF32v3 const center,
   PuleF32v3 const up
 );
+
+PULE_exportFn PuleF32m44 puleF32m44Viewport(float const width, float const height);
 
 #ifdef __cplusplus
 } // extern C

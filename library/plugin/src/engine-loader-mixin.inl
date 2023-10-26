@@ -103,27 +103,6 @@
       ::loadSymbol("puleAssetTiledMapDestroy", layerName)
     )
   );
-  // asset-font
-  layer->assetFontLoad = (
-    reinterpret_cast<decltype(layer->assetFontLoad)>(
-      ::loadSymbol("puleAssetFontLoad", layerName)
-    )
-  );
-  layer->assetFontLoadFromPath = (
-    reinterpret_cast<decltype(layer->assetFontLoadFromPath)>(
-      ::loadSymbol("puleAssetFontLoadFromPath", layerName)
-    )
-  );
-  layer->assetFontDestroy = (
-    reinterpret_cast<decltype(layer->assetFontDestroy)>(
-      ::loadSymbol("puleAssetFontDestroy", layerName)
-    )
-  );
-  layer->assetFontRenderToU8Buffer = (
-    reinterpret_cast<decltype(layer->assetFontRenderToU8Buffer)>(
-      ::loadSymbol("puleAssetFontRenderToU8Buffer", layerName)
-    )
-  );
   // asset-pds
   layer->assetPdsLoadFromStream = (
     reinterpret_cast<decltype(layer->assetPdsLoadFromStream)>(
@@ -190,6 +169,27 @@
   layer->assetShaderModuleHandle = (
     reinterpret_cast<decltype(layer->assetShaderModuleHandle)>(
       ::loadSymbol("puleAssetShaderModuleHandle", layerName)
+    )
+  );
+  // asset-font
+  layer->assetFontLoad = (
+    reinterpret_cast<decltype(layer->assetFontLoad)>(
+      ::loadSymbol("puleAssetFontLoad", layerName)
+    )
+  );
+  layer->assetFontLoadFromPath = (
+    reinterpret_cast<decltype(layer->assetFontLoadFromPath)>(
+      ::loadSymbol("puleAssetFontLoadFromPath", layerName)
+    )
+  );
+  layer->assetFontDestroy = (
+    reinterpret_cast<decltype(layer->assetFontDestroy)>(
+      ::loadSymbol("puleAssetFontDestroy", layerName)
+    )
+  );
+  layer->assetFontRenderToU8Buffer = (
+    reinterpret_cast<decltype(layer->assetFontRenderToU8Buffer)>(
+      ::loadSymbol("puleAssetFontRenderToU8Buffer", layerName)
     )
   );
   // camera
@@ -1174,6 +1174,16 @@
       ::loadSymbol("puleF32m44MulV4", layerName)
     )
   );
+  layer->f32m44Mul = (
+    reinterpret_cast<decltype(layer->f32m44Mul)>(
+      ::loadSymbol("puleF32m44Mul", layerName)
+    )
+  );
+  layer->f32m44Translate = (
+    reinterpret_cast<decltype(layer->f32m44Translate)>(
+      ::loadSymbol("puleF32m44Translate", layerName)
+    )
+  );
   layer->f32m44DumpToStdout = (
     reinterpret_cast<decltype(layer->f32m44DumpToStdout)>(
       ::loadSymbol("puleF32m44DumpToStdout", layerName)
@@ -1187,6 +1197,11 @@
   layer->viewLookAt = (
     reinterpret_cast<decltype(layer->viewLookAt)>(
       ::loadSymbol("puleViewLookAt", layerName)
+    )
+  );
+  layer->f32m44Viewport = (
+    reinterpret_cast<decltype(layer->f32m44Viewport)>(
+      ::loadSymbol("puleF32m44Viewport", layerName)
     )
   );
   // platform
@@ -1765,86 +1780,6 @@
     )
   );
   // gpu
-  layer->gpuActionToString = (
-    reinterpret_cast<decltype(layer->gpuActionToString)>(
-      ::loadSymbol("puleGpuActionToString", layerName)
-    )
-  );
-  layer->gpuCommandListCreate = (
-    reinterpret_cast<decltype(layer->gpuCommandListCreate)>(
-      ::loadSymbol("puleGpuCommandListCreate", layerName)
-    )
-  );
-  layer->gpuCommandListDestroy = (
-    reinterpret_cast<decltype(layer->gpuCommandListDestroy)>(
-      ::loadSymbol("puleGpuCommandListDestroy", layerName)
-    )
-  );
-  layer->gpuCommandListName = (
-    reinterpret_cast<decltype(layer->gpuCommandListName)>(
-      ::loadSymbol("puleGpuCommandListName", layerName)
-    )
-  );
-  layer->gpuCommandListRecorder = (
-    reinterpret_cast<decltype(layer->gpuCommandListRecorder)>(
-      ::loadSymbol("puleGpuCommandListRecorder", layerName)
-    )
-  );
-  layer->gpuCommandListRecorderFinish = (
-    reinterpret_cast<decltype(layer->gpuCommandListRecorderFinish)>(
-      ::loadSymbol("puleGpuCommandListRecorderFinish", layerName)
-    )
-  );
-  layer->gpuCommandListAppendAction = (
-    reinterpret_cast<decltype(layer->gpuCommandListAppendAction)>(
-      ::loadSymbol("puleGpuCommandListAppendAction", layerName)
-    )
-  );
-  layer->gpuCommandListSubmit = (
-    reinterpret_cast<decltype(layer->gpuCommandListSubmit)>(
-      ::loadSymbol("puleGpuCommandListSubmit", layerName)
-    )
-  );
-  layer->gpuCommandListSubmitAndPresent = (
-    reinterpret_cast<decltype(layer->gpuCommandListSubmitAndPresent)>(
-      ::loadSymbol("puleGpuCommandListSubmitAndPresent", layerName)
-    )
-  );
-  layer->gpuCommandListDump = (
-    reinterpret_cast<decltype(layer->gpuCommandListDump)>(
-      ::loadSymbol("puleGpuCommandListDump", layerName)
-    )
-  );
-  layer->gpuCommandListChainCreate = (
-    reinterpret_cast<decltype(layer->gpuCommandListChainCreate)>(
-      ::loadSymbol("puleGpuCommandListChainCreate", layerName)
-    )
-  );
-  layer->gpuCommandListChainDestroy = (
-    reinterpret_cast<decltype(layer->gpuCommandListChainDestroy)>(
-      ::loadSymbol("puleGpuCommandListChainDestroy", layerName)
-    )
-  );
-  layer->gpuCommandListChainCurrent = (
-    reinterpret_cast<decltype(layer->gpuCommandListChainCurrent)>(
-      ::loadSymbol("puleGpuCommandListChainCurrent", layerName)
-    )
-  );
-  layer->gpuCommandListChainCurrentFence = (
-    reinterpret_cast<decltype(layer->gpuCommandListChainCurrentFence)>(
-      ::loadSymbol("puleGpuCommandListChainCurrentFence", layerName)
-    )
-  );
-  layer->gpuResourceBarrierStageLabel = (
-    reinterpret_cast<decltype(layer->gpuResourceBarrierStageLabel)>(
-      ::loadSymbol("puleGpuResourceBarrierStageLabel", layerName)
-    )
-  );
-  layer->gpuResourceAccessLabel = (
-    reinterpret_cast<decltype(layer->gpuResourceAccessLabel)>(
-      ::loadSymbol("puleGpuResourceAccessLabel", layerName)
-    )
-  );
   layer->gpuBufferCreate = (
     reinterpret_cast<decltype(layer->gpuBufferCreate)>(
       ::loadSymbol("puleGpuBufferCreate", layerName)
@@ -2055,6 +1990,86 @@
       ::loadSymbol("puleGpuFrameEnd", layerName)
     )
   );
+  layer->gpuActionToString = (
+    reinterpret_cast<decltype(layer->gpuActionToString)>(
+      ::loadSymbol("puleGpuActionToString", layerName)
+    )
+  );
+  layer->gpuCommandListCreate = (
+    reinterpret_cast<decltype(layer->gpuCommandListCreate)>(
+      ::loadSymbol("puleGpuCommandListCreate", layerName)
+    )
+  );
+  layer->gpuCommandListDestroy = (
+    reinterpret_cast<decltype(layer->gpuCommandListDestroy)>(
+      ::loadSymbol("puleGpuCommandListDestroy", layerName)
+    )
+  );
+  layer->gpuCommandListName = (
+    reinterpret_cast<decltype(layer->gpuCommandListName)>(
+      ::loadSymbol("puleGpuCommandListName", layerName)
+    )
+  );
+  layer->gpuCommandListRecorder = (
+    reinterpret_cast<decltype(layer->gpuCommandListRecorder)>(
+      ::loadSymbol("puleGpuCommandListRecorder", layerName)
+    )
+  );
+  layer->gpuCommandListRecorderFinish = (
+    reinterpret_cast<decltype(layer->gpuCommandListRecorderFinish)>(
+      ::loadSymbol("puleGpuCommandListRecorderFinish", layerName)
+    )
+  );
+  layer->gpuCommandListAppendAction = (
+    reinterpret_cast<decltype(layer->gpuCommandListAppendAction)>(
+      ::loadSymbol("puleGpuCommandListAppendAction", layerName)
+    )
+  );
+  layer->gpuCommandListSubmit = (
+    reinterpret_cast<decltype(layer->gpuCommandListSubmit)>(
+      ::loadSymbol("puleGpuCommandListSubmit", layerName)
+    )
+  );
+  layer->gpuCommandListSubmitAndPresent = (
+    reinterpret_cast<decltype(layer->gpuCommandListSubmitAndPresent)>(
+      ::loadSymbol("puleGpuCommandListSubmitAndPresent", layerName)
+    )
+  );
+  layer->gpuCommandListDump = (
+    reinterpret_cast<decltype(layer->gpuCommandListDump)>(
+      ::loadSymbol("puleGpuCommandListDump", layerName)
+    )
+  );
+  layer->gpuCommandListChainCreate = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainCreate)>(
+      ::loadSymbol("puleGpuCommandListChainCreate", layerName)
+    )
+  );
+  layer->gpuCommandListChainDestroy = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainDestroy)>(
+      ::loadSymbol("puleGpuCommandListChainDestroy", layerName)
+    )
+  );
+  layer->gpuCommandListChainCurrent = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainCurrent)>(
+      ::loadSymbol("puleGpuCommandListChainCurrent", layerName)
+    )
+  );
+  layer->gpuCommandListChainCurrentFence = (
+    reinterpret_cast<decltype(layer->gpuCommandListChainCurrentFence)>(
+      ::loadSymbol("puleGpuCommandListChainCurrentFence", layerName)
+    )
+  );
+  layer->gpuResourceBarrierStageLabel = (
+    reinterpret_cast<decltype(layer->gpuResourceBarrierStageLabel)>(
+      ::loadSymbol("puleGpuResourceBarrierStageLabel", layerName)
+    )
+  );
+  layer->gpuResourceAccessLabel = (
+    reinterpret_cast<decltype(layer->gpuResourceAccessLabel)>(
+      ::loadSymbol("puleGpuResourceAccessLabel", layerName)
+    )
+  );
   // physx
   layer->physxRaycastShape = (
     reinterpret_cast<decltype(layer->physxRaycastShape)>(
@@ -2231,5 +2246,10 @@
   layer->textRender = (
     reinterpret_cast<decltype(layer->textRender)>(
       ::loadSymbol("puleTextRender", layerName)
+    )
+  );
+  layer->textRender2D = (
+    reinterpret_cast<decltype(layer->textRender2D)>(
+      ::loadSymbol("puleTextRender2D", layerName)
     )
   );
