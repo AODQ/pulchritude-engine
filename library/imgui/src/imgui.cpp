@@ -107,15 +107,25 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
     *reinterpret_cast<RenderData *>(io.BackendRendererUserData)
   );
 
-  auto assetShaderModule = (
-    puleAssetShaderModuleCreateFromPaths(
-      puleCStr("imgui-module"),
-      puleCStr("assets/imgui.vert.spv"),
-      puleCStr("assets/imgui.frag.spv")
+  #include "autogen-imgui.frag.spv"
+  #include "autogen-imgui.vert.spv"
+
+
+  PuleError err = puleError();
+  bd.shaderModule = (
+    puleGpuShaderModuleCreate(
+      PuleBufferView {
+        .data = imguiVert,
+        .byteLength = sizeof(imguiVert),
+      },
+      PuleBufferView {
+        .data = imguiFrag,
+        .byteLength = sizeof(imguiFrag),
+      },
+      &err
     )
   );
-
-  bd.shaderModule = puleAssetShaderModuleHandle(assetShaderModule);
+  if (puleErrorConsume(&err)) { return; }
 
   createFontsTexture();
 
@@ -141,13 +151,12 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
       .drawPrimitive = PuleGpuDrawPrimitive_triangle,
       .colorAttachmentCount = 1,
       .colorAttachmentFormats = {
-        PuleGpuImageByteFormat_rgba8U,
+        PuleGpuImageByteFormat_bgra8U,
       },
       .depthAttachmentFormat = PuleGpuImageByteFormat_undefined,
     },
   };
 
-  PuleError err = puleError();
   bd.pipeline = puleGpuPipelineCreate(&pipelineCI, &err);
   if (puleErrorConsume(&err)) { return; }
 }
