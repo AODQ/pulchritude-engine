@@ -34,3 +34,7 @@ add_subdirectory(tui)
 if (PULCHRITUDE_FEATURE_TEXT)
   add_subdirectory(text)
 endif()
+
+if (PULCHRITUDE_FEATURE_NET)
+  add_subdirectory(net)
+endif()

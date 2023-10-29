@@ -43,3 +43,8 @@ option(BOX2D_USER_SETTINGS "Override Box2D settings with b2UserSettings.h" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 add_subdirectory(box2d)
 set_target_properties(box2d PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+if (PULCHRITUDE_FEATURE_NETWORK)
+  set(ENET_STATIC ON CACHE INTERNAL "")
+  add_subdirectory(enet)
+endif()
