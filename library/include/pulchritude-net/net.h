@@ -9,8 +9,6 @@
 // implements networking, uses enet and I'm not sure if the backend can even
 // be swappable
 
-#if defined(PULCHRITUDE_FEATURE_NET)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,6 +114,4 @@ PULE_exportFn void puleNetClientPoll(PuleNetClient const client);
 
 #ifdef __cplusplus
 } // extern C
-#endif
-
 #endif

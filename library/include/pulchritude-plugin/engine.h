@@ -532,7 +532,12 @@ typedef struct PuleEngineLayer {
   void (* textRender2D)(PuleTextRenderer const, PuleGpuCommandListRecorder const, PuleTextRender2DInfo const * const, size_t const);
   // net
   PuleNetHost (* netHostCreate)(PuleNetHostCreateInfo const, PuleError * const);
+  void (* netHostDestroy)(PuleNetHost const);
+  void (* netHostPoll)(PuleNetHost const);
+  void (* netHostSendPacket)(PuleNetHost const, PuleNetPacketSend const, PuleError * const);
   PuleNetClient (* netClientCreate)(PuleNetClientCreateInfo const, PuleError * const);
+  void (* netClientDestroy)(PuleNetClient const);
+  void (* netClientPoll)(PuleNetClient const);
 } PuleEngineLayer;
 
 
