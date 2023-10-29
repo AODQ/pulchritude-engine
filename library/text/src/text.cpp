@@ -105,6 +105,11 @@ void initialize() {
         .scissorMin = {0, 0},
         .scissorMax = {800, 600},
         .drawPrimitive = PuleGpuDrawPrimitive_triangle,
+        .colorAttachmentCount = 1,
+        .colorAttachmentFormats = {
+          PuleGpuImageByteFormat_rgba8U,
+        },
+        .depthAttachmentFormat = PuleGpuImageByteFormat_undefined,
       },
     }
   );

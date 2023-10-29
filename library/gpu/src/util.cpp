@@ -450,6 +450,8 @@ VkPipelineStageFlags util::toVkPipelineStageFlags(
 VkFormat util::toVkImageFormat(PuleGpuImageByteFormat const format) {
   switch (format) {
     default: PULE_assert(false);
+    case PuleGpuImageByteFormat_undefined:
+      return VK_FORMAT_UNDEFINED;
     case PuleGpuImageByteFormat_bgra8U:
       return VK_FORMAT_B8G8R8A8_UNORM;
     case PuleGpuImageByteFormat_rgba8U:

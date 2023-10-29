@@ -106,6 +106,10 @@ typedef struct {
   PuleI32v2 scissorMin; // default 0, 0
   PuleI32v2 scissorMax; // default 1, 1
   PuleGpuDrawPrimitive drawPrimitive;
+
+  size_t colorAttachmentCount;
+  PuleGpuImageByteFormat colorAttachmentFormats[8];
+  PuleGpuImageByteFormat depthAttachmentFormat ;
 } PuleGpuPipelineConfig;
 
 typedef struct {

@@ -363,10 +363,27 @@ PuleGpuPipeline puleGpuPipelineCreate(
   VkPipelineLayout pipelineLayout = (
     createPipelineLayout(info, descriptorSetLayout)
   );
+  VkFormat colorAttachmentFormats[8] = { };
+  for (size_t it = 0; it < info->config.colorAttachmentCount; ++ it) {
+    colorAttachmentFormats[it] = (
+      util::toVkImageFormat(info->config.colorAttachmentFormats[it])
+    );
+  }
+  auto const renderCreateInfo = VkPipelineRenderingCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+    .pNext = nullptr,
+    .viewMask = 0,
+    .colorAttachmentCount = (uint32_t)info->config.colorAttachmentCount,
+    .pColorAttachmentFormats = colorAttachmentFormats,
+    .depthAttachmentFormat = (
+      util::toVkImageFormat(info->config.depthAttachmentFormat)
+    ),
+    .stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
+  };
   puleLog("pipelineLayout: %p", pipelineLayout);
   auto pipelineCi = VkGraphicsPipelineCreateInfo {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-    .pNext = nullptr,
+    .pNext = &renderCreateInfo,
     .flags = 0,
     .stageCount = (uint32_t)stageInfo.size(),
     .pStages = stageInfo.data(),
