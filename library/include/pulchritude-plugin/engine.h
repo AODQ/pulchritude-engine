@@ -534,10 +534,12 @@ typedef struct PuleEngineLayer {
   PuleNetHost (* netHostCreate)(PuleNetHostCreateInfo const, PuleError * const);
   void (* netHostDestroy)(PuleNetHost const);
   void (* netHostPoll)(PuleNetHost const);
-  void (* netHostSendPacket)(PuleNetHost const, PuleNetPacketSend const, PuleError * const);
+  void (* netHostSendPacket)(PuleNetHost const, uint64_t, PuleNetPacketSend const, PuleError * const);
+  void (* netHostBroadcastPacket)(PuleNetHost const, PuleNetPacketSend const, PuleError * const);
   PuleNetClient (* netClientCreate)(PuleNetClientCreateInfo const, PuleError * const);
   void (* netClientDestroy)(PuleNetClient const);
   void (* netClientPoll)(PuleNetClient const);
+  void (* netClientSendPacket)(PuleNetClient const, PuleNetPacketSend const, PuleError * const);
 } PuleEngineLayer;
 
 

@@ -28,6 +28,7 @@ typedef enum {
   PuleErrorNet_clientConnect,
   PuleErrorNet_clientDisconnect,
   PuleErrorNet_clientSend,
+  PuleErrorNet_packetSend,
 } PuleErrorNet;
 
 typedef enum {
@@ -43,7 +44,6 @@ typedef struct PuleNetPacketReceive {
 
 typedef struct PuleNetPacketSend {
   PuleBufferView data;
-  uint64_t peerUuid;
   uint8_t channel;
 } PuleNetPacketSend;
 
@@ -79,6 +79,12 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const host);
 // TODO broadcast
 PULE_exportFn void puleNetHostSendPacket(
   PuleNetHost const host,
+  uint64_t peerUuid,
+  PuleNetPacketSend const packet,
+  PuleError * const error
+);
+PULE_exportFn void puleNetHostBroadcastPacket(
+  PuleNetHost const host,
   PuleNetPacketSend const packet,
   PuleError * const error
 );
@@ -111,6 +117,11 @@ PULE_exportFn PuleNetClient puleNetClientCreate(
 PULE_exportFn void puleNetClientDestroy(PuleNetClient const client);
 
 PULE_exportFn void puleNetClientPoll(PuleNetClient const client);
+PULE_exportFn void puleNetClientSendPacket(
+  PuleNetClient const client,
+  PuleNetPacketSend const packet,
+  PuleError * const error
+);
 
 #ifdef __cplusplus
 } // extern C

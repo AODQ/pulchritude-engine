@@ -10,7 +10,7 @@ if (PULCHRITUDE_FEATURE_TEXT)
   add_compile_definitions(PULCHRITUDE_FEATURE_TEXT)
 endif()
 
-option(PULCHRITUDE_FEATURE_NET "pulchritude-net" OFF)
+option(PULCHRITUDE_FEATURE_NET "pulchritude-net" ON)
 if (PULCHRITUDE_FEATURE_NET)
   add_compile_definitions(PULCHRITUDE_FEATURE_NET)
 endif()
