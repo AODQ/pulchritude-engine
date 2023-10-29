@@ -77,6 +77,11 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
           .scissorMin = {0, 0},
           .scissorMax = {0, 0},
           .drawPrimitive = PuleGpuDrawPrimitive_line,
+          .colorAttachmentCount = 1,
+          .colorAttachmentFormats = {
+            PuleGpuImageByteFormat_rgba8U,
+          },
+          .depthAttachmentFormat = PuleGpuImageByteFormat_undefined,
         },
       }
     );

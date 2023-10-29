@@ -139,6 +139,11 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
       .scissorMin = {.x = 0, .y = 0,},
       .scissorMax = {.x = 800, .y = 600,},
       .drawPrimitive = PuleGpuDrawPrimitive_triangle,
+      .colorAttachmentCount = 1,
+      .colorAttachmentFormats = {
+        PuleGpuImageByteFormat_rgba8U,
+      },
+      .depthAttachmentFormat = PuleGpuImageByteFormat_undefined,
     },
   };
 

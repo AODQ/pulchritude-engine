@@ -42,6 +42,7 @@ typedef struct {
 } PuleGpuImage;
 
 typedef enum {
+  PuleGpuImageByteFormat_undefined,
   PuleGpuImageByteFormat_bgra8U,
   PuleGpuImageByteFormat_rgba8U,
   PuleGpuImageByteFormat_rgb8U,
