@@ -105,7 +105,7 @@ VkInstance createInstance(PuleError * const error) {
   std::vector<VkValidationFeatureEnableEXT> validationFeaturesEnabled = {
     VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
     VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT,
-    VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
+    //VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
     //VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT,
     VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
   };
@@ -156,6 +156,18 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
       &physicalDeviceCount, physicalDevices.data()
     );
     device.physical = physicalDevices[0];
+    for (auto physical : physicalDevices) {
+      VkPhysicalDeviceProperties properties;
+      vkGetPhysicalDeviceProperties( physical, &properties);
+
+      if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        device.physical = physical;
+        break;
+      }
+      if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+        device.physical = physical;
+      }
+    }
   }
 
   puleLogDebug("[Gfx|Vk] creating queue family properties");
@@ -252,36 +264,16 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
       .uniformAndStorageBuffer8BitAccess = VK_TRUE,
       .storagePushConstant8 = VK_TRUE,
     };
-    auto featuresImageAtomicInt64 = (
-      VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT {
-        .sType = (
-          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT
-        ),
-        .pNext = nullptr,
-        .shaderImageInt64Atomics = VK_TRUE,
-        .sparseImageInt64Atomics = VK_TRUE,
-      }
-    );
-    auto featuresAtomicInt64 = (
-      VkPhysicalDeviceShaderAtomicInt64Features {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES,
-        .pNext = nullptr,
-        .shaderBufferInt64Atomics = VK_TRUE,
-        .shaderSharedInt64Atomics = VK_TRUE,
-      }
-    );
     util::chainPNextList(
       {
         &featuresRequest, &features8Bit,
         &featuresSync2,
         &featuresDynamicRendering,
-        &featuresImageAtomicInt64, &featuresAtomicInt64,
       }
     );
     std::vector<char const *> deviceExtensions = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-      VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME,
       VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
       VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
     };

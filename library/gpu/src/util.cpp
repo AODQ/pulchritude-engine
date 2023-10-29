@@ -77,8 +77,11 @@ char const * util::vkErrorToString(VkResult const result) {
       return "VK_ERROR_VALIDATION_FAILED_EXT";
     case VK_ERROR_INVALID_SHADER_NV:
       return "VK_ERROR_INVALID_SHADER_NV";
+#ifdef VK_KHR_video_queue
     case VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR:
       return "VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR";
+#endif
+#ifdef VK_KHR_video_queue
     case VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR:
       return "VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR";
     case VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR:
@@ -89,6 +92,7 @@ char const * util::vkErrorToString(VkResult const result) {
       return "VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR";
     case VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR:
       return "VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR";
+#endif
     case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT:
       return "VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT";
     case VK_ERROR_NOT_PERMITTED_KHR:
@@ -101,12 +105,16 @@ char const * util::vkErrorToString(VkResult const result) {
       return "VK_THREAD_DONE_KHR";
     case VK_OPERATION_DEFERRED_KHR:
       return "VK_OPERATION_DEFERRED_KHR";
+#ifdef VK_EXT_image_compression_control
     case VK_OPERATION_NOT_DEFERRED_KHR:
       return "VK_OPERATION_NOT_DEFERRED_KHR";
     case VK_ERROR_COMPRESSION_EXHAUSTED_EXT:
       return "VK_ERROR_COMPRESSION_EXHAUSTED_EXT";
+#endif
+#ifdef VK_EXT_shader_object
     case VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT:
       return "VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT";
+#endif
     case VK_RESULT_MAX_ENUM:
       return "VK_RESULT_MAX_ENUM";
     default: return "UNKNOWN";
