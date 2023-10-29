@@ -1204,6 +1204,11 @@
       ::loadSymbol("puleF32m44Viewport", layerName)
     )
   );
+  layer->f32m44Rotation = (
+    reinterpret_cast<decltype(layer->f32m44Rotation)>(
+      ::loadSymbol("puleF32m44Rotation", layerName)
+    )
+  );
   // platform
   layer->platformInitialize = (
     reinterpret_cast<decltype(layer->platformInitialize)>(
@@ -1870,21 +1875,6 @@
       ::loadSymbol("puleGpuImageLayoutLabel", layerName)
     )
   );
-  layer->gpuPipelineDescriptorSetLayout = (
-    reinterpret_cast<decltype(layer->gpuPipelineDescriptorSetLayout)>(
-      ::loadSymbol("puleGpuPipelineDescriptorSetLayout", layerName)
-    )
-  );
-  layer->gpuPipelineCreate = (
-    reinterpret_cast<decltype(layer->gpuPipelineCreate)>(
-      ::loadSymbol("puleGpuPipelineCreate", layerName)
-    )
-  );
-  layer->gpuPipelineDestroy = (
-    reinterpret_cast<decltype(layer->gpuPipelineDestroy)>(
-      ::loadSymbol("puleGpuPipelineDestroy", layerName)
-    )
-  );
   layer->gpuImageChain_create = (
     reinterpret_cast<decltype(layer->gpuImageChain_create)>(
       ::loadSymbol("puleGpuImageChain_create", layerName)
@@ -2070,6 +2060,21 @@
       ::loadSymbol("puleGpuResourceAccessLabel", layerName)
     )
   );
+  layer->gpuPipelineDescriptorSetLayout = (
+    reinterpret_cast<decltype(layer->gpuPipelineDescriptorSetLayout)>(
+      ::loadSymbol("puleGpuPipelineDescriptorSetLayout", layerName)
+    )
+  );
+  layer->gpuPipelineCreate = (
+    reinterpret_cast<decltype(layer->gpuPipelineCreate)>(
+      ::loadSymbol("puleGpuPipelineCreate", layerName)
+    )
+  );
+  layer->gpuPipelineDestroy = (
+    reinterpret_cast<decltype(layer->gpuPipelineDestroy)>(
+      ::loadSymbol("puleGpuPipelineDestroy", layerName)
+    )
+  );
   // physx
   layer->physxRaycastShape = (
     reinterpret_cast<decltype(layer->physxRaycastShape)>(
@@ -2251,5 +2256,16 @@
   layer->textRender2D = (
     reinterpret_cast<decltype(layer->textRender2D)>(
       ::loadSymbol("puleTextRender2D", layerName)
+    )
+  );
+  // net
+  layer->netHostCreate = (
+    reinterpret_cast<decltype(layer->netHostCreate)>(
+      ::loadSymbol("puleNetHostCreate", layerName)
+    )
+  );
+  layer->netClientCreate = (
+    reinterpret_cast<decltype(layer->netClientCreate)>(
+      ::loadSymbol("puleNetClientCreate", layerName)
     )
   );

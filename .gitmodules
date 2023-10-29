@@ -31,3 +31,6 @@
 [submodule "third-party/box2d"]
 	path = third-party/box2d
 	url = https://github.com/erincatto/box2d
+[submodule "third-party/enet"]
+	path = third-party/enet
+	url = https://github.com/zpl-c/enet
