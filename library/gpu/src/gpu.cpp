@@ -156,6 +156,18 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
       &physicalDeviceCount, physicalDevices.data()
     );
     device.physical = physicalDevices[0];
+    for (auto physical : physicalDevices) {
+      VkPhysicalDeviceProperties properties;
+      vkGetPhysicalDeviceProperties( physical, &properties);
+
+      if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        device.physical = physical;
+        break;
+      }
+      if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+        device.physical = physical;
+      }
+    }
   }
 
   puleLogDebug("[Gfx|Vk] creating queue family properties");
