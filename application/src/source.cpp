@@ -94,7 +94,7 @@ namespace { // -- render task graph callbacks ----------------------------------
 
 // update components
 namespace {
-  std::vector<void(*)(PulePluginPayload const)> updateableComponents;
+  std::vector<bool(*)(PulePluginPayload const)> updateableComponents;
 }
 
 struct ParameterInfo {
@@ -616,7 +616,7 @@ int32_t main(
     }
 
     // check if they have an update function
-    void (*componentUpdateFn)(PulePluginPayload const) = nullptr;
+    bool (*componentUpdateFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentUpdateFn, componentPluginId, "pulcComponentUpdate");
     if (componentUpdateFn) {
       updateableComponents.emplace_back(componentUpdateFn);
@@ -663,8 +663,6 @@ int32_t main(
   bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   PuleGpuSemaphore swapchainAvailableSemaphore = { .id = 0, };
   while (hasUpdate) {
-    puleLog("<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
-    puleLog("Frame start");
     if (isEarlyExit) {
       puleLog("<--> frame start <-->");
     }
@@ -710,8 +708,14 @@ int32_t main(
       // render out
       pulBase.imguiRender(renderGraph);
     } else {
-      for (auto const componentUpdateFn : updateableComponents) {
-        componentUpdateFn(payload);
+      std::vector<size_t> componentsToRemove;
+      for (size_t it = 0; it < updateableComponents.size(); ++ it) {
+        if (!updateableComponents.at(it)(payload)) {
+          componentsToRemove.insert(componentsToRemove.begin(), it);
+        }
+      }
+      for (auto const it : componentsToRemove) {
+        updateableComponents.erase(updateableComponents.begin() + it);
       }
     }
     if (renderGraph.id != 0) {
@@ -738,6 +742,7 @@ int32_t main(
       static size_t frameCount = 0;
       if (++frameCount > 2) { break; }
     }
+    hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
