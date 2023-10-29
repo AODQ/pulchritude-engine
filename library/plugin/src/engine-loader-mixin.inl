@@ -2264,8 +2264,33 @@
       ::loadSymbol("puleNetHostCreate", layerName)
     )
   );
+  layer->netHostDestroy = (
+    reinterpret_cast<decltype(layer->netHostDestroy)>(
+      ::loadSymbol("puleNetHostDestroy", layerName)
+    )
+  );
+  layer->netHostPoll = (
+    reinterpret_cast<decltype(layer->netHostPoll)>(
+      ::loadSymbol("puleNetHostPoll", layerName)
+    )
+  );
+  layer->netHostSendPacket = (
+    reinterpret_cast<decltype(layer->netHostSendPacket)>(
+      ::loadSymbol("puleNetHostSendPacket", layerName)
+    )
+  );
   layer->netClientCreate = (
     reinterpret_cast<decltype(layer->netClientCreate)>(
       ::loadSymbol("puleNetClientCreate", layerName)
+    )
+  );
+  layer->netClientDestroy = (
+    reinterpret_cast<decltype(layer->netClientDestroy)>(
+      ::loadSymbol("puleNetClientDestroy", layerName)
+    )
+  );
+  layer->netClientPoll = (
+    reinterpret_cast<decltype(layer->netClientPoll)>(
+      ::loadSymbol("puleNetClientPoll", layerName)
     )
   );
