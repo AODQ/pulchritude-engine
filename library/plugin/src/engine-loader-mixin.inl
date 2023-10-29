@@ -2279,6 +2279,11 @@
       ::loadSymbol("puleNetHostSendPacket", layerName)
     )
   );
+  layer->netHostBroadcastPacket = (
+    reinterpret_cast<decltype(layer->netHostBroadcastPacket)>(
+      ::loadSymbol("puleNetHostBroadcastPacket", layerName)
+    )
+  );
   layer->netClientCreate = (
     reinterpret_cast<decltype(layer->netClientCreate)>(
       ::loadSymbol("puleNetClientCreate", layerName)
@@ -2292,5 +2297,10 @@
   layer->netClientPoll = (
     reinterpret_cast<decltype(layer->netClientPoll)>(
       ::loadSymbol("puleNetClientPoll", layerName)
+    )
+  );
+  layer->netClientSendPacket = (
+    reinterpret_cast<decltype(layer->netClientSendPacket)>(
+      ::loadSymbol("puleNetClientSendPacket", layerName)
     )
   );

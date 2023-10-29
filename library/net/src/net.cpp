@@ -37,6 +37,47 @@ struct Client {
 
 pule::ResourceContainer<pint::Host> hosts;
 pule::ResourceContainer<pint::Client> clients;
+
+void sendPacket(
+  ENetPeer * peer,
+  PuleNetPacketSend const packet,
+  uint8_t channelIndex,
+  PuleNetChannelType const channelType,
+  PuleError * const error
+) {
+  ENetPacketFlag flags;
+  PuleNetChannelType const channel = channelType;
+  switch (channel) {
+    case PuleNetChannelType_reliable:
+      flags = ENET_PACKET_FLAG_RELIABLE;
+    break;
+    case PuleNetChannelType_unreliable:
+      flags = ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT;
+    break;
+    case PuleNetChannelType_unsequenced:
+      flags = ENET_PACKET_FLAG_UNSEQUENCED;
+    break;
+  }
+  ENetPacket * const enetPacket = (
+    enet_packet_create(
+      packet.data.data,
+      packet.data.byteLength,
+      flags
+    )
+  );
+  if (enet_peer_send(peer, channelIndex, enetPacket) < 0) {
+    PULE_error(PuleErrorNet_packetSend, "enet_peer_send() failed");
+    enet_packet_destroy(enetPacket);
+  }
+
+  puleLog(
+    "sent packet length %d on channel %u",
+    enetPacket->dataLength,
+    packet.channel
+  );
+  // TODO do we need to destroy the packet?
+}
+
 }
 
 extern "C" {
@@ -49,9 +90,7 @@ PuleNetHost puleNetHostCreate(
 ) {
   if (!pint::hasInitializedEnet) {
     if (enet_initialize() != 0) {
-      if (error != nullptr) {
-        PULE_error(PuleErrorNet_initialize, "enet_initialize() failed");
-      }
+      PULE_error(PuleErrorNet_initialize, "enet_initialize() failed");
       return { .id = 0, };
     }
     pint::hasInitializedEnet = true;
@@ -73,9 +112,7 @@ PuleNetHost puleNetHostCreate(
   );
 
   if (host == nullptr) {
-    if (error != nullptr) {
-      PULE_error(PuleErrorNet_hostCreate, "enet_host_create() failed");
-    }
+    PULE_error(PuleErrorNet_hostCreate, "enet_host_create() failed");
     return { .id = 0, };
   }
   auto server = pint::Host {
@@ -115,8 +152,7 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const puHost) {
       uint64_t const peerUuid = host.peers.create(event.peer);
       host.peerIdToUuid.emplace(event.peer->connectID, peerUuid);
       host.receiveConnect(puHost, address, peerUuid, host.userData);
-      break;
-    }
+    } break;
     case ENET_EVENT_TYPE_RECEIVE: {
       puleLog(
         "received packet length %d on channel %u",
@@ -137,8 +173,7 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const puHost) {
         host.userData
       );
       enet_packet_destroy(event.packet);
-      break;
-    }
+    } break;
     case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
     case ENET_EVENT_TYPE_DISCONNECT: {
       puleLog("client disconnected");
@@ -147,26 +182,40 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const puHost) {
       host.peers.destroy(uuid);
       host.peerIdToUuid.erase(event.peer->connectID);
       event.peer->data = nullptr;
-      break;
-    }
+    } break;
   }
 }
 
 void puleNetHostSendPacket(
-  PuleNetHost const host,
+  PuleNetHost const puHost,
+  uint64_t const peerUuid,
   PuleNetPacketSend const packet,
   PuleError * const error
 ) {
-  pint::Host & host = *pint::hosts.at(host.id);
-  ENetPacketFlag flags;
-  PuleNetChannelType const channel = host.channels[packet.channel];
-  //ENetPacket = (
-  //  enet_packet_create(
-  //    packet.data.data,
-  //    packet.data.byteLength,
-  //    packet.flags
-  //  )
-  //);
+  pint::Host & host = *pint::hosts.at(puHost.id);
+  pint::sendPacket(
+    host.peers.at(peerUuid),
+    packet,
+    packet.channel,
+    host.channels[packet.channel],
+    error
+  );
+}
+PULE_exportFn void puleNetHostBroadcastPacket(
+  PuleNetHost const puHost,
+  PuleNetPacketSend const packet,
+  PuleError * const error
+) {
+  pint::Host & host = *pint::hosts.at(puHost.id);
+  for (auto const & peer : host.peers.data) {
+    pint::sendPacket(
+      peer.second,
+      packet,
+      packet.channel,
+      host.channels[packet.channel],
+      error
+    );
+  }
 }
 
 // -- client -------------------------------------------------------------------
@@ -177,9 +226,7 @@ PuleNetClient puleNetClientCreate(
 ) {
   if (!pint::hasInitializedEnet) {
     if (enet_initialize() != 0) {
-      if (error != nullptr) {
-        PULE_error(PuleErrorNet_initialize, "enet_initialize() failed");
-      }
+      PULE_error(PuleErrorNet_initialize, "enet_initialize() failed");
       return { .id = 0, };
     }
     pint::hasInitializedEnet = true;
@@ -194,9 +241,7 @@ PuleNetClient puleNetClientCreate(
   );
 
   if (host == nullptr) {
-    if (error != nullptr) {
-      PULE_error(PuleErrorNet_hostCreate, "enet_host_create() failed");
-    }
+    PULE_error(PuleErrorNet_hostCreate, "enet_host_create() failed");
     return { .id = 0, };
   }
 
@@ -213,9 +258,7 @@ PuleNetClient puleNetClientCreate(
     )
   );
   if (peer == nullptr) {
-    if (error != nullptr) {
-      PULE_error(PuleErrorNet_clientCreate, "enet_host_connect() failed");
-    }
+    PULE_error(PuleErrorNet_clientCreate, "enet_host_connect() failed");
     enet_host_destroy(host);
     return { .id = 0, };
   }
@@ -227,9 +270,7 @@ PuleNetClient puleNetClientCreate(
       enet_host_service(host, &event, 5000) <= 0
       && event.type == ENET_EVENT_TYPE_CONNECT
     ) {
-      if (error != nullptr) {
-        PULE_error(PuleErrorNet_clientConnect, "enet_host_service() failed");
-      }
+      PULE_error(PuleErrorNet_clientConnect, "enet_host_service() failed");
       enet_peer_reset(peer);
       enet_peer_disconnect(peer, 0);
       enet_host_destroy(host);
@@ -301,6 +342,21 @@ void puleNetClientPoll(
       break;
     }
   }
+}
+
+PULE_exportFn void puleNetClientSendPacket(
+  PuleNetClient const puClient,
+  PuleNetPacketSend const packet,
+  PuleError * const error
+) {
+  pint::Client & client = *pint::clients.at(puClient.id);
+  pint::sendPacket(
+    client.peer,
+    packet,
+    packet.channel,
+    client.channels[packet.channel],
+    error
+  );
 }
 
 } // extern C

@@ -110,7 +110,6 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
   #include "autogen-imgui.frag.spv"
   #include "autogen-imgui.vert.spv"
 
-
   PuleError err = puleError();
   bd.shaderModule = (
     puleGpuShaderModuleCreate(
