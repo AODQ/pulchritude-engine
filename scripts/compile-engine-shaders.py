@@ -14,7 +14,7 @@ inputArgs = vars(parser.parse_args())
 # use glslangValidator to compile the shaders
 def compileShader(contentName, filename, outFilename):
   # print current directory
-  print("Compiling shader: ", filename)
+  print("Compiling shader: ", filename, " to ", outFilename)
   filename = inputArgs["dir"] + "/" + filename
   outFilename = inputArgs["dir"] + "/" + outFilename
   ret = subprocess.run(
@@ -37,6 +37,8 @@ def compileShader(contentName, filename, outFilename):
   # write the C array to the output file
   with open(outFilename, "w") as f:
     f.write(outStr)
+  # delete the temporary binary file
+  os.remove("out.spv")
 
 compileShader(
   "debugGfxLineVert",
@@ -60,4 +62,16 @@ compileShader(
   "textBitmapFrag",
   "shaders/text-bitmap.frag",
   "library/text/src/autogen-text-bitmap.frag.spv"
+)
+
+compileShader(
+  "imguiVert",
+  "shaders/imgui.vert",
+  "library/imgui/src/autogen-imgui.vert.spv"
+)
+
+compileShader(
+  "imguiFrag",
+  "shaders/imgui.frag",
+  "library/imgui/src/autogen-imgui.frag.spv"
 )
