@@ -186,6 +186,7 @@ void puleImguiEngineDisplay(PuleImguiEngineDisplayInfo const info) {
 
 extern "C" {
 PuleRenderGraph pulcRenderGraph(PulePlatform const platform) {
+  if (platform.id == 0) { return { .id = 0, }; }
   #include "imgui-engine-asset-render-graph.mixin"
   PuleError err = puleError();
   PuleDsValue const assetRenderPds = (
