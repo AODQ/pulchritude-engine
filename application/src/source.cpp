@@ -56,6 +56,7 @@ namespace {
     PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
     tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
     if (renderGraphFn) {
+      puleLog("found pulcRenderGraph in plugin %s", plugin.name);
       puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
     }
   }
