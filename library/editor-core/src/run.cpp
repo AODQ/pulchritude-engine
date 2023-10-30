@@ -46,16 +46,28 @@ bool editorBuildRunApplication(
     bool const isEarlyExit = puleDsMemberAsBool(input, "early-exit");
     bool const runWithGdb = puleDsMemberAsBool(input, "gdb");
     bool const runWithValgrind = puleDsMemberAsBool(input, "valgrind");
+    bool const runWithStrace = puleDsMemberAsBool(input, "strace");
     bool const debugLayer = puleDsMemberAsBool(input, "debug-layer");
     bool const clear = puleDsMemberAsBool(input, "clear");
     PULE_assert(
       !runWithValgrind || !runWithGdb
       && "Cannot run with valgrind and gdb at the same time"
     );
+    PULE_assert(
+      !runWithStrace || !runWithGdb
+      && "Cannot run with strace and gdb at the same time"
+    );
+    PULE_assert(
+      !runWithStrace || !runWithValgrind
+      && "Cannot run with strace and valgrind at the same time"
+    );
     if (clear) {
       execute += " clear ; ";
     }
     execute += "exec ";
+    if (runWithStrace) {
+      execute += "strace ";
+    }
     if (runWithGdb) {
       execute += "gdb -ex run --args ";
     }

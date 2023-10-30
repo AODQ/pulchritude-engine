@@ -2,6 +2,8 @@
 
 #if defined(PULCHRITUDE_FEATURE_NET)
 
+#include <cstdio> // just for debug in enet TODO remove
+#define ENET_IMPLEMENTATION
 #include <enet.h>
 
 namespace pint {
@@ -16,10 +18,10 @@ struct Host {
   void (* receivePacket)(
     PuleNetHost const, PuleNetPacketReceive const, uint64_t const, void * const
   );
-  size_t (* receiveConnect)(
-    PuleNetHost const, PuleNetHostAddress const, uint64_t const, void * const
+  void (* receiveConnect)(
+    PuleNetHost const, PuleNetAddress const, uint64_t const, void * const
   );
-  void (* receiveDisconnect)(PuleNetHost const, void * const);
+  void (* receiveDisconnect)(PuleNetHost const, uint64_t const, void * const);
   void * userData;
 };
 
@@ -33,6 +35,7 @@ struct Client {
  );
   void (*receiveDisconnect)(PuleNetClient const, void * const);
   void * userData;
+  bool hasConnected;
 };
 
 pule::ResourceContainer<pint::Host> hosts;
@@ -65,8 +68,10 @@ void sendPacket(
       flags
     )
   );
-  if (enet_peer_send(peer, channelIndex, enetPacket) < 0) {
+  auto t = enet_peer_send(peer, channelIndex, enetPacket);
+  if (t < 0) {
     PULE_error(PuleErrorNet_packetSend, "enet_peer_send() failed");
+    puleLog("error %d", t);
     enet_packet_destroy(enetPacket);
   }
 
@@ -75,12 +80,23 @@ void sendPacket(
     enetPacket->dataLength,
     packet.channel
   );
-  // TODO do we need to destroy the packet?
 }
 
 }
 
 extern "C" {
+
+// -- address ------------------------------------------------------------------
+
+PULE_exportFn PuleNetAddress puleNetAddressLocalhost(
+  uint16_t const port
+) {
+  PuleNetAddress address = {};
+  in6_addr host = ENET_HOST_ANY;
+  memcpy(address.address, &host, 16);
+  address.port = port;
+  return address;
+}
 
 // -- host ---------------------------------------------------------------------
 
@@ -93,14 +109,21 @@ PuleNetHost puleNetHostCreate(
       PULE_error(PuleErrorNet_initialize, "enet_initialize() failed");
       return { .id = 0, };
     }
+    atexit(enet_deinitialize);
     pint::hasInitializedEnet = true;
   }
 
   ENetAddress address = {};
-  memcpy(&address, &ci.address, sizeof(ENetAddress));
+  memcpy(&address.host, &ci.address.address, sizeof(in6_addr));
+  address.host = ENET_HOST_ANY;
   address.port = ci.address.port;
   address.sin6_scope_id = 0;
-
+  puleLog(
+    "ci channel length %d bandwidth in %d bandwidth out %d",
+    ci.channelLength,
+    ci.bandwidthIncomingBytesPerSecond,
+    ci.bandwidthOutgoingBytesPerSecond
+  );
   ENetHost * const host = (
     enet_host_create(
       &address,
@@ -142,16 +165,17 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const puHost) {
   if (enet_host_service(host.host, &event, 0) <= 0) {
     return;
   }
+  puleLog("enet_host_service() returned %d", event.type);
   switch (event.type) {
     case ENET_EVENT_TYPE_NONE: { break; }
     case ENET_EVENT_TYPE_CONNECT: {
-      puleLog("client connected");
-      PuleNetHostAddress address;
+      puleLog("[server] client connected");
+      PuleNetAddress address;
       memcpy(&address.address, &event.peer->address, sizeof(struct in6_addr));
       address.port = event.peer->address.port;
-      uint64_t const peerUuid = host.peers.create(event.peer);
-      host.peerIdToUuid.emplace(event.peer->connectID, peerUuid);
-      host.receiveConnect(puHost, address, peerUuid, host.userData);
+      uint64_t const clientUuid = host.peers.create(event.peer);
+      host.peerIdToUuid.emplace(event.peer->connectID, clientUuid);
+      host.receiveConnect(puHost, address, clientUuid, host.userData);
     } break;
     case ENET_EVENT_TYPE_RECEIVE: {
       puleLog(
@@ -177,8 +201,8 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const puHost) {
     case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
     case ENET_EVENT_TYPE_DISCONNECT: {
       puleLog("client disconnected");
-      host.receiveDisconnect(puHost, host.userData);
       auto uuid = host.peerIdToUuid.at(event.peer->connectID);
+      host.receiveDisconnect(puHost, uuid, host.userData);
       host.peers.destroy(uuid);
       host.peerIdToUuid.erase(event.peer->connectID);
       event.peer->data = nullptr;
@@ -188,13 +212,13 @@ PULE_exportFn void puleNetHostPoll(PuleNetHost const puHost) {
 
 void puleNetHostSendPacket(
   PuleNetHost const puHost,
-  uint64_t const peerUuid,
+  uint64_t const clientUuid,
   PuleNetPacketSend const packet,
   PuleError * const error
 ) {
   pint::Host & host = *pint::hosts.at(puHost.id);
   pint::sendPacket(
-    host.peers.at(peerUuid),
+    host.peers.at(clientUuid),
     packet,
     packet.channel,
     host.channels[packet.channel],
@@ -229,9 +253,20 @@ PuleNetClient puleNetClientCreate(
       PULE_error(PuleErrorNet_initialize, "enet_initialize() failed");
       return { .id = 0, };
     }
+    atexit(enet_deinitialize);
     pint::hasInitializedEnet = true;
   }
 
+  ENetAddress address = {};
+  //enet_address_set_host(&address, ci.hostname.contents);
+  enet_address_set_host(&address, "127.0.0.1");
+  address.port = ci.port;
+
+  puleLog("ci channel length %d bandwidth in %d bandwidth out %d",
+    ci.channelLength,
+    ci.bandwidthIncomingBytesPerSecond,
+    ci.bandwidthOutgoingBytesPerSecond
+  );
   ENetHost * const host = enet_host_create(
     nullptr,
     1,
@@ -245,37 +280,13 @@ PuleNetClient puleNetClientCreate(
     return { .id = 0, };
   }
 
-  ENetAddress address = {};
-  enet_address_set_host(&address, ci.hostname.contents);
-  address.port = ci.port;
-
-  ENetPeer * peer = (
-    enet_host_connect(
-      host,
-      &address,
-      ci.channelLength,
-      0
-    )
+  ENetPeer * const peer = (
+    enet_host_connect(host, &address, ci.channelLength, 0)
   );
   if (peer == nullptr) {
     PULE_error(PuleErrorNet_clientCreate, "enet_host_connect() failed");
     enet_host_destroy(host);
     return { .id = 0, };
-  }
-
-  { // attempt connection
-    ENetEvent event = {};
-    puleLog("connecting to %s:%d", ci.hostname.contents, ci.port);
-    if (
-      enet_host_service(host, &event, 5000) <= 0
-      && event.type == ENET_EVENT_TYPE_CONNECT
-    ) {
-      PULE_error(PuleErrorNet_clientConnect, "enet_host_service() failed");
-      enet_peer_reset(peer);
-      enet_peer_disconnect(peer, 0);
-      enet_host_destroy(host);
-      return { .id = 0, };
-    }
   }
 
   puleLog("connected to %s:%d", ci.hostname.contents, ci.port);
@@ -286,6 +297,7 @@ PuleNetClient puleNetClientCreate(
     .channelLength = ci.channelLength,
     .receivePacket = ci.receivePacket,
     .receiveDisconnect = ci.receiveDisconnect,
+    .hasConnected = false,
   };
   memcpy(client.channels, ci.channels, sizeof(PuleNetChannelType) * 32);
   return { .id = pint::clients.create(client) };
@@ -303,13 +315,36 @@ void puleNetClientDestroy(
   pint::clients.destroy(puClient.id);
 }
 
+bool puleNetClientConnected(PuleNetClient const client) {
+  return pint::clients.at(client.id)->hasConnected;
+}
+
 void puleNetClientPoll(
   PuleNetClient const puClient
 ) {
-  pint::Client * client = pint::clients.at(puClient.id);
+  pint::Client & client = *pint::clients.at(puClient.id);
+
+  if (!client.hasConnected) {
+    // attempt connection
+    ENetEvent event = {};
+    puleLog("attempting connection");
+    auto const t = enet_host_service(client.host, &event, 0);
+    if (t <= 0 || event.type != ENET_EVENT_TYPE_CONNECT) {
+      puleLog("Attempt to connect failed");
+      puleLog("return value %d", t);
+      puleLog(
+        "event type != connect? %d: %d",
+        event.type != ENET_EVENT_TYPE_CONNECT,
+        event.type
+      );
+      return;
+    }
+    puleLog("connected");
+    client.hasConnected = true;
+  }
 
   ENetEvent event = {};
-  if (enet_host_service(client->host, &event, 0) <= 0) {
+  if (enet_host_service(client.host, &event, 0) <= 0) {
     return;
   }
   switch (event.type) {
@@ -331,14 +366,14 @@ void puleNetClientPoll(
         },
         .channel = event.channelID,
       };
-      client->receivePacket(puClient, packet, client->userData);
+      client.receivePacket(puClient, packet, client.userData);
       enet_packet_destroy(event.packet);
       break;
     }
     case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
     case ENET_EVENT_TYPE_DISCONNECT: {
       puleLog("disconnected from host");
-      client->receiveDisconnect(puClient, client->userData);
+      client.receiveDisconnect(puClient, client.userData);
       break;
     }
   }

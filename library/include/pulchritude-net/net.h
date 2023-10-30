@@ -18,7 +18,11 @@ typedef struct { uint64_t id; } PuleNetHost;
 typedef struct PuleNetHostAddress {
   uint8_t address[16];
   uint16_t port;
-} PuleNetHostAddress;
+} PuleNetAddress;
+
+PULE_exportFn PuleNetAddress puleNetAddressLocalhost(
+  uint16_t const port
+);
 
 typedef enum {
   PuleErrorNet_none,
@@ -48,26 +52,30 @@ typedef struct PuleNetPacketSend {
 } PuleNetPacketSend;
 
 typedef struct PuleNetHostCreateInfo {
-  PuleNetHostAddress address;
+  PuleNetAddress address;
   uint32_t connectionLimit;
   PuleNetChannelType channels[32];
   uint32_t channelLength;
-  uint32_t bandwidthIncomingBytesPerSecond PULE_param(0);
-  uint32_t bandwidthOutgoingBytesPerSecond PULE_param(0);
   void (* receivePacket)(
     PuleNetHost const host,
     PuleNetPacketReceive const packet,
-    uint64_t const peerUuid,
+    uint64_t const clientUuid,
     void * const userData
   );
-  size_t (* receiveConnect)(
+  void (* receiveConnect)(
     PuleNetHost const host,
-    PuleNetHostAddress const address,
-    uint64_t const peerUuid,
+    PuleNetAddress const address,
+    uint64_t const clientUuid,
     void * const userData
   );
-  void (* receiveDisconnect)(PuleNetHost const host, void * const userdata);
-  void * userData;
+  void (* receiveDisconnect)(
+    PuleNetHost const host,
+    uint64_t const clientUuid,
+    void * const userdata
+  );
+  void * userData PULE_param(nullptr);
+  uint32_t bandwidthIncomingBytesPerSecond PULE_param(0);
+  uint32_t bandwidthOutgoingBytesPerSecond PULE_param(0);
 } PuleNetHostCreateInfo;
 PULE_exportFn PuleNetHost puleNetHostCreate(
   PuleNetHostCreateInfo const ci,
@@ -76,10 +84,9 @@ PULE_exportFn PuleNetHost puleNetHostCreate(
 PULE_exportFn void puleNetHostDestroy(PuleNetHost const host);
 
 PULE_exportFn void puleNetHostPoll(PuleNetHost const host);
-// TODO broadcast
 PULE_exportFn void puleNetHostSendPacket(
   PuleNetHost const host,
-  uint64_t peerUuid,
+  uint64_t clientUuid,
   PuleNetPacketSend const packet,
   PuleError * const error
 );
@@ -88,10 +95,6 @@ PULE_exportFn void puleNetHostBroadcastPacket(
   PuleNetPacketSend const packet,
   PuleError * const error
 );
-
-
-//PULE_exportFn void puleNet
-
 
 typedef struct { uint64_t id; } PuleNetClient;
 
@@ -116,6 +119,7 @@ PULE_exportFn PuleNetClient puleNetClientCreate(
 );
 PULE_exportFn void puleNetClientDestroy(PuleNetClient const client);
 
+PULE_exportFn bool puleNetClientConnected(PuleNetClient const client);
 PULE_exportFn void puleNetClientPoll(PuleNetClient const client);
 PULE_exportFn void puleNetClientSendPacket(
   PuleNetClient const client,

@@ -2259,6 +2259,11 @@
     )
   );
   // net
+  layer->netAddressLocalhost = (
+    reinterpret_cast<decltype(layer->netAddressLocalhost)>(
+      ::loadSymbol("puleNetAddressLocalhost", layerName)
+    )
+  );
   layer->netHostCreate = (
     reinterpret_cast<decltype(layer->netHostCreate)>(
       ::loadSymbol("puleNetHostCreate", layerName)
@@ -2292,6 +2297,11 @@
   layer->netClientDestroy = (
     reinterpret_cast<decltype(layer->netClientDestroy)>(
       ::loadSymbol("puleNetClientDestroy", layerName)
+    )
+  );
+  layer->netClientConnected = (
+    reinterpret_cast<decltype(layer->netClientConnected)>(
+      ::loadSymbol("puleNetClientConnected", layerName)
     )
   );
   layer->netClientPoll = (
