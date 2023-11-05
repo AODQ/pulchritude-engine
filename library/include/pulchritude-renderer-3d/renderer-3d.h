@@ -58,10 +58,10 @@ typedef struct {
 //   based off your input data will be used, however to keep a reasonable and
 //   performant path, align all your models to use similar attribute types so
 //   that many mesh shaders can be reused
-PULE_exportFn PuleRenderer3DModel puleRenderer3DPrepareModel(
-  PuleRenderer3D renderer3D,
-  PuleAssetModel const model
-);
+//PULE_exportFn PuleRenderer3DModel puleRenderer3DPrepareModel(
+//  PuleRenderer3D renderer3D,
+//  PuleAssetModel const model
+//);
 
 // TODO right now just attach model, but in future need to attach model + mesh
 //      + material, to form a unique set

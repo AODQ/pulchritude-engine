@@ -103,6 +103,12 @@
       ::loadSymbol("puleAssetTiledMapDestroy", layerName)
     )
   );
+  // asset-model
+  layer->assetModelLoad = (
+    reinterpret_cast<decltype(layer->assetModelLoad)>(
+      ::loadSymbol("puleAssetModelLoad", layerName)
+    )
+  );
   // asset-pds
   layer->assetPdsLoadFromStream = (
     reinterpret_cast<decltype(layer->assetPdsLoadFromStream)>(
@@ -1451,11 +1457,6 @@
   layer->renderer3DEcsSystem = (
     reinterpret_cast<decltype(layer->renderer3DEcsSystem)>(
       ::loadSymbol("puleRenderer3DEcsSystem", layerName)
-    )
-  );
-  layer->renderer3DPrepareModel = (
-    reinterpret_cast<decltype(layer->renderer3DPrepareModel)>(
-      ::loadSymbol("puleRenderer3DPrepareModel", layerName)
     )
   );
   layer->renderer3DAttachComponentRender = (

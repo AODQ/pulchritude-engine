@@ -57,8 +57,8 @@ typedef struct {
   size_t byteLength;
 } PuleBufferViewMutable;
 
-// Array views let you view the contents of an array, without modifying the
-//   contents nor modifying it's allocation.
+// Array views let you view the contents of an array (with specific element
+// stride), without modifying the contents nor modifying it's allocation.
 typedef struct {
   uint8_t const * data; // PULE_hintNonnull
   size_t elementStride; // must be nonzero, accounts for bytelength&alignment

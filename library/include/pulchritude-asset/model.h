@@ -8,18 +8,12 @@
 //   - load model with requested format
 //   - upload data to GPU buffers, prepare GPU pipelines / command buffers
 
-
 /*
   [file]/[stream] || contains filedata
     -> [pds value] || contains many buffers
     -> [asset model] || contains single buffer, ordered like it was in pds
     -> [gpu upload] || probably where data gets sorted to fit GPU buffer
                        correctly
-
-  the 'retain dynamic buffers' part is a bit interesting because all that needs
-  to really be retained is the meta-data required for the renderer, as
-  assumingly each time a new instance of the model/mesh is created then a new
-  dynamic buffer needs to be allocated/uploaded
 */
 
 // PDS model is very similar to glTF
@@ -48,64 +42,43 @@ typedef enum {
   PuleAssetMeshAttributeType_origin,
   PuleAssetMeshAttributeType_uvCoord0,
   PuleAssetMeshAttributeType_normal,
-  PuleAssetMeshAttributeType_Size,
+  PuleAssetMeshAttributeType_size,
 } PuleAssetMeshAttributeType;
 
+// .dontCare used only for requests
 typedef enum {
-  PuleAssetMeshComponentDataType_u8, // 0
-  PuleAssetMeshComponentDataType_u16, // 1
-  PuleAssetMeshComponentDataType_u32, // 2
-  PuleAssetMeshComponentDataType_u8Normalized, // 3
-  PuleAssetMeshComponentDataType_u16Normalized, // 4
-  PuleAssetMeshComponentDataType_u32Normalized, // 5
-  PuleAssetMeshComponentDataType_f16, // 6
-  PuleAssetMeshComponentDataType_f32, // 7
-  PuleAssetMeshComponentDataType_dontCare, // 8 used only for requests
+  PuleAssetMeshComponentDataType_u8,
+  PuleAssetMeshComponentDataType_u16,
+  PuleAssetMeshComponentDataType_u32,
+  PuleAssetMeshComponentDataType_i8,
+  PuleAssetMeshComponentDataType_i16,
+  PuleAssetMeshComponentDataType_i32,
+  PuleAssetMeshComponentDataType_f16, // unsupported right now
+  PuleAssetMeshComponentDataType_f32,
+  PuleAssetMeshComponentDataType_dontCare,
 } PuleAssetMeshComponentDataType;
 
 typedef struct {
-  PuleArrayView view;
+  size_t bufferIndex;
+  size_t bufferByteOffset;
+  size_t bufferByteStride;
   PuleAssetMeshComponentDataType componentDataType;
   uint32_t componentsPerVertex; // Must be 1, 2, 3, or 4
+  size_t elementCount;
 } PuleAssetMeshAttribute;
 
 typedef struct {
-  PuleArrayView view;
-  PuleAssetMeshComponentDataType componentDataType;
+  size_t bufferIndex;
+  size_t bufferByteOffset;
+  // always will be in u32
 } PuleAssetMeshElement;
 
 typedef struct {
-  // all attributes *must* have same element count that *must* match to
-  // verticesToDispatch
-  PuleAssetMeshAttribute attributes[PuleAssetMeshAttributeType_Size];
+  // all attributes *must* have same element count
+  PuleAssetMeshAttribute attributes[PuleAssetMeshAttributeType_size];
   PuleAssetMeshElement element;
   size_t verticesToDispatch; // aka 'draw count'
 } PuleAssetMesh;
-
-typedef struct {
-  uint64_t id;
-  PuleAssetMaterial * materials;
-  size_t materialCount;
-  PuleAssetMesh * meshes;
-  size_t meshCount;
-} PuleAssetModel;
-
-//-- model ---------------------------------------------------------------------
-
-// FULE_exportFn void puleAssetModelDestroy(PuleAssetModel const model);
-
-//-- mesh/attribute ------------------------------------------------------------
-
-// FULE_exportFn size_t puleAssetMeshComponentDataTypeByteLength(
-//   PuleAssetMeshComponentDataType const dataType
-// );
-
-//-- loading/requests ----------------------------------------------------------
-
-// you can request conversion to be done to a specified data-type, which is
-//   convenient when rendering multiple meshes in a single draw call
-// you can use 'dontCare', and value '0' to specify to not perform any
-//   conversion
 
 typedef struct {
   PuleAssetMeshComponentDataType componentDataType;
@@ -113,25 +86,25 @@ typedef struct {
 } PuleAssetMeshRequestedFormatAttribute;
 
 typedef struct {
-  PuleAssetMeshRequestedFormatAttribute
-    attributes[PuleAssetMeshAttributeType_Size];
-  PuleAssetMeshComponentDataType elementComponentDataType;
-} PuleAssetMeshRequestedFormat;
+  PuleDsValue modelData;
+  // callbacks that should probably allocate memory for model
+  void (* loadBuffer)(
+    PuleBufferView const bufferView,
+    size_t const bufferIndex,
+    void * const userData
+  );
+  void (* loadMesh)(
+    PuleAssetMesh const mesh,
+    size_t const meshIndex,
+    void * const userData
+  );
+  void * userData;
+} PuleAssetModelLoadInfo;
 
-typedef struct {
-  PuleAllocator allocator;
-  PuleStreamRead modelSource;
-  PuleAssetMeshRequestedFormat requestedMeshFormat;
-} PuleAssetModelCreateInfo;
-
-// FULE_exportFn PuleAssetModel puleAssetModelLoadFromStream(
-//   PuleAssetModelCreateInfo const createInfo,
-//   PuleError * const error
-// );
-
-//FULE_exportFn PuleAssetModelInstance puleAssetModelInstanceCreate(
-//  PuleAssetModel const model
-//);
+PULE_exportFn void puleAssetModelLoad(
+  PuleAssetModelLoadInfo const loadInfo,
+  PuleError * const error
+);
 
 #ifdef __cplusplus
 } // C

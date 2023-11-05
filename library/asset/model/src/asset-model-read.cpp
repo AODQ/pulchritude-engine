@@ -9,212 +9,103 @@
 #include <unordered_map>
 #include <vector>
 
-namespace {
-
-struct InternalAssetModel {
-  std::vector<uint8_t> dataBuffer;
-  std::vector<PuleAssetMesh> meshes;
-};
-
-std::unordered_map<uint64_t, InternalAssetModel> internalModels;
-size_t internalModelCount = 0;
-
-} // namespace
-
 extern "C" {
 
-size_t puleAssetMeshComponentDataTypeByteLength(
-  PuleAssetMeshComponentDataType const dataType
-) {
-  switch (dataType) {
-    default: return 0;
-    case PuleAssetMeshComponentDataType_u8: return 1;
-    case PuleAssetMeshComponentDataType_u16: return 2;
-    case PuleAssetMeshComponentDataType_u32: return 4;
-    case PuleAssetMeshComponentDataType_u8Normalized: return 1;
-    case PuleAssetMeshComponentDataType_u16Normalized: return 2;
-    case PuleAssetMeshComponentDataType_u32Normalized: return 4;
-    case PuleAssetMeshComponentDataType_f16: return 2;
-    case PuleAssetMeshComponentDataType_f32: return 4;
-  }
-}
-
-PuleAssetModel puleAssetModelLoadFromStream(
-  PuleAssetModelCreateInfo const info,
+void puleAssetModelLoad(
+  PuleAssetModelLoadInfo const info,
   PuleError * const error
 ) {
-  auto const returnError = PuleAssetModel {
-    .id = 0,
-    .materials = nullptr, .materialCount = 0,
-    .meshes = nullptr, .meshCount = 0,
-  };
-
-  PuleDsValue const head = (
-    puleAssetPdsLoadFromStream(info.allocator, info.modelSource, error)
-  );
-  if (puleErrorConsume(error)) {
-    PULE_error(PuleErrorAssetModel_decode, "failed to parse model source");
-    return returnError;
-  }
-
   /*
     buffers: [ [ .. ], // pdsBuffer ],
-    buffer-views: [ [ buffer:0, offset: 0, size: 0, stride: 0, ], ],
     meshes: [{
       attribute-origin: {
-        buffer-view: , component-data-type, component-per-vertex,
+        buffer-index: #,
+        buffer-byte-offset: #,
+        buffer-byte-stride: #,
+        component-data-type: #,
+        components-per-vertex: #,
       },
       attribute-uv: { .. },
-      element: [ buffer-view, component-data-type ],
+      element: { bufferIndex: #, bufferByteOffset: #, componentDataType: # },
     },],
   */
-  internalModels.emplace(internalModelCount, InternalAssetModel{});
-  auto & assetModel = internalModels.at(internalModelCount);
-
   // -- prepare pds arrays for quick reference
-  PuleDsValueArray const bufferArray = (
-    puleDsAsArray(puleDsObjectMember(head, "buffers"))
+  PuleDsValueArray const buffers = (
+    puleDsAsArray(puleDsObjectMember(info.modelData, "buffers"))
   );
-  PuleDsValueArray const bufferViewArray = (
-    puleDsAsArray(puleDsObjectMember(head, "buffer-views"))
-  );
-  PuleDsValueArray const meshArray = (
-    puleDsAsArray(puleDsObjectMember(head, "meshes"))
+  PuleDsValueArray const meshes = (
+    puleDsAsArray(puleDsObjectMember(info.modelData, "meshes"))
   );
 
-  // -- first, copy all buffers over, keeping note of offsets
-  std::vector<size_t> bufferGlobalOffsets;
-  for (size_t it = 0; it < bufferArray.length; ++ it) {
-    PuleDsValueBuffer const bufferData = puleDsAsBuffer(bufferArray.values[it]);
-
-    bufferGlobalOffsets.emplace_back(assetModel.dataBuffer.size());
-    assetModel.dataBuffer.resize(
-      assetModel.dataBuffer.size() + bufferData.length
-    );
-    memcpy(
-      assetModel.dataBuffer.data() + it,
-      bufferData.data,
-      bufferData.length
+  // load buffers
+  for (size_t bufferIt = 0; bufferIt < buffers.length; ++ bufferIt) {
+    PuleDsValue const bufferValue = buffers.values[bufferIt];
+    PuleDsValueBuffer buffer = puleDsAsBuffer(bufferValue);
+    info.loadBuffer(
+      PuleBufferView {
+        .data = buffer.data,
+        .byteLength = buffer.byteLength,
+      },
+      bufferIt,
+      info.userData
     );
   }
 
-  // -- create meshes
-  for (size_t it = 0; it < meshArray.length; ++ it) {
-    PuleDsValue const meshValue = meshArray.values[it];
-    assetModel.meshes.emplace_back(PuleAssetMesh {});
-    auto & mesh = assetModel.meshes.back();
-    memset(&mesh, 0, sizeof(PuleAssetMesh));
-    // -- prepare attributes/element
-    PuleDsValue const attributeOrigin = (
-      puleDsObjectMember(meshValue, "attribute-origin")
-    );
+  // load meshes
+  for (size_t meshIt = 0; meshIt < meshes.length; ++ meshIt) {
+    PuleAssetMesh mesh = {};
+    for (auto attributeIt : { std::pair<PuleAssetMeshAttributeType, std::string>
+      { PuleAssetMeshAttributeType_origin, "attribute-origin", },
+      { PuleAssetMeshAttributeType_uvCoord0, "attribute-uv", },
+      { PuleAssetMeshAttributeType_normal, "attribute-normal", },
+    }) {
+      PuleDsValue const attributeValue = (
+        puleDsObjectMember(meshes.values[meshIt], attributeIt.second.c_str())
+      );
+      auto & attribute = mesh.attributes[attributeIt.first];
+      std::vector<PuleAssetPdsDescription> serializeDescription = {
+        { &attribute.bufferIndex, "buffer-index", "{usize}", },
+        { &attribute.bufferByteOffset, "buffer-byte-offset", "{usize}", },
+        { &attribute.bufferByteStride, "buffer-byte-stride", "{size}", },
+        { &attribute.componentDataType, "component-data-type", "{i32}", },
+        { &attribute.elementCount, "element-count", "{usize}", },
+      };
+      puleAssetPdsDeserialize({
+        .value = attributeValue,
+        .descriptions = serializeDescription.data(),
+        .descriptionCount = serializeDescription.size(),
+        }, error
+      );
+      if (error->id > 0) {
+        PULE_error(PuleErrorAssetModel_decode, "failed to deserialize mesh");
+        return;
+      }
+    }
     PuleDsValue const elementValue = (
-      puleDsObjectMember(meshValue, "element")
+      puleDsObjectMember(meshes.values[meshIt], "element")
     );
-
+    std::vector<PuleAssetPdsDescription> serializeDescription = {
+      { &mesh.element.bufferIndex, "buffer-index", "{usize}", },
+      { &mesh.element.bufferByteOffset, "buffer-byte-offset", "{usize}", },
+    };
+    puleAssetPdsDeserialize({
+      .value = elementValue,
+      .descriptions = serializeDescription.data(),
+      .descriptionCount = serializeDescription.size(),
+      }, error
+    );
+    if (error->id > 0) {
+      PULE_error(PuleErrorAssetModel_decode, "failed to deserialize mesh");
+      return;
+    }
     mesh.verticesToDispatch = (
       puleDsAsUSize(
-        puleDsObjectMember(meshValue, "vertices-to-dispatch")
+        puleDsObjectMember(meshes.values[meshIt], "vertices-to-dispatch")
       )
     );
-
-    // -- load origin attribute buffer
-    if (attributeOrigin.id > 0) {
-      PuleDsValue const bufferViewValue = (
-        bufferViewArray.values[
-          puleDsAsUSize(puleDsObjectMember(attributeOrigin, "buffer-view"))
-        ]
-      );
-      size_t const globalOffset = (
-        bufferGlobalOffsets[
-          puleDsAsUSize(puleDsObjectMember(bufferViewValue, "buffer"))
-        ]
-      );
-      size_t const relativeOffset = (
-        puleDsAsUSize(puleDsObjectMember(bufferViewValue, "offset"))
-      );
-
-      mesh.attributes[PuleAssetMeshAttributeType_origin] = (
-        PuleAssetMeshAttribute {
-          .view = PuleArrayView {
-            .data = (
-              assetModel.dataBuffer.data() + globalOffset + relativeOffset
-            ),
-            .elementStride = (
-              puleDsAsUSize(puleDsObjectMember(bufferViewValue, "stride"))
-            ),
-            .elementCount = (
-              puleDsAsUSize(puleDsObjectMember(bufferViewValue, "size"))
-            ),
-          },
-          .componentDataType = (
-            static_cast<PuleAssetMeshComponentDataType>(
-              puleDsAsI32(
-                puleDsObjectMember(attributeOrigin, "component-data-type")
-              )
-            )
-          ),
-          .componentsPerVertex = (
-            puleDsAsU32(
-              puleDsObjectMember(attributeOrigin, "components-per-vertex")
-            )
-          ),
-        }
-      );
-    }
-
-    // load element buffer
-    PULE_assert(elementValue.id > 0);
-    {
-      PuleDsValue const bufferViewValue = (
-        bufferViewArray.values[
-          puleDsAsUSize(puleDsObjectMember(elementValue, "buffer-view"))
-        ]
-      );
-      size_t const globalOffset = (
-        bufferGlobalOffsets[
-          puleDsAsUSize(puleDsObjectMember(bufferViewValue, "buffer"))
-        ]
-      );
-      size_t const relativeOffset = (
-        puleDsAsUSize(puleDsObjectMember(bufferViewValue, "offset"))
-      );
-
-      mesh.element = (
-        PuleAssetMeshElement {
-          .view = PuleArrayView {
-            .data = (
-              assetModel.dataBuffer.data() + globalOffset + relativeOffset
-            ),
-            .elementStride = (
-              puleDsAsUSize(puleDsObjectMember(bufferViewValue, "stride"))
-            ),
-            .elementCount = (
-              puleDsAsUSize(puleDsObjectMember(bufferViewValue, "size"))
-            ),
-          },
-          .componentDataType = (
-            static_cast<PuleAssetMeshComponentDataType>(
-              puleDsAsU32(
-                puleDsObjectMember(elementValue, "component-data-type")
-              )
-            )
-          ),
-        }
-      );
-    }
+    info.loadMesh(mesh, meshIt, info.userData);
   }
-
-  // -- return a 'view' of internal model
-  auto const userModel = PuleAssetModel {
-    .id = internalModelCount,
-    .materials = nullptr, .materialCount = 0,
-    .meshes = assetModel.meshes.data(),
-    .meshCount = assetModel.meshes.size(),
-  };
-
-  internalModelCount += 1;
-  return userModel;
+  // TODO load textures, materials, animations, nodes, scenes, etc
 }
 
 } // C

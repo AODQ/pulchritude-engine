@@ -6,6 +6,7 @@
 #include <pulchritude-asset/asset-script-task-graph.h>
 #include <pulchritude-asset/image.h>
 #include <pulchritude-asset/tiled.h>
+#include <pulchritude-asset/model.h>
 #include <pulchritude-asset/pds.h>
 #include <pulchritude-asset/render-graph.h>
 #include <pulchritude-asset/shader-module.h>
@@ -75,6 +76,8 @@ typedef struct PuleEngineLayer {
   PuleAssetTiledMap (* assetTiledMapLoadFromStream)(PuleAssetTiledMapLoadCreateInfo const, PuleError * const);
   PuleAssetTiledMap (* assetTiledMapLoadFromFile)(PuleAssetTiledMapLoadFromFileCreateInfo const, PuleError * const);
   void (* assetTiledMapDestroy)(PuleAssetTiledMap const);
+  // asset-model
+  void (* assetModelLoad)(PuleAssetModelLoadInfo const, PuleError * const);
   // asset-pds
   PuleDsValue (* assetPdsLoadFromStream)(PuleAllocator const, PuleStreamRead const, PuleError * const);
   PuleDsValue (* assetPdsLoadFromRvalStream)(PuleAllocator const, PuleStreamRead const, PuleError * const);
@@ -361,7 +364,6 @@ typedef struct PuleEngineLayer {
   // renderer-3d
   PuleRenderer3D (* renderer3DCreate)(PuleEcsWorld const, PulePlatform const);
   PuleEcsSystem (* renderer3DEcsSystem)(PuleRenderer3D const);
-  PuleRenderer3DModel (* renderer3DPrepareModel)(PuleRenderer3D, PuleAssetModel const);
   PuleEcsComponent (* renderer3DAttachComponentRender)(PuleEcsWorld const, PuleRenderer3D const, PuleEcsEntity const, PuleRenderer3DModel const);
   // script
   PuleScriptContext (* scriptContextCreate)();

@@ -80,6 +80,22 @@ PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   PuleError * const error
 );
 
+typedef struct {
+  void * data;
+  char const * label;
+  char const * format;
+} PuleAssetPdsDescription;
+
+typedef struct {
+  PuleDsValue const value;
+  PuleAssetPdsDescription const * const descriptions;
+  size_t const descriptionCount;
+} PuleAssetPdsDeserializeInfo;
+PULE_exportFn void puleAssetPdsDeserialize(
+  PuleAssetPdsDeserializeInfo const info,
+  PuleError * const error
+);
+
 #ifdef __cplusplus
-}
+} // extern C
 #endif

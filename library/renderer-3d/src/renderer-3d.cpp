@@ -166,8 +166,7 @@ PuleEcsSystem puleRenderer3DEcsSystem(PuleRenderer3D const renderer3D) {
 }
 
 PuleRenderer3DModel puleRenderer3DPrepareModel(
-  PuleRenderer3D renderer3D,
-  PuleAssetModel const assetModel
+  PuleRenderer3D renderer3D
 ) {
   // SystemInfo & system = systemToSystemInfo.find(renderer3D.id)->second;
   //
