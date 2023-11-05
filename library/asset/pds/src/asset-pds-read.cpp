@@ -6,7 +6,8 @@
 namespace {
 PuleDsValue pdsParseValue(
   PuleAllocator const allocator,
-  PuleStreamRead const stream
+  PuleStreamRead const stream,
+  PuleError * const error
 );
 } // namespace
 
@@ -75,14 +76,20 @@ std::string trimBeginEndWhitespace(std::string const & s) {
   return s.substr(start, end-start+1);
 }
 
-std::string pdsParseLabel(PuleStreamRead const stream) {
+std::string pdsParseLabel(
+  PuleStreamRead const stream,
+  PuleError * const error
+) {
   bool firstLetter = false;
   bool invalidLabel = false;
   std::string label;
   char character = 0;
   while (true) {
     if (puleStreamReadIsDone(stream)) {
-      puleLogError("hit EOF trying to parse label '%s'", label.c_str());
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "hit EOF trying to parse label '%s'", label.c_str()
+      );
       return "";
     }
     character = pdsReadByte(stream);
@@ -114,7 +121,8 @@ std::string pdsParseLabel(PuleStreamRead const stream) {
   // get to : in case we hit whitespace
   while (character != ':') {
     if (!isWhitespace(character)) {
-      puleLogError(
+      PULE_error(
+        PuleErrorAssetPds_decode,
         "PDS parsing error: expected whitespace after '%s', found '%c'",
         label.c_str(), character
       );
@@ -123,15 +131,20 @@ std::string pdsParseLabel(PuleStreamRead const stream) {
     character = pdsReadByte(stream);
   }
   if (invalidLabel || label == "") {
-    puleLogError("PDS parsing error: invalid label '%s'", label.c_str());
+    char const * note = "";
     if (label.front() == '"' && label.back() == '"') {
-      puleLog("\tNOTE: did you mean to omit parenthesis in label?");
+      note = "\n\tNOTE: did you try to omit parenthesis in label?";
     }
+    PULE_error(
+      PuleErrorAssetPds_decode,
+      "PDS parsing error: invalid label '%s'%s", label.c_str(), note
+    );
+    return "";
   }
   return label;
 }
 
-int64_t parseHex(std::string const & value) {
+int64_t parseHex(std::string const & value, PuleError * const error) {
   int64_t hex = 0;
   for (size_t it = 0; it < value.size(); ++ it) {
     char const ch = value[it];
@@ -146,14 +159,19 @@ int64_t parseHex(std::string const & value) {
     if (ch >= 'a' && ch <= 'f') {
       hex = hex*16 + (ch-'a') + 10;
     } else {
-      puleLogError("could not parse hex value from: '%s'", value.c_str());
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "could not parse hex value from: '%s'",
+        value.c_str()
+      );
+      return 0;
     }
     break;
   }
   return hex;
 }
 
-int64_t parseBin(std::string const & value) {
+int64_t parseBin(std::string const & value, PuleError * const error) {
   int64_t bin = 0;
   for (size_t it = 0; it < value.size(); ++ it) {
     char const ch = value[it];
@@ -164,14 +182,18 @@ int64_t parseBin(std::string const & value) {
     if (ch == '1') {
       bin = bin*2 + 1;
     } else {
-      puleLogError("could not parse bin value from: '%s'", value.c_str());
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "could not parse bin value from: '%s'", value.c_str()
+      );
+      return 0;
     }
     break;
   }
   return bin;
 }
 
-int64_t parseDec(std::string const & value) {
+int64_t parseDec(std::string const & value, PuleError * const error) {
   int64_t dec = 0;
   int64_t sign = 1;
   for (size_t it = 0; it < value.size(); ++ it) {
@@ -186,7 +208,10 @@ int64_t parseDec(std::string const & value) {
       continue;
     }
     else {
-      puleLogError("could not parse dec value from: '%s'", value.c_str());
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "could not parse dec value from: '%s'", value.c_str()
+      );
     }
     break;
   }
@@ -241,7 +266,8 @@ PuleDsValue parseBuffer(
 
 PuleDsValue pdsParseArray(
   PuleAllocator const allocator,
-  PuleStreamRead const stream
+  PuleStreamRead const stream,
+  PuleError * const error
 ) {
   PuleDsValue object = puleDsCreateArray(allocator);
   while (true) {
@@ -250,13 +276,14 @@ PuleDsValue pdsParseArray(
       continue;
     }
     if (puleStreamReadIsDone(stream)) {
-      puleLogError("hit EOF while parsing object");
+      PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
       return {0};
     }
     if (puleStreamPeekByte(stream) == ']') {
       break;
     }
-    puleDsArrayAppend(object, pdsParseValue(allocator, stream));
+    puleDsArrayAppend(object, pdsParseValue(allocator, stream, error));
+    if (error->id) { return {0}; }
   }
 
   // consume ]
@@ -273,12 +300,13 @@ PuleDsValue pdsParseArray(
 PuleDsValue pdsParseObject(
   PuleAllocator const allocator,
   PuleStreamRead const stream,
+  PuleError * const error,
   bool inObject=false
 ) {
   char character = ' ';
   while (!inObject && character != '{') {
     if (puleStreamReadIsDone(stream)) {
-      puleLogError("hit EOF while parsing object");
+      PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
       return {0};
     }
     character = pdsReadByte(stream);
@@ -291,21 +319,23 @@ PuleDsValue pdsParseObject(
       pdsReadByte(stream);
     }
     if (puleStreamReadIsDone(stream)) {
-      puleLogError("hit EOF while parsing object");
+      PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
       return {0};
     }
     if (puleStreamPeekByte(stream) == '}') {
       break;
     }
-    std::string memberLabel = pdsParseLabel(stream);
+    std::string const memberLabel = pdsParseLabel(stream, error);
+    if (error->id) { return {0}; }
     puleDsObjectMemberAssign(
       object,
       PuleStringView {
         .contents = memberLabel.c_str(),
         .len = memberLabel.size()
       },
-      pdsParseValue(allocator, stream)
+      pdsParseValue(allocator, stream, error)
     );
+    if (error->id) { return {0}; }
   }
 
   // consume }
@@ -321,7 +351,8 @@ PuleDsValue pdsParseObject(
 
 PuleDsValue pdsParseValue(
   PuleAllocator const allocator,
-  PuleStreamRead const stream
+  PuleStreamRead const stream,
+  PuleError * const error
 ) {
   while (::isWhitespace(puleStreamPeekByte(stream))) {
     pdsReadByte(stream);
@@ -329,12 +360,12 @@ PuleDsValue pdsParseValue(
   char character = pdsReadByte(stream);
 
   if (character == '[') {
-    return pdsParseArray(allocator, stream);
-  }
+    return pdsParseArray(allocator, stream, error);
+  } (void)']'; // this is to prevent editor confusing ] matching
 
   if (character == '{') {
-    return pdsParseObject(allocator, stream, true);
-  } (void)'}';
+    return pdsParseObject(allocator, stream, error, true);
+  } (void)'}'; // this is to prevent editor confusing } matching
 
   // first get this thing into a value to check what type it is
   std::string value = "";
@@ -368,7 +399,10 @@ PuleDsValue pdsParseValue(
       }
 
       if (!inString && (character == '}' || character == ']')) {
-        puleLogError("seems like you're missing a comma");
+        PULE_error(
+          PuleErrorAssetPds_decode,
+          "seems like you're missing a comma"
+        );
       }
     }
   }
@@ -376,7 +410,7 @@ PuleDsValue pdsParseValue(
   value = trimBeginEndWhitespace(value);
 
   if (value == "") {
-    puleLogError("assigning empty value to label");
+    PULE_error(PuleErrorAssetPds_decode, "assigning empty value to label");
     return { 0 };
   }
 
@@ -395,12 +429,12 @@ PuleDsValue pdsParseValue(
 
   // parse hex, example, 0x0, 0x00fE30
   if (value.size() > 2 && value[0] == '0' && value[1] == 'x') {
-    return puleDsCreateI64(parseHex(value.substr(2, value.size())));
+    return puleDsCreateI64(parseHex(value.substr(2, value.size()), error));
   }
 
   // parse binary, example, 0b00, 0b001000
   if (value.size() > 2 && value[0] == '0' && value[1] == 'b') {
-    return puleDsCreateI64(parseBin(value.substr(2, value.size())));
+    return puleDsCreateI64(parseBin(value.substr(2, value.size()), error));
   }
 
   // parse buffer, example, *"ABC"
@@ -419,7 +453,7 @@ PuleDsValue pdsParseValue(
     return puleDsCreateF64(std::stod(value));
   }
 
-  return puleDsCreateI64(parseDec(value));
+  return puleDsCreateI64(parseDec(value, error));
 }
 
 } // namespace
@@ -441,15 +475,23 @@ PuleDsValue puleAssetPdsLoadFromStream(
       continue;
     }
     if (puleStreamReadIsDone(stream)) { break; }
-    std::string memberLabel = pdsParseLabel(stream);
+    std::string const memberLabel = pdsParseLabel(stream, error);
+    if (error->id) {
+      puleDsDestroy(defaultObject);
+      return {0};
+    }
     puleDsObjectMemberAssign(
       defaultObject,
       PuleStringView {
         .contents = memberLabel.c_str(),
         .len = memberLabel.size()
       },
-      pdsParseValue(allocator, stream)
+      pdsParseValue(allocator, stream, error)
     );
+    if (error->id) {
+      puleDsDestroy(defaultObject);
+      return {0};
+    }
   }
 
   return defaultObject;
@@ -505,6 +547,11 @@ PuleDsValue puleAssetPdsLoadFromFile(
   // even if error occured we don't have to do anything special
   puleFileClose(file);
   puleStreamReadDestroy(stream);
+
+  if (error->id) {
+    PULE_error(PuleErrorAssetPds_decode, "failed to load file '%s'", filename);
+  }
+
   return head;
 }
 
@@ -652,8 +699,6 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       return { 0 };
     }
 
-    puleLogDebug("Working on argument %s", argument);
-
     // find matching parameter in layout
     bool parameterFound = false;
     for (size_t arrIt = 0; arrIt < layoutArray.length; ++ arrIt) {
@@ -725,8 +770,14 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
         puleDsObjectMemberAssign(
           emitParametersValue,
           objLabel,
-          puleDsCreateI64(parseDec(std::string(info.arguments[argumentIt+1])))
+          puleDsCreateI64(
+            parseDec(std::string(info.arguments[argumentIt+1]), error)
+          )
         );
+        if (error->id) {
+          puleDsDestroy(emitValue);
+          return {0};
+        }
       }
 
       break;
