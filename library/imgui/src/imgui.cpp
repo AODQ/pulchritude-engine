@@ -327,7 +327,6 @@ void renderDrawData(
     PuleGpuCommand {
       .bindAttributeBuffer {
         .action = PuleGpuAction_bindAttributeBuffer,
-        .pipeline = bd.pipeline,
         .bindingIndex = 0,
         .buffer = bd.vertexBuffer,
         .offset = 0,

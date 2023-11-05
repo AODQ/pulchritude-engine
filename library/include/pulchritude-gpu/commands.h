@@ -164,7 +164,6 @@ typedef struct PuleGpuActionBindElementBuffer {
 
 typedef struct PuleGpuActionBindAttributeBuffer {
   PuleGpuAction action PULE_param(PuleGpuAction_bindAttributeBuffer);
-  PuleGpuPipeline pipeline; // TODO this should just be whatever is bound?
   size_t bindingIndex;
   PuleGpuBuffer buffer;
   size_t offset;

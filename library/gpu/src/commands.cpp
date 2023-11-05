@@ -355,7 +355,9 @@ void puleGpuCommandListAppendAction(
       auto const bufferInfo = VkDescriptorBufferInfo {
         .buffer = reinterpret_cast<VkBuffer>(action.buffer.id),
         .offset = (VkDeviceSize)action.offset,
-        .range = (VkDeviceSize)action.byteLen,
+        .range = (
+          action.byteLen == 0 ? VK_WHOLE_SIZE : (VkDeviceSize)action.byteLen
+        ),
       };
       auto const writeDescriptorSet = VkWriteDescriptorSet {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
