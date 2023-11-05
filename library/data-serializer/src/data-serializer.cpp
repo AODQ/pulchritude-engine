@@ -242,18 +242,18 @@ PuleDsValueBuffer puleDsAsBuffer(PuleDsValue const bufferValue) {
   if (bufferValuePtr == ::pdsValues.end()) {
     PULE_assert(false && "not a known pds value");
     puleLogError("pds value '%zu' is not being tracked", bufferValue.id);
-    return { .data = nullptr, .length = 0, };
+    return { .data = nullptr, .byteLength = 0, };
   }
   auto const asBuffer = std::get_if<PdsBuffer>(&bufferValuePtr->second);
   if (!asBuffer) {
     PULE_assert(false && "not a buffer");
     puleLogError("pds value '%zu' is not a buffer", bufferValue.id);
-    return { .data = nullptr, .length = 0, };
+    return { .data = nullptr, .byteLength = 0, };
   }
   return (
     PuleDsValueBuffer {
       .data = asBuffer->value.size() > 0 ? asBuffer->value.data() : nullptr,
-      .length = asBuffer->value.size(),
+      .byteLength = asBuffer->value.size(),
     }
   );
 }
@@ -584,7 +584,7 @@ PuleDsValueBuffer puleDsMemberAsBuffer(
   auto const member = puleDsObjectMember(obj, label);
   return (
     puleDsIsNull(member)
-    ? PuleDsValueBuffer{ .data = nullptr, .length = 0, }
+    ? PuleDsValueBuffer{ .data = nullptr, .byteLength = 0, }
     : puleDsAsBuffer(member)
   );
 }

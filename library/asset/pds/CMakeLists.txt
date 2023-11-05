@@ -6,6 +6,7 @@ target_sources(
   PRIVATE
     src/asset-pds-read.cpp
     src/asset-pds-write.cpp
+    src/asset-pds-deserialize.cpp
 )
 
 set_target_properties(

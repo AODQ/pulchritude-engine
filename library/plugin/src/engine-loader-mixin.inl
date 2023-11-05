@@ -144,6 +144,11 @@
       ::loadSymbol("puleAssetPdsLoadFromCommandLineArguments", layerName)
     )
   );
+  layer->assetPdsDeserialize = (
+    reinterpret_cast<decltype(layer->assetPdsDeserialize)>(
+      ::loadSymbol("puleAssetPdsDeserialize", layerName)
+    )
+  );
   // asset-render-graph
   layer->assetRenderGraphFromPds = (
     reinterpret_cast<decltype(layer->assetRenderGraphFromPds)>(

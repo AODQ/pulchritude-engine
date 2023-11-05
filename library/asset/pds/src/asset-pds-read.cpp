@@ -1,7 +1,6 @@
 #include <pulchritude-asset/pds.h>
 
 #include <string>
-#include <string.h>
 #include <vector>
 
 namespace {

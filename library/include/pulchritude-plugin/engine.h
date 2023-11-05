@@ -84,6 +84,7 @@ typedef struct PuleEngineLayer {
   void (* assetPdsWriteToFile)(PuleDsValue const, PuleStringView const, PuleError * const);
   void (* assetPdsWriteToStdout)(PuleDsValue const);
   PuleDsValue (* assetPdsLoadFromCommandLineArguments)(PuleAssetPdsCommandLineArgumentsInfo const, PuleError * const);
+  void (* assetPdsDeserialize)(PuleAssetPdsDeserializeInfo const, PuleError * const);
   // asset-render-graph
   PuleRenderGraph (* assetRenderGraphFromPds)(PuleAllocator const, PulePlatform const, PuleDsValue const);
   // asset-shader-module

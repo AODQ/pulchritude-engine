@@ -95,7 +95,7 @@ typedef struct {
 // buffers just store raw data, there is no additional indirection.
 typedef struct {
   uint8_t const * data;
-  size_t length;
+  size_t byteLength;
 } PuleDsValueBuffer;
 
 PULE_exportFn int64_t puleDsAsI64(PuleDsValue const value);
