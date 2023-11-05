@@ -37,11 +37,7 @@ struct FileStream {
     self.allocation = (
       puleAllocate(
         allocator,
-        PuleAllocateInfo {
-          .zeroOut = 0,
-          .numBytes = 512,
-          .alignment = 0,
-        }
+        PuleAllocateInfo { .numBytes = 512, }
       )
     );
     self.file = (

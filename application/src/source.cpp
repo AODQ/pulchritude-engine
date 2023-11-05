@@ -715,6 +715,7 @@ int32_t main(
         }
       }
       for (auto const it : componentsToRemove) {
+        puleLog("Removing component %d", it);
         updateableComponents.erase(updateableComponents.begin() + it);
       }
     }

@@ -84,11 +84,7 @@ PuleAssetImage puleAssetImageLoadFromStream(
   void * data = (
     puleAllocate(
       allocator,
-      PuleAllocateInfo {
-        .zeroOut = false,
-        .numBytes = imageLength,
-        .alignment = 0,
-      }
+      PuleAllocateInfo { .numBytes = imageLength, }
     )
   );
 

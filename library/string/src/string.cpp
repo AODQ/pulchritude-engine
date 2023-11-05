@@ -13,11 +13,7 @@ PuleString puleStringCopy(
   PuleAllocator const allocator,
   PuleStringView const base
 ) {
-  PuleAllocateInfo allocateInfo = {
-    .zeroOut = false,
-    .numBytes = base.len+1,
-    .alignment = 0,
-  };
+  PuleAllocateInfo allocateInfo = { .numBytes = base.len+1, };
   char * data = (char *)(puleAllocate(allocator, allocateInfo));
   memcpy(data, base.contents, base.len);
   data[base.len] = '\0';
@@ -68,11 +64,7 @@ PuleString puleStringFormatVargs(
   stringOut.allocator = allocator;
 
   { // allocate memory
-    PuleAllocateInfo allocateInfo = {
-      .zeroOut = false,
-      .numBytes = len+1,
-      .alignment = 0,
-    };
+    PuleAllocateInfo allocateInfo = { .numBytes = len+1, };
     stringOut.contents = (
       reinterpret_cast<char *>(puleAllocate(allocator, allocateInfo))
     );

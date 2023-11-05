@@ -369,11 +369,7 @@ PuleScriptArrayF32 puleScriptArrayF32Create(PuleAllocator const allocator) {
     reinterpret_cast<ArrayF32 *>(
       puleAllocate(
         allocator,
-        PuleAllocateInfo {
-          .zeroOut = true,
-          .numBytes = sizeof(ArrayF32),
-          .alignment = 0,
-        }
+        PuleAllocateInfo { .numBytes = sizeof(ArrayF32), }
       )
     )
   );
@@ -383,9 +379,9 @@ PuleScriptArrayF32 puleScriptArrayF32Create(PuleAllocator const allocator) {
       puleAllocate(
         allocator,
         PuleAllocateInfo {
-          .zeroOut = true,
           .numBytes = sizeof(float) * 4,
           .alignment = 0,
+          .zeroOut = true,
         }
       )
     )
@@ -545,9 +541,9 @@ PuleScriptModuleFileWatchReturn puleScriptModuleFileWatch(
     reinterpret_cast<ScriptWatchInfo *>(
       puleAllocate(
         allocator, {
-          .zeroOut = true,
           .numBytes = sizeof(ScriptWatchInfo),
           .alignment = 0,
+          .zeroOut = true,
         }
       )
     )
