@@ -56,7 +56,7 @@ namespace {
     PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
     tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
     if (renderGraphFn) {
-      puleLog("found pulcRenderGraph in plugin %s", plugin.name);
+      puleLogDebug("found pulcRenderGraph in plugin %s", plugin.name);
       puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
     }
   }
@@ -264,7 +264,7 @@ int32_t main(
   std::vector<PuleEngineLayer> layers;
   for (size_t layerIt = 0; layerIt < pluginLayers.size(); ++ layerIt) {
     auto pluginLayerName = pluginLayers[pluginLayers.size()-layerIt-1];
-    puleLog(
+    puleLogDebug(
       "[PuleApplication] Loading plugin layer '%s'",
       pluginLayerName.contents
     );
@@ -275,7 +275,7 @@ int32_t main(
       puleStringView(pluginLayerName),
       layers.size() > 0 ? &layers.back() : nullptr
     );
-    puleLog("[PuleApplication] Finished loading plugin layers");
+    puleLogDebug("[PuleApplication] Finished loading plugin layers");
     layers.insert(layers.begin(), engineLayer);
   }
   assert(layers.size() > 0);
@@ -335,7 +335,7 @@ int32_t main(
         pulBase.dsObjectMember(entryPayload, "platform")
       );
       if (!pulBase.dsIsNull(payloadPlatform)) {
-        puleLog("[PuleApplication] creating platform");
+        puleLogDebug("[PuleApplication] creating platform");
         size_t const defaultWidth = 800; // TODO get from window?
         size_t const defaultHeight = 600;
         PuleStringView const defaultName = pulBase.cStr("pulchritude app");
@@ -372,7 +372,7 @@ int32_t main(
         pulBase.dsObjectMember(entryPayload, "gfx")
       );
       if (!pulBase.dsIsNull(payloadGfx)) {
-        puleLog("[PuleApplication] creating graphics context");
+        puleLogDebug("[PuleApplication] creating graphics context");
         if (pulBase.dsMemberAsBool(payloadGfx, "initialize")) {
           if (platform.id == 0) {
             pulBase.logError(
@@ -387,7 +387,7 @@ int32_t main(
           pulBase.dsObjectMember(payloadGfx, "render-graph-path")
         );
         if (!pulBase.dsIsNull(renderGraphPath)) {
-          puleLog("[PuleApplication] creating render graph");
+          puleLogDebug("[PuleApplication] creating render graph");
           auto renderGraphValue = (
             pulBase.assetPdsLoadFromFile(
               pulBase.allocateDefault(),
@@ -436,7 +436,7 @@ int32_t main(
         !pulBase.dsIsNull(payloadEcs)
         && pulBase.dsMemberAsBool(payloadEcs, "create-world")
       ) {
-        puleLog("[PuleApplication] creating ECS");
+        puleLogDebug("[PuleApplication] creating ECS");
         ecsWorld = pulBase.ecsWorldCreate();
         ecsWorldAdvance = pulBase.dsMemberAsBool(payloadEcs, "world-advance");
         // -- load in ECS components & systems from plugins
@@ -491,7 +491,7 @@ int32_t main(
       PuleDsValue const payloadScript = (
         pulBase.dsObjectMember(entryPayload, "script")
       );
-      puleLog("[PuleApplication] initializing script");
+      puleLogDebug("[PuleApplication] initializing script");
       if (
         !pulBase.dsIsNull(payloadScript)
         && pulBase.dsMemberAsBool(payloadScript, "initialize")
@@ -502,7 +502,7 @@ int32_t main(
           pulBase.dsObjectMember(payloadScript, "script-graph-path")
         );
         if (!pulBase.dsIsNull(scriptGraphPath)) {
-          puleLog("[PuleApplication] creating script graph");
+          puleLogDebug("[PuleApplication] creating script graph");
           auto scriptGraphValue = (
             pulBase.assetPdsLoadFromFile(
               pulBase.allocateDefault(),
@@ -603,8 +603,8 @@ int32_t main(
     // try to load component
     void (*componentLoadFn)(PulePluginPayload const) = nullptr;
     ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
-    puleLog(
-      "[PuleApplication] zzz Loading plugin %s",
+    puleLogDebug(
+      "[PuleApplication] Loading plugin %s",
       pulePluginName(componentPluginId)
     );
     if (componentLoadFn) {
@@ -756,7 +756,7 @@ int32_t main(
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-  puleLog(
+  puleLogDebug(
     "[PuleApplication] Shutting down...",
     guiEditorFns.size()
   );
@@ -784,7 +784,7 @@ int32_t main(
   }
 
   pulePluginsFree();
-  puleLog("[PuleApplication] Exit finished");
+  puleLog("[PuleApplication] clean exit");
   return 0;
 }
 

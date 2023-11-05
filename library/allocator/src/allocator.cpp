@@ -14,14 +14,14 @@ void * releaseAllocate(void * const, PuleAllocateInfo const info) {
       //allocatedMemory = calloc(info.numBytes, 1);
       allocatedMemory = malloc(info.numBytes);
       memset(allocatedMemory, 0, info.numBytes);
-      puleLog("[%p] calloc %zu bytes", allocatedMemory, info.numBytes);
+      puleLogDebug("[%p] calloc %zu bytes", allocatedMemory, info.numBytes);
     } else {
       allocatedMemory = malloc(info.numBytes);
-      puleLog("[%p] malloc %zu", allocatedMemory, info.numBytes);
+      puleLogDebug("[%p] malloc %zu", allocatedMemory, info.numBytes);
     }
   } else {
     allocatedMemory = aligned_alloc(info.numBytes, info.alignment);
-    puleLog(
+    puleLogDebug(
       "[%p] aligned alloc %zu alignment %zu",
       allocatedMemory, info.numBytes, info.alignment
     );
@@ -34,9 +34,9 @@ void * releaseAllocate(void * const, PuleAllocateInfo const info) {
 
 void * releaseReallocate(void * const, PuleReallocateInfo const info) {
   void * reallocatedMemory = nullptr;
-  puleLog("[%p] realloc %zu", info.allocation, info.numBytes);
+  puleLogDebug("[%p] realloc %zu", info.allocation, info.numBytes);
   reallocatedMemory = realloc(info.allocation, info.numBytes);
-  puleLog("[%p] new address [%p]", info.allocation, reallocatedMemory);
+  puleLogDebug("[%p] new address [%p]", info.allocation, reallocatedMemory);
 
   // check reallocated memory is aligned if requested, as otherwise need to
   // free/alloc
@@ -44,10 +44,10 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
        info.alignment > 0
     && reinterpret_cast<size_t>(reallocatedMemory) % info.alignment != 0
   ) {
-    puleLog("freeing memory at ", info.numBytes, info.alignment);
+    puleLogDebug("freeing memory at ", info.numBytes, info.alignment);
     free(reallocatedMemory);
     reallocatedMemory = aligned_alloc(info.numBytes, info.alignment);
-    puleLog(
+    puleLogDebug(
       "[%p] aligned alloc",
       reallocatedMemory, info.numBytes, info.alignment
     );
@@ -57,7 +57,7 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
 }
 
 void releaseDeallocate(void * const, void * const allocationNullable) {
-  puleLog("[%p] free", allocationNullable);
+  puleLogDebug("[%p] free", allocationNullable);
   free(allocationNullable);
 }
 

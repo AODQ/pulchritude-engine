@@ -351,15 +351,12 @@ void pulePluginLoadEngineLayer(
 ) {
   layer->parent = layerParentNullable;
   layer->layerName = puleString(puleAllocateDefault(), layerName.contents);
-  puleLog("Loading mixin...");
 #include "engine-loader-mixin.inl"
-  puleLog("Loading layer entry fn...");
   auto layerEntryFn = (
     reinterpret_cast<void (*)(PuleEngineLayer * const layer)>(
       ::loadSymbol("puleEngineLayerEntry", layerName) // TODO chop last
     )
   );
-  puleLog("layer entry fn... %p", layerEntryFn);
   PULE_assert(
     (!layerParentNullable || layerEntryFn) && "missing layer entry function"
   );
