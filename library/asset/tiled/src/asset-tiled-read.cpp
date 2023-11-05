@@ -78,7 +78,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
   PuleDsValue const head = (
     puleAssetPdsLoadFromStream(info.allocator, info.mapSource, error)
   );
-  if (puleErrorConsume(error)) {
+  if (error->id > 0) {
     PULE_error(PuleErrorAssetTiled_decode, "failed to parse tilemap mapSource");
     return { 0 };
   }
@@ -116,7 +116,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
         error
       )
     );
-    if (puleErrorConsume(error)) {
+    if (error->id > 0) {
       PULE_error(
         PuleErrorAssetTiled_decode,
         "failed to open tileset: %s", tilesetLabel
@@ -127,7 +127,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
     PuleDsValue tilesetHead = (
       puleAssetPdsLoadFromStream(info.allocator, tilesetSource.stream, error)
     );
-    if (puleErrorConsume(error)) {
+    if (error->id > 0) {
       PULE_error(
         PuleErrorAssetTiled_decode,
         "failed to parse tilesethead: %s", puleDsAsString(tilesetObj)
@@ -153,7 +153,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
           error
         )
       );
-      if (puleErrorConsume(error)) {
+      if (error->id > 0) {
         PULE_error(
           PuleErrorAssetTiled_decode,
           "failed to open image: %s", imageUrl
@@ -173,7 +173,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromStream(
       );
       FileStream::destroy(spritesheetSource);
 
-      if (puleErrorConsume(error)) {
+      if (error->id > 0) {
         PULE_error(
           PuleErrorAssetTiled_decode,
           "failed to read image: %s", imageUrl
@@ -304,7 +304,7 @@ PuleAssetTiledMap puleAssetTiledMapLoadFromFile(
   PuleError * const error
 ) {
   FileStream fileStream = FileStream::open(info.allocator, info.url, error);
-  if (puleErrorConsume(error)) {
+  if (error->id > 0) {
     PULE_error(
       PuleErrorAssetTiled_decode,
       "failed to open tiled map '%s'", info.url

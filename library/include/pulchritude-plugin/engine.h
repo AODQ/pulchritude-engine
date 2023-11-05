@@ -203,6 +203,7 @@ typedef struct PuleEngineLayer {
   PuleError (* error)();
   uint32_t (* errorConsume)(PuleError * const);
   bool (* errorExists)(PuleError * const);
+  void (* errorPropagate)(PuleError * const, PuleError const);
   // file
   PuleFile (* fileOpen)(PuleStringView const, PuleFileDataMode const, PuleFileOpenMode const, PuleError * const);
   void (* fileClose)(PuleFile const);

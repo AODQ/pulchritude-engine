@@ -485,7 +485,7 @@ PuleDsValue puleAssetPdsLoadFromFile(
       error
     )
   );
-  if (puleErrorConsume(error)) {
+  if (error->id > 0) {
     PULE_error(PuleErrorAssetPds_decode, "failed to open file");
     return { 0 };
   }

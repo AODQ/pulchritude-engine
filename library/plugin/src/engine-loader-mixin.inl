@@ -707,6 +707,11 @@
       ::loadSymbol("puleErrorExists", layerName)
     )
   );
+  layer->errorPropagate = (
+    reinterpret_cast<decltype(layer->errorPropagate)>(
+      ::loadSymbol("puleErrorPropagate", layerName)
+    )
+  );
   // file
   layer->fileOpen = (
     reinterpret_cast<decltype(layer->fileOpen)>(
