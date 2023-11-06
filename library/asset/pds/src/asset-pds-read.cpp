@@ -58,6 +58,22 @@ bool isWhitespace(char const character) {
   );
 }
 
+bool pdsIsDone(PuleStreamRead const stream) {
+  if (puleStreamReadIsDone(stream)) {
+    return true;
+  }
+  // if it's not done, check for comments (in case file ends with comment)
+  char character = puleStreamPeekByte(stream);
+  if (character != '#') {
+    return false;
+  }
+  while (
+    !puleStreamReadIsDone(stream)
+    && puleStreamReadByte(stream) != '\n'
+  );
+  return puleStreamReadIsDone(stream);
+}
+
 // accounts for comments
 char pdsReadByte(PuleStreamRead const stream) {
   char character = puleStreamReadByte(stream);
@@ -66,6 +82,10 @@ char pdsReadByte(PuleStreamRead const stream) {
     !puleStreamReadIsDone(stream)
     && puleStreamReadByte(stream) != '\n'
   );
+  if (puleStreamReadIsDone(stream)) {
+    PULE_assert("hit EOF while parsing comment (faulty reading logic)");
+    return 0;
+  }
   return puleStreamReadByte(stream);
 }
 
@@ -82,10 +102,11 @@ std::string pdsParseLabel(
 ) {
   bool firstLetter = false;
   bool invalidLabel = false;
+  char invalidChar = '\0';
   std::string label;
   char character = 0;
   while (true) {
-    if (puleStreamReadIsDone(stream)) {
+    if (pdsIsDone(stream)) {
       PULE_error(
         PuleErrorAssetPds_decode,
         "hit EOF trying to parse label '%s'", label.c_str()
@@ -93,28 +114,28 @@ std::string pdsParseLabel(
       return "";
     }
     character = pdsReadByte(stream);
-    if (
-      firstLetter
-      && !(
-           (character >= 'a' && character <= 'z')
-        || (character >= 'A' && character <= 'Z')
-        || character == '_'
-      )
-    ) {
-      invalidLabel = true;
-    }
     if (character == ':' || isWhitespace(character)) {
       break;
     }
     if (
+      ( // invalid letters to begin with
+        firstLetter
+        && !(
+             (character >= 'a' && character <= 'z')
+          || (character >= 'A' && character <= 'Z')
+          || character == '_'
+        )
+      )
+      || // invalid letters no matter what
       !(
            (character >= 'a' && character <= 'z')
         || (character >= 'A' && character <= 'Z')
         || (character >= '0' && character <= '9')
-        || (character == '-' || character == '_')
+        || character == '_' || character == '-'
       )
     ) {
       invalidLabel = true;
+      invalidChar = character;
     }
     label += character;
   }
@@ -128,6 +149,13 @@ std::string pdsParseLabel(
       );
       return label;
     }
+    if (pdsIsDone(stream)) {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "hit EOF trying to parse label '%s'", label.c_str()
+      );
+      return "";
+    }
     character = pdsReadByte(stream);
   }
   if (invalidLabel || label == "") {
@@ -137,7 +165,8 @@ std::string pdsParseLabel(
     }
     PULE_error(
       PuleErrorAssetPds_decode,
-      "PDS parsing error: invalid label '%s'%s", label.c_str(), note
+      "PDS parsing error: invalid label '%s' (%c)%s",
+      label.c_str(), invalidChar, note
     );
     return "";
   }
@@ -264,6 +293,13 @@ PuleDsValue parseBuffer(
   );
 }
 
+#define ErrorFileDone() \
+  if (pdsIsDone(stream)) { \
+    PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing file"); \
+    return {0}; \
+  }
+
+
 PuleDsValue pdsParseArray(
   PuleAllocator const allocator,
   PuleStreamRead const stream,
@@ -271,11 +307,14 @@ PuleDsValue pdsParseArray(
 ) {
   PuleDsValue object = puleDsCreateArray(allocator);
   while (true) {
-    while (::isWhitespace(puleStreamPeekByte(stream))) {
+    while (
+      !pdsIsDone(stream)
+      && ::isWhitespace(puleStreamPeekByte(stream))
+    ) {
       pdsReadByte(stream);
       continue;
     }
-    if (puleStreamReadIsDone(stream)) {
+    if (pdsIsDone(stream)) {
       PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
       return {0};
     }
@@ -286,13 +325,23 @@ PuleDsValue pdsParseArray(
     if (error->id) { return {0}; }
   }
 
-  // consume ]
-  pdsReadByte(stream);
+  // consume ], we know it's a ']' since it's the only way to break out of loop
+  PULE_assert(pdsReadByte(stream) == ']');
   // consume ','
-  while (::isWhitespace(puleStreamPeekByte(stream))) {
+  while (
+    !pdsIsDone(stream)
+    && ::isWhitespace(puleStreamPeekByte(stream))
+  ) {
     pdsReadByte(stream);
   }
-  pdsReadByte(stream);
+  if (pdsIsDone(stream)) {
+    PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
+    return {0};
+  }
+  if (pdsReadByte(stream) != ',') {
+    PULE_error(PuleErrorAssetPds_decode, "expected ',' after array");
+    return {0};
+  }
 
   return object;
 }
@@ -305,7 +354,7 @@ PuleDsValue pdsParseObject(
 ) {
   char character = ' ';
   while (!inObject && character != '{') {
-    if (puleStreamReadIsDone(stream)) {
+    if (pdsIsDone(stream)) {
       PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
       return {0};
     }
@@ -315,10 +364,13 @@ PuleDsValue pdsParseObject(
   PuleDsValue object = puleDsCreateObject(allocator);
   while (true) {
     // skip whitespace
-    while (::isWhitespace(puleStreamPeekByte(stream))) {
+    while (
+      !pdsIsDone(stream)
+      && ::isWhitespace(puleStreamPeekByte(stream))
+    ) {
       pdsReadByte(stream);
     }
-    if (puleStreamReadIsDone(stream)) {
+    if (pdsIsDone(stream)) {
       PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
       return {0};
     }
@@ -338,13 +390,23 @@ PuleDsValue pdsParseObject(
     if (error->id) { return {0}; }
   }
 
-  // consume }
-  pdsReadByte(stream);
+  // consume }, we know it's a '}' since it's the only way to break out of loop
+  PULE_assert(pdsReadByte(stream) == '}');
   // consume ','
-  while (::isWhitespace(puleStreamPeekByte(stream))) {
+  while (
+    !pdsIsDone(stream)
+    && ::isWhitespace(puleStreamPeekByte(stream))
+  ) {
     pdsReadByte(stream);
   }
-  pdsReadByte(stream);
+  if (pdsIsDone(stream)) {
+    PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing object");
+    return {0};
+  }
+  if (pdsReadByte(stream) != ',') {
+    PULE_error(PuleErrorAssetPds_decode, "expected ',' after object");
+    return {0};
+  }
 
   return object;
 }
@@ -354,8 +416,15 @@ PuleDsValue pdsParseValue(
   PuleStreamRead const stream,
   PuleError * const error
 ) {
-  while (::isWhitespace(puleStreamPeekByte(stream))) {
+  while (
+    !pdsIsDone(stream)
+    && ::isWhitespace(puleStreamPeekByte(stream))
+  ) {
     pdsReadByte(stream);
+  }
+  if (pdsIsDone(stream)) {
+    PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing value");
+    return {0};
   }
   char character = pdsReadByte(stream);
 
@@ -374,6 +443,10 @@ PuleDsValue pdsParseValue(
     char prevChar = '\\';
     bool inString = character == '"';
     while (true) {
+      if (pdsIsDone(stream)) {
+        PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing value");
+        return {0};
+      }
       prevChar = character;
       character = pdsReadByte(stream);
 
@@ -385,12 +458,20 @@ PuleDsValue pdsParseValue(
 
       if (inString && prevChar != '\\' && character == '"') {
         // get & consume to the ','
-        while (::isWhitespace(puleStreamPeekByte(stream))) {
+        while (
+          !pdsIsDone(stream)
+          && ::isWhitespace(puleStreamPeekByte(stream))
+        ) {
           pdsReadByte(stream);
         }
-        [[maybe_unused]]
-        char const c = pdsReadByte(stream);
-        PULE_assert(c == ',');
+        if (pdsIsDone(stream)) {
+          PULE_error(PuleErrorAssetPds_decode, "hit EOF while parsing value");
+          return {0};
+        }
+        if (pdsReadByte(stream) != ',') {
+          PULE_error(PuleErrorAssetPds_decode, "expected ',' after string");
+          return {0};
+        }
         break;
       }
 
@@ -450,7 +531,50 @@ PuleDsValue pdsParseValue(
 
   // parse float, example, 0.0 3238.238230
   if (value.find_first_of('.') != std::string::npos) {
+    // assert all characters are digits
+    bool hasDot = false;
+    // it's not safe to end with '.'
+    if (value.ends_with('.')) {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "could not parse float value from: '%s', ends with '.'", value.c_str()
+      );
+      return {0};
+    }
+    // unless it's proceeded by an 'f'
+    if (value.ends_with('f')) {
+      value = value.substr(0, value.size()-1);
+    }
+    // check all characters are digits, and no repeating '.'
+    for (auto ch : value) {
+      if (hasDot && ch == '.') {
+        PULE_error(
+          PuleErrorAssetPds_decode,
+          "could not parse float value from: '%s', multiple '.'", value.c_str()
+        );
+        return {0};
+      }
+      if (!(ch >= '0' && ch <= '9') && ch != '.') {
+        PULE_error(
+          PuleErrorAssetPds_decode,
+          "could not parse float value from: '%s', multiple '.'", value.c_str()
+        );
+        return {0};
+      }
+      hasDot = ch == '.';
+    }
     return puleDsCreateF64(std::stod(value));
+  }
+
+  // make sure all characters are digits
+  for (auto ch : value) {
+    if (ch < '0' || ch > '9') {
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "could not parse int value from: '%s'", value.c_str()
+      );
+      return {0};
+    }
   }
 
   return puleDsCreateI64(parseDec(value, error));
@@ -468,13 +592,13 @@ PuleDsValue puleAssetPdsLoadFromStream(
   (void)error;
   auto const defaultObject = puleDsCreateObject(allocator);
 
-  while (!puleStreamReadIsDone(stream)) {
+  while (!pdsIsDone(stream)) {
     // skip whitespace
     if (::isWhitespace(puleStreamPeekByte(stream))) {
       pdsReadByte(stream);
       continue;
     }
-    if (puleStreamReadIsDone(stream)) { break; }
+    if (pdsIsDone(stream)) { break; }
     std::string const memberLabel = pdsParseLabel(stream, error);
     if (error->id) {
       puleDsDestroy(defaultObject);

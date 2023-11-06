@@ -113,6 +113,14 @@ void pdsIterateWriteToStream(
       out += info.prettyPrint ? "},\n" : "},";
     }
   }
+  else
+  if (puleDsIsBuffer(info.head)) {
+    PuleDsValueBuffer const buffer = puleDsAsBuffer(info.head);
+    out += "buffer(len=" + std::to_string(buffer.byteLength) + "),";
+    if (info.prettyPrint) {
+      out += "\n";
+    }
+  }
   else {
     puleLogError("Could not get underlying type for: %d", info.head.id);
   }

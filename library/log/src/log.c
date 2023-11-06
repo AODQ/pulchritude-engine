@@ -84,6 +84,7 @@ static void logger(
     void * callstack[128];
     int32_t const numFrames = backtrace(callstack, 128);
     char ** const symbols = backtrace_symbols(callstack, numFrames);
+    printf("\t");
     if (symbols != NULL) {
       for (int32_t i = 1; i < numFrames; ++ i) { // skip log function
         char * const parenStr = strchr(symbols[i], '(');
