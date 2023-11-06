@@ -4,7 +4,7 @@ target_include_directories(pulchritude-error PUBLIC "../include/")
 target_sources(
   pulchritude-error
   PRIVATE
-    src/error.c
+    src/error.cpp
 )
 
 set_target_properties(

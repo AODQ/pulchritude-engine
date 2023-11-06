@@ -50,9 +50,6 @@ static void logger(
     return;
   }
 
-  if (logType == LogType_warn || logType == LogType_error) {
-    printf("\n");
-  }
   if (standardFormatting) {
     switch (logType) {
       case LogType_debug:
@@ -102,7 +99,7 @@ static void logger(
       }
       free(symbols);
     }
-    printf("\n");
+    printf("\n\n");
   }
 }
 

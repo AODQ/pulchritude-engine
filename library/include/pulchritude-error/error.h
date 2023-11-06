@@ -19,9 +19,13 @@ typedef struct PuleError {
 
 PULE_exportFn PuleError puleError();
 
+// deallocates memory used by error, does not log
+PULE_exportFn void puleErrorDestroy(PuleError * const error);
+
 // consumes error , logging the error appropiately with puleLog, returning the
 //   ID of the error, and deallocating the description
 PULE_exportFn uint32_t puleErrorConsume(PuleError * const error);
+
 
 PULE_exportFn bool puleErrorExists(PuleError * const error);
 
