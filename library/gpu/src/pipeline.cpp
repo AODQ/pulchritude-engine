@@ -329,7 +329,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .logicOpEnable = VK_TRUE,
+    .logicOpEnable = VK_FALSE,
     .logicOp = VK_LOGIC_OP_COPY,
     .attachmentCount = (uint32_t)attachments.size(),
     .pAttachments = attachments.data(),

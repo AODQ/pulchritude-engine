@@ -95,6 +95,52 @@ static void generateMasterCmakefile(PuleDsValue const projectValue) {
   dumpToFile("build-husk/CMakeLists.txt", cmakeContents);
 }
 
+static void generateAssets(PuleDsValue const projectValue) {
+  PuleDsValue const assetsValue = (
+    puleDsObjectMember(projectValue, "assets")
+  );
+  if (assetsValue.id == 0) { return; }
+  PuleDsValueArray const assetShaders = (
+    puleDsMemberAsArray(assetsValue, "compile-shaders")
+  );
+  // TODO this should be in the cmake file probably, idk
+  for (size_t shaderIt = 0; shaderIt < assetShaders.length; ++ shaderIt) {
+    PuleDsValue const shader = assetShaders.values[shaderIt];
+    PuleStringView const shaderType = puleDsMemberAsString(shader, "type");
+    if (puleStringViewEqCStr(shaderType, "render")) {
+      PuleStringView const fragmentPath = (
+        puleDsMemberAsString(shader, "fragment-path")
+      );
+      PuleStringView const vertexPath = (
+        puleDsMemberAsString(shader, "vertex-path")
+      );
+      puleLog(
+        "Compiling shader: %s | %s",
+        fragmentPath.contents, vertexPath.contents
+      );
+      // TODO this is pretty gross, but it works for now
+      system(
+        (
+          std::string("cd assets/")
+          + std::string("; glslangValidator -V -o ")
+          + std::string(fragmentPath.contents)
+          + std::string(".spv ")
+          + std::string(fragmentPath.contents)
+        ).c_str()
+      );
+      system(
+        (
+          std::string("cd assets/")
+          + std::string("; glslangValidator -V -o ")
+          + std::string(vertexPath.contents)
+          + std::string(".spv ")
+          + std::string(vertexPath.contents)
+        ).c_str()
+      );
+    }
+  }
+}
+
 // will generate list of source files for consumption by CMake `target_sources`
 static std::string generateCmakeSourceFiles(PuleDsValueArray const files) {
   std::string sourceFiles;
@@ -323,6 +369,10 @@ static bool generateBuildHusk() {
       generatePluginCmakefile(plugins.values[pluginIt]);
     }
   }
+
+  // generate assets
+  puleLogDebug("Generating assets");
+  generateAssets(projectValue);
 
   puleLogDebug("Finished preparing for build");
   return true;
