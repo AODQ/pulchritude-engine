@@ -66,9 +66,9 @@ void puleAssetModelLoad(
       std::vector<PuleAssetPdsDescription> serializeDescription = {
         { &attribute.bufferIndex, "buffer-index", "{usize}", },
         { &attribute.bufferByteOffset, "buffer-byte-offset", "{usize}", },
-        { &attribute.bufferByteStride, "buffer-byte-stride", "{size}", },
+        { &attribute.bufferByteStride, "buffer-byte-stride", "{usize}", },
         { &attribute.componentDataType, "component-data-type", "{i32}", },
-        { &attribute.elementCount, "element-count", "{usize}", },
+        { &attribute.componentsPerVertex, "components-per-vertex", "{i32}", },
       };
       puleAssetPdsDeserialize({
         .value = attributeValue,
@@ -98,6 +98,11 @@ void puleAssetModelLoad(
       PULE_error(PuleErrorAssetModel_decode, "failed to deserialize mesh");
       return;
     }
+    mesh.attributeElementCount = (
+      puleDsAsUSize(
+        puleDsObjectMember(meshes.values[meshIt], "attribute-element-count")
+      )
+    );
     mesh.verticesToDispatch = (
       puleDsAsUSize(
         puleDsObjectMember(meshes.values[meshIt], "vertices-to-dispatch")

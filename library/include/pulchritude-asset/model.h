@@ -64,7 +64,6 @@ typedef struct {
   size_t bufferByteStride;
   PuleAssetMeshComponentDataType componentDataType;
   uint32_t componentsPerVertex; // Must be 1, 2, 3, or 4
-  size_t elementCount;
 } PuleAssetMeshAttribute;
 
 typedef struct {
@@ -78,6 +77,7 @@ typedef struct {
   PuleAssetMeshAttribute attributes[PuleAssetMeshAttributeType_size];
   PuleAssetMeshElement element;
   size_t verticesToDispatch; // aka 'draw count'
+  size_t attributeElementCount;
 } PuleAssetMesh;
 
 typedef struct {
