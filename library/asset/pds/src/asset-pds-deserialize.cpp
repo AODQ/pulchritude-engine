@@ -32,7 +32,10 @@ void puleAssetPdsDeserialize(
     PuleAssetPdsDescription const description = info.descriptions[it];
     PuleDsValue const value = puleDsObjectMember(info.value, description.label);
     if (value.id == 0) {
-      PULE_error(PuleErrorAssetPds_decode, "label missing");
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "label missing: '%s'", description.label
+      );
       return;
     }
     if (description.format == nullptr) {
@@ -59,7 +62,10 @@ void puleAssetPdsDeserialize(
     else if Memcpy("{f32}", puleDsAsF32)
     else if Memcpy("{bool}", puleDsAsBool)
     else {
-      PULE_error(PuleErrorAssetPds_decode, "format not supported");
+      PULE_error(
+        PuleErrorAssetPds_decode,
+        "format not supported: %s", description.format
+      );
       return;
     }
 

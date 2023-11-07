@@ -249,7 +249,8 @@ int64_t parseDec(std::string const & value, PuleError * const error) {
 
 PuleDsValue parseBuffer(
   PuleAllocator const allocator,
-  PuleStringView const stringView
+  PuleStringView const stringView,
+  PuleError * const error
 ) {
   std::vector<uint8_t> buffer;
 
@@ -261,9 +262,15 @@ PuleDsValue parseBuffer(
     hasInstantiatedDecodeTable = true;
   }
 
-  PULE_assert(stringView.len % 4 == 0);
+  if (stringView.len % 4 != 0) {
+    PULE_error(
+      PuleErrorAssetPds_decode,
+      "base64 buffer length must be a multiple of 4"
+    );
+    return {0};
+  }
 
-  for (size_t it = 0; it < stringView.len; ++ it) {
+  for (size_t it = 0; it < stringView.len;) {
     int32_t value = 0;
     for (size_t baseIt = 0; baseIt < 4; ++ baseIt) {
       value = (
@@ -524,7 +531,8 @@ PuleDsValue pdsParseValue(
     return (
       parseBuffer(
         allocator,
-        PuleStringView{.contents = value.c_str()+2, .len = value.size()-3,}
+        PuleStringView{.contents = value.c_str()+2, .len = value.size()-3,},
+        error
       )
     );
   }
