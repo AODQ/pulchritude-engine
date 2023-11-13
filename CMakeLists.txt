@@ -5,6 +5,11 @@ cmake_policy(VERSION 3.0)
 # unless turned off here, features should only be here (and enabled) under
 #   puldev or below
 
+option(PULCHRITUDE_FEATURE_COMPILER "pulchritude-compiler" ON)
+if (PULCHRITUDE_FEATURE_COMPILER)
+  add_compile_definitions(PULCHRITUDE_FEATURE_COMPILER)
+endif()
+
 option(PULCHRITUDE_FEATURE_TEXT "pulchritude-text" ON)
 if (PULCHRITUDE_FEATURE_TEXT)
   add_compile_definitions(PULCHRITUDE_FEATURE_TEXT)

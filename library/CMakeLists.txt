@@ -38,3 +38,7 @@ endif()
 if (PULCHRITUDE_FEATURE_NET)
   add_subdirectory(net)
 endif()
+
+if (PULCHRITUDE_FEATURE_COMPILER)
+  add_subdirectory(compiler)
+endif()
