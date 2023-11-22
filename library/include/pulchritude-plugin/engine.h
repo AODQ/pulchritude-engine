@@ -11,6 +11,7 @@
 #include <pulchritude-asset/render-graph.h>
 #include <pulchritude-asset/shader-module.h>
 #include <pulchritude-asset/font.h>
+#include <pulchritude-asset/model-simple.h>
 #include <pulchritude-camera/camera.h>
 #include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-ecs-serializer/ecs-serializer.h>
@@ -46,6 +47,9 @@
 #include <pulchritude-render-graph/render-graph.h>
 #include <pulchritude-text/text.h>
 #include <pulchritude-net/net.h>
+#include <pulchritude-compiler/compiler.h>
+#include <pulchritude-parser/parser.h>
+#include <pulchritude-engine-language/engine-language.h>
 
 
 typedef struct PuleEngineLayer {
@@ -78,6 +82,8 @@ typedef struct PuleEngineLayer {
   void (* assetTiledMapDestroy)(PuleAssetTiledMap const);
   // asset-model
   void (* assetModelLoad)(PuleAssetModelLoadInfo const, PuleError * const);
+  size_t (* assetMeshAttributeComponentDataTypeByteSize)(PuleAssetMeshAttributeComponentDataType const);
+  void (* assetModelConvertAttributeBuffer)(PuleAssetModelConvertAttributeInfo const);
   // asset-pds
   PuleDsValue (* assetPdsLoadFromStream)(PuleAllocator const, PuleStreamRead const, PuleError * const);
   PuleDsValue (* assetPdsLoadFromRvalStream)(PuleAllocator const, PuleStreamRead const, PuleError * const);
@@ -100,6 +106,8 @@ typedef struct PuleEngineLayer {
   PuleAssetFont (* assetFontLoadFromPath)(PuleStringView const, PuleError * const);
   void (* assetFontDestroy)(PuleAssetFont const);
   void (* assetFontRenderToU8Buffer)(PuleAssetFontRenderInfo const, PuleError * const);
+  // asset-model-simple
+  PuleRenderer3DModel (* assetModelSimpleLoad)(PuleStringView const, PuleAllocator const, PuleError * const);
   // camera
   PuleCamera (* cameraCreate)();
   void (* cameraDestroy)(PuleCamera);
@@ -205,6 +213,7 @@ typedef struct PuleEngineLayer {
   void (* ecsQueryIteratorDestroy)(PuleEcsQueryIterator const);
   // error
   PuleError (* error)();
+  void (* errorDestroy)(PuleError * const);
   uint32_t (* errorConsume)(PuleError * const);
   bool (* errorExists)(PuleError * const);
   void (* errorPropagate)(PuleError * const, PuleError const);
@@ -362,9 +371,11 @@ typedef struct PuleEngineLayer {
   // raycast
   PuleRaycastTriangleResult (* raycastTriangles)(PuleF32v3 const, PuleF32v3 const, PuleArrayView const);
   // renderer-3d
-  PuleRenderer3D (* renderer3DCreate)(PuleEcsWorld const, PulePlatform const);
-  PuleEcsSystem (* renderer3DEcsSystem)(PuleRenderer3D const);
-  PuleEcsComponent (* renderer3DAttachComponentRender)(PuleEcsWorld const, PuleRenderer3D const, PuleEcsEntity const, PuleRenderer3DModel const);
+  PuleRenderer3DMaterial (* renderer3DMaterialCreateDefault)();
+  void (* renderer3DMaterialDestroy)(PuleRenderer3DMaterial const);
+  PuleRenderer3DModel (* renderer3DModelCreate)(PuleRenderer3DModelCreateInfo const);
+  void (* renderer3DDestroyModel)(PuleRenderer3DModel const);
+  void (* renderer3DModelRender)(PuleGpuCommandListRecorder const, PuleRenderer3DModel const, PuleF32m44 const);
   // script
   PuleScriptContext (* scriptContextCreate)();
   void (* scriptContextDestroy)(PuleScriptContext const);
@@ -389,6 +400,7 @@ typedef struct PuleEngineLayer {
   uint8_t (* streamPeekByte)(PuleStreamRead const);
   bool (* streamReadIsDone)(PuleStreamRead const);
   void (* streamReadDestroy)(PuleStreamRead const);
+  PuleBuffer (* streamDumpToBuffer)(PuleStreamRead const);
   PuleStreamRead (* streamReadFromString)(PuleStringView const);
   void (* streamWriteBytes)(PuleStreamWrite const, uint8_t const * const, size_t const);
   void (* streamWriteFlush)(PuleStreamWrite const);
@@ -493,7 +505,7 @@ typedef struct PuleEngineLayer {
   PuleString (* gpuResourceBarrierStageLabel)(PuleGpuResourceBarrierStage const);
   PuleString (* gpuResourceAccessLabel)(PuleGpuResourceAccess const);
   PuleGpuPipelineLayoutDescriptorSet (* gpuPipelineDescriptorSetLayout)();
-  PuleGpuPipeline (* gpuPipelineCreate)(PuleGpuPipelineCreateInfo const * const, PuleError * const);
+  PuleGpuPipeline (* gpuPipelineCreate)(PuleGpuPipelineCreateInfo const, PuleError * const);
   void (* gpuPipelineDestroy)(PuleGpuPipeline const);
   // physx
   PulePhysxCollisionResultShape (* physxRaycastShape)(PulePhysxMode const, PulePhysxRay const, PuleF32m44 const, PulePhysxCollisionShape const);
@@ -546,6 +558,30 @@ typedef struct PuleEngineLayer {
   bool (* netClientConnected)(PuleNetClient const);
   void (* netClientPoll)(PuleNetClient const);
   void (* netClientSendPacket)(PuleNetClient const, PuleNetPacketSend const, PuleError * const);
+  // compiler
+  PuleIRJitEngine (* iRJitEngineCreate)(PuleIRJitEngineCreateInfo const);
+  void (* iRJitEngineDestroy)(PuleIRJitEngine const);
+  void (* iRJitEngineAddModule)(PuleIRJitEngine const, PuleIRModule const);
+  void * (* iRJitEngineFunctionAddress)(PuleIRJitEngine const, PuleStringView const);
+  // parser
+  PuleParser (* parserCreate)();
+  void (* parserDestroy)(PuleParser const);
+  PuleParser (* parserCreateFromString)(PuleStringView const, PuleError * const);
+  PuleParser (* parserCreateForDefaultExpressionGrammar)();
+  PuleParserRegexToken (* parserRegexTokenCreate)(PuleParser const, PuleStringView const);
+  PuleParserGroup (* parserGroupCreate)(PuleParser const, PuleParserRuleNode * const, size_t const);
+  PuleParserRule (* parserRuleCreate)(PuleParserRuleCreateInfo const);
+  void (* parserRuleSetNodes)(PuleParser const, PuleParserRule const, PuleParserRuleNode * const, size_t const);
+  PuleParserRule (* parserRule)(PuleParser const, PuleStringView const);
+  void (* parserDump)(PuleParser const);
+  PuleParserAst (* parserAstCreate)(PuleParser const, PuleStringView const, PuleParserRule const, PuleError * const);
+  void (* parserAstDestroy)(PuleParserAst const);
+  PuleParserAstNode (* parserAstRoot)(PuleParserAst const);
+  PuleParserAstNode (* parserAstNodeChild)(PuleParserAstNode const, size_t const);
+  void (* parserAstNodeDump)(PuleParserAstNode const);
+  void (* parserAstNodeDumpShallow)(PuleParserAstNode const);
+  // engine-language
+  PuleIRModule (* eLModuleCreate)(PuleStreamRead const, PuleError * const);
 } PuleEngineLayer;
 
 

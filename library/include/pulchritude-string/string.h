@@ -30,9 +30,9 @@ typedef struct {
 // been modified. If it's not self-evident, they are terrible choices for
 // long-term storage, but are excellent to pass immutable data between
 // interfaces.
-typedef struct {
-  char const * contents;
-  size_t len; // TODO rename to byteLen, as not to confuse with utf char count
+typedef struct PuleStringView {
+  char const * contents PULE_param(nullptr);
+  size_t len PULE_param(0); // TODO rename to byteLen
 } PuleStringView;
 
 PULE_exportFn PuleString puleStringDefault(char const * const baseContents);

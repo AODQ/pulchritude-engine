@@ -47,6 +47,7 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
     puleLogDebug("freeing memory at ", info.numBytes, info.alignment);
     free(reallocatedMemory);
     reallocatedMemory = aligned_alloc(info.numBytes, info.alignment);
+    // TODO won't this not work since no memcpy of original data?
     puleLogDebug(
       "[%p] aligned alloc",
       reallocatedMemory, info.numBytes, info.alignment

@@ -114,7 +114,7 @@ typedef struct {
 
 typedef struct {
   PuleGpuShaderModule shaderModule;
-  PuleGpuPipelineLayoutDescriptorSet const * layoutDescriptorSet;
+  PuleGpuPipelineLayoutDescriptorSet layoutDescriptorSet;
   PuleGpuPipelineLayoutPushConstant const * layoutPushConstants;
   size_t layoutPushConstantsCount;
   PuleGpuPipelineConfig config;
@@ -125,7 +125,7 @@ typedef struct {
 } PuleGpuPipeline;
 
 PULE_exportFn PuleGpuPipeline puleGpuPipelineCreate(
-  PuleGpuPipelineCreateInfo const * const createInfo,
+  PuleGpuPipelineCreateInfo const createInfo,
   PuleError * const error
 );
 

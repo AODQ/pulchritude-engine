@@ -4,9 +4,16 @@
 //   to play with LLVM, and not to be used in any actual code.
 
 #include <pulchritude-error/error.h>
+#include <pulchritude-time/time.h>
 
 #include <llvm-c/Core.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/IRReader.h>
+#include <llvm-c/LLJIT.h>
+#include <llvm-c/Orc.h>
 
+#include <atomic>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -27,6 +34,7 @@ struct Value {
 struct ModuleInfo {
   LLVMContextRef context;
   LLVMModuleRef module;
+  std::string moduleName; // seems LLVM C-API doesn't interface module::getName
   pule::ResourceContainer<LLVMBuilderRef> builders;
   pule::ResourceContainer<Type> types;
   pule::ResourceContainer<Value> values;
@@ -34,23 +42,47 @@ struct ModuleInfo {
 };
 
 
-pule::ResourceContainer<pint::ModuleInfo> modules;
+pule::ResourceContainer<pint::ModuleInfo, PuleIRModule> modules;
 };
 
 extern "C" {
 
 // -- modules ------------------------------------------------------------------
 
-PuleIRModule puleIRModuleCreate(PuleStringView const label) {
+PuleIRModule puleIRModuleCreate(PuleIRModuleCreateInfo const ci) {
   pint::ModuleInfo moduleInfo;
+
   moduleInfo.context = LLVMContextCreate();
   moduleInfo.module = (
-    LLVMModuleCreateWithNameInContext(label.contents, moduleInfo.context)
+    LLVMModuleCreateWithNameInContext(ci.label.contents, moduleInfo.context)
   );
+  moduleInfo.moduleName = std::string(ci.label.contents);
 
 
-  PuleIRModule puModule = { .id = pint::modules.create(moduleInfo), };
-  auto & module = *pint::modules.at(puModule.id);
+  PuleIRModule puModule = pint::modules.create(moduleInfo);
+  auto & module = *pint::modules.at(puModule);
+
+  if (ci.ir.contents != nullptr) {
+    char * error = nullptr;
+    if (
+      LLVMParseIRInContext(
+        module.context,
+        LLVMCreateMemoryBufferWithMemoryRange(
+          ci.ir.contents,
+          ci.ir.len,
+          "",
+          false
+        ),
+        &module.module,
+        &error
+      )
+    ) {
+      puleLogError("failed to parse IR: %s", error);
+      LLVMDisposeMessage(error);
+      return { .id = 0 };
+    }
+    return puModule;
+  }
 
   auto & type = module.types;
   auto & genericType = module.genericTypes;
@@ -59,7 +91,12 @@ PuleIRModule puleIRModuleCreate(PuleStringView const label) {
   puleLog("creating ir module");
 
   // build all the generic data types
-  for (auto & it : { std::pair<LLVMTypeRef (*)(LLVMContextRef), std::pair<PuleIRDataType, char const *>>
+  for (
+    auto & it : {
+      std::pair<
+        LLVMTypeRef (*)(LLVMContextRef),
+        std::pair<PuleIRDataType, char const *>
+      >
     { &LLVMInt8TypeInContext,     { PuleIRDataType_u8, "PuleIRDataType_u8", }, },
     { &LLVMInt16TypeInContext,    { PuleIRDataType_u16, "PuleIRDataType_u16 ", }, },
     { &LLVMInt32TypeInContext,    { PuleIRDataType_u32, "PuleIRDataType_u32 ", }, },
@@ -100,7 +137,7 @@ PuleIRModule puleIRModuleCreate(PuleStringView const label) {
 }
 
 void puleIRModuleDestroy(PuleIRModule const module) {
-  auto moduleInfo = pint::modules.at(module.id);
+  auto moduleInfo = pint::modules.at(module);
   for (auto & builder : moduleInfo->builders) {
     LLVMDisposeBuilder(builder.second);
   }
@@ -108,19 +145,201 @@ void puleIRModuleDestroy(PuleIRModule const module) {
   LLVMContextDispose(moduleInfo->context);
 }
 
-void puleIRModuleDump(PuleIRModule const module, PuleStringView const path) {
-  auto moduleInfo = pint::modules.at(module.id);
-  LLVMPrintModuleToFile(
-    moduleInfo->module,
-    path.contents,
-    nullptr
+void puleIRModuleDump(PuleIRModule const module) {
+  auto moduleInfo = pint::modules.at(module);
+  auto str = LLVMPrintModuleToString(moduleInfo->module);
+  puleLog("%s", str);
+  LLVMDisposeMessage(str);
+}
+
+// -- jit engine ---------------------------------------------------------------
+
+namespace pint {
+
+struct JITEngine {
+  std::unordered_map<std::string, LLVMOrcJITDylibRef> dylib;
+  std::vector<LLVMOrcMaterializationUnitRef> engineMaterializationUnits;
+  LLVMOrcThreadSafeContextRef context;
+  LLVMOrcLLJITBuilderRef builder;
+  LLVMOrcLLJITRef jit;
+  LLVMOrcExecutionSessionRef executionSession;
+  LLVMOrcObjectLinkingLayerRef objectLayer;
+  LLVMTargetMachineRef targetMachine;
+};
+
+
+pule::ResourceContainer<pint::JITEngine, PuleIRJitEngine> jitEngines;
+bool jitInitialized = false;
+
+} // namespace
+
+
+PuleIRJitEngine puleIRJitEngineCreate(PuleIRJitEngineCreateInfo const ci) {
+  if (!pint::jitInitialized) {
+    pint::jitInitialized = true;
+    LLVMInitializeNativeTarget();
+    LLVMInitializeNativeAsmPrinter();
+    LLVMLinkInMCJIT();
+  }
+
+  char * defaultTriple = LLVMGetDefaultTargetTriple();
+  char * error = nullptr;
+  LLVMTargetRef target = nullptr;
+  if (LLVMGetTargetFromTriple(defaultTriple, &target, &error)) {
+    puleLogError("failed to get target from triple: %s", error);
+    LLVMDisposeMessage(error);
+    return { .id = 0 };
+  }
+
+  if (!LLVMTargetHasJIT(target)) {
+    puleLogError("target does not support JIT");
+    return { .id = 0 };
+  }
+
+  LLVMOrcLLJITBuilderRef builder = LLVMOrcCreateLLJITBuilder();
+  LLVMOrcLLJITRef jit;
+  LLVMOrcCreateLLJIT(&jit, builder);
+
+  pint::JITEngine jitEngine = {
+    .dylib = {},
+    .context = LLVMOrcCreateNewThreadSafeContext(),
+    .builder = builder,
+    .jit = jit,
+    .executionSession = LLVMOrcLLJITGetExecutionSession(jit),
+    .objectLayer = {},
+    .targetMachine = (
+      LLVMCreateTargetMachine(
+        target, defaultTriple, "", "",
+        LLVMCodeGenLevelDefault,
+        LLVMRelocDefault, // probably need to use LLVMRelocPIC
+        LLVMCodeModelJITDefault
+      )
+    )
+  };
+
+  if (ci.insertEngineSymbols) {
+    #define orcSym(name) \
+      { \
+        LLVMOrcExecutionSessionIntern(jitEngine.executionSession, #name), \
+        LLVMJITEvaluatedSymbol { \
+          .Address = (uint64_t)(void *)name, \
+          .Flags = { \
+            .GenericFlags = LLVMJITSymbolGenericFlagsCallable, \
+            .TargetFlags = 0, \
+          }, \
+        }, \
+      }
+    std::vector<LLVMOrcCSymbolMapPair> symbolMap = {
+      orcSym(puleLog),
+      orcSym(puleCStr),
+    };
+    #undef orcSym
+    jitEngine.engineMaterializationUnits.emplace_back(
+      LLVMOrcAbsoluteSymbols(symbolMap.data(), symbolMap.size())
+    );
+  }
+
+  return pint::jitEngines.create(jitEngine);
+}
+void puleIRJitEngineDestroy(PuleIRJitEngine const jitEngine) {
+  // TODO
+  (void)jitEngine;
+}
+
+void puleIRJitEngineAddModule(
+  PuleIRJitEngine const jitEngine,
+  PuleIRModule const module
+) {
+  auto jit = pint::jitEngines.at(jitEngine);
+  auto moduleInfo = pint::modules.at(module);
+
+  // TODO check if the name exists, and if so remove old one from the
+  //      execution session
+
+  LLVMOrcJITDylibRef dylib = (
+    LLVMOrcExecutionSessionCreateBareJITDylib(
+      jit->executionSession,
+      moduleInfo->moduleName.c_str()
+    )
   );
+  jit->dylib.emplace(moduleInfo->moduleName, dylib);
+
+  // move the LLVM module to the ORC context
+  LLVMOrcThreadSafeModuleRef orcModule = (
+    LLVMOrcCreateNewThreadSafeModule(moduleInfo->module, jit->context)
+  );
+
+  // add the dylib to the jit session
+  LLVMOrcLLJITAddLLVMIRModule(jit->jit, dylib, orcModule);
+
+  // add materialization units
+  for (auto & mu : jit->engineMaterializationUnits) {
+    LLVMOrcJITDylibDefine(dylib, mu);
+  }
+}
+
+typedef struct {
+  std::atomic<bool> found;
+  uint64_t address;
+} pulintIRJITLookupContext;
+
+static void pulintIRJitLookupCallback(
+  LLVMErrorRef error,
+  LLVMOrcCSymbolMapPairs result, size_t numPairs,
+  void * ctx
+) {
+  PULE_assert(numPairs != 0 && "couldn't find the symbol");
+  PULE_assert(numPairs == 1 && "only one lookup at a time");
+  auto & context = *reinterpret_cast<pulintIRJITLookupContext *>(ctx);
+  context.address = result[0].Sym.Address;
+  context.found = true;
+  (void)error;
+}
+
+
+void * puleIRJitEngineFunctionAddress(
+  PuleIRJitEngine const jitEngine,
+  PuleStringView const functionName
+) {
+  auto const & jit = pint::jitEngines.at(jitEngine);
+  std::vector<LLVMOrcCJITDylibSearchOrderElement> dylibs;
+  for (auto & it : jit->dylib) {
+    dylibs.emplace_back(LLVMOrcCJITDylibSearchOrderElement{
+      .JD = it.second,
+      .JDLookupFlags = LLVMOrcJITDylibLookupFlagsMatchExportedSymbolsOnly,
+    });
+  }
+  auto symbolPoolRef = (
+    LLVMOrcExecutionSessionIntern(jit->executionSession, functionName.contents)
+  );
+  LLVMOrcCLookupSetElement symbol = {
+    .Name = symbolPoolRef,
+    .LookupFlags = LLVMOrcSymbolLookupFlagsRequiredSymbol,
+  };
+
+  auto lookupCtx = pulintIRJITLookupContext {};
+  LLVMOrcExecutionSessionLookup(
+    jit->executionSession,
+    LLVMOrcLookupKindDLSym,
+    dylibs.data(), dylibs.size(),
+    &symbol, 1,
+    pulintIRJitLookupCallback, &lookupCtx
+  );
+
+  LLVMOrcReleaseSymbolStringPoolEntry(symbolPoolRef);
+
+  while (true) {
+    if (lookupCtx.found) { break; }
+    puleSleepMicrosecond({.valueMicro = 1'000});
+  }
+
+  return (void *)lookupCtx.address;
 }
 
 // -- types --------------------------------------------------------------------
 
 PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
-  auto moduleInfo = pint::modules.at(createInfo.module.id);
+  auto moduleInfo = pint::modules.at(createInfo.module);
   switch (createInfo.type) {
     default: PULE_assert(false && "TODO");
     case PuleIRDataType_u8:
@@ -147,7 +366,7 @@ PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
       return {
         moduleInfo->types.create({
           LLVMFunctionType(
-            moduleInfo->types.at(createInfo.fnInfo.returnType)->type,
+            moduleInfo->types.at(createInfo.fnInfo.returnType.id)->type,
             paramTypes.data(),
             paramTypes.size(),
             createInfo.fnInfo.variadic
@@ -166,7 +385,7 @@ PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
       std::vector<LLVMTypeRef> memberTypes;
       for (size_t i = 0; i < createInfo.structInfo.memberCount; ++ i) {
         memberTypes.emplace_back(
-          moduleInfo->types.at(createInfo.structInfo.memberTypes[i])->type
+          moduleInfo->types.at(createInfo.structInfo.memberTypes[i].id)->type
         );
       }
       LLVMStructSetBody(
@@ -181,7 +400,7 @@ PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
       return {
         moduleInfo->types.create({
           LLVMArrayType(
-            moduleInfo->types.at(createInfo.arrayInfo.elementType)->type,
+            moduleInfo->types.at(createInfo.arrayInfo.elementType.id)->type,
             createInfo.arrayInfo.elementCount
           ),
           createInfo,
@@ -195,7 +414,7 @@ PuleIRDataTypeInfo puleIRTypeInfo(
   PuleIRModule const puModule,
   PuleIRType const type
 ) {
-  return pint::modules.at(puModule.id)->types.at(type.id)->typeInfo;
+  return pint::modules.at(puModule)->types.at(type.id)->typeInfo;
 }
 
 // -- values -------------------------------------------------------------------
@@ -205,7 +424,7 @@ PuleIRType puleIRValueType(
   PuleIRValue const puValue
 ) {
   pint::Value const & value = (
-    *pint::modules.at(puModule.id)->values.at(puValue.id)
+    *pint::modules.at(puModule)->values.at(puValue.id)
   );
   return value.type;
 }
@@ -215,7 +434,7 @@ PuleIRValueKind puleIRValueKind(
   PuleIRValue const puValue
 ) {
   pint::Value const & value = (
-    *pint::modules.at(puModule.id)->values.at(puValue.id)
+    *pint::modules.at(puModule)->values.at(puValue.id)
   );
   return value.kind;
 }
@@ -227,14 +446,14 @@ PuleIRValue puleIRValueVoid() { return { .id = 0 }; }
 PuleIRCodeBlock puleIRCodeBlockCreate(
   PuleIRCodeBlockCreateInfo const createInfo
 ) {
-  auto moduleInfo = pint::modules.at(createInfo.module.id);
+  auto moduleInfo = pint::modules.at(createInfo.module);
   LLVMBuilderRef const builder = (
     LLVMCreateBuilderInContext(moduleInfo->context)
   );
   LLVMBasicBlockRef const block = (
     LLVMAppendBasicBlockInContext(
       moduleInfo->context,
-      moduleInfo->values.at(createInfo.context)->value,
+      moduleInfo->values.at(createInfo.context.id)->value,
       createInfo.label.contents
     )
   );
@@ -243,13 +462,27 @@ PuleIRCodeBlock puleIRCodeBlockCreate(
     .id = reinterpret_cast<uint64_t>(moduleInfo->builders.create(builder)), };
 }
 
+void puleIRCodeBlockTerminate(PuleIRCodeBlockTerminateCreateInfo const ci) {
+  auto & module = *pint::modules.at(ci.module);
+  LLVMBuilderRef builder = module.builders.at(ci.codeBlock.id);
+  switch (ci.type) {
+    case PuleIRCodeBlockTerminateType_ret:
+      if (ci.ret.value.id == 0) {
+        LLVMBuildRetVoid(builder);
+      } else {
+        LLVMBuildRet(builder, module.values.at(ci.ret.value.id)->value);
+      }
+    break;
+  }
+}
+
 // -- value creation -----------------------------------------------------------
 
 PuleIRValue puleIRValueConstCreate(
   PuleIRValueConstCreateInfo const createInfo
 ) {
-  auto & module = *pint::modules.at(createInfo.module.id);
-  auto & type = *module.types.at(createInfo.type);
+  auto & module = *pint::modules.at(createInfo.module);
+  auto & type = *module.types.at(createInfo.type.id);
   PuleIRDataType puDataType = (
     puleIRTypeInfo(createInfo.module, createInfo.type).type
   );
@@ -273,18 +506,31 @@ PuleIRValue puleIRValueConstCreate(
     default: PULE_assert(false && "TODO");
     case PuleIRValueKind_constString: {
       PULE_assert(puDataType == PuleIRDataType_ptr);
+      LLVMTypeRef stringType = (
+        LLVMArrayType(
+          module.types.at(module.genericTypes.at(PuleIRDataType_u8).id)->type,
+          createInfo.constString.string.len+1
+        )
+      );
+      LLVMValueRef globalRef = (
+        LLVMAddGlobal(module.module, stringType, createInfo.label.contents)
+      );
+      LLVMValueRef str = (
+        LLVMConstStringInContext(
+          module.context,
+          createInfo.constString.string.contents,
+          createInfo.constString.string.len,
+          false
+        )
+      );
+      LLVMSetGlobalConstant(globalRef, true);
+      LLVMSetLinkage(globalRef, LLVMPrivateLinkage);
+      LLVMSetInitializer(globalRef, str);
       return {
         module.values.create({
           .type = createInfo.type,
           .kind = PuleIRValueKind_constString,
-          .value = (
-            LLVMConstStringInContext(
-              module.context,
-              createInfo.constString.string.contents,
-              createInfo.constString.string.len,
-              false
-            )
-          )
+          .value = globalRef,
         })
       };
     }
@@ -346,7 +592,7 @@ PuleIRValue puleIRValueConstCreate(
 namespace pint {
 
 PuleIRValue puleIRBuildReturn(PuleIRBuildCreateInfo const ci) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
   if (ci.ret.value.id == 0) {
     LLVMBuildRetVoid(module.builders.at(ci.codeBlock.id));
     return puleIRValueVoid();
@@ -365,7 +611,7 @@ PuleIRValue puleIRBuildReturn(PuleIRBuildCreateInfo const ci) {
   };
 }
 PuleIRValue puleIRBuildCall(PuleIRBuildCreateInfo const ci) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
   // resulting type is the return type of the function
   PuleIRType const returnType = (
     puleIRTypeInfo(
@@ -397,7 +643,7 @@ PuleIRValue puleIRBuildCall(PuleIRBuildCreateInfo const ci) {
 PuleIRValue puleIRBuildAllocate(
   PuleIRBuildCreateInfo const ci
 ) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
   auto & valueSizeInfo = *module.values.at(ci.allocate.valueSize.id);
   if (
     valueSizeInfo.kind != PuleIRValueKind_constInteger
@@ -421,7 +667,7 @@ PuleIRValue puleIRBuildAllocate(
 }
 
 void puleIRBuildFree(PuleIRBuildCreateInfo const ci) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
   LLVMBuildFree(
     module.builders.at(ci.codeBlock.id),
     module.values.at(ci.free.value.id)->value
@@ -429,7 +675,7 @@ void puleIRBuildFree(PuleIRBuildCreateInfo const ci) {
 }
 
 PuleIRValue puleIRBuildLoad(PuleIRBuildCreateInfo const ci) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
   return {
     module.values.create(pint::Value {
       .type = ci.load.type,
@@ -447,7 +693,7 @@ PuleIRValue puleIRBuildLoad(PuleIRBuildCreateInfo const ci) {
 }
 
 void puleIRBuildStore(PuleIRBuildCreateInfo const ci) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
   LLVMBuildStore(
     module.builders.at(ci.codeBlock.id),
     module.values.at(ci.store.value.id)->value,
@@ -456,7 +702,7 @@ void puleIRBuildStore(PuleIRBuildCreateInfo const ci) {
 }
 
 PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
-  auto & module = *pint::modules.at(ci.module.id);
+  auto & module = *pint::modules.at(ci.module);
 
   bool const isBinary = (
        ci.op.type != PuleIROperator_neg

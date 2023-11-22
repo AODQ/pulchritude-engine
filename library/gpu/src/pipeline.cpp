@@ -13,13 +13,13 @@
 namespace {
 
 void createPipelineVertexInputState(
-  PuleGpuPipelineCreateInfo const * const info,
+  PuleGpuPipelineCreateInfo const info,
   std::vector<VkVertexInputBindingDescription> & vtxBuffers,
   std::vector<VkVertexInputAttributeDescription> & vtxAttributes
 ) {
   // attribute bindings
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
-    auto const binding = info->layoutDescriptorSet->attributeBindings[it];
+    auto const binding = info.layoutDescriptorSet.attributeBindings[it];
     if (binding.numComponents == 0) {
       continue;
     }
@@ -39,11 +39,10 @@ void createPipelineVertexInputState(
   }
   // attribute buffer bindings
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
-    auto const binding = info->layoutDescriptorSet->attributeBufferBindings[it];
+    auto const binding = info.layoutDescriptorSet.attributeBufferBindings[it];
     if (binding.stridePerElement == 0) {
       continue;
     }
-    puleLog("Attribute buffer binding %zu stride %zu", it, binding.stridePerElement);
     vtxBuffers.emplace_back( VkVertexInputBindingDescription {
       .binding = (uint32_t)it,
       .stride = (
@@ -55,7 +54,7 @@ void createPipelineVertexInputState(
 }
 
 VkPipelineLayout createPipelineLayout(
-  PuleGpuPipelineCreateInfo const * const info,
+  PuleGpuPipelineCreateInfo const info,
   VkDescriptorSetLayout & descriptorSetLayout
 ) {
   auto setLayouts = std::vector<VkDescriptorSetLayout> { };
@@ -64,7 +63,7 @@ VkPipelineLayout createPipelineLayout(
   );
   // compactStorage buffers
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_uniform; ++ it) {
-    auto bufferStage = info->layoutDescriptorSet->bufferUniformBindings[it];
+    auto bufferStage = info.layoutDescriptorSet.bufferUniformBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)it,
@@ -76,7 +75,7 @@ VkPipelineLayout createPipelineLayout(
   }
   // storage buffers
   for (size_t it = 0; it < puleGpuPipelineDescriptorMax_storage; ++ it) {
-    auto bufferStage = info->layoutDescriptorSet->bufferStorageBindings[it];
+    auto bufferStage = info.layoutDescriptorSet.bufferStorageBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)it,
@@ -92,7 +91,7 @@ VkPipelineLayout createPipelineLayout(
     imageIt < puleGpuPipelineDescriptorMax_texture;
     ++ imageIt
   ) {
-    auto imageStage = info->layoutDescriptorSet->textureBindings[imageIt];
+    auto imageStage = info.layoutDescriptorSet.textureBindings[imageIt];
     if (imageStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)imageIt,
@@ -117,8 +116,8 @@ VkPipelineLayout createPipelineLayout(
     ) == VK_SUCCESS
   );
   std::vector<VkPushConstantRange> pushConstantRanges;
-  for (size_t pcIt = 0; pcIt < info->layoutPushConstantsCount; ++ pcIt) {
-    auto const & pushConstant = info->layoutPushConstants[pcIt];
+  for (size_t pcIt = 0; pcIt < info.layoutPushConstantsCount; ++ pcIt) {
+    auto const & pushConstant = info.layoutPushConstants[pcIt];
     pushConstantRanges.emplace_back( VkPushConstantRange {
       .stageFlags = util::toVkShaderStageFlags(pushConstant.stage),
       .offset = (uint32_t)pushConstant.byteOffset,
@@ -180,11 +179,11 @@ PuleGpuPipelineLayoutDescriptorSet puleGpuPipelineDescriptorSetLayout() {
 }
 
 PuleGpuPipeline puleGpuPipelineCreate(
-  PuleGpuPipelineCreateInfo const * const info,
+  PuleGpuPipelineCreateInfo const info,
   PuleError * const error
 ) {
   auto const shaderModule = (
-    util::ctx().shaderModules.at(info->shaderModule.id)
+    util::ctx().shaderModules.at(info.shaderModule.id)
   );
   std::vector<VkPipelineShaderStageCreateInfo> stageInfo = {
     {
@@ -222,7 +221,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .topology = util::toVkPrimitiveTopology(info->config.drawPrimitive),
+    .topology = util::toVkPrimitiveTopology(info.config.drawPrimitive),
     .primitiveRestartEnable = VK_FALSE,
   };
   auto inputTessellationStateCi = VkPipelineTessellationStateCreateInfo {
@@ -231,8 +230,8 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .flags = 0,
     .patchControlPoints = 0,
   };
-  auto viewportMin = info->config.viewportMin;
-  auto viewportMax = info->config.viewportMax;
+  auto viewportMin = info.config.viewportMin;
+  auto viewportMax = info.config.viewportMax;
   if (
     viewportMin.x == 0.0f && viewportMin.y == 0.0f
     && viewportMax.x == 0.0f && viewportMax.y == 0.0f
@@ -250,12 +249,12 @@ PuleGpuPipeline puleGpuPipelineCreate(
   };
   auto scissor = VkRect2D {
     .offset = VkOffset2D {
-      .x = info->config.scissorMin.x,
-      .y = info->config.scissorMin.y,
+      .x = info.config.scissorMin.x,
+      .y = info.config.scissorMin.y,
     },
     .extent = VkExtent2D {
-      .width = (uint32_t)info->config.scissorMin.x,
-      .height = (uint32_t)info->config.scissorMin.y,
+      .width = (uint32_t)info.config.scissorMin.x,
+      .height = (uint32_t)info.config.scissorMin.y,
     },
   };
   auto viewportStateCi = VkPipelineViewportStateCreateInfo {
@@ -297,8 +296,8 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .depthTestEnable = info->config.depthTestEnabled,
-    .depthWriteEnable = info->config.depthTestEnabled,
+    .depthTestEnable = info.config.depthTestEnabled,
+    .depthWriteEnable = info.config.depthTestEnabled,
     .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
     .depthBoundsTestEnable = VK_TRUE,
     .stencilTestEnable = VK_FALSE,
@@ -341,7 +340,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
   { // if there are any attribute bindings, enable dynamic strides on pipeline
     bool hasAnyAttributeBindings = false;
     for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
-      auto const binding = info->layoutDescriptorSet->attributeBindings[it];
+      auto const binding = info.layoutDescriptorSet.attributeBindings[it];
       if (binding.numComponents == 0) {
         continue;
       }
@@ -364,19 +363,19 @@ PuleGpuPipeline puleGpuPipelineCreate(
     createPipelineLayout(info, descriptorSetLayout)
   );
   VkFormat colorAttachmentFormats[8] = { };
-  for (size_t it = 0; it < info->config.colorAttachmentCount; ++ it) {
+  for (size_t it = 0; it < info.config.colorAttachmentCount; ++ it) {
     colorAttachmentFormats[it] = (
-      util::toVkImageFormat(info->config.colorAttachmentFormats[it])
+      util::toVkImageFormat(info.config.colorAttachmentFormats[it])
     );
   }
   auto const renderCreateInfo = VkPipelineRenderingCreateInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
     .pNext = nullptr,
     .viewMask = 0,
-    .colorAttachmentCount = (uint32_t)info->config.colorAttachmentCount,
+    .colorAttachmentCount = (uint32_t)info.config.colorAttachmentCount,
     .pColorAttachmentFormats = colorAttachmentFormats,
     .depthAttachmentFormat = (
-      util::toVkImageFormat(info->config.depthAttachmentFormat)
+      util::toVkImageFormat(info.config.depthAttachmentFormat)
     ),
     .stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
   };
@@ -421,7 +420,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
     gfxPipelineId,
     util::Pipeline {
       .pipelineHandle = reinterpret_cast<uint64_t>(gfxPipeline),
-      .shaderModuleHandle = info->shaderModule.id,
+      .shaderModuleHandle = info.shaderModule.id,
       .pipelineLayout = pipelineCi.layout,
       .descriptorSetLayout = descriptorSetLayout,
     }

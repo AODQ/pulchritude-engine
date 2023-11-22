@@ -20,10 +20,41 @@ extern "C" {
 
 typedef struct { size_t id; } PuleIRModule;
 
-PuleIRModule puleIRModuleCreate(PuleStringView const label);
+typedef struct PuleIRModuleCreateInfo {
+  PuleStringView label;
+  PuleStringView ir PULE_param({}); // will load the IR into module if not null
+} PuleIRModuleCreateInfo;
+PuleIRModule puleIRModuleCreate(PuleIRModuleCreateInfo const createInfo);
 void puleIRModuleDestroy(PuleIRModule const module);
 
-void puleIRModuleDump(PuleIRModule const module, PuleStringView const path);
+void * puleIRModuleJITFunctionAddress(
+  PuleIRModule const module,
+  PuleStringView const functionName
+);
+
+void puleIRModuleDump(PuleIRModule const module);
+
+// -- jit engine ---------------------------------------------------------------
+
+typedef struct { size_t id; } PuleIRJitEngine;
+typedef struct PuleIRJitEngineCreateInfo {
+  bool optimize PULE_param(true);
+  bool insertEngineSymbols PULE_param(true);
+} PuleIRJitEngineCreateInfo;
+PULE_exportFn PuleIRJitEngine puleIRJitEngineCreate(
+  PuleIRJitEngineCreateInfo const ci
+);
+PULE_exportFn void puleIRJitEngineDestroy(PuleIRJitEngine const jitEngine);
+
+PULE_exportFn void puleIRJitEngineAddModule(
+  PuleIRJitEngine const jitEngine,
+  PuleIRModule const module
+);
+
+PULE_exportFn void * puleIRJitEngineFunctionAddress(
+  PuleIRJitEngine const jitEngine,
+  PuleStringView const functionName
+);
 
 typedef enum {
   PuleIRDataType_u8,
@@ -107,7 +138,32 @@ PuleIRCodeBlock puleIRCodeBlockCreate(
   PuleIRCodeBlockCreateInfo const createInfo
 );
 
+typedef enum {
+  PuleIRCodeBlockTerminateType_ret,
+} PuleIRCodeBlockTerminateType;
+
+typedef struct {
+  PuleIRModule module;
+  PuleIRCodeBlock codeBlock;
+  PuleIRCodeBlockTerminateType type;
+  union {
+    struct {
+      PuleIRValue value; // if id is 0, that is equivalent to void
+    } ret;
+  };
+} PuleIRCodeBlockTerminateCreateInfo;
+
+// TODO ensure code block is always terminated
+void puleIRCodeBlockTerminate(
+  PuleIRCodeBlockTerminateCreateInfo const createInfo
+);
+
 // -- const value creation -----------------------------------------------------
+
+typedef enum {
+  PuleIRLinkage_none,
+  PuleIRLinkage_external,
+} PuleIRLinkage;
 
 typedef struct {
   PuleIRModule module;
@@ -115,7 +171,9 @@ typedef struct {
   PuleIRValueKind kind;
   PuleStringView label;
   union {
-    struct { uint8_t unused; } function;
+    struct {
+      PuleIRLinkage linkage PULE_param(PuleIRLinkage_none);
+    } function;
     struct {
       PuleIRCodeBlock codeBlock;
       uint64_t u64;

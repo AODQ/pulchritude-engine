@@ -65,7 +65,7 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
     auto pipelineInfo = (
       PuleGpuPipelineCreateInfo {
         .shaderModule = in::lineShaderModule,
-        .layoutDescriptorSet = &layoutDescriptorSet,
+        .layoutDescriptorSet = layoutDescriptorSet,
         .layoutPushConstants = &pushConstant,
         .layoutPushConstantsCount = 1,
         .config = {
@@ -86,12 +86,7 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
       }
     );
 
-    in::linePipeline = (
-      puleGpuPipelineCreate(
-        &pipelineInfo,
-        &err
-      )
-    );
+    in::linePipeline = puleGpuPipelineCreate(pipelineInfo, &err);
 
     if (puleErrorConsume(&err)) {
       return;

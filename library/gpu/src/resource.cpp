@@ -169,7 +169,7 @@ void puleGpuImageReference_destroy(
   PuleGpuImageReference const reference
 ) {
   if (reference.id == 0) { return; }
-  auto & imageReference = *util::ctx().imageReferences.at(reference);
+  auto & imageReference = *util::ctx().imageReferences.at(reference.id);
   // if others still reference image, don't delete
   imageReference.ownerCount -= 1;
   if (imageReference.ownerCount > 0) { return; }
@@ -193,7 +193,7 @@ PuleGpuImage puleGpuImageReference_image(
       ),
     };
   }
-  auto & imageReference = *util::ctx().imageReferences.at(reference);
+  auto & imageReference = *util::ctx().imageReferences.at(reference.id);
   switch (imageReference.type) {
     default: assert(false && "unknown image reference type");
     case util::ImageReferenceType::image:

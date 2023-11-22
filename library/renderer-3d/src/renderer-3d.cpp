@@ -5,409 +5,296 @@
 #include <pulchritude-gpu/gpu.h>
 #include <pulchritude-gpu/image.h>
 #include <pulchritude-gpu/pipeline.h>
+#include <pulchritude-gpu/shader-module.h>
 #include <pulchritude-gpu/synchronization.h>
 
 #include <cstring>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
-namespace {
+// -- materials ----------------------------------------------------------------
 
-struct InternalModelInstance {
-  PuleGpuPipeline pipeline;
-  PuleGpuCommandList commandList;
-};
+namespace pint {
 
-struct InternalMesh {
-  size_t elementVertexOffset;
-  size_t elementOffset;
-  size_t verticesToDispatch;
-};
-
-// provides primarily GPU buffer backing
-//   At this point every 'useful modelling' abstraction such as origins and
-//     normals don't explicitly exist. We have a known buffer of attribute
-//     data, a known buffer of element data, but these are only hoisted to the
-//     appropiate mesh shader as generic buffers.
-struct InternalModel {
-  PuleGpuBuffer staticAttributeGpuBuffer;
-  // TODO store dynamic attribute metadata (this will correlate to each
-  //      instance of the model rather than being shared)
-  /* PuleGpuBuffer dynamicAttributeGpuBuffer; */
-  PuleGpuBuffer elementGpuBuffer;
-  std::vector<InternalMesh> meshes;
-  // TODO mesh + material shader
-};
-
-struct SystemInfo {
-  PulePlatform platform;
-  PuleEcsComponent componentRender;
+struct Material {
   PuleGpuShaderModule shaderModule;
-
-  std::unordered_map<uint64_t, InternalModel> internalModels = {};
-  size_t internalModelCount = 0;
 };
-std::unordered_map<size_t, SystemInfo> systemToSystemInfo;
 
-} // namespace
+pule::ResourceContainer<pint::Material> materials;
+PuleRenderer3DMaterial defaultMaterial;
 
-static void renderer3DSystemCallback(PuleEcsIterator iter) {
-  // SystemInfo const system = (
-  //   systemToSystemInfo.find(puleEcsIteratorSystem(iter).id)->second
-  // );
-  // (void)system;
-  //
-  // InternalModelInstance * modelInstances = (
-  //   reinterpret_cast<InternalModelInstance *>(
-  //     puleEcsIteratorQueryComponents(iter, 0, sizeof(InternalModelInstance))
-  //   )
-  // );
-  //
-  // size_t const entityCount = puleEcsIteratorEntityCount(iter);
-  // for (size_t it = 0; it < entityCount; ++ it) {
-  //   PuleError err = puleError();
-  //   puleGpuCommandListSubmit(
-  //     {
-  //       .commandList = modelInstances[it].commandList,
-  //       .fenceTargetFinish = nullptr,
-  //     },
-  //     &err
-  //   );
-  //
-  //   if (puleErrorConsume(&err) > 0) {
-  //     continue;
-  //   }
-  // }
-}
+} // namespace pint
 
 extern "C" {
 
-PuleRenderer3D puleRenderer3DCreate(
-  PuleEcsWorld const world,
-  PulePlatform const platform
+PuleRenderer3DMaterial puleRenderer3DMaterialCreateDefault() {
+  #include "autogen-material-default.vert.spv"
+  #include "autogen-material-default.frag.spv"
+
+  if (pint::defaultMaterial.id != 0) {
+    return pint::defaultMaterial;
+  }
+
+  PuleError error = puleError();
+
+  pint::Material material;
+  material.shaderModule = (
+    puleGpuShaderModuleCreate(
+      PuleBufferView {
+        .data = materialDefaultVert,
+        .byteLength = sizeof(materialDefaultVert),
+      },
+      PuleBufferView {
+        .data = materialDefaultFrag,
+        .byteLength = sizeof(materialDefaultFrag),
+      },
+      &error
+    )
+  );
+  if (puleErrorConsume(&error)) {
+    puleLogError("failed to create default shader module");
+    return PuleRenderer3DMaterial { .id = 0 };
+  }
+  pint::defaultMaterial = { .id = pint::materials.create(material), };
+  return pint::defaultMaterial;
+}
+
+} // extern "C"
+
+// -- model renderer -----------------------------------------------------------
+
+namespace pint {
+
+// TODO this should just be a single enum
+PuleGpuAttributeDataType componentDataType(
+  PuleAssetMeshAttributeComponentDataType const type
 ) {
-  // PuleEcsComponent const componentRender = (
-  //   puleEcsComponentCreate(
-  //     world, {
-  //       .label = "Renderer3DModelInstance",
-  //       .byteLength = sizeof(InternalModelInstance),
-  //       .byteAlignment = alignof(InternalModelInstance),
-  //       .imguiOverviewCallbackOptional = nullptr,
-  //       .imguiEntityCallbackOptional = nullptr,
-  //       .serializeComponentCallback = nullptr,
-  //       .deserializeComponentCallback = nullptr,
-  //     }
-  //   )
-  // );
-  //
-  // PuleEcsSystem const system = (
-  //   puleEcsSystemCreate(
-  //     world,
-  //     PuleEcsSystemCreateInfo {
-  //       .label = "Renderer3D",
-  //       .commaSeparatedComponentLabels = (
-  //         "Renderer3DModelInstance"
-  //       ),
-  //       .callback = &renderer3DSystemCallback,
-  //       .callbackFrequency = PuleEcsSystemCallbackFrequency_postUpdate,
-  //     }
-  //   )
-  // );
-  //
-  // PuleGpuShaderModule shaderModule = { 0 };
-  // {
-  //   // PuleError err = puleError();
-  //   // shaderModule = (
-  //   //   puleGpuShaderModuleCreate(
-  //   //     puleCStr("#version 450 core\n" // VERTEX
-  //   //     PULE_multilineString(
-  //   //       struct Attribute {
-  //   //         vec4 origin;
-  //   //       };
-  //   //       layout(std430, binding = 0) buffer Attributes {
-  //   //         Attribute attrs[];
-  //   //       };
-  //   //       out layout(location = 0) vec2 outUvcoord;
-  //   //       void main() {
-  //   //         const vec4 origin = attrs[gl_VertexID].origin;
-  //   //         outUvcoord = origin.xy;
-  //   //         gl_Position = origin;
-  //   //       }
-  //   //     )),
-  //   //     puleCStr("#version 450 core\n" // FRAGMENT
-  //   //     PULE_multilineString(
-  //   //       in layout(location = 0) vec2 inUvcoord;
-  //   //       out layout(location = 0) vec4 outColor;
-  //   //       void main() {
-  //   //         outColor = vec4(inUvcoord, 0.5f, 1.0f);
-  //   //       }
-  //   //     )),
-  //   //     &err
-  //   //   )
-  //   // );
-  //   // if (puleErrorConsume(&err)) {
-  //   //   return { 0 };
-  //   // }
-  // }
-  //
-  // systemToSystemInfo.emplace(
-  //   system.id,
-  //   SystemInfo {
-  //     .platform = platform,
-  //     .componentRender = componentRender,
-  //     .shaderModule = shaderModule,
-  //   }
-  // );
-  // return PuleRenderer3D{.id = system.id,};
+  switch (type) {
+    case PuleAssetMeshAttributeComponentDataType_u8:
+      return PuleGpuAttributeDataType_unsignedByte;
+    case PuleAssetMeshAttributeComponentDataType_f32:
+      return PuleGpuAttributeDataType_float;
+    case PuleAssetMeshAttributeComponentDataType_u16:
+    case PuleAssetMeshAttributeComponentDataType_u32:
+    case PuleAssetMeshAttributeComponentDataType_i8:
+    case PuleAssetMeshAttributeComponentDataType_i16:
+    case PuleAssetMeshAttributeComponentDataType_i32:
+    case PuleAssetMeshAttributeComponentDataType_f16:
+      PULE_assert(false && "unsupported");
+  }
+  return PuleGpuAttributeDataType_float;
 }
 
-PuleEcsSystem puleRenderer3DEcsSystem(PuleRenderer3D const renderer3D) {
-  // return PuleEcsSystem{.id = renderer3D.id,};
-}
+struct ModelRendererAttribute {
+  size_t bufferIndex;
+  size_t byteOffset;
+  size_t byteStride;
+};
 
-PuleRenderer3DModel puleRenderer3DPrepareModel(
-  PuleRenderer3D renderer3D
+struct ModelRendererMesh {
+  size_t verticesToDispatch;
+  size_t elementBufferIndex;
+  size_t elementBufferByteOffset;
+  std::vector<ModelRendererAttribute> attributes;
+};
+
+struct ModelRenderer {
+  PuleGpuPipeline pipeline;
+  std::vector<PuleGpuBuffer> buffers;
+  std::vector<pint::ModelRendererMesh> meshes;
+};
+
+pule::ResourceContainer<
+  pint::ModelRenderer, PuleRenderer3DModel
+> modelRenderers;
+
+
+} // namespace pint
+
+extern "C" {
+
+PuleRenderer3DModel puleRenderer3DModelCreate(
+  PuleRenderer3DModelCreateInfo const createInfo
 ) {
-  // SystemInfo & system = systemToSystemInfo.find(renderer3D.id)->second;
-  //
-  // InternalModel model;
-  //
-  // // attribute format should look like
-  // //  <MESH0 <origin, normal, ..., origin, normal>, ..., MESHN <origin, ...>>
-  // // notice that not every mesh needs same attributes
-  // // and of course the element buffer needs to reflect this
-  // //  <MESH0 <0, 1, 2, ..>, MESHN<MESHN+0, MESHN+1, ...>>
-  // // elements are also resized to u32
-  //
-  // size_t globalMeshAttributeOffset = 0;
-  // size_t globalMeshElementOffset = 0;
-  // std::vector<uint8_t> attributesCollapsed;
-  // std::vector<uint32_t> elementsRevised;
-  // for (size_t meshIt = 0; meshIt < assetModel.meshCount; ++ meshIt) {
-  //   PuleAssetMesh const & mesh = assetModel.meshes[meshIt];
-  //
-  //   // get attribute element count in mesh
-  //   size_t attributeElementCount = 0;
-  //   for (
-  //       size_t attributeIt = 0;
-  //       attributeIt < PuleAssetMeshAttributeType_Size;
-  //       ++ attributeIt
-  //   ) {
-  //     PuleAssetMeshAttribute const meshAttribute = (
-  //       mesh.attributes[attributeIt]
-  //     );
-  //     if (meshAttribute.view.data == nullptr) { continue; }
-  //     attributeElementCount = meshAttribute.view.elementCount;
-  //     break;
-  //   }
-  //   PULE_assert(attributeElementCount != 0);
-  //
-  //   // apply attribute collapsing
-  //   for (
-  //     size_t elementIt = 0;
-  //     elementIt < attributeElementCount;
-  //     ++ elementIt
-  //   ) {
-  //     for (
-  //       size_t attributeIt = 0;
-  //       attributeIt < PuleAssetMeshAttributeType_Size;
-  //       ++ attributeIt
-  //     ) {
-  //       PuleAssetMeshAttribute const meshAttribute = (
-  //         mesh.attributes[attributeIt]
-  //       );
-  //       if (meshAttribute.view.data == nullptr) { continue; }
-  //       // copy just a single component (like a float4 or int3)
-  //       size_t const componentByteLength = (
-  //         meshAttribute.componentsPerVertex
-  //         * (
-  //           puleAssetMeshComponentDataTypeByteLength(
-  //             meshAttribute.componentDataType
-  //           )
-  //         )
-  //       );
-  //       // use the attribute's stride to get the correct attribute
-  //       uint8_t const * const componentDataPtr = (
-  //           meshAttribute.view.data
-  //         + (attributeIt * meshAttribute.view.elementStride)
-  //       );
-  //       // emplace the component
-  //       size_t const attributeEmplacedBegin = attributesCollapsed.size();
-  //       attributesCollapsed.resize(
-  //         attributesCollapsed.size() + componentByteLength
-  //       );
-  //       memcpy(
-  //         attributesCollapsed.data() + attributeEmplacedBegin,
-  //         componentDataPtr,
-  //         componentByteLength
-  //       );
-  //     }
-  //   }
-  //
-  //   puleLog(
-  //     "vertices to dispatch %zu -- element count %zu",
-  //     mesh.verticesToDispatch,
-  //     mesh.element.view.elementCount
-  //   );
-  //
-  //   // apply element revision
-  //   PULE_assert(mesh.verticesToDispatch == mesh.element.view.elementCount);
-  //   for (size_t vertexIt = 0; vertexIt < mesh.verticesToDispatch; ++ vertexIt) {
-  //     // apply element revision
-  //     {
-  //       uint8_t const * const elementDataPtr = (
-  //         mesh.element.view.data + (vertexIt * mesh.element.view.elementStride)
-  //       );
-  //       size_t elementIdx = 0;
-  //       switch (mesh.element.componentDataType) {
-  //         default: PULE_assert(false);
-  //         case PuleAssetMeshComponentDataType_u8:
-  //           elementIdx = static_cast<uint32_t>(*elementDataPtr);
-  //         break;
-  //         case PuleAssetMeshComponentDataType_u16:
-  //           elementIdx = (
-  //             static_cast<uint32_t>(
-  //               *reinterpret_cast<uint16_t const *>(elementDataPtr)
-  //             )
-  //           );
-  //         break;
-  //         case PuleAssetMeshComponentDataType_u32:
-  //           elementIdx = *reinterpret_cast<uint32_t const *>(elementDataPtr);
-  //         break;
-  //       }
-  //       elementsRevised.emplace_back(elementIdx);
-  //     }
-  //   }
-  //   // apply the attribute offset for element
-  //   model.meshes.emplace_back(
-  //     InternalMesh {
-  //       .elementVertexOffset = globalMeshAttributeOffset,
-  //       .elementOffset = globalMeshElementOffset,
-  //       .verticesToDispatch = mesh.verticesToDispatch,
-  //     }
-  //   );
-  //
-  //   // apply global offsets
-  //   globalMeshAttributeOffset += attributeElementCount;
-  //   globalMeshElementOffset += mesh.verticesToDispatch;
-  // }
-  //
-  // model.staticAttributeGpuBuffer = (
-  //   puleGpuBufferCreate(
-  //     attributesCollapsed.data(),
-  //     attributesCollapsed.size() * sizeof(attributesCollapsed[0]),
-  //     PuleGpuBufferUsage_storage,
-  //     PuleGpuBufferVisibilityFlag_deviceOnly
-  //   )
-  // );
-  // model.elementGpuBuffer = (
-  //   puleGpuBufferCreate(
-  //     elementsRevised.data(),
-  //     elementsRevised.size() * sizeof(elementsRevised[0]),
-  //     PuleGpuBufferUsage_element,
-  //     PuleGpuBufferVisibilityFlag_deviceOnly
-  //   )
-  // );
-  //
-  // auto const retModel = PuleRenderer3DModel {.id = ++system.internalModelCount};
-  // system.internalModels.emplace(retModel.id, model);
-  // puleLog("internal model :: %zu", retModel.id);
-  // return retModel;
+  PuleError err = puleError();
+
+  // -- create pipeline
+
+  auto layoutDescriptorSet = puleGpuPipelineDescriptorSetLayout();
+
+  for (size_t meshIt = 0; meshIt < createInfo.meshCount; ++ meshIt) {
+    auto & mesh = createInfo.meshes[meshIt];
+    for (size_t attr = 0; attr < PuleAssetMeshAttributeType_size; ++ attr) {
+      auto & attribute = mesh.attributes[attr];
+      layoutDescriptorSet.attributeBindings[attr] = {
+        .dataType = pint::componentDataType(attribute.componentDataType),
+        .bufferIndex = attr,
+        .numComponents = attribute.componentsPerVertex,
+        .convertFixedDataTypeToNormalizedFloating = false,
+        .offsetIntoBuffer = attribute.bufferByteOffset,
+      };
+      layoutDescriptorSet.attributeBufferBindings[attr] = {
+        .stridePerElement = attribute.bufferByteStride,
+      };
+    }
+  }
+
+  PuleGpuPipeline pipeline = (
+    puleGpuPipelineCreate({
+      .shaderModule = pint::materials.at(createInfo.material.id)->shaderModule,
+      .layoutDescriptorSet = layoutDescriptorSet,
+      .layoutPushConstants = nullptr,
+      .layoutPushConstantsCount = 0,
+      .config = {
+        .depthTestEnabled = false, // TODO true
+        .blendEnabled = false,
+        .scissorTestEnabled = false,
+        .viewportMin = {0, 0},
+        .viewportMax = {800, 600},
+        .scissorMin = {0, 0},
+        .scissorMax = {800, 600},
+        .drawPrimitive = PuleGpuDrawPrimitive_triangle,
+        .colorAttachmentCount = 1, // TODO
+        .colorAttachmentFormats = {
+          PuleGpuImageByteFormat_bgra8U,
+        },
+      },
+    }, &err)
+  );
+  if (puleErrorConsume(&err)) {
+    return { .id = 0, };
+  }
+
+  // -- upload buffers to gpu
+  std::vector<PuleGpuBuffer> buffers;
+  for (size_t bufferIt = 0; bufferIt < createInfo.bufferCount; ++ bufferIt) {
+    // determine its usage/visiblity flags
+    int32_t bufferUsage = 0;
+    for (size_t meshIt = 0; meshIt < createInfo.meshCount; ++ meshIt) {
+      auto & mesh = createInfo.meshes[meshIt];
+      if (mesh.element.bufferIndex == bufferIt) {
+        bufferUsage |= (int32_t)PuleGpuBufferUsage_element;
+      }
+      for (size_t attr = 0; attr < PuleAssetMeshAttributeType_size; ++ attr) {
+        auto & attribute = mesh.attributes[attr];
+        if (attribute.bufferIndex == bufferIt) {
+          bufferUsage |= (int32_t)PuleGpuBufferUsage_attribute;
+          break;
+        }
+      }
+    }
+    // TODO when API supports ability to have dynamic buffers
+    PuleGpuBufferVisibilityFlag visibility = (
+      PuleGpuBufferVisibilityFlag_deviceOnly
+    );
+    // create buffer
+    auto & buffer = createInfo.buffers[bufferIt];
+    PuleString label = (
+      puleStringFormatDefault(
+        "model-buffer-%s-%zu",
+        createInfo.label.contents, bufferIt
+      )
+    );
+    puleScopeExit {
+      puleStringDestroy(label);
+    };
+    buffers.emplace_back(
+      puleGpuBufferCreate(
+        puleStringView(label),
+        buffer.data,
+        buffer.byteLength,
+        (PuleGpuBufferUsage)bufferUsage,
+        visibility
+      )
+    );
+  }
+
+  // -- get additional draw data
+  std::vector<pint::ModelRendererMesh> meshes;
+  for (size_t it = 0; it < createInfo.meshCount; ++ it) {
+    auto & mesh = createInfo.meshes[it];
+    pint::ModelRendererMesh mrMesh;
+    mrMesh.verticesToDispatch = mesh.verticesToDispatch;
+    mrMesh.elementBufferIndex = mesh.element.bufferIndex;
+    mrMesh.elementBufferByteOffset = mesh.element.bufferByteOffset;
+    for (size_t attr = 0; attr < PuleAssetMeshAttributeType_size; ++ attr) {
+      auto & attribute = mesh.attributes[attr];
+      mrMesh.attributes.push_back({
+        .bufferIndex = attribute.bufferIndex,
+        .byteOffset = attribute.bufferByteOffset,
+        .byteStride = attribute.bufferByteStride,
+      });
+    }
+    meshes.push_back(std::move(mrMesh));
+  }
+
+  return pint::modelRenderers.create({
+    .pipeline = pipeline,
+    .buffers = std::move(buffers),
+    .meshes = std::move(meshes),
+  });
 }
 
-PuleEcsComponent puleRenderer3DAttachComponentRender(
-  PuleEcsWorld const world,
-  PuleRenderer3D const renderer3DSystem,
-  PuleEcsEntity const entity,
-  PuleRenderer3DModel const model
+void puleRenderer3DDestroyModel(PuleRenderer3DModel const model) {
+  if (model.id == 0) { return; }
+  pint::modelRenderers.destroy(model);
+}
+
+void puleRenderer3DModelRender(
+  PuleGpuCommandListRecorder const commandListRecorder,
+  PuleRenderer3DModel const puModel,
+  PuleF32m44 const transform
 ) {
-  // puleLog("looking for system %zu", renderer3DSystem.id);
-  // SystemInfo const system = (
-  //   systemToSystemInfo.find(renderer3DSystem.id)->second
-  // );
-  // puleLog("model %zu", model.id);
-  // InternalModel const modelInternal = (
-  //   system.internalModels.find(model.id)->second
-  // );
-  //
-  // auto modelInstance = InternalModelInstance {
-  //   .pipeline = PuleGpuPipeline { .id = 0 },
-  //   .commandList = (
-  //     puleGpuCommandListCreate(
-  //       puleAllocateDefault(),
-  //       puleCStr("model-instance")
-  //     )
-  //   ),
-  // };
-  //
-  // {
-  //   auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
-  //   // descriptorSetLayout.bufferStorageBindings[0] = (
-  //     // modelInternal.staticAttributeGpuBuffer
-  //   // );
-  //   puleLog("element gpu buffer: %zu\n", modelInternal.elementGpuBuffer.id);
-  //   puleLog("storage gpu buffer: %zu\n", modelInternal.staticAttributeGpuBuffer.id);
-  //   // TODO dynamic + custom bindings
-  //
-  //   auto pipelineInfo = PuleGpuPipelineCreateInfo {
-  //     .shaderModule = system.shaderModule,
-  //     .layout = &descriptorSetLayout,
-  //     .config = {
-  //       .depthTestEnabled = true,
-  //       .blendEnabled = false,
-  //       .scissorTestEnabled = false,
-  //       .viewportMin = PuleI32v2 { 0, 0, },
-  //       .viewportMax = pulePlatformWindowSize(system.platform),
-  //       .scissorMin = PuleI32v2 { 0, 0, },
-  //       .scissorMax = pulePlatformWindowSize(system.platform),
-  //     },
-  //   };
-  //
-  //   PuleError err = puleError();
-  //   modelInstance.pipeline = (puleGpuPipelineCreate(&pipelineInfo, &err));
-  //   if (puleErrorConsume(&err) > 0) {
-  //     return { 0 };
-  //   }
-  // }
-  //
-  // { // record command list
-  //   auto commandListRecorder = (
-  //     puleGpuCommandListRecorder(modelInstance.commandList)
-  //   );
-  //
-  //   puleGpuCommandListAppendAction(
-  //     commandListRecorder,
-  //     PuleGpuCommand {
-  //       .bindPipeline = {
-  //         .action = PuleGpuAction_bindPipeline,
-  //         .pipeline = modelInstance.pipeline,
-  //       },
-  //     }
-  //   );
-  //   for (auto const & mesh : modelInternal.meshes) {
-  //     puleGpuCommandListAppendAction(
-  //       commandListRecorder,
-  //       PuleGpuCommand {
-  //         .dispatchRenderElements = {
-  //           .action = PuleGpuAction_dispatchRenderElements,
-  //           .drawPrimitive = PuleGpuDrawPrimitive_triangle,
-  //           .numElements = mesh.verticesToDispatch,
-  //           .elementType = PuleGpuElementType_u32,
-  //           .elementOffset = mesh.elementOffset,
-  //           .baseVertexOffset = mesh.elementVertexOffset,
-  //         },
-  //       }
-  //     );
-  //   }
-  //
-  //   puleGpuCommandListRecorderFinish(commandListRecorder);
-  // }
-  //
-  // puleEcsEntityAttachComponent(
-  //   world, entity, system.componentRender, &modelInstance
-  // );
-  //
-  // return system.componentRender;
+  auto & model = *pint::modelRenderers.at(puModel);
+
+  puleGpuCommandListAppendAction(commandListRecorder, {
+    .bindPipeline = {
+      .action = PuleGpuAction_bindPipeline,
+      .pipeline = model.pipeline,
+    },
+  });
+  puleGpuCommandListAppendAction(commandListRecorder, {
+    .setScissor = {
+      .scissorMin = { .x = 0, .y = 0, },
+      .scissorMax = { .x = 800, .y = 600, },
+    },
+  });
+  for (auto & mesh : model.meshes) {
+    for (size_t attr = 0; attr < mesh.attributes.size(); ++ attr) {
+      auto & attribute = mesh.attributes[attr];
+      puleGpuCommandListAppendAction(commandListRecorder, {
+        .bindAttributeBuffer = {
+          .bindingIndex = attr,
+          .buffer = model.buffers[attribute.bufferIndex],
+          .offset = 0,
+          .stride = attribute.byteStride,
+        },
+      });
+      puleGpuCommandListAppendAction(commandListRecorder, {
+        .bindElementBuffer = {
+          .buffer = model.buffers[mesh.elementBufferIndex],
+          .offset = mesh.elementBufferByteOffset,
+          .elementType = PuleGpuElementType_u32,
+        }
+      });
+      puleGpuCommandListAppendAction(commandListRecorder, {
+        .dispatchRenderElements = {
+          .numElements = mesh.verticesToDispatch,
+          .elementOffset = 0,
+          .baseVertexOffset = 0,
+        }
+      });
+    }
+  }
 }
 
-} // C
+} // extern "C"
+/*
+  puleGpuCommandListAppendAction(
+    command,
+    PuleGpuCommand {
+      .renderPassEnd = { .action = PuleGpuAction_renderPassEnd, },
+    }
+  );
+*/

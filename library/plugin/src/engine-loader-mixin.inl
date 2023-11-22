@@ -109,6 +109,16 @@
       ::loadSymbol("puleAssetModelLoad", layerName)
     )
   );
+  layer->assetMeshAttributeComponentDataTypeByteSize = (
+    reinterpret_cast<decltype(layer->assetMeshAttributeComponentDataTypeByteSize)>(
+      ::loadSymbol("puleAssetMeshAttributeComponentDataTypeByteSize", layerName)
+    )
+  );
+  layer->assetModelConvertAttributeBuffer = (
+    reinterpret_cast<decltype(layer->assetModelConvertAttributeBuffer)>(
+      ::loadSymbol("puleAssetModelConvertAttributeBuffer", layerName)
+    )
+  );
   // asset-pds
   layer->assetPdsLoadFromStream = (
     reinterpret_cast<decltype(layer->assetPdsLoadFromStream)>(
@@ -201,6 +211,12 @@
   layer->assetFontRenderToU8Buffer = (
     reinterpret_cast<decltype(layer->assetFontRenderToU8Buffer)>(
       ::loadSymbol("puleAssetFontRenderToU8Buffer", layerName)
+    )
+  );
+  // asset-model-simple
+  layer->assetModelSimpleLoad = (
+    reinterpret_cast<decltype(layer->assetModelSimpleLoad)>(
+      ::loadSymbol("puleAssetModelSimpleLoad", layerName)
     )
   );
   // camera
@@ -706,6 +722,11 @@
   layer->error = (
     reinterpret_cast<decltype(layer->error)>(
       ::loadSymbol("puleError", layerName)
+    )
+  );
+  layer->errorDestroy = (
+    reinterpret_cast<decltype(layer->errorDestroy)>(
+      ::loadSymbol("puleErrorDestroy", layerName)
     )
   );
   layer->errorConsume = (
@@ -1449,19 +1470,29 @@
     )
   );
   // renderer-3d
-  layer->renderer3DCreate = (
-    reinterpret_cast<decltype(layer->renderer3DCreate)>(
-      ::loadSymbol("puleRenderer3DCreate", layerName)
+  layer->renderer3DMaterialCreateDefault = (
+    reinterpret_cast<decltype(layer->renderer3DMaterialCreateDefault)>(
+      ::loadSymbol("puleRenderer3DMaterialCreateDefault", layerName)
     )
   );
-  layer->renderer3DEcsSystem = (
-    reinterpret_cast<decltype(layer->renderer3DEcsSystem)>(
-      ::loadSymbol("puleRenderer3DEcsSystem", layerName)
+  layer->renderer3DMaterialDestroy = (
+    reinterpret_cast<decltype(layer->renderer3DMaterialDestroy)>(
+      ::loadSymbol("puleRenderer3DMaterialDestroy", layerName)
     )
   );
-  layer->renderer3DAttachComponentRender = (
-    reinterpret_cast<decltype(layer->renderer3DAttachComponentRender)>(
-      ::loadSymbol("puleRenderer3DAttachComponentRender", layerName)
+  layer->renderer3DModelCreate = (
+    reinterpret_cast<decltype(layer->renderer3DModelCreate)>(
+      ::loadSymbol("puleRenderer3DModelCreate", layerName)
+    )
+  );
+  layer->renderer3DDestroyModel = (
+    reinterpret_cast<decltype(layer->renderer3DDestroyModel)>(
+      ::loadSymbol("puleRenderer3DDestroyModel", layerName)
+    )
+  );
+  layer->renderer3DModelRender = (
+    reinterpret_cast<decltype(layer->renderer3DModelRender)>(
+      ::loadSymbol("puleRenderer3DModelRender", layerName)
     )
   );
   // script
@@ -1574,6 +1605,11 @@
   layer->streamReadDestroy = (
     reinterpret_cast<decltype(layer->streamReadDestroy)>(
       ::loadSymbol("puleStreamReadDestroy", layerName)
+    )
+  );
+  layer->streamDumpToBuffer = (
+    reinterpret_cast<decltype(layer->streamDumpToBuffer)>(
+      ::loadSymbol("puleStreamDumpToBuffer", layerName)
     )
   );
   layer->streamReadFromString = (
@@ -2323,5 +2359,113 @@
   layer->netClientSendPacket = (
     reinterpret_cast<decltype(layer->netClientSendPacket)>(
       ::loadSymbol("puleNetClientSendPacket", layerName)
+    )
+  );
+  // compiler
+  layer->iRJitEngineCreate = (
+    reinterpret_cast<decltype(layer->iRJitEngineCreate)>(
+      ::loadSymbol("puleIRJitEngineCreate", layerName)
+    )
+  );
+  layer->iRJitEngineDestroy = (
+    reinterpret_cast<decltype(layer->iRJitEngineDestroy)>(
+      ::loadSymbol("puleIRJitEngineDestroy", layerName)
+    )
+  );
+  layer->iRJitEngineAddModule = (
+    reinterpret_cast<decltype(layer->iRJitEngineAddModule)>(
+      ::loadSymbol("puleIRJitEngineAddModule", layerName)
+    )
+  );
+  layer->iRJitEngineFunctionAddress = (
+    reinterpret_cast<decltype(layer->iRJitEngineFunctionAddress)>(
+      ::loadSymbol("puleIRJitEngineFunctionAddress", layerName)
+    )
+  );
+  // parser
+  layer->parserCreate = (
+    reinterpret_cast<decltype(layer->parserCreate)>(
+      ::loadSymbol("puleParserCreate", layerName)
+    )
+  );
+  layer->parserDestroy = (
+    reinterpret_cast<decltype(layer->parserDestroy)>(
+      ::loadSymbol("puleParserDestroy", layerName)
+    )
+  );
+  layer->parserCreateFromString = (
+    reinterpret_cast<decltype(layer->parserCreateFromString)>(
+      ::loadSymbol("puleParserCreateFromString", layerName)
+    )
+  );
+  layer->parserCreateForDefaultExpressionGrammar = (
+    reinterpret_cast<decltype(layer->parserCreateForDefaultExpressionGrammar)>(
+      ::loadSymbol("puleParserCreateForDefaultExpressionGrammar", layerName)
+    )
+  );
+  layer->parserRegexTokenCreate = (
+    reinterpret_cast<decltype(layer->parserRegexTokenCreate)>(
+      ::loadSymbol("puleParserRegexTokenCreate", layerName)
+    )
+  );
+  layer->parserGroupCreate = (
+    reinterpret_cast<decltype(layer->parserGroupCreate)>(
+      ::loadSymbol("puleParserGroupCreate", layerName)
+    )
+  );
+  layer->parserRuleCreate = (
+    reinterpret_cast<decltype(layer->parserRuleCreate)>(
+      ::loadSymbol("puleParserRuleCreate", layerName)
+    )
+  );
+  layer->parserRuleSetNodes = (
+    reinterpret_cast<decltype(layer->parserRuleSetNodes)>(
+      ::loadSymbol("puleParserRuleSetNodes", layerName)
+    )
+  );
+  layer->parserRule = (
+    reinterpret_cast<decltype(layer->parserRule)>(
+      ::loadSymbol("puleParserRule", layerName)
+    )
+  );
+  layer->parserDump = (
+    reinterpret_cast<decltype(layer->parserDump)>(
+      ::loadSymbol("puleParserDump", layerName)
+    )
+  );
+  layer->parserAstCreate = (
+    reinterpret_cast<decltype(layer->parserAstCreate)>(
+      ::loadSymbol("puleParserAstCreate", layerName)
+    )
+  );
+  layer->parserAstDestroy = (
+    reinterpret_cast<decltype(layer->parserAstDestroy)>(
+      ::loadSymbol("puleParserAstDestroy", layerName)
+    )
+  );
+  layer->parserAstRoot = (
+    reinterpret_cast<decltype(layer->parserAstRoot)>(
+      ::loadSymbol("puleParserAstRoot", layerName)
+    )
+  );
+  layer->parserAstNodeChild = (
+    reinterpret_cast<decltype(layer->parserAstNodeChild)>(
+      ::loadSymbol("puleParserAstNodeChild", layerName)
+    )
+  );
+  layer->parserAstNodeDump = (
+    reinterpret_cast<decltype(layer->parserAstNodeDump)>(
+      ::loadSymbol("puleParserAstNodeDump", layerName)
+    )
+  );
+  layer->parserAstNodeDumpShallow = (
+    reinterpret_cast<decltype(layer->parserAstNodeDumpShallow)>(
+      ::loadSymbol("puleParserAstNodeDumpShallow", layerName)
+    )
+  );
+  // engine-language
+  layer->eLModuleCreate = (
+    reinterpret_cast<decltype(layer->eLModuleCreate)>(
+      ::loadSymbol("puleELModuleCreate", layerName)
     )
   );

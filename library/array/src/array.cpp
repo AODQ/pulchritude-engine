@@ -56,4 +56,56 @@ void puleArrayDestroy(PuleArray const array) {
   puleDeallocate(array.allocator, array.content);
 }
 
+PuleBuffer puleBufferCreate(PuleAllocator const allocator) {
+  return {
+    .data = nullptr,
+    .byteLength = 0,
+    .allocator = allocator,
+  };
+}
+
+void puleBufferResize(PuleBuffer * const buffer, size_t const length) {
+  if (buffer->byteLength == length) { return; }
+  if (buffer->byteLength == 0) {
+    buffer->data = (uint8_t *)(
+      puleAllocate(
+        buffer->allocator,
+        PuleAllocateInfo {
+          .numBytes = length,
+          .alignment = 0,
+        }
+      )
+    );
+    buffer->byteLength = length;
+    return;
+  }
+
+  buffer->byteLength = length;
+  buffer->data = (uint8_t *)(
+    puleReallocate(
+      buffer->allocator,
+      PuleReallocateInfo {
+        .allocation = buffer->data,
+        .numBytes = buffer->byteLength,
+        .alignment = 0,
+      }
+    )
+  );
+}
+
+void puleBufferAppend(
+  PuleBuffer * const buffer,
+  uint8_t const * const data,
+  size_t const length
+) {
+  // TODO maybe capacity instead of realloc every time?
+  size_t const oldLength = buffer->byteLength;
+  puleBufferResize(buffer, buffer->byteLength + length);
+  memcpy(buffer->data+oldLength, data, length);
+}
+
+void puleBufferDestroy(PuleBuffer const buffer) {
+  puleDeallocate(buffer.allocator, buffer.data);
+}
+
 } // C

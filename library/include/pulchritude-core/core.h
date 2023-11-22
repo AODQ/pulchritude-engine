@@ -42,7 +42,7 @@ namespace pule {
 
 // TODO replace unordered_map with own implementation that uses allocator
 // though probably safe to use unordered_map if passed in default allocator
-template <typename T> struct ResourceContainer {
+template <typename T, typename Handle=uint64_t> struct ResourceContainer {
   std::unordered_map<uint64_t, T> data = {};
   uint64_t idCount = 1;
   using TUnderlyingValue =
@@ -50,24 +50,38 @@ template <typename T> struct ResourceContainer {
   ;
 
   // emplaces a new resource into the container
-  uint64_t create(T && resource) {
+  Handle create(T && resource) {
     this->data.emplace(this->idCount, std::forward<T>(resource));
-    return (this->idCount++);
+    return Handle { (this->idCount++) };
   }
 
-  uint64_t create(T const & resource) {
+  Handle create(T const & resource) {
     uint64_t const id = this->idCount ++;
     this->data.emplace(id, resource);
-    return id;
+    return Handle { id };
   }
 
-  void destroy(uint64_t const handle) {
-    if (handle == 0) { return; }
-    this->data.erase(handle);
+  void destroy(Handle const handle) {
+    if constexpr (std::is_same<Handle, uint64_t>::value) {
+      if (handle == 0) { return; }
+      this->data.erase(handle);
+    } else {
+      if (handle.id == 0) { return; }
+      this->data.erase(handle.id);
+    }
   }
 
-  TUnderlyingValue * at(uint64_t const handle) {
-    auto ptr = this->data.find(handle);
+  auto begin() { return this->data.begin(); }
+  auto end() { return this->data.end(); }
+
+  TUnderlyingValue * at(Handle const handle) {
+    uint64_t uHandle;
+    if constexpr (std::is_same<Handle, uint64_t>::value) {
+      uHandle = handle;
+    } else {
+      uHandle = handle.id;
+    }
+    auto ptr = this->data.find(uHandle);
     if constexpr(std::is_pointer_v<T>) {
       return ((ptr == this->data.end()) ? nullptr : ptr->second);
     } else {
@@ -75,12 +89,14 @@ template <typename T> struct ResourceContainer {
     }
   }
 
-  template <typename U> T * at(U const object) {
-    return this->at(object.id);
-  }
-
-  TUnderlyingValue const * at(uint64_t const handle) const {
-    auto ptr = this->data.find(handle);
+  TUnderlyingValue const * at(Handle const handle) const {
+    uint64_t uHandle;
+    if constexpr (std::is_same<Handle, uint64_t>::value) {
+      uHandle = handle;
+    } else {
+      uHandle = handle.id;
+    }
+    auto ptr = this->data.find(uHandle);
     if (ptr == this->data.end()) {
       return nullptr;
     }
@@ -92,6 +108,31 @@ template <typename T> struct ResourceContainer {
   }
 };
 
+} // namespace pule
+
+// Perhaps someday C++ will have scope guards at the language level
+#ifndef puleScopeExit
+#define puleScopeExit \
+  auto const pule__scopeExit_##__COUNTER_ = pule::ScopeGuard() << [&]()
+#endif
+
+namespace pule {
+template <typename Fn>
+struct ScopeGuardImpl {
+  Fn fn;
+  explicit ScopeGuardImpl(Fn && fn) : fn(fn) {}
+  ScopeGuardImpl(ScopeGuardImpl && other) : fn(std::move(other.fn)) {}
+  ScopeGuardImpl(const ScopeGuardImpl &) = delete;
+  ScopeGuardImpl & operator=(const ScopeGuardImpl &) = delete;
+  ~ScopeGuardImpl() { this->fn(); }
+};
+
+struct ScopeGuard {
+  template <typename F>
+  ScopeGuardImpl<F> operator<<(F && fn) {
+    return ScopeGuardImpl<F>(std::move(fn));
+  }
+};
 } // namespace pule
 
 #endif

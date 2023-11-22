@@ -5,6 +5,7 @@ target_sources(
   pulchritude-asset-model
   PRIVATE
     src/asset-model-read.cpp
+    src/asset-model-simple.cpp
 )
 
 set_target_properties(
@@ -21,6 +22,7 @@ target_link_libraries(
     pulchritude-allocator
     pulchritude-asset-pds
     pulchritude-data-serializer
+    pulchritude-renderer-3d
     pulchritude-error
     pulchritude-file
     pulchritude-stream

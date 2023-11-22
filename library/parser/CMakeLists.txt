@@ -1,14 +1,16 @@
-add_library(pulchritude-compiler SHARED)
+add_library(pulchritude-parser SHARED)
 
-target_include_directories(pulchritude-compiler PUBLIC "../include/")
+target_include_directories(pulchritude-parser PUBLIC "../include/")
 target_sources(
-  pulchritude-compiler
+  pulchritude-parser
   PRIVATE
-    src/compiler.cpp
+    src/parser.cpp
+    src/parser-engine-language-parser.cpp
+    src/parser-expression-grammar-parser.cpp
 )
 
 set_target_properties(
-  pulchritude-compiler
+  pulchritude-parser
     PROPERTIES
       COMPILE_FLAGS
         "-Wshadow -Wdouble-promotion -Wall -Wformat=2 -Wextra -Wundef -Wno-missing-braces"
@@ -17,16 +19,13 @@ set_target_properties(
 )
 
 target_link_libraries(
-  pulchritude-compiler
+  pulchritude-parser
   pulchritude-allocator
   pulchritude-string
-  pulchritude-time
-
-  LLVM
 )
 
 install(
-  TARGETS pulchritude-compiler
+  TARGETS pulchritude-parser
   LIBRARY NAMELINK_SKIP
   LIBRARY
     DESTINATION bin/plugins/

@@ -93,7 +93,7 @@ void initialize() {
   auto const bitmapPipeline = (
     PuleGpuPipelineCreateInfo {
       .shaderModule = pint::shaderModules[PuleTextType_bitmap],
-      .layoutDescriptorSet = &bitmapLayoutDescriptorSet,
+      .layoutDescriptorSet = bitmapLayoutDescriptorSet,
       .layoutPushConstants = &bitmapPushConstants[0],
       .layoutPushConstantsCount = PULE_arraySize(bitmapPushConstants),
       .config = {
@@ -114,7 +114,7 @@ void initialize() {
     }
   );
   pint::pipelines[PuleTextType_bitmap] = (
-    puleGpuPipelineCreate(&bitmapPipeline, &err)
+    puleGpuPipelineCreate(bitmapPipeline, &err)
   );
   if (puleErrorConsume(&err)) {
     puleLogError("Failed to create bitmap pipeline");

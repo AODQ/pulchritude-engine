@@ -19,6 +19,15 @@ void puleStreamReadDestroy(PuleStreamRead const stream) {
   stream.destroy(stream.userdata);
 }
 
+PuleBuffer puleStreamDumpToBuffer(PuleStreamRead const stream) {
+  PuleBuffer buffer = puleBufferCreate(puleAllocateDefault());
+  while (!puleStreamReadIsDone(stream)) {
+    uint8_t const byte = puleStreamReadByte(stream);
+    puleBufferAppend(&buffer, &byte, 1);
+  }
+  return buffer;
+}
+
 void puleStreamWriteBytes(
   PuleStreamWrite const stream,
   uint8_t const * const bytes,

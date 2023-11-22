@@ -45,24 +45,22 @@ typedef enum {
   PuleAssetMeshAttributeType_size,
 } PuleAssetMeshAttributeType;
 
-// .dontCare used only for requests
 typedef enum {
-  PuleAssetMeshComponentDataType_u8,
-  PuleAssetMeshComponentDataType_u16,
-  PuleAssetMeshComponentDataType_u32,
-  PuleAssetMeshComponentDataType_i8,
-  PuleAssetMeshComponentDataType_i16,
-  PuleAssetMeshComponentDataType_i32,
-  PuleAssetMeshComponentDataType_f16, // unsupported right now
-  PuleAssetMeshComponentDataType_f32,
-  PuleAssetMeshComponentDataType_dontCare,
-} PuleAssetMeshComponentDataType;
+  PuleAssetMeshAttributeComponentDataType_u8,
+  PuleAssetMeshAttributeComponentDataType_u16,
+  PuleAssetMeshAttributeComponentDataType_u32,
+  PuleAssetMeshAttributeComponentDataType_i8,
+  PuleAssetMeshAttributeComponentDataType_i16,
+  PuleAssetMeshAttributeComponentDataType_i32,
+  PuleAssetMeshAttributeComponentDataType_f16, // unsupported right now
+  PuleAssetMeshAttributeComponentDataType_f32,
+} PuleAssetMeshAttributeComponentDataType;
 
 typedef struct {
   size_t bufferIndex;
   size_t bufferByteOffset;
   size_t bufferByteStride;
-  PuleAssetMeshComponentDataType componentDataType;
+  PuleAssetMeshAttributeComponentDataType componentDataType;
   uint32_t componentsPerVertex; // Must be 1, 2, 3, or 4
 } PuleAssetMeshAttribute;
 
@@ -81,11 +79,6 @@ typedef struct {
 } PuleAssetMesh;
 
 typedef struct {
-  PuleAssetMeshComponentDataType componentDataType;
-  uint32_t componentsPerVertex;
-} PuleAssetMeshRequestedFormatAttribute;
-
-typedef struct {
   PuleDsValue modelData;
   // callbacks that should probably allocate memory for model
   void (* loadBuffer)(
@@ -93,6 +86,7 @@ typedef struct {
     size_t const bufferIndex,
     void * const userData
   );
+  // all buffers affected by the provided mesh will have been loaded
   void (* loadMesh)(
     PuleAssetMesh const mesh,
     size_t const meshIndex,
@@ -104,6 +98,22 @@ typedef struct {
 PULE_exportFn void puleAssetModelLoad(
   PuleAssetModelLoadInfo const loadInfo,
   PuleError * const error
+);
+
+PULE_exportFn size_t puleAssetMeshAttributeComponentDataTypeByteSize(
+  PuleAssetMeshAttributeComponentDataType const attribute
+);
+
+typedef struct {
+  PuleAssetMeshAttribute attribute;
+  PuleBufferView attributeBufferView; // buffer mapped from attribute
+  PuleAssetMeshAttributeComponentDataType dstComponentDataType;
+  size_t dstComponentCount;
+  size_t attributeElementCount;
+  PuleBufferViewMutable dstBufferView;
+} PuleAssetModelConvertAttributeInfo;
+PULE_exportFn void puleAssetModelConvertAttributeBuffer(
+  PuleAssetModelConvertAttributeInfo const info
 );
 
 #ifdef __cplusplus

@@ -41,4 +41,6 @@ endif()
 
 if (PULCHRITUDE_FEATURE_COMPILER)
   add_subdirectory(compiler)
+  add_subdirectory(parser)
+  add_subdirectory(engine-language)
 endif()

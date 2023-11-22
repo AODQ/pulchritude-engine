@@ -136,7 +136,7 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
   };
   auto const pipelineCI = PuleGpuPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
-    .layoutDescriptorSet = &descriptorSetLayout,
+    .layoutDescriptorSet = descriptorSetLayout,
     .layoutPushConstants = &pushConstants,
     .layoutPushConstantsCount = 1,
     .config = { // TODO
@@ -156,7 +156,7 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
     },
   };
 
-  bd.pipeline = puleGpuPipelineCreate(&pipelineCI, &err);
+  bd.pipeline = puleGpuPipelineCreate(pipelineCI, &err);
   if (puleErrorConsume(&err)) { return; }
 }
 

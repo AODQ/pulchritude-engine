@@ -86,6 +86,11 @@ void puleErrorPropagate(
   PuleError * const error,
   PuleError const source
 ) {
+  if (error == nullptr) {
+    PuleError sourceCopy = source;
+    puleErrorConsume(&sourceCopy);
+    return;
+  }
   if (source.id == 0) {
     return;
   }
