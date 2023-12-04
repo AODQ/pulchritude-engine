@@ -5,9 +5,7 @@
 // of third party plugin integration, this will be the first library to be
 // removed.
 
-// This really exists because I want to use LLVM, however with introduction
-// of opaque pointers and the large scope of project, I feel like the API can be
-// simplified by quite a bit.
+// it's just a wrapper around LLVM
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-string/string.h>
@@ -31,6 +29,9 @@ void * puleIRModuleJITFunctionAddress(
   PuleIRModule const module,
   PuleStringView const functionName
 );
+
+void puleIRModuleVerify(PuleIRModule const module);
+void puleIRModuleOptimize(PuleIRModule const module);
 
 void puleIRModuleDump(PuleIRModule const module);
 
@@ -78,11 +79,17 @@ typedef enum {
 
 typedef struct { uint64_t id; } PuleIRType;
 
+bool puleIRDataTypeIsInt(PuleIRDataType const type);
+bool puleIRDataTypeIsFloat(PuleIRDataType const type);
+bool puleIRDataTypeIsSigned(PuleIRDataType const type);
+uint32_t puleIRDataTypeByteCount(PuleIRDataType const type);
+
 // -- types --------------------------------------------------------------------
 
 typedef struct {
   PuleIRModule module;
   PuleIRDataType type;
+  size_t byteCount;
   union {
     struct {
       PuleIRType const * memberTypes;
@@ -92,8 +99,8 @@ typedef struct {
     } structInfo;
     struct {
       PuleIRType returnType;
-      PuleIRType const * parameterTypes;
       size_t parameterCount;
+      PuleIRType const * parameterTypes;
       bool variadic;
     } fnInfo;
     struct {
@@ -111,7 +118,7 @@ PuleIRDataTypeInfo puleIRTypeInfo(PuleIRModule const m, PuleIRType const type);
 
 typedef enum {
   PuleIRValueKind_function,
-  PuleIRValueKind_constInteger,
+  PuleIRValueKind_constInt,
   PuleIRValueKind_constFloat,
   PuleIRValueKind_constBuffer,
   PuleIRValueKind_constString,
@@ -122,6 +129,7 @@ typedef enum {
 typedef struct { uint64_t id; } PuleIRValue;
 PuleIRType puleIRValueType(PuleIRModule const m, PuleIRValue const value);
 PuleIRValueKind puleIRValueKind(PuleIRModule const m, PuleIRValue const value);
+void puleIRValueDump(PuleIRModule const module, PuleIRValue const value);
 
 PuleIRValue puleIRValueVoid();
 
@@ -132,12 +140,23 @@ typedef struct { uint64_t id; } PuleIRCodeBlock;
 typedef struct {
   PuleIRModule module;
   PuleIRValue context;
+  bool positionBuilderAtEnd;
   PuleStringView label;
 } PuleIRCodeBlockCreateInfo;
-PuleIRCodeBlock puleIRCodeBlockCreate(
+PULE_exportFn PuleIRCodeBlock puleIRCodeBlockCreate(
   PuleIRCodeBlockCreateInfo const createInfo
 );
 
+PULE_exportFn PuleIRCodeBlock puleIRCodeBlockLast(
+  PuleIRModule const module,
+  PuleIRValue const fnValue
+);
+
+PULE_exportFn void puleIRCodeBlockMoveAfter(
+  PuleIRModule const module,
+  PuleIRCodeBlock const codeBlock,
+  PuleIRCodeBlock const moveTarget
+);
 typedef enum {
   PuleIRCodeBlockTerminateType_ret,
 } PuleIRCodeBlockTerminateType;
@@ -152,6 +171,11 @@ typedef struct {
     } ret;
   };
 } PuleIRCodeBlockTerminateCreateInfo;
+
+void puleIRCodeBlockPositionBuilderAtEnd(
+  PuleIRModule const module,
+  PuleIRCodeBlock const codeBlock
+);
 
 // TODO ensure code block is always terminated
 void puleIRCodeBlockTerminate(
@@ -178,7 +202,7 @@ typedef struct {
       PuleIRCodeBlock codeBlock;
       uint64_t u64;
       bool isSigned;
-    } constInteger;
+    } constInt;
     struct {
       PuleIRCodeBlock codeBlock;
       double f64;
@@ -194,12 +218,15 @@ typedef struct {
     } constString;
     struct {
       PuleIRCodeBlock codeBlock;
-      PuleIRValue const * values;
       size_t valueCount;
+      PuleIRValue const * values;
     } constArray;
   };
 } PuleIRValueConstCreateInfo;
 PuleIRValue puleIRValueConstCreate(PuleIRValueConstCreateInfo const createInfo);
+
+// convenience value functions
+PuleIRValue puleIRValueConstI64(PuleIRModule const m, int64_t const i64);
 
 // -- code block build ---------------------------------------------------------
 
@@ -234,11 +261,14 @@ typedef enum {
 typedef enum {
   PuleIRInstrType_return,
   PuleIRInstrType_call,
-  PuleIRInstrType_allocate,
+  PuleIRInstrType_stackAlloc,
   PuleIRInstrType_free,
   PuleIRInstrType_load,
   PuleIRInstrType_store,
   PuleIRInstrType_operation,
+  PuleIRInstrType_branch,
+  PuleIRInstrType_trunc,
+  PuleIRInstrType_cast,
 } PuleIRInstrType;
 
 typedef struct {
@@ -250,17 +280,17 @@ typedef struct {
   PuleIRInstrType instrType PULE_param(PuleIRInstrType_call);
   PuleIRType functionType;
   PuleIRValue function;
-  PuleIRValue const * arguments;
   size_t argumentCount;
+  PuleIRValue const * arguments;
   PuleStringView label;
 } PuleIRInstrCall;
 
 typedef struct {
-  PuleIRInstrType instrType PULE_param(PuleIRInstrType_allocate);
+  PuleIRInstrType instrType PULE_param(PuleIRInstrType_stackAlloc);
   PuleIRType type;
   PuleIRValue valueSize;
   PuleStringView label;
-} PuleIRInstrAllocate;
+} PuleIRInstrStackAlloc;
 
 typedef struct {
   PuleIRInstrType instrType PULE_param(PuleIRInstrType_free);
@@ -296,26 +326,78 @@ typedef struct {
   bool floatingPoint PULE_param(false);
 } PuleIRInstrOp;
 
+typedef struct PuleIRInstrBranch {
+  PuleIRInstrType instrType PULE_param(PuleIRInstrType_branch);
+  bool isConditional;
+  union {
+    struct {
+      PuleIRValue condition;
+      PuleIRCodeBlock codeBlockTrue;
+      PuleIRCodeBlock codeBlockFalse;
+    } conditional;
+    struct {
+      PuleIRCodeBlock codeBlock;
+    } unconditional;
+  };
+} PuleIRInstrBranch;
+
+typedef struct PuleIRInstrTrunc {
+  PuleIRInstrType instrType PULE_param(PuleIRInstrType_trunc);
+  PuleIRValue value;
+  PuleIRType type;
+  PuleStringView label;
+} PuleIRInstrTrunc;
+
+typedef enum {
+  PuleIRCast_intTrunc,
+  PuleIRCast_uintExtend,
+  PuleIRCast_intExtend,
+  PuleIRCast_floatToUint,
+  PuleIRCast_floatToInt,
+  PuleIRCast_uintToFloat,
+  PuleIRCast_intToFloat,
+  PuleIRCast_floatTrunc,
+  PuleIRCast_floatExtend,
+} PuleIRCast;
+
+PuleIRCast puleIRCastTypeFromDataTypes(
+  PuleIRDataType const from,
+  PuleIRDataType const to
+);
+
+typedef struct PuleIRInstrCast {
+  PuleIRInstrType instrType PULE_param(PuleIRInstrType_cast);
+  PuleIRCast castType;
+  PuleIRValue value;
+  PuleIRType type;
+  PuleStringView label;
+} PuleIRInstrCast;
+
+typedef union PuleIRBuildInstrUnion {
+  PuleIRInstrType instrType;
+  PuleIRInstrReturn ret;
+  PuleIRInstrCall call;
+  PuleIRInstrStackAlloc stackAlloc;
+  PuleIRInstrFree free;
+  PuleIRInstrLoad load;
+  PuleIRInstrStore store;
+  PuleIRInstrOp op;
+  PuleIRInstrBranch branch;
+  PuleIRInstrTrunc trunc;
+  PuleIRInstrCast cast;
+
+  // getelementptr TODO what's the point of the type? Pointers are stored as
+  // opaque values, so this would only work if if type is a struct or array,
+  // or pointer to struct or array. If it's a pointer to a pointer to a struct
+  // or array, then it would require two GEPs (one to get the pointer, and one
+  // to get the struct or array). I think I'll just leave this out for now.
+  // but isn't here buildStructGEP which handles one of the cases already?
+} PuleIRBuildInstrUnion;
+
 typedef struct PuleIRBuildCreateInfo {
   PuleIRModule module;
   PuleIRCodeBlock codeBlock;
-  union {
-    PuleIRInstrType instrType;
-    PuleIRInstrReturn ret;
-    PuleIRInstrCall call;
-    PuleIRInstrAllocate allocate;
-    PuleIRInstrFree free;
-    PuleIRInstrLoad load;
-    PuleIRInstrStore store;
-    PuleIRInstrOp op;
-
-    // getelementptr TODO what's the point of the type? Pointers are stored as
-    // opaque values, so this would only work if if type is a struct or array,
-    // or pointer to struct or array. If it's a pointer to a pointer to a struct
-    // or array, then it would require two GEPs (one to get the pointer, and one
-    // to get the struct or array). I think I'll just leave this out for now.
-    // but isn't here buildStructGEP which handles one of the cases already?
-  };
+  PuleIRBuildInstrUnion instr;
 } PuleIRBuildCreateInfo;
 PuleIRValue puleIRBuild(PuleIRBuildCreateInfo const createInfo);
 

@@ -11,6 +11,9 @@
 #include <llvm-c/IRReader.h>
 #include <llvm-c/LLJIT.h>
 #include <llvm-c/Orc.h>
+#include <llvm-c/Target.h>
+
+#include <llvm-c/Transforms/Scalar.h>
 
 #include <atomic>
 #include <string>
@@ -23,6 +26,8 @@ namespace pint {
 struct Type {
   LLVMTypeRef type;
   PuleIRDataTypeInfo typeInfo;
+  // allocate types for typeInfo.fn/struct member/param ptr
+  std::vector<PuleIRType> memberOrParameterTypes;
 };
 
 struct Value {
@@ -34,11 +39,15 @@ struct Value {
 struct ModuleInfo {
   LLVMContextRef context;
   LLVMModuleRef module;
+  LLVMTargetDataRef dataLayout;
+
   std::string moduleName; // seems LLVM C-API doesn't interface module::getName
   pule::ResourceContainer<LLVMBuilderRef> builders;
-  pule::ResourceContainer<Type> types;
-  pule::ResourceContainer<Value> values;
+  std::unordered_map<uint64_t, LLVMBasicBlockRef> basicBlocks;
+  pule::ResourceContainer<Type, PuleIRType> types;
+  pule::ResourceContainer<Value, PuleIRValue> values;
   std::unordered_map<PuleIRDataType, PuleIRType> genericTypes;
+  std::vector<LLVMValueRef> functionValues;
 };
 
 
@@ -56,8 +65,8 @@ PuleIRModule puleIRModuleCreate(PuleIRModuleCreateInfo const ci) {
   moduleInfo.module = (
     LLVMModuleCreateWithNameInContext(ci.label.contents, moduleInfo.context)
   );
+  moduleInfo.dataLayout = LLVMGetModuleDataLayout(moduleInfo.module);
   moduleInfo.moduleName = std::string(ci.label.contents);
-
 
   PuleIRModule puModule = pint::modules.create(moduleInfo);
   auto & module = *pint::modules.at(puModule);
@@ -88,30 +97,34 @@ PuleIRModule puleIRModuleCreate(PuleIRModuleCreateInfo const ci) {
   auto & genericType = module.genericTypes;
   auto & ctx = module.context;
 
-  puleLog("creating ir module");
-
   // build all the generic data types
-  for (
-    auto & it : {
+  for (auto & it : {
       std::pair<
         LLVMTypeRef (*)(LLVMContextRef),
         std::pair<PuleIRDataType, char const *>
       >
-    { &LLVMInt8TypeInContext,     { PuleIRDataType_u8, "PuleIRDataType_u8", }, },
-    { &LLVMInt16TypeInContext,    { PuleIRDataType_u16, "PuleIRDataType_u16 ", }, },
-    { &LLVMInt32TypeInContext,    { PuleIRDataType_u32, "PuleIRDataType_u32 ", }, },
-    { &LLVMInt64TypeInContext,    { PuleIRDataType_u64, "PuleIRDataType_u64 ", }, },
-    { &LLVMFloatTypeInContext,    { PuleIRDataType_f32, "PuleIRDataType_f32 ", }, },
-    { &LLVMDoubleTypeInContext,   { PuleIRDataType_f64, "PuleIRDataType_f64 ", }, },
-    { &LLVMInt1TypeInContext,     { PuleIRDataType_bool, "PuleIRDataType_bool ", }, },
-    { &LLVMVoidTypeInContext,     { PuleIRDataType_void, "PuleIRDataType_void ", }, },
+      {&LLVMInt8TypeInContext,  {PuleIRDataType_u8,   "PuleIRDataType_u8",  },},
+      {&LLVMInt16TypeInContext, {PuleIRDataType_u16,  "PuleIRDataType_u16", },},
+      {&LLVMInt32TypeInContext, {PuleIRDataType_u32,  "PuleIRDataType_u32", },},
+      {&LLVMInt64TypeInContext, {PuleIRDataType_u64,  "PuleIRDataType_u64", },},
+      {&LLVMFloatTypeInContext, {PuleIRDataType_f32,  "PuleIRDataType_f32", },},
+      {&LLVMDoubleTypeInContext,{PuleIRDataType_f64,  "PuleIRDataType_f64", },},
+      {&LLVMInt1TypeInContext,  {PuleIRDataType_bool, "PuleIRDataType_bool",},},
+      {&LLVMVoidTypeInContext,  {PuleIRDataType_void, "PuleIRDataType_void",},},
   }) {
+    LLVMTypeRef typeref = it.first(ctx);
     genericType[it.second.first] = {
       type.create(
         pint::Type {
-          .type = it.first(ctx),
+          .type = typeref,
           .typeInfo = PuleIRDataTypeInfo {
-            .module = puModule, .type = it.second.first, .genericInfo = {},
+            .module = puModule, .type = it.second.first,
+            .byteCount = (
+              it.second.first == PuleIRDataType_void
+              ? 0
+              : LLVMStoreSizeOfType(module.dataLayout, typeref)
+            ),
+            .genericInfo = {},
           },
         }
       )
@@ -145,9 +158,54 @@ void puleIRModuleDestroy(PuleIRModule const module) {
   LLVMContextDispose(moduleInfo->context);
 }
 
+void puleIRModuleVerify(PuleIRModule const module) {
+  auto moduleInfo = pint::modules.at(module);
+  LLVMPassManagerRef passManager = (
+    LLVMCreateFunctionPassManagerForModule(moduleInfo->module)
+  );
+  LLVMAddVerifierPass(passManager);
+
+  LLVMInitializeFunctionPassManager(passManager);
+  for (auto & fn : moduleInfo->functionValues) {
+    LLVMRunFunctionPassManager(passManager, fn);
+  }
+  LLVMFinalizeFunctionPassManager(passManager);
+  LLVMDisposePassManager(passManager);
+}
+
+void puleIRModuleOptimize(PuleIRModule const module) {
+  auto moduleInfo = pint::modules.at(module);
+  LLVMPassManagerRef passManager = (
+    LLVMCreateFunctionPassManagerForModule(moduleInfo->module)
+  );
+  LLVMAddInstructionCombiningPass(passManager);
+  LLVMAddCFGSimplificationPass(passManager);
+  LLVMAddDeadStoreEliminationPass(passManager);
+  LLVMAddScalarizerPass(passManager);
+  LLVMAddReassociatePass(passManager);
+  LLVMAddTailCallEliminationPass(passManager);
+  LLVMAddDemoteMemoryToRegisterPass(passManager);
+  LLVMAddGVNPass(passManager);
+  LLVMAddAggressiveDCEPass(passManager);
+
+  LLVMInitializeFunctionPassManager(passManager);
+  for (auto & fn : moduleInfo->functionValues) {
+    LLVMRunFunctionPassManager(passManager, fn);
+  }
+  LLVMFinalizeFunctionPassManager(passManager);
+  LLVMDisposePassManager(passManager);
+}
+
 void puleIRModuleDump(PuleIRModule const module) {
   auto moduleInfo = pint::modules.at(module);
   auto str = LLVMPrintModuleToString(moduleInfo->module);
+  puleLog("%s", str);
+  LLVMDisposeMessage(str);
+}
+
+void puleIRValueDump(PuleIRModule const module, PuleIRValue const value) {
+  auto moduleInfo = pint::modules.at(module);
+  auto str = LLVMPrintValueToString(moduleInfo->values.at(value)->value);
   puleLog("%s", str);
   LLVMDisposeMessage(str);
 }
@@ -224,7 +282,10 @@ PuleIRJitEngine puleIRJitEngineCreate(PuleIRJitEngineCreateInfo const ci) {
         LLVMJITEvaluatedSymbol { \
           .Address = (uint64_t)(void *)name, \
           .Flags = { \
-            .GenericFlags = LLVMJITSymbolGenericFlagsCallable, \
+            .GenericFlags = ( \
+                LLVMJITSymbolGenericFlagsCallable \
+              | LLVMJITSymbolGenericFlagsExported \
+            ), \
             .TargetFlags = 0, \
           }, \
         }, \
@@ -288,14 +349,17 @@ static void pulintIRJitLookupCallback(
   LLVMOrcCSymbolMapPairs result, size_t numPairs,
   void * ctx
 ) {
-  PULE_assert(numPairs != 0 && "couldn't find the symbol");
-  PULE_assert(numPairs == 1 && "only one lookup at a time");
   auto & context = *reinterpret_cast<pulintIRJITLookupContext *>(ctx);
+  if (numPairs == 0) {
+    context.found = true;
+    context.address = 0;
+    return;
+  }
+  PULE_assert(numPairs == 1 && "only one lookup at a time");
   context.address = result[0].Sym.Address;
   context.found = true;
   (void)error;
 }
-
 
 void * puleIRJitEngineFunctionAddress(
   PuleIRJitEngine const jitEngine,
@@ -336,6 +400,79 @@ void * puleIRJitEngineFunctionAddress(
   return (void *)lookupCtx.address;
 }
 
+// -- data types ---------------------------------------------------------------
+
+bool puleIRDataTypeIsInt(PuleIRDataType const type) {
+  switch (type) {
+    case PuleIRDataType_u8:
+    case PuleIRDataType_u16:
+    case PuleIRDataType_u32:
+    case PuleIRDataType_u64:
+    case PuleIRDataType_i8:
+    case PuleIRDataType_i16:
+    case PuleIRDataType_i32:
+    case PuleIRDataType_i64:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool puleIRDataTypeIsFloat(PuleIRDataType const type) {
+  switch (type) {
+    case PuleIRDataType_f16:
+    case PuleIRDataType_f32:
+    case PuleIRDataType_f64:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool puleIRDataTypeIsSigned(PuleIRDataType const type) {
+  switch (type) {
+    case PuleIRDataType_u8:
+    case PuleIRDataType_u16:
+    case PuleIRDataType_u32:
+    case PuleIRDataType_u64:
+      return false;
+    case PuleIRDataType_i8:
+    case PuleIRDataType_i16:
+    case PuleIRDataType_i32:
+    case PuleIRDataType_i64:
+      return true;
+    case PuleIRDataType_f16:
+    case PuleIRDataType_f32:
+    case PuleIRDataType_f64:
+      return true; // i guess technically true
+    default:
+      return false;
+  }
+}
+
+uint32_t puleIRDataTypeByteCount(PuleIRDataType const type) {
+  switch (type) {
+    case PuleIRDataType_void:
+    case PuleIRDataType_struct:
+    case PuleIRDataType_array:
+      PULE_assert(false && "can not get byte count of this type");
+    case PuleIRDataType_bool:     return 1;
+    case PuleIRDataType_function: return 8;
+    case PuleIRDataType_ptr:      return 8;
+    case PuleIRDataType_u8:       return 1;
+    case PuleIRDataType_u16:      return 2;
+    case PuleIRDataType_u32:      return 4;
+    case PuleIRDataType_u64:      return 8;
+    case PuleIRDataType_i8:       return 1;
+    case PuleIRDataType_i16:      return 2;
+    case PuleIRDataType_i32:      return 4;
+    case PuleIRDataType_i64:      return 8;
+    case PuleIRDataType_f16:      return 2;
+    case PuleIRDataType_f32:      return 4;
+    case PuleIRDataType_f64:      return 8;
+  }
+}
+
 // -- types --------------------------------------------------------------------
 
 PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
@@ -357,23 +494,31 @@ PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
     case PuleIRDataType_ptr:
       return moduleInfo->genericTypes[createInfo.type];
     case PuleIRDataType_function: {
-      std::vector<LLVMTypeRef> paramTypes;
+      std::vector<PuleIRType> paramTypes;
+      std::vector<LLVMTypeRef> paramLlvmTypes;
       for (size_t i = 0; i < createInfo.fnInfo.parameterCount; ++ i) {
-        paramTypes.emplace_back(
-          moduleInfo->types.at(createInfo.fnInfo.parameterTypes[i].id)->type
+        paramTypes.emplace_back(createInfo.fnInfo.parameterTypes[i]);
+        paramLlvmTypes.emplace_back(
+          moduleInfo->types.at(paramTypes.back())->type
         );
       }
-      return {
+      PuleIRType const type = (
         moduleInfo->types.create({
-          LLVMFunctionType(
-            moduleInfo->types.at(createInfo.fnInfo.returnType.id)->type,
-            paramTypes.data(),
-            paramTypes.size(),
+          .type = LLVMFunctionType(
+            moduleInfo->types.at(createInfo.fnInfo.returnType)->type,
+            paramLlvmTypes.data(),
+            paramLlvmTypes.size(),
             createInfo.fnInfo.variadic
           ),
-          createInfo,
+          .typeInfo = createInfo,
+          .memberOrParameterTypes = paramTypes,
         })
-      };
+      );
+      auto & typeInfo = *moduleInfo->types.at(type);
+      typeInfo.typeInfo.fnInfo.parameterTypes = (
+        typeInfo.memberOrParameterTypes.data()
+      );
+      return type;
     }
     case PuleIRDataType_struct: {
       LLVMTypeRef structType = (
@@ -382,28 +527,42 @@ PuleIRType puleIRTypeCreate(PuleIRDataTypeInfo const createInfo) {
           createInfo.structInfo.label.contents
         )
       );
-      std::vector<LLVMTypeRef> memberTypes;
+      std::vector<PuleIRType> memberTypes;
+      std::vector<LLVMTypeRef> memberLlvmTypes;
       for (size_t i = 0; i < createInfo.structInfo.memberCount; ++ i) {
-        memberTypes.emplace_back(
-          moduleInfo->types.at(createInfo.structInfo.memberTypes[i].id)->type
+        memberTypes.emplace_back(createInfo.structInfo.memberTypes[i]);
+        memberLlvmTypes.emplace_back(
+          moduleInfo->types.at(memberTypes.back())->type
         );
       }
       LLVMStructSetBody(
         structType,
-        memberTypes.data(),
-        memberTypes.size(),
+        memberLlvmTypes.data(),
+        memberLlvmTypes.size(),
         createInfo.structInfo.packed
       );
-      return { moduleInfo->types.create({structType, createInfo,}) };
+      PuleIRType const type = (
+        moduleInfo->types.create({
+          .type = structType,
+          .typeInfo = createInfo,
+          .memberOrParameterTypes = memberTypes,
+        })
+      );
+      auto & typeInfo = *moduleInfo->types.at(type);
+      typeInfo.typeInfo.fnInfo.parameterTypes = (
+        typeInfo.memberOrParameterTypes.data()
+      );
+      return type;
     }
     case PuleIRDataType_array: {
       return {
         moduleInfo->types.create({
-          LLVMArrayType(
-            moduleInfo->types.at(createInfo.arrayInfo.elementType.id)->type,
+          .type = LLVMArrayType(
+            moduleInfo->types.at(createInfo.arrayInfo.elementType)->type,
             createInfo.arrayInfo.elementCount
           ),
-          createInfo,
+          .typeInfo = createInfo,
+          .memberOrParameterTypes = {},
         })
       };
     }
@@ -414,7 +573,7 @@ PuleIRDataTypeInfo puleIRTypeInfo(
   PuleIRModule const puModule,
   PuleIRType const type
 ) {
-  return pint::modules.at(puModule)->types.at(type.id)->typeInfo;
+  return pint::modules.at(puModule)->types.at(type)->typeInfo;
 }
 
 // -- values -------------------------------------------------------------------
@@ -424,7 +583,7 @@ PuleIRType puleIRValueType(
   PuleIRValue const puValue
 ) {
   pint::Value const & value = (
-    *pint::modules.at(puModule)->values.at(puValue.id)
+    *pint::modules.at(puModule)->values.at(puValue)
   );
   return value.type;
 }
@@ -434,7 +593,7 @@ PuleIRValueKind puleIRValueKind(
   PuleIRValue const puValue
 ) {
   pint::Value const & value = (
-    *pint::modules.at(puModule)->values.at(puValue.id)
+    *pint::modules.at(puModule)->values.at(puValue)
   );
   return value.kind;
 }
@@ -453,13 +612,18 @@ PuleIRCodeBlock puleIRCodeBlockCreate(
   LLVMBasicBlockRef const block = (
     LLVMAppendBasicBlockInContext(
       moduleInfo->context,
-      moduleInfo->values.at(createInfo.context.id)->value,
+      moduleInfo->values.at(createInfo.context)->value,
       createInfo.label.contents
     )
   );
-  LLVMPositionBuilderAtEnd(builder, block);
-  return {
-    .id = reinterpret_cast<uint64_t>(moduleInfo->builders.create(builder)), };
+  uint64_t codeBlockID = (
+    reinterpret_cast<uint64_t>(moduleInfo->builders.create(builder))
+  );
+  moduleInfo->basicBlocks.emplace(codeBlockID, block);
+  if (createInfo.positionBuilderAtEnd) {
+    LLVMPositionBuilderAtEnd(builder, block);
+  }
+  return { .id = codeBlockID };
 }
 
 void puleIRCodeBlockTerminate(PuleIRCodeBlockTerminateCreateInfo const ci) {
@@ -470,10 +634,47 @@ void puleIRCodeBlockTerminate(PuleIRCodeBlockTerminateCreateInfo const ci) {
       if (ci.ret.value.id == 0) {
         LLVMBuildRetVoid(builder);
       } else {
-        LLVMBuildRet(builder, module.values.at(ci.ret.value.id)->value);
+        LLVMBuildRet(builder, module.values.at(ci.ret.value)->value);
       }
     break;
   }
+}
+
+PuleIRCodeBlock puleIRCodeBlockLast(
+  PuleIRModule const module, PuleIRValue const fnValue
+) {
+  LLVMValueRef fn = pint::modules.at(module)->values.at(fnValue)->value;
+  LLVMBasicBlockRef block = LLVMGetLastBasicBlock(fn);
+  // todo cache this so dont have to iterte etc
+  for (auto & it : pint::modules.at(module)->basicBlocks) {
+    if (it.second == block) {
+      return { .id = it.first };
+    }
+  }
+  return { .id = 0, };
+}
+
+void puleIRCodeBlockMoveAfter(
+  PuleIRModule const module,
+  PuleIRCodeBlock const codeBlock,
+  PuleIRCodeBlock const moveTarget
+) {
+  auto & moduleInfo = *pint::modules.at(module);
+  LLVMMoveBasicBlockAfter(
+    moduleInfo.basicBlocks.at(codeBlock.id),
+    moduleInfo.basicBlocks.at(moveTarget.id)
+  );
+}
+
+void puleIRCodeBlockPositionBuilderAtEnd(
+  PuleIRModule const module,
+  PuleIRCodeBlock const codeBlock
+) {
+//auto & moduleInfo = *pint::modules.at(module);
+//  LLVMPositionBuilderAtEnd(
+//    moduleInfo.builders.at(codeBlock.id),
+//    codeBlock.id
+//  );
 }
 
 // -- value creation -----------------------------------------------------------
@@ -482,23 +683,25 @@ PuleIRValue puleIRValueConstCreate(
   PuleIRValueConstCreateInfo const createInfo
 ) {
   auto & module = *pint::modules.at(createInfo.module);
-  auto & type = *module.types.at(createInfo.type.id);
+  auto & type = *module.types.at(createInfo.type);
   PuleIRDataType puDataType = (
     puleIRTypeInfo(createInfo.module, createInfo.type).type
   );
   if (createInfo.kind == PuleIRValueKind_function) {
     PULE_assert(puDataType == PuleIRDataType_function);
+    LLVMValueRef function = (
+      LLVMAddFunction(
+        module.module,
+        createInfo.label.contents,
+        type.type
+      )
+    );
+    module.functionValues.emplace_back(function);
     return {
       module.values.create({
         .type = createInfo.type,
         .kind = PuleIRValueKind_function,
-        .value = (
-          LLVMAddFunction(
-            module.module,
-            createInfo.label.contents,
-            type.type
-          )
-        ),
+        .value = function,
       })
     };
   }
@@ -508,7 +711,7 @@ PuleIRValue puleIRValueConstCreate(
       PULE_assert(puDataType == PuleIRDataType_ptr);
       LLVMTypeRef stringType = (
         LLVMArrayType(
-          module.types.at(module.genericTypes.at(PuleIRDataType_u8).id)->type,
+          module.types.at(module.genericTypes.at(PuleIRDataType_u8))->type,
           createInfo.constString.string.len+1
         )
       );
@@ -534,10 +737,11 @@ PuleIRValue puleIRValueConstCreate(
         })
       };
     }
-    case PuleIRValueKind_constInteger: {
+    case PuleIRValueKind_constInt: {
       switch (puDataType) {
         default:
           PULE_assert(false && "can not create const value of this type");
+        case PuleIRDataType_bool:
         case PuleIRDataType_u8:
         case PuleIRDataType_u16:
         case PuleIRDataType_u32:
@@ -553,8 +757,8 @@ PuleIRValue puleIRValueConstCreate(
               .value = (
                 LLVMConstInt(
                   type.type,
-                  createInfo.constInteger.u64,
-                  createInfo.constInteger.isSigned
+                  createInfo.constInt.u64,
+                  createInfo.constInt.isSigned
                 )
               )
             })
@@ -585,6 +789,21 @@ PuleIRValue puleIRValueConstCreate(
   return { .id = 0 };
 }
 
+PuleIRValue puleIRValueConstI64(PuleIRModule const m, int64_t const i64) {
+  return (
+    puleIRValueConstCreate({
+      .module = m,
+      .type = puleIRTypeCreate({
+        .module = m,
+        .type = PuleIRDataType_i64,
+        .genericInfo = {},
+      }),
+      .kind = PuleIRValueKind_constInt,
+      .constInt = { .u64 = (uint64_t)i64, .isSigned = true, },
+    })
+  );
+}
+
 } // extern "C"
 
 // -- code block build ---------------------------------------------------------
@@ -593,18 +812,19 @@ namespace pint {
 
 PuleIRValue puleIRBuildReturn(PuleIRBuildCreateInfo const ci) {
   auto & module = *pint::modules.at(ci.module);
-  if (ci.ret.value.id == 0) {
+  auto & ret = ci.instr.ret;
+  if (ret.value.id == 0) {
     LLVMBuildRetVoid(module.builders.at(ci.codeBlock.id));
     return puleIRValueVoid();
   }
   return {
     module.values.create(pint::Value {
-      .type = puleIRValueType(ci.module, ci.ret.value),
-      .kind = puleIRValueKind(ci.module, ci.ret.value),
+      .type = puleIRValueType(ci.module, ret.value),
+      .kind = puleIRValueKind(ci.module, ret.value),
       .value = (
         LLVMBuildRet(
           module.builders.at(ci.codeBlock.id),
-          module.values.at(ci.ret.value.id)->value
+          module.values.at(ret.value)->value
         )
       ),
     })
@@ -612,15 +832,16 @@ PuleIRValue puleIRBuildReturn(PuleIRBuildCreateInfo const ci) {
 }
 PuleIRValue puleIRBuildCall(PuleIRBuildCreateInfo const ci) {
   auto & module = *pint::modules.at(ci.module);
+  auto & call = ci.instr.call;
   // resulting type is the return type of the function
   PuleIRType const returnType = (
     puleIRTypeInfo(
-      ci.module, ci.call.functionType
+      ci.module, call.functionType
     ).fnInfo.returnType
   );
   std::vector<LLVMValueRef> arguments;
-  for (size_t i = 0; i < ci.call.argumentCount; ++ i) {
-    arguments.emplace_back(module.values.at(ci.call.arguments[i].id)->value);
+  for (size_t i = 0; i < call.argumentCount; ++ i) {
+    arguments.emplace_back(module.values.at(call.arguments[i])->value);
   }
   return {
     module.values.create(pint::Value {
@@ -629,11 +850,11 @@ PuleIRValue puleIRBuildCall(PuleIRBuildCreateInfo const ci) {
       .value = (
         LLVMBuildCall2(
           module.builders.at(ci.codeBlock.id),
-          module.types.at(ci.call.functionType.id)->type,
-          module.values.at(ci.call.function.id)->value,
+          module.types.at(call.functionType)->type,
+          module.values.at(call.function)->value,
           arguments.data(),
           arguments.size(),
-          ci.call.label.contents
+          call.label.contents
         )
       ),
     })
@@ -644,13 +865,19 @@ PuleIRValue puleIRBuildAllocate(
   PuleIRBuildCreateInfo const ci
 ) {
   auto & module = *pint::modules.at(ci.module);
-  auto & valueSizeInfo = *module.values.at(ci.allocate.valueSize.id);
+  auto & stackAlloc = ci.instr.stackAlloc;
+  auto & valueSizeInfo = *module.values.at(stackAlloc.valueSize);
   if (
-    valueSizeInfo.kind != PuleIRValueKind_constInteger
+    valueSizeInfo.kind != PuleIRValueKind_constInt
     && valueSizeInfo.kind != PuleIRValueKind_dynamic
   ) {
+    puleLog("Kind: %d", valueSizeInfo.kind);
     PULE_assert(false && "can not allocate with count of this type");
   }
+  std::string const label = (
+      std::to_string(ci.codeBlock.id) + "_"
+    + std::string(stackAlloc.label.contents)
+  );
   return {
     module.values.create(pint::Value {
       .type = puleIRTypeCreate({ci.module, PuleIRDataType_ptr, {}}),
@@ -658,8 +885,8 @@ PuleIRValue puleIRBuildAllocate(
       .value = (
         LLVMBuildAlloca(
           module.builders.at(ci.codeBlock.id),
-          module.types.at(ci.allocate.type.id)->type,
-          ci.allocate.label.contents
+          module.types.at(stackAlloc.type)->type,
+          label.c_str()
         )
       ),
     })
@@ -670,22 +897,27 @@ void puleIRBuildFree(PuleIRBuildCreateInfo const ci) {
   auto & module = *pint::modules.at(ci.module);
   LLVMBuildFree(
     module.builders.at(ci.codeBlock.id),
-    module.values.at(ci.free.value.id)->value
+    module.values.at(ci.instr.free.value)->value
   );
 }
 
 PuleIRValue puleIRBuildLoad(PuleIRBuildCreateInfo const ci) {
   auto & module = *pint::modules.at(ci.module);
+  auto & load = ci.instr.load;
+  std::string const label = (
+      std::to_string(ci.codeBlock.id) + "_"
+    + std::string(load.label.contents)
+  );
   return {
     module.values.create(pint::Value {
-      .type = ci.load.type,
+      .type = load.type,
       .kind = PuleIRValueKind_dynamic,
       .value = (
         LLVMBuildLoad2(
           module.builders.at(ci.codeBlock.id),
-          module.types.at(ci.load.type.id)->type,
-          module.values.at(ci.load.value.id)->value,
-          ci.load.label.contents
+          module.types.at(load.type)->type,
+          module.values.at(load.value)->value,
+          label.c_str()
         )
       ),
     })
@@ -696,21 +928,79 @@ void puleIRBuildStore(PuleIRBuildCreateInfo const ci) {
   auto & module = *pint::modules.at(ci.module);
   LLVMBuildStore(
     module.builders.at(ci.codeBlock.id),
-    module.values.at(ci.store.value.id)->value,
-    module.values.at(ci.store.dst.id)->value
+    module.values.at(ci.instr.store.value)->value,
+    module.values.at(ci.instr.store.dst)->value
   );
+}
+
+PuleIRValue puleIRBuildTrunc(PuleIRBuildCreateInfo const ci) {
+  auto & module = *pint::modules.at(ci.module);
+  auto & trunc = ci.instr.trunc;
+  std::string const label = (
+      std::to_string(ci.codeBlock.id) + "_"
+    + std::string(trunc.label.contents)
+  );
+  return {
+    module.values.create(pint::Value {
+      .type = trunc.type,
+      .kind = PuleIRValueKind_dynamic,
+      .value = (
+        LLVMBuildTrunc(
+          module.builders.at(ci.codeBlock.id),
+          module.values.at(trunc.value)->value,
+          module.types.at(trunc.type)->type,
+          label.c_str()
+        )
+      ),
+    })
+  };
+}
+
+PuleIRValue puleIRBuildCast(PuleIRBuildCreateInfo const ci) {
+  auto & module = *pint::modules.at(ci.module);
+  auto & cast = ci.instr.cast;
+  static const std::unordered_map<PuleIRCast, LLVMOpcode> castToOpcode {
+    { PuleIRCast_intTrunc,    LLVMTrunc, },
+    { PuleIRCast_uintExtend,  LLVMZExt, },
+    { PuleIRCast_intExtend,   LLVMSExt, },
+    { PuleIRCast_floatToUint, LLVMFPToUI, },
+    { PuleIRCast_floatToInt,  LLVMFPToSI, },
+    { PuleIRCast_uintToFloat, LLVMUIToFP, },
+    { PuleIRCast_intToFloat,  LLVMSIToFP, },
+    { PuleIRCast_floatTrunc,  LLVMFPTrunc, },
+    { PuleIRCast_floatExtend, LLVMFPExt, },
+  };
+  std::string const label = (
+      std::to_string(ci.codeBlock.id) + "_"
+    + std::string(cast.label.contents)
+  );
+  return {
+    module.values.create(pint::Value {
+      .type = cast.type,
+      .kind = PuleIRValueKind_dynamic,
+      .value = (
+        LLVMBuildCast(
+          module.builders.at(ci.codeBlock.id),
+          castToOpcode.at(cast.castType),
+          module.values.at(cast.value)->value,
+          module.types.at(cast.type)->type,
+          label.c_str()
+        )
+      ),
+    })
+  };
 }
 
 PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
   auto & module = *pint::modules.at(ci.module);
-
+  auto & op = ci.instr.op;
   bool const isBinary = (
-       ci.op.type != PuleIROperator_neg
-    && ci.op.type != PuleIROperator_not
+       op.type != PuleIROperator_neg
+    && op.type != PuleIROperator_not
   );
 
-  pint::Value const & lhs = *module.values.at(ci.op.unary.lhs.id);
-  pint::Type const & lhsType = *module.types.at(lhs.type.id);
+  pint::Value const & lhs = *module.values.at(op.unary.lhs);
+  pint::Type const & lhsType = *module.types.at(lhs.type);
 
   if (!isBinary) {
     // handle
@@ -728,9 +1018,9 @@ PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
     || lhsType.typeInfo.type == PuleIRDataType_i64
   );
 
-  PULE_assert(isLhsFloatingPoint && ci.op.floatingPoint);
+  PULE_assert(!(isLhsFloatingPoint ^ op.floatingPoint));
 
-  pint::Value const & rhs = *module.values.at(ci.op.binary.lhs.id);
+  pint::Value const & rhs = *module.values.at(op.binary.rhs);
 
   static const std::unordered_map<
     PuleIROperator,
@@ -762,45 +1052,57 @@ PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
   };
 
   bool const isMathematic = (
-       ci.op.type == PuleIROperator_add
-    || ci.op.type == PuleIROperator_sub
-    || ci.op.type == PuleIROperator_mul
-    || ci.op.type == PuleIROperator_div
-    || ci.op.type == PuleIROperator_mod
-    || ci.op.type == PuleIROperator_and
-    || ci.op.type == PuleIROperator_or
-    || ci.op.type == PuleIROperator_xor
-    || ci.op.type == PuleIROperator_shl
-    || ci.op.type == PuleIROperator_shr
+       op.type == PuleIROperator_add || op.type == PuleIROperator_sub
+    || op.type == PuleIROperator_mul || op.type == PuleIROperator_div
+    || op.type == PuleIROperator_mod || op.type == PuleIROperator_and
+    || op.type == PuleIROperator_or  || op.type == PuleIROperator_xor
+    || op.type == PuleIROperator_shl || op.type == PuleIROperator_shr
   );
 
-  if (isMathematic && !ci.op.floatingPoint) {
+  static std::unordered_map<PuleIROperator, std::string> operToStr {
+    { PuleIROperator_add, "add", },
+    { PuleIROperator_sub, "sub", },
+    { PuleIROperator_mul, "mul", },
+    { PuleIROperator_div, "div", },
+    { PuleIROperator_mod, "mod", },
+    { PuleIROperator_and, "and", },
+    { PuleIROperator_or,  "or",  },
+    { PuleIROperator_xor, "xor", },
+    { PuleIROperator_shl, "shl", },
+    { PuleIROperator_shr, "shr", },
+  };
+
+  std::string const label = (
+      std::to_string(ci.codeBlock.id) + "_"
+    + std::string(op.label.contents)
+  );
+  if (isMathematic && !op.floatingPoint) {
     return {
       module.values.create(pint::Value {
         .type = lhs.type, // TODO this is wrong, needs to be max
         .kind = PuleIRValueKind_dynamic,
         .value = (
-          operatorToBinaryIntFn.at(ci.op.type)[(int32_t)isLhsSigned](
+          operatorToBinaryIntFn.at(op.type)[(int32_t)isLhsSigned](
             module.builders.at(ci.codeBlock.id),
             lhs.value,
             rhs.value,
-            ci.op.label.contents
+            label.c_str()
           )
         ),
       })
     };
-  } else if (isMathematic && ci.op.floatingPoint) {
-    PULE_assert(operatorToBinaryFloatFn.contains(ci.op.type));
+  } else if (isMathematic && op.floatingPoint) {
+    PULE_assert(operatorToBinaryFloatFn.contains(op.type));
     return {
       module.values.create(pint::Value {
         .type = lhs.type, // TODO this is wrong, needs to be max
         .kind = PuleIRValueKind_dynamic,
         .value = (
-          operatorToBinaryFloatFn.at(ci.op.type)(
+          operatorToBinaryFloatFn.at(op.type)(
             module.builders.at(ci.codeBlock.id),
             lhs.value,
             rhs.value,
-            ci.op.label.contents
+            label.c_str()
           )
         ),
       })
@@ -810,7 +1112,7 @@ PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
   // logical
   LLVMIntPredicate predicateInt;
   LLVMRealPredicate predicateReal;
-  switch (ci.op.type) {
+  switch (op.type) {
     default: PULE_assert(false);
     case PuleIROperator_eq:
       predicateInt = LLVMIntEQ;
@@ -853,7 +1155,7 @@ PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
             predicateReal,
             lhs.value,
             rhs.value,
-            ci.op.label.contents
+            label.c_str()
           )
         ),
       })
@@ -869,24 +1171,83 @@ PuleIRValue puleIRBuildOperation(PuleIRBuildCreateInfo const ci) {
           predicateInt,
           lhs.value,
           rhs.value,
-          ci.op.label.contents
+          label.c_str()
         )
       ),
     })
   };
 }
 
+void puleIRBuildBranch(PuleIRBuildCreateInfo const ci) {
+  auto & module = *pint::modules.at(ci.module);
+  auto & branch = ci.instr.branch;
+  if (branch.isConditional) {
+    LLVMBuildCondBr(
+      module.builders.at(ci.codeBlock.id),
+      module.values.at(branch.conditional.condition)->value,
+      // TODO
+      module.basicBlocks.at(branch.conditional.codeBlockTrue.id),
+      module.basicBlocks.at(branch.conditional.codeBlockFalse.id)
+    );
+  } else {
+    LLVMBuildBr(
+      module.builders.at(ci.codeBlock.id),
+      module.basicBlocks.at(branch.unconditional.codeBlock.id)
+    );
+  }
+}
+
 } // namespace pint
 
 extern "C" {
 
+PuleIRCast puleIRCastTypeFromDataTypes(
+  PuleIRDataType const from,
+  PuleIRDataType const to
+) {
+  bool const fromFp = puleIRDataTypeIsFloat(from);
+  bool const toFp = puleIRDataTypeIsFloat(to);
+  bool const fromInt = puleIRDataTypeIsInt(from);
+  bool const toInt = puleIRDataTypeIsInt(to);
+  bool const fromSigned = puleIRDataTypeIsSigned(from);
+  bool const toSigned = puleIRDataTypeIsSigned(to);
+  uint32_t const fromByteCount = puleIRDataTypeByteCount(from);
+  uint32_t const toByteCount = puleIRDataTypeByteCount(to);
+
+  PULE_assert(fromFp || fromInt);
+  PULE_assert(toFp || toInt);
+
+  // int2float/float2int
+  if (fromFp && toInt) {
+    return toSigned ? PuleIRCast_floatToInt : PuleIRCast_floatToUint;
+  }
+  if (fromInt && toFp) {
+    return fromSigned ? PuleIRCast_intToFloat : PuleIRCast_uintToFloat;
+  }
+
+  // int2int extend
+  if (fromInt && toInt) {
+    if (fromByteCount < toByteCount) {
+      return toSigned ? PuleIRCast_intExtend : PuleIRCast_uintExtend;
+    }
+    return PuleIRCast_intTrunc;
+  }
+
+  // float2float extend
+  if (fromByteCount < toByteCount) {
+    return PuleIRCast_floatExtend;
+  }
+  return PuleIRCast_floatTrunc;
+}
+
 PuleIRValue puleIRBuild(PuleIRBuildCreateInfo const createInfo) {
-  switch (createInfo.instrType) {
+  switch (createInfo.instr.instrType) {
+    default: PULE_assert(false && "TODO");
     case PuleIRInstrType_return:
       return pint::puleIRBuildReturn(createInfo);
     case PuleIRInstrType_call:
       return pint::puleIRBuildCall(createInfo);
-    case PuleIRInstrType_allocate:
+    case PuleIRInstrType_stackAlloc:
       return pint::puleIRBuildAllocate(createInfo);
     case PuleIRInstrType_free:
       pint::puleIRBuildFree(createInfo);
@@ -898,6 +1259,13 @@ PuleIRValue puleIRBuild(PuleIRBuildCreateInfo const createInfo) {
       return { .id = 0 };
     case PuleIRInstrType_operation:
       return pint::puleIRBuildOperation(createInfo);
+    case PuleIRInstrType_branch:
+      pint::puleIRBuildBranch(createInfo);
+      return { .id = 0 };
+    case PuleIRInstrType_trunc:
+      return pint::puleIRBuildTrunc(createInfo);
+    case PuleIRInstrType_cast:
+      return pint::puleIRBuildCast(createInfo);
   }
 }
 

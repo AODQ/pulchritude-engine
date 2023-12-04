@@ -2382,6 +2382,21 @@
       ::loadSymbol("puleIRJitEngineFunctionAddress", layerName)
     )
   );
+  layer->iRCodeBlockCreate = (
+    reinterpret_cast<decltype(layer->iRCodeBlockCreate)>(
+      ::loadSymbol("puleIRCodeBlockCreate", layerName)
+    )
+  );
+  layer->iRCodeBlockLast = (
+    reinterpret_cast<decltype(layer->iRCodeBlockLast)>(
+      ::loadSymbol("puleIRCodeBlockLast", layerName)
+    )
+  );
+  layer->iRCodeBlockMoveAfter = (
+    reinterpret_cast<decltype(layer->iRCodeBlockMoveAfter)>(
+      ::loadSymbol("puleIRCodeBlockMoveAfter", layerName)
+    )
+  );
   // parser
   layer->parserCreate = (
     reinterpret_cast<decltype(layer->parserCreate)>(

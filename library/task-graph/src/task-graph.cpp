@@ -190,10 +190,12 @@ PuleStringView puleTaskGraphNodeLabel(PuleTaskGraphNode const pNode) {
 PuleTaskGraphNode puleTaskGraphNodeFetch(
   PuleTaskGraph const pGraph, PuleStringView const label
 ) {
+  TaskGraph & graph = ::taskGraphs.at(pGraph.id);
   std::string const labelToHash = (
     std::string(label.contents) + "--" + std::to_string(pGraph.id)
   );
   uint64_t const id = puleStringViewHash(puleCStr(labelToHash.c_str()));
+  puleLogDev("label hash: %s :: id %zu", labelToHash.c_str(), id);
   assert(graph.nodes.contains(id));
   return PuleTaskGraphNode { .id = id, };
 }

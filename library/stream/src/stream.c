@@ -25,6 +25,8 @@ PuleBuffer puleStreamDumpToBuffer(PuleStreamRead const stream) {
     uint8_t const byte = puleStreamReadByte(stream);
     puleBufferAppend(&buffer, &byte, 1);
   }
+  uint8_t const nullByte = 0;
+  puleBufferAppend(&buffer, &nullByte, 1);
   return buffer;
 }
 

@@ -15,11 +15,15 @@ extern "C" {
 // grouptoken := %ruletoken '\|';
 // ruleref :ws= '%' %identifier;
 // regex := '\'(?:[^'\\\\]|\\\\.)*\'';
-// identifier := '[a-zA-Z_][a-zA-Z0-9_]*';
+// identifier := '[a-zA-Z_][a-zA-Z0-9_\\-]*';
 // repeat := ('\*' | '\+' | '\?' |)?;
 
 PuleParser puleParserCreateForDefaultExpressionGrammar() {
-  PuleParser parser = puleParserCreate();
+  PuleParser parser = (
+    puleParserCreate(
+      puleCStr("default-expression-grammar"), puleCStr(""), puleCStr("")
+    )
+  );
 
   #define token(name, regex) \
     PuleParserRegexToken const rt##name = ( \
@@ -209,7 +213,7 @@ PuleParser puleParserCreateForDefaultExpressionGrammar() {
 
 namespace pint {
 
-struct Ctx {
+struct PegCtx {
   std::unordered_map<std::string, PuleParserRule> rules;
   PuleParser parser;
   bool findRules;
@@ -233,13 +237,13 @@ std::string traverseAstRuleref(PuleParserAstNode const node) {
 
 PuleParserRuleNode traverseAstRuleToken(
   PuleParserAstNode const node,
-  Ctx & ctx
+  PegCtx & ctx
 );
 
 // grouptoken := ( %ruleref | %regex | %group ) '\|';
 PuleParserRuleNode traverseAstGroupToken(
   PuleParserAstNode const node,
-  Ctx & ctx
+  PegCtx & ctx
 ) {
   PULE_assert(node.type == PuleParserNodeType_rule);
   PULE_assert(node.childCount == 2);
@@ -248,7 +252,7 @@ PuleParserRuleNode traverseAstGroupToken(
 }
 
 // group := '\(' %grouptoken+ '\)';
-PuleParserRuleNode traverseAstGroup(PuleParserAstNode const node, Ctx & ctx) {
+PuleParserRuleNode traverseAstGroup(PuleParserAstNode const node, PegCtx & ctx) {
   PULE_assert(node.type == PuleParserNodeType_rule);
   PULE_assert(node.childCount == 3);
   auto const seqNode = puleParserAstNodeChild(node, 1);
@@ -273,7 +277,7 @@ PuleParserRuleNode traverseAstGroup(PuleParserAstNode const node, Ctx & ctx) {
 // ruletoken := ( %ruleref | %regex | %group | ) %repeat;
 PuleParserRuleNode traverseAstRuleToken(
   PuleParserAstNode const node,
-  Ctx & ctx
+  PegCtx & ctx
 ) {
   size_t const childCount = node.childCount;
   PULE_assert(node.type == PuleParserNodeType_rule);
@@ -334,7 +338,7 @@ PuleParserRuleNode traverseAstRuleToken(
 // ruleset := %ruletoken+;
 std::vector<PuleParserRuleNode> traverseAstRuleSet(
   PuleParserAstNode const node,
-  Ctx & ctx
+  PegCtx & ctx
 ) {
   PULE_assert(node.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(node.match, "ruleset"));
@@ -351,7 +355,7 @@ std::vector<PuleParserRuleNode> traverseAstRuleSet(
 }
 
 // ruledef := %ruleref ":[^=]*=" %ruleset ';';
-void traverseAstRuleDefs(PuleParserAstNode const node, Ctx & ctx) {
+void traverseAstRuleDefs(PuleParserAstNode const node, PegCtx & ctx) {
   size_t const childCount = node.childCount;
   PULE_assert(node.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(node.match, "ruledef"));
@@ -385,12 +389,11 @@ void traverseAstRuleDefs(PuleParserAstNode const node, Ctx & ctx) {
 
 void traverseAstRules(
   PuleParserAstNode const node,
-  Ctx & ctx
+  PegCtx & ctx
 ) {
   // unwrap the rule
   size_t const childCount = node.childCount;
   PULE_assert(node.type == PuleParserNodeType_rule);
-  puleLog("Rule: %s", node.match.contents);
   PULE_assert(puleStringViewEqCStr(node.match, "rules"));
 
   // unwrap rule's sequence of ruledefs
@@ -410,6 +413,9 @@ extern "C" {
 
 PULE_exportFn PuleParser puleParserCreateFromString(
   PuleStringView const sv,
+  PuleStringView const name,
+  PuleStringView const commentStart,
+  PuleStringView const commentEnd,
   PuleError * const error
 ) {
   PuleParser egParser = puleParserCreateForDefaultExpressionGrammar();
@@ -424,14 +430,19 @@ PULE_exportFn PuleParser puleParserCreateFromString(
     )
   );
   if (puleErrorConsume(error)) { return {}; }
+  puleScopeExit { puleParserAstDestroy(ast); };
 
   // first iterate and find all rules, then generate
-  pint::Ctx ctx = { .parser = puleParserCreate(), .findRules = true, };
+  pint::PegCtx ctx = {
+    .parser = puleParserCreate(name, commentStart, commentEnd),
+    .findRules = true,
+  };
   pint::traverseAstRules(puleParserAstRoot(ast), ctx);
   ctx.findRules = false;
   pint::traverseAstRules(puleParserAstRoot(ast), ctx);
 
-  return ctx.parser;
+  PuleParser const parser = ctx.parser;
+  return parser;
 }
 
 } // extern "C"

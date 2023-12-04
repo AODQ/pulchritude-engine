@@ -563,10 +563,13 @@ typedef struct PuleEngineLayer {
   void (* iRJitEngineDestroy)(PuleIRJitEngine const);
   void (* iRJitEngineAddModule)(PuleIRJitEngine const, PuleIRModule const);
   void * (* iRJitEngineFunctionAddress)(PuleIRJitEngine const, PuleStringView const);
+  PuleIRCodeBlock (* iRCodeBlockCreate)(PuleIRCodeBlockCreateInfo const);
+  PuleIRCodeBlock (* iRCodeBlockLast)(PuleIRModule const, PuleIRValue const);
+  void (* iRCodeBlockMoveAfter)(PuleIRModule const, PuleIRCodeBlock const, PuleIRCodeBlock const);
   // parser
-  PuleParser (* parserCreate)();
+  PuleParser (* parserCreate)(PuleStringView const, PuleStringView const, PuleStringView const);
   void (* parserDestroy)(PuleParser const);
-  PuleParser (* parserCreateFromString)(PuleStringView const, PuleError * const);
+  PuleParser (* parserCreateFromString)(PuleStringView const, PuleStringView const, PuleStringView const, PuleStringView const, PuleError * const);
   PuleParser (* parserCreateForDefaultExpressionGrammar)();
   PuleParserRegexToken (* parserRegexTokenCreate)(PuleParser const, PuleStringView const);
   PuleParserGroup (* parserGroupCreate)(PuleParser const, PuleParserRuleNode * const, size_t const);

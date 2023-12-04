@@ -15,11 +15,18 @@ typedef enum {
 } PuleErrorParser;
 
 typedef struct { uint64_t id; } PuleParser;
-PULE_exportFn PuleParser puleParserCreate();
+PULE_exportFn PuleParser puleParserCreate(
+  PuleStringView const name,
+  PuleStringView const commentStart, // e.g. "//"
+  PuleStringView const commentEnd // e.g. "\n"
+);
 PULE_exportFn void puleParserDestroy(PuleParser const parser);
 
 PULE_exportFn PuleParser puleParserCreateFromString(
   PuleStringView const sv,
+  PuleStringView const name,
+  PuleStringView const commentStart, // e.g. "//"
+  PuleStringView const commentEnd, // e.g. "\n"
   PuleError * const error
 );
 
@@ -83,6 +90,9 @@ PULE_exportFn PuleParserRule puleParserRule(
 PULE_exportFn void puleParserDump(PuleParser const parser);
 
 // parse string with the rules, returning the ast
+// TODO rename this from PuleParserAst to PuleParserTree as this is not an AST
+//      e.g. there is no precedence, reordering of nodes, stripping of
+//      unnecessary nodes, etc.
 typedef struct { uint64_t id; } PuleParserAst;
 PULE_exportFn PuleParserAst puleParserAstCreate(
   PuleParser const parser,

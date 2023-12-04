@@ -5,7 +5,6 @@ target_sources(
   pulchritude-parser
   PRIVATE
     src/parser.cpp
-    src/parser-engine-language-parser.cpp
     src/parser-expression-grammar-parser.cpp
 )
 

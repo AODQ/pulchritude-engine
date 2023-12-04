@@ -84,7 +84,7 @@ typedef struct PuleGpuActionBindBuffer {
 } PuleGpuActionBindBuffer;
 
 typedef struct PuleGpuActionBindTexture {
-  PuleGpuAction action PULE_param(PuleGpuAction_bindBuffer);
+  PuleGpuAction action PULE_param(PuleGpuAction_bindTexture);
   size_t bindingIndex;
   PuleGpuImageView imageView;
   PuleGpuImageLayout imageLayout;

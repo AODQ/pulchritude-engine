@@ -40,6 +40,29 @@ def compileShader(contentName, filename, outFilename):
   # delete the temporary binary file
   os.remove("out.spv")
 
+def embedFile(contentName, filename, outFilename):
+  print("Embedding file: ", filename, " to ", outFilename)
+  filename = inputArgs["dir"] + "/" + filename
+  outFilename = inputArgs["dir"] + "/" + outFilename
+  # dump contents to string
+  outStr = ""
+  with open(filename, "r") as f:
+    outStr = f.read()
+  # replace backslashes with double backslashes
+  outStr = outStr.replace("\\", "\\\\")
+  # replace double quotes with escaped double quotes
+  outStr = outStr.replace("\"", "\\\"")
+  # wrap string in quote-strings on each newline, and escape the newline
+  outStr = outStr.replace("\n", "\\n\"\n    \"")
+  # wrap the begin and end
+  outStr = (
+    "static const char "
+    + contentName
+    + "[] = (\n    \"" + outStr + "\"\n);\n"
+  )
+  with open(outFilename, "w") as f:
+    f.write(outStr)
+
 compileShader(
   "debugGfxLineVert",
   "shaders/debug-gfx-line.vert",
@@ -74,4 +97,16 @@ compileShader(
   "imguiFrag",
   "shaders/imgui.frag",
   "library/imgui/src/autogen-imgui.frag.spv"
+)
+
+compileShader(
+  "materialDefaultVert",
+  "shaders/material-default.vert",
+  "library/renderer-3d/src/autogen-material-default.vert.spv"
+)
+
+compileShader(
+  "materialDefaultFrag",
+  "shaders/imgui.frag",
+  "library/renderer-3d/src/autogen-material-default.frag.spv"
 )

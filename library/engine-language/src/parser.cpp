@@ -38,7 +38,7 @@ Here are some examples
 
 
 @fn add(a : i32, b : i32,) -> i32 {
-  @const chaos : i32 := puleRand(0, 100,);
+  @let chaos : i32 := puleRand(0, 100,);
   return a + b + chaos;
 }
 
@@ -55,7 +55,7 @@ Here are some examples
     puleLog("%d", a[it],);
   }
   # while loop
-  @var it : usize := 0;
+  @mut it : usize := 0;
   while (it < count) {
     puleLog("%d", a[it],);
     ++ it;
@@ -69,13 +69,13 @@ Here are some examples
 }
 
 @fn randArray() -> i32 {
-  @const arr : i32 * = { 1, 2, 3, 4, 5, 6, 7, 8, 9, };
-  @const idx : usize := puleRand(0, 9,);
+  @let arr : i32 * = { 1, 2, 3, 4, 5, 6, 7, 8, 9, };
+  @let idx : usize := puleRand(0, 9,);
   return (arr + idx).*;
 }
 
 @fn randArrayAlternative() -> i32 {
-  @const arr : i32 * = alloc(10 * $sizeof(i32,),);
+  @let arr : i32 * = alloc(10 * $sizeof(i32,),);
   for @(++ it : i32 *; arr .. arr + 10) {
     it.* = $cast(i32, it - arr,);
   }
@@ -100,21 +100,59 @@ Here are some examples
 namespace pint {
 
 std::string const expressionGrammar = R"(
-%function :=
-  '@fn' %identifier '\(' %parameter* '\)' '->' %type %block ';';
+%globals := %global+;
+%global := (%function_definition | %function_declaration |);
+%function_declaration :=
+  %function_tag %identifier '\(' %parameter* '\)' '->' %type ';'
+;
+%function_definition :=
+  '@fn' %identifier '\(' %parameter* '\)' '->' %type %block;
+%function_tag := ('@fn' | '@externfn' |);
 %parameter := %identifier ':' %type ',';
 %block := '\{' %body '\}';
 %body := %statement*;
-%statement := (%call |) ';';
+%statement := (%statement_block | %statement_instruction |);
+%statement_block := (%statement_if | %statement_while | %block |);
+%statement_instruction := (%call | %return | %declaration | %assignment |) ';';
 
+%statement_if := 'if' '\(' %expression '\)' %block %statement_else?;
+%statement_else := 'else' %statement_block;
+
+%statement_while := 'while' '\(' %expression '\)' %block;
+
+%declaration := ('@let' | '@mut' |) %identifier ':' %type '=' %expression;
+
+%assignment := %identifier '=' %expression;
+
+%return := 'return' %expression;
 %call := %identifier '\(' %argument* '\)';
 %argument := %expression ',';
-%expression := (%identifier | %literal |);
 
-%literal := (%string|);
+%expression := %expression_equality;
+%expression_equality := %expression_additive %expression_equality_tail*;
+%expression_equality_tail := %operator_equality %expression_additive;
+%expression_additive := %expression_multiplicative %expression_additive_tail*;
+%expression_additive_tail := %operator_additive %expression_multiplicative;
+%expression_multiplicative := %expression_unary %expression_multiplicative_tail*;
+%expression_multiplicative_tail := %operator_multiplicative %expression_unary;
+%expression_unary :=
+  '-'? (%expression_parens | %literal | %identifier | %type |);
+%expression_parens := '\(' %expression '\)';
+
+%operator_equality := ('==' | '!=' |);
+%operator_additive := ('\+' | '\-' |);
+%operator_multiplicative := ('\*' | '\/' |);
+
+%literal := (%string | %integer | %float | %boolean | %metacall |);
+
+%metacall := '@' %identifier '\(' %argument* '\)';
+
+%integer := '[0-9]+';
+%float := '[0-9]+\.([0-9]+)?f';
+%boolean := ('true' | 'false' |);
 %string := '`[^`]*`';
-%type := %identifier %typeModifier*;
-%typemodifier := ('ptr' | 'const' |);
+%type := %identifier %typemodifier*;
+%typemodifier := 'ptr';
 %identifier := '[a-zA-Z_][a-zA-Z0-9_]*';
 )";
 
@@ -125,6 +163,9 @@ PuleParser pule::puleParserCreateForDefaultEngine() {
   PuleParser parser = (
     puleParserCreateFromString(
       puleCStr(pint::expressionGrammar.c_str()),
+      puleCStr("pulchritude-engine-language"),
+      puleCStr("#"),
+      puleCStr("\n"),
       &error
     )
   );

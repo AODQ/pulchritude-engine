@@ -24,6 +24,10 @@ struct Group {
 };
 
 struct Parser {
+  std::string name;
+  std::string commentStart;
+  std::string commentEnd;
+
   std::vector<RegexToken> regexTokens;
   std::vector<Rule> rules;
   std::vector<Group> groups;
@@ -70,8 +74,18 @@ std::string dumpRuleNode(
 
 extern "C" {
 
-PuleParser puleParserCreate() {
-  return pint::parsermap.create({});
+PuleParser puleParserCreate(
+  PuleStringView const name,
+  PuleStringView const commentStart,
+  PuleStringView const commentEnd
+) {
+  return (
+    pint::parsermap.create({
+      .name = name.contents,
+      .commentStart = commentStart.contents,
+      .commentEnd = commentEnd.contents,
+    })
+  );
 }
 void puleParserDestroy(PuleParser const parser) {
   pint::parsermap.destroy(parser);
@@ -89,10 +103,6 @@ PuleParserRegexToken puleParserRegexTokenCreate(
   regexToken.matcher = std::regex(fixedRegex);
   regexToken.label = std::string(regex.contents, regex.len);
   regexToken.id = parser.regexTokens.size();
-  puleLog(
-    "Created regex token [%zu]: %s",
-    regexToken.id, regexToken.label.c_str()
-  );
   parser.regexTokens.emplace_back(regexToken);
   return { regexToken.id, };
 }
@@ -280,7 +290,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
           errors.emplace_back(
               std::string{"expected \""} + regexToken.label + "\""
             + " at expression: " + line
-            + "\n\t[" + it.dump(parser) + "]"
+            + "\n  [" + it.dump(parser) + "]"
           );
         }
         it.push(node, lineEnd);
@@ -293,6 +303,13 @@ pint::AstNode parseAstNodeRuleNodeEntry(
       astNode.match = rule.label;
       astNode.type = PuleParserNodeType_rule;
       astNode.parserNodeId = node.id;
+      if (rule.nodes.size() == 0) {
+        errors.emplace_back(
+          std::string{"rule "} + rule.label + " is not defined"
+        );
+        astNode.poison = true;
+        return astNode;
+      }
       for (auto & rulenode : rule.nodes) {
         ItTrackerSave save = it.save(node);
         if (rule.ignoreWhitespace) {
@@ -328,7 +345,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
       }
       if (!matched) { astNode.poison = true; }
       if (!optional) {
-        std::string err = "\tgroup: (";
+        std::string err = "  group: (";
         for (auto const & groupnode : group.nodes) {
           err += parser.rules[groupnode.id].label + " | ";
         }
@@ -338,7 +355,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
           err += *lineStart++;
         }
         err += "`";
-        errors.emplace_back(err + "\n\t[" + it.dump(parser) + "]");
+        errors.emplace_back(err + "\n  [" + it.dump(parser) + "]");
       }
 
       return astNode;
@@ -377,7 +394,7 @@ pint::AstNode parseAstNodeRuleNode(
       );
       it.pop(save, nodeCheck.poison);
       if (nodeCheck.poison) {
-        errors.emplace_back("\t(1+) expected at least one match");
+        errors.emplace_back("  (1+) expected at least one match");
         return nodeCheck;
       }
       astNode.children.emplace_back(nodeCheck);
@@ -404,7 +421,9 @@ pint::AstNode parseAstNodeRuleNode(
       if (nodeCheck.poison) {
         nodeCheck.poison = false;
         nodeCheck.type = node.type;
+        nodeCheck.match = "";
         nodeCheck.parserNodeId = node.id;
+        nodeCheck.children.clear();
       }
       return nodeCheck;
     }
@@ -432,8 +451,42 @@ PuleParserAst puleParserAstCreate(
   pint::Parser & parser = *pint::parsermap.at(puParser);
   pint::Ast ast;
 
+  std::string stringCommentless = "";
+
+  // remove comments if rule is non-empty
+  // TODO have to make sure comment is not in a string
+  if (parser.commentStart.size() > 0 && parser.commentEnd.size() > 0)
+  {
+    char const * it = string.contents;
+    bool inComment = false;
+    auto & cmtStart = parser.commentStart;
+    auto & cmtEnd = parser.commentEnd;
+    while (*it != '\0') {
+      // check if in comment or not
+      if (inComment) {
+        if (std::strncmp(it, cmtEnd.c_str(), cmtEnd.size()) == 0) {
+          inComment = false;
+          it += parser.commentEnd.size();
+        } else {
+          ++ it;
+        }
+      } else {
+        if (std::strncmp(it, cmtStart.c_str(), cmtStart.size()) == 0) {
+          inComment = true;
+          it += parser.commentStart.size();
+        } else {
+          stringCommentless += *it;
+          ++ it;
+        }
+      }
+    }
+  } else {
+    stringCommentless = std::string{ string.contents, string.len };
+  }
+
+  // parse commentless string
   pint::ItTracker itTracker = {
-    .its = { { .node = {}, .it = string.contents, }, },
+    .its = { { .node = {}, .it = stringCommentless.c_str(), }, },
   };
 
   std::vector<std::string> errors;
@@ -454,7 +507,6 @@ PuleParserAst puleParserAstCreate(
   // skip whitespace until EOF or non-whitespace
   char const * it = *itTracker;
   while (*it != '\0' && (*it == '\n' || std::isspace(*it))) { ++it; }
-  puleLog("it tracker end size: %zu", itTracker.its.size());
   // if not EOF, then we haven't parsed everything
   if (*it != '\0') {
     std::string err = "expected end of string, got '";
@@ -478,7 +530,7 @@ PuleParserAst puleParserAstCreate(
     err.id = PuleErrorParser_astPoisoned;
     std::string errorstr = "\n";
     for (auto const & e : errors) {
-      errorstr += "\t" + e + "\n";
+      errorstr += "  " + e + "\n";
     }
     err.description = (
       puleStringFormatDefault("ast root poison, errors: %s", errorstr.c_str())
@@ -490,38 +542,53 @@ PuleParserAst puleParserAstCreate(
   return pint::astmap.create(ast);
 }
 
+void puleParserAstDestroy(PuleParserAst const ast) {
+  if (ast.id == 0) { return; }
+  pint::astmap.destroy(ast);
+}
+
 } // extern "C"
 
 namespace pint {
 
-void astNodeDump(
+void astNodeDump(PuleParserAstNode const puNode, size_t const depth);
+
+void astNodeDumpChildren(
   PuleParserAstNode const puNode,
-  size_t const depth = 0
+  size_t const depth
 ) {
+  // inline children
+  if (puNode.childCount == 1) {
+    puleLogRaw(" | ");
+    astNodeDump(puleParserAstNodeChild(puNode, 0), depth);
+    return;
+  }
+  // multiline children
+  for (size_t i = 0; i < puNode.childCount; ++i) {
+    puleLogRaw("\n%*s", depth * 2, " ");
+    astNodeDump(puleParserAstNodeChild(puNode, i), depth + 1);
+  }
+}
+
+void astNodeDump(PuleParserAstNode const puNode, size_t const depth = 0) {
   if (puNode.id == 0) { return; }
   auto const & node = *(pint::AstNode *)puNode.id;
   switch (node.type) {
     case PuleParserNodeType_sequence:
-      puleLogRaw("%*ssequence\n", depth * 4, " ");
-      for (size_t it = 0; it < node.children.size(); ++ it) {
-        pint::astNodeDump(puleParserAstNodeChild(puNode, it), depth+1);
-      }
+      puleLogRaw("sequence");
+      astNodeDumpChildren(puNode, depth);
     break;
     case PuleParserNodeType_regex:
-      puleLogRaw("%*sregex '%s'\n", depth * 4, " ", node.match.c_str());
+      puleLogRaw("regex '%s'", node.match.c_str());
     break;
     case PuleParserNodeType_rule: {
       std::string info;
-      puleLogRaw("%*s%%%s\n", depth * 4, " ", node.match.c_str());
-      for (size_t it = 0; it < node.children.size(); ++ it) {
-        pint::astNodeDump(puleParserAstNodeChild(puNode, it), depth + 1);
-      }
+      puleLogRaw("%%%s", node.match.c_str());
+      astNodeDumpChildren(puNode, depth);
     } break;
     case PuleParserNodeType_group:
-      puleLogRaw("%*sgroup\n", depth * 4, " ");
-      for (size_t it = 0; it < node.children.size(); ++ it) {
-        pint::astNodeDump(puleParserAstNodeChild(puNode, it), depth + 1);
-      }
+      puleLogRaw("group");
+      astNodeDumpChildren(puNode, depth);
     break;
   }
 }
@@ -547,6 +614,13 @@ PuleParserAstNode puleParserAstNodeChild(
   size_t const index
 ) {
   pint::AstNode * astNode = (pint::AstNode *)node.id;
+  if (index < 0 || index >= astNode->children.size()) {
+    puleLogError(
+      "index %zu out of bounds [0, %zu)", index, astNode->children.size()
+    );
+    puleParserAstNodeDump(node);
+    return { .id = 0, };
+  }
   PULE_assert(index < astNode->children.size());
   astNode = &astNode->children[index];
   return {
@@ -562,6 +636,7 @@ PuleParserAstNode puleParserAstNodeChild(
 
 void puleParserAstNodeDump(PuleParserAstNode const node) {
   pint::astNodeDump(node);
+  puleLogRaw("\n");
 }
 
 void puleParserAstNodeDumpShallow(PuleParserAstNode const puNode) {
