@@ -2361,42 +2361,6 @@
       ::loadSymbol("puleNetClientSendPacket", layerName)
     )
   );
-  // compiler
-  layer->iRJitEngineCreate = (
-    reinterpret_cast<decltype(layer->iRJitEngineCreate)>(
-      ::loadSymbol("puleIRJitEngineCreate", layerName)
-    )
-  );
-  layer->iRJitEngineDestroy = (
-    reinterpret_cast<decltype(layer->iRJitEngineDestroy)>(
-      ::loadSymbol("puleIRJitEngineDestroy", layerName)
-    )
-  );
-  layer->iRJitEngineAddModule = (
-    reinterpret_cast<decltype(layer->iRJitEngineAddModule)>(
-      ::loadSymbol("puleIRJitEngineAddModule", layerName)
-    )
-  );
-  layer->iRJitEngineFunctionAddress = (
-    reinterpret_cast<decltype(layer->iRJitEngineFunctionAddress)>(
-      ::loadSymbol("puleIRJitEngineFunctionAddress", layerName)
-    )
-  );
-  layer->iRCodeBlockCreate = (
-    reinterpret_cast<decltype(layer->iRCodeBlockCreate)>(
-      ::loadSymbol("puleIRCodeBlockCreate", layerName)
-    )
-  );
-  layer->iRCodeBlockLast = (
-    reinterpret_cast<decltype(layer->iRCodeBlockLast)>(
-      ::loadSymbol("puleIRCodeBlockLast", layerName)
-    )
-  );
-  layer->iRCodeBlockMoveAfter = (
-    reinterpret_cast<decltype(layer->iRCodeBlockMoveAfter)>(
-      ::loadSymbol("puleIRCodeBlockMoveAfter", layerName)
-    )
-  );
   // parser
   layer->parserCreate = (
     reinterpret_cast<decltype(layer->parserCreate)>(
@@ -2482,5 +2446,25 @@
   layer->eLModuleCreate = (
     reinterpret_cast<decltype(layer->eLModuleCreate)>(
       ::loadSymbol("puleELModuleCreate", layerName)
+    )
+  );
+  layer->eLJitEngineCreate = (
+    reinterpret_cast<decltype(layer->eLJitEngineCreate)>(
+      ::loadSymbol("puleELJitEngineCreate", layerName)
+    )
+  );
+  layer->eLJitEngineDestroy = (
+    reinterpret_cast<decltype(layer->eLJitEngineDestroy)>(
+      ::loadSymbol("puleELJitEngineDestroy", layerName)
+    )
+  );
+  layer->eLJitEngineAddModule = (
+    reinterpret_cast<decltype(layer->eLJitEngineAddModule)>(
+      ::loadSymbol("puleELJitEngineAddModule", layerName)
+    )
+  );
+  layer->eLJitEngineFunctionAddress = (
+    reinterpret_cast<decltype(layer->eLJitEngineFunctionAddress)>(
+      ::loadSymbol("puleELJitEngineFunctionAddress", layerName)
     )
   );

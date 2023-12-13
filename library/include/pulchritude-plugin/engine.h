@@ -47,7 +47,6 @@
 #include <pulchritude-render-graph/render-graph.h>
 #include <pulchritude-text/text.h>
 #include <pulchritude-net/net.h>
-#include <pulchritude-compiler/compiler.h>
 #include <pulchritude-parser/parser.h>
 #include <pulchritude-engine-language/engine-language.h>
 
@@ -558,14 +557,6 @@ typedef struct PuleEngineLayer {
   bool (* netClientConnected)(PuleNetClient const);
   void (* netClientPoll)(PuleNetClient const);
   void (* netClientSendPacket)(PuleNetClient const, PuleNetPacketSend const, PuleError * const);
-  // compiler
-  PuleIRJitEngine (* iRJitEngineCreate)(PuleIRJitEngineCreateInfo const);
-  void (* iRJitEngineDestroy)(PuleIRJitEngine const);
-  void (* iRJitEngineAddModule)(PuleIRJitEngine const, PuleIRModule const);
-  void * (* iRJitEngineFunctionAddress)(PuleIRJitEngine const, PuleStringView const);
-  PuleIRCodeBlock (* iRCodeBlockCreate)(PuleIRCodeBlockCreateInfo const);
-  PuleIRCodeBlock (* iRCodeBlockLast)(PuleIRModule const, PuleIRValue const);
-  void (* iRCodeBlockMoveAfter)(PuleIRModule const, PuleIRCodeBlock const, PuleIRCodeBlock const);
   // parser
   PuleParser (* parserCreate)(PuleStringView const, PuleStringView const, PuleStringView const);
   void (* parserDestroy)(PuleParser const);
@@ -584,7 +575,11 @@ typedef struct PuleEngineLayer {
   void (* parserAstNodeDump)(PuleParserAstNode const);
   void (* parserAstNodeDumpShallow)(PuleParserAstNode const);
   // engine-language
-  PuleIRModule (* eLModuleCreate)(PuleStreamRead const, PuleError * const);
+  PuleELModule (* eLModuleCreate)(PuleStreamRead const, PuleError * const);
+  PuleELJitEngine (* eLJitEngineCreate)(PuleELJitEngineCreateInfo const);
+  void (* eLJitEngineDestroy)(PuleELJitEngine const);
+  void (* eLJitEngineAddModule)(PuleELJitEngine const, PuleELModule const);
+  void * (* eLJitEngineFunctionAddress)(PuleELJitEngine const, PuleStringView const);
 } PuleEngineLayer;
 
 

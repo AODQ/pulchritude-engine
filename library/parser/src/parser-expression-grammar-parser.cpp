@@ -419,7 +419,6 @@ PULE_exportFn PuleParser puleParserCreateFromString(
   PuleError * const error
 ) {
   PuleParser egParser = puleParserCreateForDefaultExpressionGrammar();
-  puleParserDump(egParser);
 
   auto ast = (
     puleParserAstCreate(

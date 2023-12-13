@@ -1,18 +1,9 @@
 #pragma once
 
-// this is by far the worst library in this engine, it's not really useful
-// to anyone besides myself as a fun side-project. When the engine is capable
-// of third party plugin integration, this will be the first library to be
-// removed.
-
 // it's just a wrapper around LLVM
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-string/string.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // -- modules ------------------------------------------------------------------
 
@@ -35,27 +26,7 @@ void puleIRModuleOptimize(PuleIRModule const module);
 
 void puleIRModuleDump(PuleIRModule const module);
 
-// -- jit engine ---------------------------------------------------------------
-
-typedef struct { size_t id; } PuleIRJitEngine;
-typedef struct PuleIRJitEngineCreateInfo {
-  bool optimize PULE_param(true);
-  bool insertEngineSymbols PULE_param(true);
-} PuleIRJitEngineCreateInfo;
-PULE_exportFn PuleIRJitEngine puleIRJitEngineCreate(
-  PuleIRJitEngineCreateInfo const ci
-);
-PULE_exportFn void puleIRJitEngineDestroy(PuleIRJitEngine const jitEngine);
-
-PULE_exportFn void puleIRJitEngineAddModule(
-  PuleIRJitEngine const jitEngine,
-  PuleIRModule const module
-);
-
-PULE_exportFn void * puleIRJitEngineFunctionAddress(
-  PuleIRJitEngine const jitEngine,
-  PuleStringView const functionName
-);
+// -- data types ---------------------------------------------------------------
 
 typedef enum {
   PuleIRDataType_u8,
@@ -225,6 +196,17 @@ typedef struct {
 } PuleIRValueConstCreateInfo;
 PuleIRValue puleIRValueConstCreate(PuleIRValueConstCreateInfo const createInfo);
 
+// function variables
+size_t puleIRValueFunctionParameterCount(
+  PuleIRModule const m,
+  PuleIRValue const fnValue
+);
+PuleIRValue puleIRValueFunctionParameter(
+  PuleIRModule const m,
+  PuleIRValue const fnValue,
+  size_t const index
+);
+
 // convenience value functions
 PuleIRValue puleIRValueConstI64(PuleIRModule const m, int64_t const i64);
 
@@ -246,6 +228,9 @@ typedef enum {
   PuleIROperator_and,
   PuleIROperator_or,
   PuleIROperator_xor,
+  PuleIROperator_bit_and,
+  PuleIROperator_bit_or,
+  PuleIROperator_bit_xor,
   PuleIROperator_shl,
   PuleIROperator_shr,
   PuleIROperator_eq,
@@ -269,6 +254,7 @@ typedef enum {
   PuleIRInstrType_branch,
   PuleIRInstrType_trunc,
   PuleIRInstrType_cast,
+  PuleIRInstrType_switch,
 } PuleIRInstrType;
 
 typedef struct {
@@ -373,6 +359,19 @@ typedef struct PuleIRInstrCast {
   PuleStringView label;
 } PuleIRInstrCast;
 
+typedef struct PuleIrInstrSwitchCase {
+  PuleIRValue value;
+  PuleIRCodeBlock codeBlock;
+} PuleIrInstrSwitchCase;
+
+typedef struct PuleIRInstrSwitch {
+  PuleIRInstrType instrType PULE_param(PuleIRInstrType_switch);
+  PuleIRValue value;
+  PuleIRCodeBlock codeBlockDefault;
+  size_t caseCount;
+  PuleIrInstrSwitchCase const * cases;
+} PuleIRInstrSwitch;
+
 typedef union PuleIRBuildInstrUnion {
   PuleIRInstrType instrType;
   PuleIRInstrReturn ret;
@@ -385,6 +384,7 @@ typedef union PuleIRBuildInstrUnion {
   PuleIRInstrBranch branch;
   PuleIRInstrTrunc trunc;
   PuleIRInstrCast cast;
+  PuleIRInstrSwitch switch_;
 
   // getelementptr TODO what's the point of the type? Pointers are stored as
   // opaque values, so this would only work if if type is a struct or array,
@@ -400,7 +400,3 @@ typedef struct PuleIRBuildCreateInfo {
   PuleIRBuildInstrUnion instr;
 } PuleIRBuildCreateInfo;
 PuleIRValue puleIRBuild(PuleIRBuildCreateInfo const createInfo);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif

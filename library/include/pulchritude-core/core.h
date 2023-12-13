@@ -50,10 +50,11 @@ template <typename T, typename Handle=uint64_t> struct ResourceContainer {
   ;
 
   // emplaces a new resource into the container
-  Handle create(T && resource) {
-    this->data.emplace(this->idCount, std::forward<T>(resource));
-    return Handle { (this->idCount++) };
-  }
+  //Handle create(T && resource) {
+  //  uint64_t const id = this->idCount ++;
+  //  this->data.emplace(this->idCount, resource);
+  //  return Handle { id };
+  //}
 
   Handle create(T const & resource) {
     uint64_t const id = this->idCount ++;

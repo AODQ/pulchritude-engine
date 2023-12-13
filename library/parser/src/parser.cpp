@@ -100,7 +100,9 @@ PuleParserRegexToken puleParserRegexTokenCreate(
   pint::RegexToken regexToken;
   std::string fixedRegex = std::string{ regex.contents, regex.len };
   fixedRegex = "^" + fixedRegex; // match from start of string
-  regexToken.matcher = std::regex(fixedRegex);
+  regexToken.matcher = (
+    std::regex(fixedRegex, std::regex::optimize | std::regex::ECMAScript)
+  );
   regexToken.label = std::string(regex.contents, regex.len);
   regexToken.id = parser.regexTokens.size();
   parser.regexTokens.emplace_back(regexToken);

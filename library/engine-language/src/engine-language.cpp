@@ -1,6 +1,7 @@
 #include <pulchritude-engine-language/engine-language.h>
 
 #include "parser.hpp"
+#include "ir.hpp"
 
 #include <pulchritude-parser/parser.h>
 
@@ -9,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace {
+namespace pint::el {
 
 struct CodeBlock {
   PuleIRCodeBlock block;
@@ -21,9 +22,10 @@ struct Ctx {
   PuleIRType typeVoid;
   PuleIRType typeU64;
   PuleIRType typeI64;
+  PuleIRType typePtr;
   PuleIRValue currentFunction;
   PuleIRValue currentFunctionReturnValue;
-  std::vector<CodeBlock> codeBlockStack;
+  std::vector<pint::el::CodeBlock> codeBlockStack;
   PuleIRCodeBlock currentFunctionReturnBlock;
   // TODO probably use a vector of maps to handle scopes
   std::unordered_map<std::string, PuleIRType> globalTypes;
@@ -38,7 +40,7 @@ struct Ctx {
 
 };
 
-namespace pint {
+namespace pint::el {
 
 struct TypeValue {
   bool isType;
@@ -191,7 +193,7 @@ bool ruleTypeIsVariadic(PuleParserAstNode const ruleType) {
   return puleStringViewEqCStr(identifierLabel, "varargs");
 }
 
-pint::Type createTypeFromRuleType(
+pint::el::Type createTypeFromRuleType(
   Ctx & ctx, PuleParserAstNode const ruleType
 ) {
   // %type := %identifier %typeModifier*;
@@ -200,7 +202,7 @@ pint::Type createTypeFromRuleType(
   );
 
   std::string identifierStr = std::string(identifierSv.contents);
-  pint::Type type;
+  pint::el::Type type;
   type.types.emplace_back(findType(ctx, identifierSv.contents));
 
   PuleParserAstNode const typeModifier = puleParserAstNodeChild(ruleType, 1);
@@ -309,21 +311,30 @@ PuleIRValue traverseAstMetacall(Ctx & ctx, PuleParserAstNode const metacall) {
   return { .id = 0, };
 }
 
+PuleIRValue traverseAstCall(Ctx & ctx, PuleParserAstNode const statement);
 void traverseAstCodeblock(Ctx & ctx, PuleParserAstNode const block);
 
-// %literal := (%string | %integer | %float | %boolean | %metacall |)
+// %literal := (%string | %integer | %float | %boolean | %metacall | %call |)
 PuleIRValue traverseAstLiteral(
   Ctx & ctx, PuleParserAstNode const literal, PuleIRDataType const implicitType
 ) {
   PULE_assert(literal.type == PuleParserNodeType_rule);
-  PULE_assert(literal.childCount == 1);
   PULE_assert(puleStringViewEqCStr(literal.match, "literal"));
   PuleParserAstNode const literalValue = puleParserAstNodeChild(literal, 0);
   PULE_assert(literalValue.type == PuleParserNodeType_rule);
-  if (puleStringViewEqCStr(literalValue.match, "integer")) {
+  if (
+       puleStringViewEqCStr(literalValue.match, "integer")
+    || puleStringViewEqCStr(literalValue.match, "boolean")
+  ) {
     PuleParserAstNode const integer = puleParserAstNodeChild(literalValue, 0);
     PULE_assert(integer.type == PuleParserNodeType_regex);
-    std::string integerValue = std::string(integer.match.contents);
+    std::string integerValueAsStr = std::string(integer.match.contents);
+    int64_t integerValue;
+    if (puleStringViewEqCStr(literalValue.match, "boolean")) {
+      integerValue = puleStringViewEqCStr(integer.match, "true");
+    } else {
+      integerValue = std::stoi(integerValueAsStr);
+    }
     // if implicit type is void (e.g. varargs) then assume i64
     PuleIRDataType const implicitIntType = (
       implicitType == PuleIRDataType_void ? PuleIRDataType_i64 : implicitType
@@ -339,7 +350,7 @@ PuleIRValue traverseAstLiteral(
         .label = puleCStr(""),
         .constInt = {
           .codeBlock = ctx.codeBlockStack.back().block,
-          .u64 = (uint64_t)std::stoi(integerValue),
+          .u64 = *((uint64_t *)&integerValue),
           .isSigned = true,
         },
       })
@@ -389,7 +400,7 @@ PuleIRValue traverseAstLiteral(
   } else if (puleStringViewEqCStr(literalValue.match, "metacall")) {
     return traverseAstMetacall(ctx, literalValue);
   } else if (puleStringViewEqCStr(literalValue.match, "call")) {
-    PULE_assert(false && "TODO");
+    return traverseAstCall(ctx, literalValue);
   } else {
     puleLogError("unknown literal: %s", literalValue.match.contents);
     PULE_assert(false);
@@ -402,7 +413,6 @@ TypeValue traverseAstExpressionParens(
 ) {
   PULE_assert(expr.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(expr.match, "expression_parens"));
-  PULE_assert(expr.childCount == 3);
   PuleParserAstNode const exprChild = puleParserAstNodeChild(expr, 1);
   return traverseAstExpression(ctx, exprChild, implicitType);
 }
@@ -443,10 +453,11 @@ TypeValue traverseAstExpressionUnary(
     PULE_assert(false);
   }
 
-  // apply negation
+  // apply unaries (not or negation)
   bool const isNegated = puleStringViewEqCStr(exprNeg.match, "-");
+  bool const isNot = puleStringViewEqCStr(exprNeg.match, "!");
   PULE_assert(value.isType ? !isNegated : true);
-  if (!value.isType && isNegated) {
+  if (!value.isType && (isNegated || isNot)) {
     PuleIRDataTypeInfo typeInfo = (
       puleIRTypeInfo(ctx.module, puleIRValueType(ctx.module, value.v))
     );
@@ -473,25 +484,39 @@ TypeValue traverseAstExpressionUnary(
         .isSigned = true,
       },
     };
-    if (isFloating) {
+    if (isFloating && isNegated) {
       constCi.constFloat.f64 = 0.0;
     } else {
       constCi.constInt.u64 = 0;
     }
-    PuleIRValue const zeroValue = puleIRValueConstCreate(constCi);
-    value.v = (
-      irBuild(ctx, {
-        .op = {
-          .type = PuleIROperator_sub,
-          .binary = {
-            .lhs = zeroValue,
-            .rhs = value.v,
+    if (isNegated) {
+      PuleIRValue const zeroValue = puleIRValueConstCreate(constCi);
+      value.v = (
+        irBuild(ctx, {
+          .op = {
+            .type = PuleIROperator_sub,
+            .binary = {
+              .lhs = zeroValue,
+              .rhs = value.v,
+            },
+            .label = puleCStr(""),
+            .floatingPoint = isFloating,
           },
-          .label = puleCStr(""),
-          .floatingPoint = isFloating,
-        },
-      })
-    );
+        })
+      );
+    } else {
+      value.v = (
+        irBuild(ctx, PuleIRBuildInstrUnion {
+          .op = {
+            .type = PuleIROperator_not,
+            .unary = {
+              .lhs = value.v,
+            },
+            .label = puleCStr(""),
+          },
+        })
+      );
+    }
   }
 
   return value;
@@ -704,13 +729,27 @@ PuleIRValue traverseAstExpressionOperatorTail(
 
   // now go back down and join on operator
   std::unordered_map<std::string, PuleIROperator> const operators = {
+    {"+",  PuleIROperator_add},
+    {"-",  PuleIROperator_sub},
+    {"*",  PuleIROperator_mul},
+    {"/",  PuleIROperator_div},
+    {"%",  PuleIROperator_mod},
+    {"&&", PuleIROperator_and},
+    {"||", PuleIROperator_or},
+    {"^^", PuleIROperator_xor},
+    {"&",  PuleIROperator_bit_and},
+    {"|",  PuleIROperator_bit_or},
+    {"^",  PuleIROperator_bit_xor},
+    {"<<", PuleIROperator_shl},
+    {">>", PuleIROperator_shr},
     {"==", PuleIROperator_eq},
     {"!=", PuleIROperator_ne},
-    {"+", PuleIROperator_add},
-    {"-", PuleIROperator_sub},
-    {"*", PuleIROperator_mul},
-    {"/", PuleIROperator_div},
+    {"<",  PuleIROperator_lt},
+    {"<=", PuleIROperator_le},
+    {">",  PuleIROperator_gt},
+    {">=", PuleIROperator_ge},
   };
+
   PuleIROperator op = operators.at(operatorLabel.contents);
   // TODO handle floating, implicit casts, etc
   PuleIRValue const result = (
@@ -775,7 +814,8 @@ TypeValue traverseAstExpression(
   PULE_assert(puleStringViewEqCStr(expr.match, "expression"));
   PuleParserAstNode const exprChild = puleParserAstNodeChild(expr, 0);
 
-  // build operator tree
+  // build operator tree,
+  // bitwise < or < and < equality < additive < multiplicative < unary
   static TraverseTreeExpressionOperatorInfo infoUnary = {
     .expressionName = "expression_unary",
     .tailName = "",
@@ -791,14 +831,14 @@ TypeValue traverseAstExpression(
     .tailName = "expression_additive_tail",
     .next = &infoMultiplicative,
   };
-  static TraverseTreeExpressionOperatorInfo infoEquality = {
-    .expressionName = "expression_equality",
-    .tailName = "expression_equality_tail",
+  static TraverseTreeExpressionOperatorInfo infoLogic = {
+    .expressionName = "expression_logic",
+    .tailName = "expression_logic_tail",
     .next = &infoAdditive,
   };
 
   return (
-    traverseAstExpressionOperator(ctx, exprChild, infoEquality, implicitType)
+    traverseAstExpressionOperator(ctx, exprChild, infoLogic, implicitType)
   );
 }
 
@@ -1000,16 +1040,164 @@ void traverseAstStatementWhile(
   });
 }
 
+// returns 'else' switch-block
+PuleIRCodeBlock traverseAstStatementSwitchBlock(
+  Ctx & ctx,
+  PuleParserAstNode const statement,
+  PuleIRCodeBlock const switchEnd,
+  std::vector<PuleIrInstrSwitchCase> & switchCases
+) {
+  PuleIRCodeBlock elseBlock = { 0 };
+  // %block_switch := '\{' %block_switch_case* '\}';
+  PULE_assert(statement.type == PuleParserNodeType_rule);
+  PULE_assert(puleStringViewEqCStr(statement.match, "block_switch"));
+  PuleParserAstNode const blockSwitchCaseSeq = (
+    puleParserAstNodeChild(statement, 1)
+  );
+  PULE_assert(blockSwitchCaseSeq.type == PuleParserNodeType_sequence);
+  for (size_t it = 0; it < blockSwitchCaseSeq.childCount; ++ it) {
+    // %block_switch_case := ('default' | %block_switch_case_caret) %block
+    PuleParserAstNode const switchCase = (
+      puleParserAstNodeChild(blockSwitchCaseSeq, it)
+    );
+    PULE_assert(switchCase.type == PuleParserNodeType_rule);
+    PULE_assert(puleStringViewEqCStr(switchCase.match, "block_switch_case"));
+    PuleParserAstNode const switchCaseType = (
+      puleParserAstNodeChild(switchCase, 0)
+    );
+    PuleIrInstrSwitchCase switchCaseIt = { .value = {0}, .codeBlock = {0}, };
+    // get value
+    bool isDefault = puleStringViewEqCStr(switchCaseType.match, "default");
+    if (!isDefault) {
+      PuleParserAstNode const switchCaseExpression = (
+        puleParserAstNodeChild(switchCaseType, 1)
+      );
+      switchCaseIt.value = (
+        traverseAstExpression(ctx, switchCaseExpression, PuleIRDataType_i64)
+      ).v;
+    }
+    // get code block and traverse it
+    PuleParserAstNode const switchCaseBlock = (
+      puleParserAstNodeChild(switchCase, 1)
+    );
+    switchCaseIt.codeBlock = (
+      puleIRCodeBlockCreate({
+        .module = ctx.module,
+        .context = ctx.currentFunction,
+        .positionBuilderAtEnd = true,
+        .label = puleCStr(isDefault ? "switch_else" : "switch_case"),
+      })
+    );
+    ctx.codeBlockStack.emplace_back(CodeBlock {
+      .block = switchCaseIt.codeBlock,
+      .hasTerminated = false,
+    });
+    traverseAstCodeblock(ctx, switchCaseBlock);
+    // if we haven't terminated, jump to end of switch
+    if (!ctx.codeBlockStack.back().hasTerminated) {
+      irBuild(ctx, {
+        .branch = PuleIRInstrBranch {
+          .isConditional = false,
+          .unconditional = {
+            .codeBlock = switchEnd,
+          },
+        },
+      });
+    }
+    ctx.codeBlockStack.pop_back();
+    // put in either switch case list, or prepare to return it
+    if (isDefault) {
+      PULE_assert(switchCaseIt.value.id == 0);
+      PULE_assert(elseBlock.id == 0);
+      elseBlock = switchCaseIt.codeBlock;
+    } else {
+      switchCases.push_back(switchCaseIt);
+    }
+  }
+  // if there's no else block, create one
+  if (elseBlock.id == 0) {
+    puleLog("creating else block");
+    elseBlock = (
+      puleIRCodeBlockCreate({
+        .module = ctx.module,
+        .context = ctx.currentFunction,
+        .positionBuilderAtEnd = true,
+        .label = puleCStr("switch_else"),
+      })
+    );
+    ctx.codeBlockStack.emplace_back(CodeBlock {
+      .block = elseBlock,
+      .hasTerminated = false,
+    });
+    // just empty jump to end
+    irBuild(ctx, {
+      .branch = PuleIRInstrBranch {
+        .isConditional = false,
+        .unconditional = {
+          .codeBlock = switchEnd,
+        },
+      },
+    });
+    ctx.codeBlockStack.pop_back();
+  }
+  return elseBlock;
+}
+
+// %statement_switch := 'switch' '(' %expression ')' %block_switch;
+void traverseAstStatementSwitch(
+  Ctx & ctx, PuleParserAstNode const statement
+) {
+  // builds switch statement, transforming all cases into blocks that jump
+  //   to end of switch if non-terminated (allowing jumping to other cases)
+  PuleParserAstNode const switchExpr = puleParserAstNodeChild(statement, 2);
+  PuleParserAstNode const switchBlock = puleParserAstNodeChild(statement, 4);
+  // parse switch expression
+  auto const switchValue = (
+    traverseAstExpression(ctx, switchExpr, PuleIRDataType_i64)
+  );
+  PULE_assert(switchValue.isType == false);
+  // parse switch blocks & values
+  PuleIRCodeBlock const switchEnd = (
+    puleIRCodeBlockCreate({
+      .module = ctx.module,
+      .context = ctx.currentFunction,
+      .positionBuilderAtEnd = true,
+      .label = puleCStr("switch_end"),
+    })
+  );
+  std::vector<PuleIrInstrSwitchCase> switchCases;
+  PuleIRCodeBlock const switchDefault = (
+    traverseAstStatementSwitchBlock(ctx, switchBlock, switchEnd, switchCases)
+  );
+  // build switch
+  irBuild(ctx, PuleIRBuildInstrUnion {
+    .switch_ = {
+      .value = switchValue.v,
+      .codeBlockDefault = switchDefault,
+      .caseCount = switchCases.size(),
+      .cases = switchCases.data(),
+    },
+  });
+  // replace code block stack with switch end
+  ctx.codeBlockStack.pop_back();
+  ctx.codeBlockStack.emplace_back(CodeBlock {
+    .block = switchEnd,
+    .hasTerminated = false,
+  });
+}
+
 void traverseAstStatementBlock(Ctx & ctx, PuleParserAstNode const statement) {
-  // %statement_block := (%statement_if | %statement_while | %block |);
+  // %statement_block :=
+  //   (%statement_if | %statement_while | %statement_switch | %block |);
   PULE_assert(statement.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(statement.match, "statement_block"));
-  PULE_assert(statement.childCount == 1);
   PuleParserAstNode const statementChild = puleParserAstNodeChild(statement, 0);
   if (puleStringViewEqCStr(statementChild.match, "statement_if")) {
     traverseAstStatementIf(ctx, statementChild);
   } else if (puleStringViewEqCStr(statementChild.match, "statement_while")) {
     traverseAstStatementWhile(ctx, statementChild);
+  } else if (puleStringViewEqCStr(statementChild.match, "statement_switch")) {
+    traverseAstStatementSwitch(ctx, statementChild);
   } else if (puleStringViewEqCStr(statementChild.match, "block")) {
     traverseAstCodeblock(ctx, statementChild);
   } else {
@@ -1025,7 +1213,6 @@ void traverseAstAssignment(
 ) {
   PULE_assert(assignment.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(assignment.match, "assignment"));
-  PULE_assert(assignment.childCount == 3);
   PuleParserAstNode const identifier = puleParserAstNodeChild(assignment, 0);
   PuleParserAstNode const expression = puleParserAstNodeChild(assignment, 2);
 
@@ -1079,7 +1266,7 @@ void traverseAstDeclaration(
   // create/allocate variable
   bool isConst = puleStringViewEqCStr(constOrVar.match, "@let");
   std::string const label = identifierNode.match.contents;
-  pint::Type const typeInfo = createTypeFromRuleType(ctx, type);
+  pint::el::Type const typeInfo = createTypeFromRuleType(ctx, type);
   PuleIRType const identifierType = typeInfo.irType();
   PuleIRDataType const identifierDataType = (
     puleIRTypeInfo(ctx.module, identifierType).type
@@ -1116,7 +1303,7 @@ void traverseAstDeclaration(
   storeValue(ctx, label, implicitCast(ctx, value.v, identifierType));
 }
 
-void traverseAstCall(Ctx & ctx, PuleParserAstNode const statement) {
+PuleIRValue traverseAstCall(Ctx & ctx, PuleParserAstNode const statement) {
   // %identifier '\(' %argument* '\)'
   PuleParserAstNode const identifier = puleParserAstNodeChild(statement, 0);
   PuleParserAstNode const argumentSeq = ( // %argument := %expression ','
@@ -1132,7 +1319,7 @@ void traverseAstCall(Ctx & ctx, PuleParserAstNode const statement) {
   auto const fnInfo = (
     puleIRTypeInfo(ctx.module, fnType).fnInfo
   );
-  auto const fnValue = pint::findValue(ctx, label);
+  auto const fnValue = pint::el::findValue(ctx, label);
   for (size_t argIt = 0; argIt < argumentSeq.childCount; ++ argIt) {
     // get implicit type to cast to, for variadic arguments default to void
     PuleIRType implicitType = ctx.typeVoid;
@@ -1157,41 +1344,38 @@ void traverseAstCall(Ctx & ctx, PuleParserAstNode const statement) {
     // cast argument to implicit type
     arguments.emplace_back(implicitCast(ctx, argument.v, implicitType));
   }
-  irBuild(ctx, {
-    .call = {
-      .functionType = fnType,
-      .function = fnValue,
-      .argumentCount = arguments.size(),
-      .arguments = arguments.data(),
-      .label = puleCStr(""),
-    },
-  });
+  return (
+    irBuild(ctx, {
+      .call = {
+        .functionType = fnType,
+        .function = fnValue,
+        .argumentCount = arguments.size(),
+        .arguments = arguments.data(),
+        .label = puleCStr(""),
+      },
+    })
+  );
 }
 
-void traverseAstStatementInstruction(
-  Ctx & ctx,
-  PuleParserAstNode const statement
-) {
-  if (puleStringViewEqCStr(statement.match, "call")) {
-    traverseAstCall(ctx, statement);
-  } else if (puleStringViewEqCStr(statement.match, "return")) {
-    // 'return' %expression
-    PuleParserAstNode const expression = (
-      puleParserAstNodeChild(statement, 1)
-    );
-    PULE_assert(expression.type == PuleParserNodeType_rule);
+void traverseAstStatementReturn(Ctx & ctx, PuleParserAstNode const statement) {
+  // 'return' %expression
+  PuleParserAstNode const expression = (
+    puleParserAstNodeChild(statement, 1)
+  );
+  PULE_assert(expression.type == PuleParserNodeType_rule);
+  // traverse return expression, then clear implicit type and build return
+  auto const fnInfo = (
+    puleIRTypeInfo(
+      ctx.module,
+      puleIRValueType(ctx.module, ctx.currentFunction)
+    ).fnInfo
+  );
+  PuleIRType returnType = fnInfo.returnType;
+  PuleIRDataType const returnDatatype = (
+    puleIRTypeInfo(ctx.module, returnType).type
+  );
+  if (returnDatatype != PuleIRDataType_void) {
     PULE_assert(puleStringViewEqCStr(expression.match, "expression"));
-    // traverse return expression, then clear implicit type and build return
-    auto const fnInfo = (
-      puleIRTypeInfo(
-        ctx.module,
-        puleIRValueType(ctx.module, ctx.currentFunction)
-      ).fnInfo
-    );
-    PuleIRType returnType = fnInfo.returnType;
-    PuleIRDataType const returnDatatype = (
-      puleIRTypeInfo(ctx.module, returnType).type
-    );
     TypeValue const value = (
       traverseAstExpression(ctx, expression, returnDatatype)
     );
@@ -1203,15 +1387,24 @@ void traverseAstStatementInstruction(
         .dst = ctx.currentFunctionReturnValue,
       },
     });
-    // jump to return block
-    irBuild(ctx, {
-      .branch = PuleIRInstrBranch {
-        .isConditional = false,
-        .unconditional = {
-          .codeBlock = ctx.currentFunctionReturnBlock,
-        },
-      },
-    });
+  }
+  // jump to return block
+  irBuild(ctx, {
+    .branch = PuleIRInstrBranch {
+      .isConditional = false,
+      .unconditional = { .codeBlock = ctx.currentFunctionReturnBlock, },
+    },
+  });
+}
+
+void traverseAstStatementInstruction(
+  Ctx & ctx,
+  PuleParserAstNode const statement
+) {
+  if (puleStringViewEqCStr(statement.match, "call")) {
+    traverseAstCall(ctx, statement);
+  } else if (puleStringViewEqCStr(statement.match, "return")) {
+    traverseAstStatementReturn(ctx, statement);
   } else if (puleStringViewEqCStr(statement.match, "declaration")) {
     traverseAstDeclaration(ctx, statement);
   } else if (puleStringViewEqCStr(statement.match, "assignment")) {
@@ -1224,7 +1417,6 @@ void traverseAstStatementInstruction(
 
 void traverseAstCodeblock(Ctx & ctx, PuleParserAstNode const block) {
   PULE_assert(block.type == PuleParserNodeType_rule);
-  PULE_assert(block.childCount == 3); //  '\{' %body '\}'
   PuleParserAstNode const body = ( // %body := %statement*
     puleParserAstNodeChild(puleParserAstNodeChild(block, 1), 0)
   );
@@ -1248,7 +1440,7 @@ void traverseAstCodeblock(Ctx & ctx, PuleParserAstNode const block) {
   }
 }
 
-void addGlobalTypes(::Ctx & ctx) {
+void addGlobalTypes(pint::el::Ctx & ctx) {
   #define typeDef(__name__, __type__) \
     { \
       std::string(#__name__), \
@@ -1278,7 +1470,7 @@ void addGlobalTypes(::Ctx & ctx) {
   }
 }
 
-void addEngineSymbols(::Ctx & ctx, PuleIRModule const module) {
+void addEngineSymbols(pint::el::Ctx & ctx, PuleIRModule const module) {
   //PuleIRType const ptrType = (
   //  puleIRTypeCreate({
   //    .module = module,
@@ -1328,7 +1520,7 @@ PuleIRType createFunctionTypeFromAst(
   std::string const label = (
     puleParserAstNodeChild(identifier, 0).match.contents
   );
-  std::vector<pint::Type> parameterTypes;
+  std::vector<pint::el::Type> parameterTypes;
   std::vector<PuleIRType> parameterIRTypes;
   bool variadic = false;
   puleLog("parameter seq child count: %zu", parameterSeq.childCount);
@@ -1353,7 +1545,7 @@ PuleIRType createFunctionTypeFromAst(
     puleLog("parameter type: %d", parameterTypes.back().irType());
     parameterIRTypes.emplace_back(parameterTypes.back().irType());
   }
-  pint::Type const returnTypeType = createTypeFromRuleType(ctx, returnType);
+  pint::el::Type const returnTypeType = createTypeFromRuleType(ctx, returnType);
 
   return (
     puleIRTypeCreate({
@@ -1382,15 +1574,16 @@ void traverseAstFunctionDefinition(Ctx & ctx, PuleParserAstNode const node) {
   ctx.codeBlockStack.clear();
 
   // create function (first type, then the value, then code block)
+  PuleParserAstNode const parameterSeq = puleParserAstNodeChild(node, 3);
   std::string functionLabel = identifier.match.contents;
-  pint::Type const returnType = (
+  pint::el::Type const returnType = (
     createTypeFromRuleType(ctx, puleParserAstNodeChild(node, 6))
   );
   PuleIRType const functionType = (
     createFunctionTypeFromAst(
       ctx,
       puleParserAstNodeChild(node, 1),
-      puleParserAstNodeChild(node, 3),
+      parameterSeq,
       puleParserAstNodeChild(node, 6)
     )
   );
@@ -1403,6 +1596,8 @@ void traverseAstFunctionDefinition(Ctx & ctx, PuleParserAstNode const node) {
       .function = { .linkage = PuleIRLinkage_external, },
     })
   );
+  ctx.globalTypes.emplace(functionLabel, functionType);
+  ctx.gVariables.emplace(functionLabel, fn);
   ctx.currentFunction = fn;
   bool isPointer = returnType.types.size() > 1;
   size_t const variableByteLen = (
@@ -1431,6 +1626,59 @@ void traverseAstFunctionDefinition(Ctx & ctx, PuleParserAstNode const node) {
     .block = puleIRCodeBlock,
     .hasTerminated = false,
   });
+  { // insert params as vars
+    size_t const parameterCount = (
+      puleIRValueFunctionParameterCount(ctx.module, fn)
+    );
+    for (size_t it = 0; it < parameterCount; ++ it) {
+      // seq: %parameter := %identifer ':' %type, 
+      PuleParserAstNode const parameter = (
+        puleParserAstNodeChild(parameterSeq, it)
+      );
+      PuleParserAstNode const parameterIdentifierRule = (
+        puleParserAstNodeChild(parameter, 0)
+      );
+      PuleParserAstNode const parameterTypeRule = (
+        puleParserAstNodeChild(parameter, 2)
+      );
+      PuleStringView const parameterLabel = (
+        puleParserAstNodeChild(parameterIdentifierRule, 0).match
+      );
+      pint::el::Type const parameterType = (
+        createTypeFromRuleType(ctx, parameterTypeRule)
+      );
+      // create alloca for parameter
+      PuleIRValue const parameterValue = (
+        puleIRValueFunctionParameter(ctx.module, fn, it)
+      );
+      PuleIRValue const parameterAlloca = (
+        irBuild(
+          ctx,
+          PuleIRBuildInstrUnion {
+            .stackAlloc = {
+              .type = ctx.typePtr,
+              .valueSize = puleIRValueConstI64(ctx.module, 8),
+              .label = puleCStr("parameter_alloca"),
+            },
+          }
+        )
+      );
+      irBuild(ctx, {
+        .store = {
+          .value = parameterValue,
+          .dst = parameterAlloca,
+        },
+      });
+      ctx.variables.emplace(
+        std::string(parameterLabel.contents, parameterLabel.len),
+        parameterAlloca
+      );
+      ctx.variableTypes.emplace(
+        std::string(parameterLabel.contents, parameterLabel.len),
+        parameterType.irType()
+      );
+    }
+  }
   PuleIRDataTypeInfo const returnTypeInfo = (
     puleIRTypeInfo(ctx.module, returnType.irType())
   );
@@ -1505,7 +1753,6 @@ void traverseAstFunctionDefinition(Ctx & ctx, PuleParserAstNode const node) {
 void traverseAstFunctionDeclaration(Ctx & ctx, PuleParserAstNode const child) {
   PULE_assert(child.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(child.match, "function_declaration"));
-  PULE_assert(child.childCount == 8);
   PuleStringView const functionTag = (
     puleParserAstNodeChild(puleParserAstNodeChild(child, 0), 0).match
   );
@@ -1553,8 +1800,7 @@ void traverseAstGlobals(Ctx & ctx, PuleParserAstNode const globals) {
   // %globals := %global*;
   PULE_assert(globals.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(globals.match, "globals"));
-  PULE_assert(globals.childCount == 1);
-  // %global := (%function | %function_declaration |);
+  // %global := (%function_definition | %function_declaration |);
   PuleParserAstNode const globalSeq = (
     puleParserAstNodeChild(globals, 0)
   );
@@ -1577,11 +1823,11 @@ void traverseAstGlobals(Ctx & ctx, PuleParserAstNode const globals) {
   }
 }
 
-} // namespace pint
+} // namespace pint::el
 
 extern "C" {
 
-PuleIRModule puleELModuleCreate(
+PuleELModule puleELModuleCreate(
   PuleStreamRead const stream,
   PuleError * const error
 ) {
@@ -1602,10 +1848,9 @@ PuleIRModule puleELModuleCreate(
     PULE_error(PuleErrorEL_compileError, "failed to parse");
     return { .id = 0, };
   }
-  puleParserAstNodeDump(puleParserAstRoot(ast));
 
   PuleIRModule module = puleIRModuleCreate({puleCStr("engine-language"),});
-  ::Ctx ctx = {
+  pint::el::Ctx ctx = {
     .module = module,
     .typeVoid = puleIRTypeCreate({
       .module = ctx.module,
@@ -1619,6 +1864,10 @@ PuleIRModule puleELModuleCreate(
       .module = ctx.module,
       .type = PuleIRDataType_i64,
     }),
+    .typePtr = puleIRTypeCreate({
+      .module = ctx.module,
+      .type = PuleIRDataType_ptr,
+    }),
   };
   ctx.typeVoid = (
     puleIRTypeCreate({
@@ -1626,10 +1875,10 @@ PuleIRModule puleELModuleCreate(
       .type = PuleIRDataType_void,
     })
   );
-  pint::addGlobalTypes(ctx);
-  pint::addEngineSymbols(ctx, ctx.module);
-  pint::traverseAstGlobals(ctx, puleParserAstRoot(ast));
-  return module;
+  pint::el::addGlobalTypes(ctx);
+  pint::el::addEngineSymbols(ctx, ctx.module);
+  pint::el::traverseAstGlobals(ctx, puleParserAstRoot(ast));
+  return { .id = module.id, };
 }
 
 } // extern "C"

@@ -112,8 +112,17 @@ std::string const expressionGrammar = R"(
 %block := '\{' %body '\}';
 %body := %statement*;
 %statement := (%statement_block | %statement_instruction |);
-%statement_block := (%statement_if | %statement_while | %block |);
-%statement_instruction := (%call | %return | %declaration | %assignment |) ';';
+%statement_block :=
+  (%statement_if | %statement_while | %statement_switch | %block |);
+%statement_instruction :=
+  (%call | %return | %declaration | %assignment |) ';';
+
+%statement_switch := 'switch' '\(' %expression '\)' %block_switch;
+
+%block_switch := '\{' %block_switch_case* '\}';
+
+%block_switch_case := ('default' | %block_switch_case_caret |) %block ',';
+%block_switch_case_caret := '\^' %expression;
 
 %statement_if := 'if' '\(' %expression '\)' %block %statement_else?;
 %statement_else := 'else' %statement_block;
@@ -124,26 +133,33 @@ std::string const expressionGrammar = R"(
 
 %assignment := %identifier '=' %expression;
 
-%return := 'return' %expression;
+%return := 'return' %expression?;
 %call := %identifier '\(' %argument* '\)';
 %argument := %expression ',';
 
-%expression := %expression_equality;
-%expression_equality := %expression_additive %expression_equality_tail*;
-%expression_equality_tail := %operator_equality %expression_additive;
+%expression := %expression_logic;
+%expression_logic := %expression_additive %expression_logic_tail*;
+%expression_logic_tail := %operator_logic %expression_additive;
 %expression_additive := %expression_multiplicative %expression_additive_tail*;
 %expression_additive_tail := %operator_additive %expression_multiplicative;
 %expression_multiplicative := %expression_unary %expression_multiplicative_tail*;
 %expression_multiplicative_tail := %operator_multiplicative %expression_unary;
 %expression_unary :=
-  '-'? (%expression_parens | %literal | %identifier | %type |);
+  '[-!]'? (%expression_parens | %literal | %identifier | %type |);
 %expression_parens := '\(' %expression '\)';
 
-%operator_equality := ('==' | '!=' |);
+%operator_logic :=
+  (
+      '==' | '!=' | '<' | '>' | '<='
+    | '>=' | '&&' | '||' | '!' | '&' | '\|'
+    | '^'
+    |
+  )
+;
 %operator_additive := ('\+' | '\-' |);
-%operator_multiplicative := ('\*' | '\/' |);
+%operator_multiplicative := ('\*' | '%' | '\/' |);
 
-%literal := (%string | %integer | %float | %boolean | %metacall |);
+%literal := (%string | %integer | %float | %boolean | %metacall | %call |);
 
 %metacall := '@' %identifier '\(' %argument* '\)';
 

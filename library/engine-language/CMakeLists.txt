@@ -5,6 +5,7 @@ target_sources(
   pulchritude-engine-language
   PRIVATE
     src/engine-language.cpp
+    src/ir.cpp
     src/parser.cpp
 )
 
@@ -19,9 +20,10 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-engine-language
-  pulchritude-compiler
   pulchritude-parser
   pulchritude-string
+
+  LLVM
 )
 
 install(
