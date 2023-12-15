@@ -222,15 +222,15 @@ typedef struct PuleEngineLayer {
   bool (* fileIsDone)(PuleFile const);
   PuleStringView (* filePath)(PuleFile const);
   uint8_t (* fileReadByte)(PuleFile const);
-  size_t (* fileReadBytes)(PuleFile const, PuleArrayViewMutable const);
+  size_t (* fileReadBytes)(PuleFile const, PuleBufferViewMutable const);
   void (* fileWriteBytes)(PuleFile const, PuleArrayView const);
   void (* fileWriteString)(PuleFile const, PuleStringView const);
   uint64_t (* fileSize)(PuleFile const);
   void (* fileAdvanceFromStart)(PuleFile const, int64_t const);
   void (* fileAdvanceFromEnd)(PuleFile const, int64_t const);
   void (* fileAdvanceFromCurrent)(PuleFile const, int64_t const);
-  PuleStreamRead (* fileStreamRead)(PuleFile const, PuleArrayViewMutable const);
-  PuleStreamWrite (* fileStreamWrite)(PuleFile const, PuleArrayViewMutable const);
+  PuleStreamRead (* fileStreamRead)(PuleFile const, PuleBufferViewMutable const);
+  PuleStreamWrite (* fileStreamWrite)(PuleFile const, PuleBufferViewMutable const);
   bool (* filesystemPathExists)(PuleStringView const);
   bool (* fileCopy)(PuleStringView const, PuleStringView const);
   bool (* fileRemove)(PuleStringView const);
@@ -576,6 +576,7 @@ typedef struct PuleEngineLayer {
   void (* parserAstNodeDumpShallow)(PuleParserAstNode const);
   // engine-language
   PuleELModule (* eLModuleCreate)(PuleStreamRead const, PuleError * const);
+  void (* eLModuleDestroy)(PuleELModule const);
   PuleELJitEngine (* eLJitEngineCreate)(PuleELJitEngineCreateInfo const);
   void (* eLJitEngineDestroy)(PuleELJitEngine const);
   void (* eLJitEngineAddModule)(PuleELJitEngine const, PuleELModule const);

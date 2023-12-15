@@ -53,10 +53,9 @@ struct FileStream {
     self.stream = (
       puleFileStreamRead(
         self.file,
-        PuleArrayViewMutable {
+        PuleBufferViewMutable {
           .data = reinterpret_cast<uint8_t *>(self.allocation),
-          .elementStride = 1,
-          .elementCount = 512,
+          .byteLength = 512,
         }
       )
     );

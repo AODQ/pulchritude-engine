@@ -40,6 +40,5 @@ if (PULCHRITUDE_FEATURE_NET)
 endif()
 
 if (PULCHRITUDE_FEATURE_COMPILER)
-  add_subdirectory(parser)
   add_subdirectory(engine-language)
 endif()

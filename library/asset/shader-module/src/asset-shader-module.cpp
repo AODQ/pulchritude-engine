@@ -36,10 +36,9 @@ std::vector<uint8_t> readFileContents(PuleStringView const filename) {
   filebuffer.resize(filesize);
   puleFileReadBytes(
     file,
-    PuleArrayViewMutable {
+    PuleBufferViewMutable {
       .data = filebuffer.data(),
-      .elementStride = 1,
-      .elementCount = filebuffer.size(),
+      .byteLength = filebuffer.size(),
     }
   );
   puleFileClose(file);
@@ -82,10 +81,6 @@ void shaderWatchFileUpdatedCallback(
   puleErrorConsume(&err);
 }
 
-void shaderWatchDeallocateUserdata(void * const userdata) {
-  (void)userdata;
-}
-
 } // namespace
 
 extern "C" {
@@ -113,14 +108,14 @@ PuleAssetShaderModule puleAssetShaderModuleCreateFromPaths(
   // setup callbacks
   shaderModuleRef.watcherVertex = puleFileWatch({
     .fileUpdatedCallback = &::shaderWatchFileUpdatedCallback,
-    .deallocateUserdataCallback = &::shaderWatchDeallocateUserdata,
     .filename = puleCStr(pathVertex.contents),
+    .waitTime = PuleMillisecond{1000},
     .userdata = shaderModuleUserdata,
   });
   shaderModuleRef.watcherFragment = puleFileWatch({
     .fileUpdatedCallback = &::shaderWatchFileUpdatedCallback,
-    .deallocateUserdataCallback = &::shaderWatchDeallocateUserdata,
     .filename = puleCStr(pathFragment.contents),
+    .waitTime = PuleMillisecond{1000},
     .userdata = shaderModuleUserdata,
   });
 

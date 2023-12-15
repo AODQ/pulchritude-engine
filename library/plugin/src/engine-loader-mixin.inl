@@ -2448,6 +2448,11 @@
       ::loadSymbol("puleELModuleCreate", layerName)
     )
   );
+  layer->eLModuleDestroy = (
+    reinterpret_cast<decltype(layer->eLModuleDestroy)>(
+      ::loadSymbol("puleELModuleDestroy", layerName)
+    )
+  );
   layer->eLJitEngineCreate = (
     reinterpret_cast<decltype(layer->eLJitEngineCreate)>(
       ::loadSymbol("puleELJitEngineCreate", layerName)

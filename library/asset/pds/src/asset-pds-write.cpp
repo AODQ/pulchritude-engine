@@ -168,10 +168,9 @@ void puleAssetPdsWriteToFile(
     return;
   }
   uint8_t streamStorage[512];
-  PuleArrayViewMutable const streamStorageView = {
+  PuleBufferViewMutable const streamStorageView = {
     .data = &streamStorage[0],
-    .elementStride = sizeof(uint8_t),
-    .elementCount = 512,
+    .byteLength = 512,
   };
   PuleStreamWrite const stream = puleFileStreamWrite(file, streamStorageView);
 

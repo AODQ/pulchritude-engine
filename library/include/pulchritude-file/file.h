@@ -34,6 +34,18 @@ typedef struct {
   uint64_t id;
 } PuleFile;
 
+// -- file stream
+
+// TODO clean this up it's a mess
+
+typedef struct { uint64_t id; } PuleFileStream;
+
+PULE_exportFn PuleFileStream puleFileStreamReadOpen(PuleStringView const path);
+PULE_exportFn PuleFileStream puleFileStreamWriteOpen(PuleStringView const path);
+PULE_exportFn void puleFileStreamClose(PuleFileStream const puStream);
+PULE_exportFn PuleStreamRead puleFileStreamReader(PuleFileStream const stream);
+PULE_exportFn PuleStreamWrite puleFileStreamWriter(PuleFileStream const stream);
+
 // -- files
 PULE_exportFn PuleFile puleFileOpen(
   PuleStringView const filename,
@@ -52,7 +64,7 @@ PULE_exportFn PuleStringView puleFilePath(PuleFile const file);
 PULE_exportFn uint8_t puleFileReadByte(PuleFile const file);
 PULE_exportFn size_t puleFileReadBytes( // greedy
   PuleFile const file,
-  PuleArrayViewMutable const destination
+  PuleBufferViewMutable const destination
 );
 //FULE_exportFn size_t puleFileReadBytesWithStride(
 //  PuleFile const file,
@@ -87,12 +99,12 @@ PULE_exportFn void puleFileAdvanceFromCurrent(
 //   and it's not thread-safe
 PULE_exportFn PuleStreamRead puleFileStreamRead(
   PuleFile const file,
-  PuleArrayViewMutable const intermediateBuffer // PULE_lifetimeOfReturnObject
+  PuleBufferViewMutable const intermediateBuffer // PULE_lifetimeOfReturnObject
 );
 
 PULE_exportFn PuleStreamWrite puleFileStreamWrite(
   PuleFile const file,
-  PuleArrayViewMutable const intermediateBuffer
+  PuleBufferViewMutable const intermediateBuffer
 );
 
 // -- filesystem -- TODO probably rename ot puleFilesystem or puleFs
@@ -152,8 +164,8 @@ typedef struct {
     PuleStringView const filename,
     void * const userdata
   );
-  void (*deallocateUserdataCallback)(void * const userdata);
   PuleStringView filename;
+  PuleMillisecond waitTime;
   void * userdata;
 } PuleFileWatchCreateInfo;
 PULE_exportFn PuleFileWatcher puleFileWatch(

@@ -18,14 +18,12 @@ typedef enum {
 
 typedef struct { uint64_t id; } PuleELModule;
 
-void puleELModuleVerify(PuleELModule const module);
-void puleELModuleOptimize(PuleELModule const module);
-void puleELModuleDump(PuleELModule const module);
-
 PULE_exportFn PuleELModule puleELModuleCreate(
   PuleStreamRead const stream,
+  PuleStringView const name,
   PuleError * const error
 );
+PULE_exportFn void puleELModuleDestroy(PuleELModule const module);
 
 // -- jit engine ---------------------------------------------------------------
 

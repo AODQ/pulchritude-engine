@@ -113,8 +113,11 @@ template <typename T, typename Handle=uint64_t> struct ResourceContainer {
 
 // Perhaps someday C++ will have scope guards at the language level
 #ifndef puleScopeExit
+#define _puleScopeExitConcatImpl(x, y) x##y
+#define _puleScopeExitConcat(x, y) _puleScopeExitConcatImpl(x, y)
 #define puleScopeExit \
-  auto const pule__scopeExit_##__COUNTER_ = pule::ScopeGuard() << [&]()
+  auto const _puleScopeExitConcat(_puleScopeExit, __COUNTER__) \
+    = pule::ScopeGuard() << [&]()
 #endif
 
 namespace pule {

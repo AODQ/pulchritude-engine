@@ -666,10 +666,9 @@ PuleDsValue puleAssetPdsLoadFromFile(
   // create a file stream, using a storage buffer for the stream to store
   //   intermediary data in
   uint8_t streamStorage[512];
-  PuleArrayViewMutable streamStorageView = {
+  PuleBufferViewMutable streamStorageView = {
     .data = &streamStorage[0],
-    .elementStride = sizeof(uint8_t),
-    .elementCount = 512,
+    .byteLength = 512,
   };
 
   // plug the stream into the data-serializer to deserialize its contents

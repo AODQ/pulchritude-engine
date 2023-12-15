@@ -48,10 +48,9 @@ PuleAssetFont puleAssetFontLoadFromPath(
   filedata.resize(filesize);
   puleFileReadBytes(
     file,
-    PuleArrayViewMutable {
+    PuleBufferViewMutable {
       .data = filedata.data(),
-      .elementStride = 1,
-      .elementCount = filesize,
+      .byteLength = filesize,
     }
   );
   puleFileClose(file);

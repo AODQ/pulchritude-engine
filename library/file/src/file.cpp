@@ -1,5 +1,7 @@
 #include <pulchritude-file/file.h>
 
+#include <pulchritude-core/core.h>
+
 #include <pulchritude-time/time.h>
 
 #include <sys/file.h>
@@ -21,11 +23,78 @@ struct OpenFileInfo {
 };
 std::unordered_map<uint64_t, OpenFileInfo> openFiles;
 
+struct StreamInfo {
+  PuleFile file;
+  bool isRead;
+  PuleStreamRead streamRead;
+  PuleStreamWrite streamWrite;
+  PuleBufferViewMutable buffer;
+  std::vector<uint8_t> bufferData;
+};
+pule::ResourceContainer<StreamInfo> fileStreams;
+
 std::string filesystemAssetPath;
 std::string filesystemExecutablePath;
 } // namespace
 
 extern "C" {
+
+PuleFileStream puleFileStreamReadOpen(PuleStringView const path) {
+  PuleError err = puleError();
+  PuleFile const file = puleFileOpen(
+    path, PuleFileDataMode_binary, PuleFileOpenMode_read, &err
+  );
+  if (puleErrorConsume(&err)) { return {0}; }
+  auto streamId = fileStreams.create({});
+  auto & stream = *fileStreams.at(streamId);
+  stream.file = file;
+  stream.isRead = true;
+  stream.bufferData.resize(512);
+  stream.buffer = PuleBufferViewMutable {
+    .data = stream.bufferData.data(),
+    .byteLength = stream.bufferData.size(),
+  };
+  stream.streamRead = puleFileStreamRead(file, stream.buffer);
+  return {streamId};
+}
+PuleFileStream puleFileStreamWriteOpen(PuleStringView const path){
+  PuleError err = puleError();
+  PuleFile const file = puleFileOpen(
+    path, PuleFileDataMode_binary, PuleFileOpenMode_read, &err
+  );
+  if (puleErrorConsume(&err)) { return {0}; }
+  auto streamId = fileStreams.create({});
+  auto & stream = *fileStreams.at(streamId);
+  stream.file = file;
+  stream.isRead = false;
+  stream.bufferData.resize(512);
+  stream.buffer = PuleBufferViewMutable {
+    .data = stream.bufferData.data(),
+    .byteLength = stream.bufferData.size(),
+  };
+  stream.streamWrite = puleFileStreamWrite(file, stream.buffer);
+  return {streamId};
+}
+void puleFileStreamClose(PuleFileStream const puStream) {
+  auto & stream = *fileStreams.at(puStream.id);
+  if (stream.isRead) {
+    puleStreamReadDestroy(stream.streamRead);
+  } else {
+    puleStreamWriteDestroy(stream.streamWrite);
+  }
+  puleFileClose(stream.file);
+  fileStreams.destroy(puStream.id);
+}
+
+PuleStreamRead puleFileStreamReader(PuleFileStream const stream) {
+  auto & streamInfo = *fileStreams.at(stream.id);
+  return streamInfo.streamRead;
+}
+
+PuleStreamWrite puleFileStreamWriter(PuleFileStream const stream) {
+  auto & streamInfo = *fileStreams.at(stream.id);
+  return streamInfo.streamWrite;
+}
 
 PuleFile puleFileOpen(
   PuleStringView const filename,
@@ -110,17 +179,17 @@ uint8_t puleFileReadByte(PuleFile const file) {
   return static_cast<uint8_t>(getc(fileHandle));
 }
 
-size_t puleFileReadBytes(PuleFile const file, PuleArrayViewMutable const dst) {
+size_t puleFileReadBytes(PuleFile const file, PuleBufferViewMutable const dst) {
   auto const fileHandle = ::openFiles.at(file.id).file;
   flock(fileno(fileHandle), LOCK_EX); // lock file for process
   flockfile(fileHandle); // lock file for this thread
   uint8_t * data = reinterpret_cast<uint8_t *>(dst.data);
   size_t bytesWritten = 0;
-  for (; bytesWritten < dst.elementCount; ++ bytesWritten) {
+  for (; bytesWritten < dst.byteLength; ++ bytesWritten) {
     int32_t const character = getc_unlocked(fileHandle);
     // we don't write EOF/'\0'
     if (character == EOF) { break; }
-    data[bytesWritten*dst.elementStride] = static_cast<uint8_t>(character);
+    data[bytesWritten] = static_cast<uint8_t>(character);
   }
   funlockfile(fileHandle); // unlock for thread
   flock(fileno(fileHandle), LOCK_UN); // unlock for process
@@ -169,7 +238,7 @@ namespace {
 
 struct PdsStream {
   PuleFile file = { 0 };
-  PuleArrayViewMutable buffer;
+  PuleBufferViewMutable buffer;
   size_t fetchedBufferLength;
   size_t bufferIt;
 };
@@ -239,12 +308,12 @@ static void fileWriteStreamWriteBytes(
   ::PdsStream & stream = ::streams.at(reinterpret_cast<uint64_t>(userdata));
 
   // check if buffer should be flushed out
-  if (length + stream.bufferIt >= stream.buffer.elementCount) {
+  if (length + stream.bufferIt >= stream.buffer.byteLength) {
     fileWriteStreamFlush(userdata);
   }
 
   // check if contents can fit in the intermediary buffer
-  if (length >= stream.buffer.elementCount) {
+  if (length >= stream.buffer.byteLength) {
     puleFileWriteBytes(
       stream.file,
       PuleArrayView {
@@ -286,7 +355,7 @@ static void fileWriteStreamDestroy(void * const userdata) {
 
 PuleStreamRead puleFileStreamRead(
   PuleFile const file,
-  PuleArrayViewMutable const view
+  PuleBufferViewMutable const view
 ) {
   if (::streams.find(file.id) != ::streams.end()) {
     puleLogError("already streaming file: %d", file.id);
@@ -311,17 +380,10 @@ PuleStreamRead puleFileStreamRead(
 
 PuleStreamWrite puleFileStreamWrite(
   PuleFile const file,
-  PuleArrayViewMutable const view
+  PuleBufferViewMutable const view
 ) {
   if (::streams.find(file.id) != ::streams.end()) {
     puleLogError("already streaming file: %d", file.id);
-  }
-  if (view.elementStride != 0 && view.elementStride != 1) {
-    puleLogError(
-      "puleFileStreamWrite(%s) intermediary buffer stride '%zu' must be 0 or 1",
-      puleFilePath(file),
-      view.elementStride
-    );
   }
   ::streams.emplace(
     file.id,
@@ -527,13 +589,13 @@ PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
   if (errorcode) {
     return {.valueUnixTs=0,};
   }
+  // TODO this is somehow not returning the correct time, but it might just
+  //      be on my system as it doesn't have a working clock
   return {
     .valueUnixTs = (
-      static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-          filetime.time_since_epoch()
-        ).count()
-      )
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+        filetime.time_since_epoch()
+      ).count()
     ),
   };
 }
@@ -550,7 +612,10 @@ namespace {
     );
     std::string filename;
     void * userdata;
+    PuleMillisecond waitTime;
     PuleTimestamp lastUpdated;
+    PuleTimestamp lastUpdatedNow;
+    bool needsUpdate;
   };
 
   std::unordered_map<uint64_t, FileWatcher> fileWatchers;
@@ -568,7 +633,10 @@ PuleFileWatcher puleFileWatch(
     .fileUpdatedCallback = ci.fileUpdatedCallback,
     .filename = filename,
     .userdata = ci.userdata,
+    .waitTime = ci.waitTime,
     .lastUpdated = puleFilesystemTimestamp(ci.filename),
+    .lastUpdatedNow = puleTimestampNow(),
+    .needsUpdate = false,
   };
 
   ::fileWatchers.emplace(::fileWatcherHashIt, watcher);
@@ -582,10 +650,28 @@ bool puleFileWatchCheckAll() {
     auto const timestamp = (
       puleFilesystemTimestamp(puleCStr(filewatch.filename.c_str()))
     );
+    auto const now = puleTimestampNow();
+    // store the last updated time
     if (filewatch.lastUpdated.valueUnixTs < timestamp.valueUnixTs) {
-      puleLogDebug("File updated: '%s'", filewatch.filename.c_str());
+      puleLogDebug("File updated seen: '%s'", filewatch.filename.c_str());
+      filewatch.lastUpdated = timestamp;
+      filewatch.lastUpdatedNow = now;
+      filewatch.needsUpdate = true;
+    }
+    if (!filewatch.needsUpdate) { continue; }
+    puleLog("now: %llu", now.valueUnixTs);
+    puleLog("ts: %llu", filewatch.lastUpdatedNow.valueUnixTs);
+    auto const timestampElapsed = (
+      now.valueUnixTs - filewatch.lastUpdatedNow.valueUnixTs
+    );
+    puleLog("timestamp elapsed: %llu", timestampElapsed);
+    // then check if it's been long enough since the last update time to
+    //   trigger callback
+    if (timestampElapsed >= filewatch.waitTime.valueMilli) {
+      puleLogDebug("File updated true: '%s'", filewatch.filename.c_str());
       anyFilesChanged = true;
       filewatch.lastUpdated = timestamp;
+      filewatch.needsUpdate = false;
       if (filewatch.fileUpdatedCallback) {
         filewatch.fileUpdatedCallback(
           PuleStringView {

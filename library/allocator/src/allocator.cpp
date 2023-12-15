@@ -14,17 +14,11 @@ void * releaseAllocate(void * const, PuleAllocateInfo const info) {
       //allocatedMemory = calloc(info.numBytes, 1);
       allocatedMemory = malloc(info.numBytes);
       memset(allocatedMemory, 0, info.numBytes);
-      puleLogDebug("[%p] calloc %zu bytes", allocatedMemory, info.numBytes);
     } else {
       allocatedMemory = malloc(info.numBytes);
-      puleLogDebug("[%p] malloc %zu", allocatedMemory, info.numBytes);
     }
   } else {
     allocatedMemory = aligned_alloc(info.numBytes, info.alignment);
-    puleLogDebug(
-      "[%p] aligned alloc %zu alignment %zu",
-      allocatedMemory, info.numBytes, info.alignment
-    );
     if (info.zeroOut) {
       memset(allocatedMemory, 0, info.numBytes);
     }
@@ -34,9 +28,7 @@ void * releaseAllocate(void * const, PuleAllocateInfo const info) {
 
 void * releaseReallocate(void * const, PuleReallocateInfo const info) {
   void * reallocatedMemory = nullptr;
-  puleLogDebug("[%p] realloc %zu", info.allocation, info.numBytes);
   reallocatedMemory = realloc(info.allocation, info.numBytes);
-  puleLogDebug("[%p] new address [%p]", info.allocation, reallocatedMemory);
 
   // check reallocated memory is aligned if requested, as otherwise need to
   // free/alloc
@@ -44,21 +36,15 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
        info.alignment > 0
     && reinterpret_cast<size_t>(reallocatedMemory) % info.alignment != 0
   ) {
-    puleLogDebug("freeing memory at ", info.numBytes, info.alignment);
     free(reallocatedMemory);
     reallocatedMemory = aligned_alloc(info.numBytes, info.alignment);
     // TODO won't this not work since no memcpy of original data?
-    puleLogDebug(
-      "[%p] aligned alloc",
-      reallocatedMemory, info.numBytes, info.alignment
-    );
   }
 
   return reallocatedMemory;
 }
 
 void releaseDeallocate(void * const, void * const allocationNullable) {
-  puleLogDebug("[%p] free", allocationNullable);
   free(allocationNullable);
 }
 

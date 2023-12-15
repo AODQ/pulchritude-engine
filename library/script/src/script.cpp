@@ -468,10 +468,9 @@ std::vector<uint8_t> readFileContents(PuleStringView const filename) {
   filebuffer.resize(filesize);
   puleFileReadBytes(
     file,
-    PuleArrayViewMutable {
+    PuleBufferViewMutable {
       .data = filebuffer.data(),
-      .elementStride = 1,
-      .elementCount = filebuffer.size(),
+      .byteLength = filebuffer.size(),
     }
   );
   puleFileClose(file);
@@ -555,8 +554,8 @@ PuleScriptModuleFileWatchReturn puleScriptModuleFileWatch(
   };
   auto const watcher = puleFileWatch({
     .fileUpdatedCallback = &::scriptWatchFileUpdatedCallback,
-    .deallocateUserdataCallback = &::scriptWatchDeallocateUserdataCallback,
     .filename = filename,
+    .waitTime = PuleMillisecond{1000},
     .userdata = watchinfo,
   });
   return {.scriptModule = scriptModule, .watcher = watcher,};
