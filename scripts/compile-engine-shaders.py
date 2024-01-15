@@ -76,6 +76,18 @@ compileShader(
 )
 
 compileShader(
+  "debugGfxTriFrag",
+  "shaders/debug-gfx-tri.frag",
+  "library/gfx-debug/src/autogen-debug-gfx-tri.frag.spv"
+)
+
+compileShader(
+  "debugGfxTriVert",
+  "shaders/debug-gfx-tri.vert",
+  "library/gfx-debug/src/autogen-debug-gfx-tri.vert.spv"
+)
+
+compileShader(
   "textBitmapVert",
   "shaders/text-bitmap.vert",
   "library/text/src/autogen-text-bitmap.vert.spv"

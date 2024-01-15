@@ -556,6 +556,36 @@
       ::loadSymbol("puleDsMemberAsBuffer", layerName)
     )
   );
+  layer->dsAsF32v2 = (
+    reinterpret_cast<decltype(layer->dsAsF32v2)>(
+      ::loadSymbol("puleDsAsF32v2", layerName)
+    )
+  );
+  layer->dsAsF32v3 = (
+    reinterpret_cast<decltype(layer->dsAsF32v3)>(
+      ::loadSymbol("puleDsAsF32v3", layerName)
+    )
+  );
+  layer->dsAsF32v4 = (
+    reinterpret_cast<decltype(layer->dsAsF32v4)>(
+      ::loadSymbol("puleDsAsF32v4", layerName)
+    )
+  );
+  layer->dsCreateF64v2 = (
+    reinterpret_cast<decltype(layer->dsCreateF64v2)>(
+      ::loadSymbol("puleDsCreateF64v2", layerName)
+    )
+  );
+  layer->dsCreateF64v3 = (
+    reinterpret_cast<decltype(layer->dsCreateF64v3)>(
+      ::loadSymbol("puleDsCreateF64v3", layerName)
+    )
+  );
+  layer->dsCreateF64v4 = (
+    reinterpret_cast<decltype(layer->dsCreateF64v4)>(
+      ::loadSymbol("puleDsCreateF64v4", layerName)
+    )
+  );
   // ecs-serializer
   layer->ecsSerializeWorld = (
     reinterpret_cast<decltype(layer->ecsSerializeWorld)>(
@@ -745,6 +775,31 @@
     )
   );
   // file
+  layer->fileStreamReadOpen = (
+    reinterpret_cast<decltype(layer->fileStreamReadOpen)>(
+      ::loadSymbol("puleFileStreamReadOpen", layerName)
+    )
+  );
+  layer->fileStreamWriteOpen = (
+    reinterpret_cast<decltype(layer->fileStreamWriteOpen)>(
+      ::loadSymbol("puleFileStreamWriteOpen", layerName)
+    )
+  );
+  layer->fileStreamClose = (
+    reinterpret_cast<decltype(layer->fileStreamClose)>(
+      ::loadSymbol("puleFileStreamClose", layerName)
+    )
+  );
+  layer->fileStreamReader = (
+    reinterpret_cast<decltype(layer->fileStreamReader)>(
+      ::loadSymbol("puleFileStreamReader", layerName)
+    )
+  );
+  layer->fileStreamWriter = (
+    reinterpret_cast<decltype(layer->fileStreamWriter)>(
+      ::loadSymbol("puleFileStreamWriter", layerName)
+    )
+  );
   layer->fileOpen = (
     reinterpret_cast<decltype(layer->fileOpen)>(
       ::loadSymbol("puleFileOpen", layerName)
@@ -845,14 +900,14 @@
       ::loadSymbol("puleFileDirectoryCreateRecursive", layerName)
     )
   );
+  layer->filesystemPathCurrent = (
+    reinterpret_cast<decltype(layer->filesystemPathCurrent)>(
+      ::loadSymbol("puleFilesystemPathCurrent", layerName)
+    )
+  );
   layer->filesystemExecutablePath = (
     reinterpret_cast<decltype(layer->filesystemExecutablePath)>(
       ::loadSymbol("puleFilesystemExecutablePath", layerName)
-    )
-  );
-  layer->filesystemCurrentPath = (
-    reinterpret_cast<decltype(layer->filesystemCurrentPath)>(
-      ::loadSymbol("puleFilesystemCurrentPath", layerName)
     )
   );
   layer->filesystemAssetPath = (
@@ -1184,6 +1239,36 @@
   layer->f32v4 = (
     reinterpret_cast<decltype(layer->f32v4)>(
       ::loadSymbol("puleF32v4", layerName)
+    )
+  );
+  layer->f32v3to4 = (
+    reinterpret_cast<decltype(layer->f32v3to4)>(
+      ::loadSymbol("puleF32v3to4", layerName)
+    )
+  );
+  layer->f32v4Add = (
+    reinterpret_cast<decltype(layer->f32v4Add)>(
+      ::loadSymbol("puleF32v4Add", layerName)
+    )
+  );
+  layer->f32v4Sub = (
+    reinterpret_cast<decltype(layer->f32v4Sub)>(
+      ::loadSymbol("puleF32v4Sub", layerName)
+    )
+  );
+  layer->f32v4Mul = (
+    reinterpret_cast<decltype(layer->f32v4Mul)>(
+      ::loadSymbol("puleF32v4Mul", layerName)
+    )
+  );
+  layer->f32v4Div = (
+    reinterpret_cast<decltype(layer->f32v4Div)>(
+      ::loadSymbol("puleF32v4Div", layerName)
+    )
+  );
+  layer->f32v4Dot = (
+    reinterpret_cast<decltype(layer->f32v4Dot)>(
+      ::loadSymbol("puleF32v4Dot", layerName)
     )
   );
   layer->f32m44 = (
@@ -1617,6 +1702,11 @@
       ::loadSymbol("puleStreamReadFromString", layerName)
     )
   );
+  layer->streamReadFromBuffer = (
+    reinterpret_cast<decltype(layer->streamReadFromBuffer)>(
+      ::loadSymbol("puleStreamReadFromBuffer", layerName)
+    )
+  );
   layer->streamWriteBytes = (
     reinterpret_cast<decltype(layer->streamWriteBytes)>(
       ::loadSymbol("puleStreamWriteBytes", layerName)
@@ -1788,6 +1878,11 @@
   layer->sleepMicrosecond = (
     reinterpret_cast<decltype(layer->sleepMicrosecond)>(
       ::loadSymbol("puleSleepMicrosecond", layerName)
+    )
+  );
+  layer->timestampNow = (
+    reinterpret_cast<decltype(layer->timestampNow)>(
+      ::loadSymbol("puleTimestampNow", layerName)
     )
   );
   // tui
@@ -2193,6 +2288,21 @@
       ::loadSymbol("pulePhysx2DShapeCreateConvexPolygonAsBox", layerName)
     )
   );
+  layer->physx3DWorldCreate = (
+    reinterpret_cast<decltype(layer->physx3DWorldCreate)>(
+      ::loadSymbol("pulePhysx3DWorldCreate", layerName)
+    )
+  );
+  layer->physx3DWorldDestroy = (
+    reinterpret_cast<decltype(layer->physx3DWorldDestroy)>(
+      ::loadSymbol("pulePhysx3DWorldDestroy", layerName)
+    )
+  );
+  layer->physx3DWorldAdvance = (
+    reinterpret_cast<decltype(layer->physx3DWorldAdvance)>(
+      ::loadSymbol("pulePhysx3DWorldAdvance", layerName)
+    )
+  );
   // render-graph
   layer->renderGraphCreate = (
     reinterpret_cast<decltype(layer->renderGraphCreate)>(
@@ -2321,6 +2431,11 @@
       ::loadSymbol("puleNetHostDestroy", layerName)
     )
   );
+  layer->netHostPollConnection = (
+    reinterpret_cast<decltype(layer->netHostPollConnection)>(
+      ::loadSymbol("puleNetHostPollConnection", layerName)
+    )
+  );
   layer->netHostPoll = (
     reinterpret_cast<decltype(layer->netHostPoll)>(
       ::loadSymbol("puleNetHostPoll", layerName)
@@ -2359,6 +2474,26 @@
   layer->netClientSendPacket = (
     reinterpret_cast<decltype(layer->netClientSendPacket)>(
       ::loadSymbol("puleNetClientSendPacket", layerName)
+    )
+  );
+  layer->netHostUploadStream = (
+    reinterpret_cast<decltype(layer->netHostUploadStream)>(
+      ::loadSymbol("puleNetHostUploadStream", layerName)
+    )
+  );
+  layer->netClientDownloadStreamCheck = (
+    reinterpret_cast<decltype(layer->netClientDownloadStreamCheck)>(
+      ::loadSymbol("puleNetClientDownloadStreamCheck", layerName)
+    )
+  );
+  layer->netClientDownloadStreamExists = (
+    reinterpret_cast<decltype(layer->netClientDownloadStreamExists)>(
+      ::loadSymbol("puleNetClientDownloadStreamExists", layerName)
+    )
+  );
+  layer->netClientDownloadStreamContinue = (
+    reinterpret_cast<decltype(layer->netClientDownloadStreamContinue)>(
+      ::loadSymbol("puleNetClientDownloadStreamContinue", layerName)
     )
   );
   // parser
@@ -2471,5 +2606,81 @@
   layer->eLJitEngineFunctionAddress = (
     reinterpret_cast<decltype(layer->eLJitEngineFunctionAddress)>(
       ::loadSymbol("puleELJitEngineFunctionAddress", layerName)
+    )
+  );
+  // scene
+  layer->sceneCreate = (
+    reinterpret_cast<decltype(layer->sceneCreate)>(
+      ::loadSymbol("puleSceneCreate", layerName)
+    )
+  );
+  layer->sceneDestroy = (
+    reinterpret_cast<decltype(layer->sceneDestroy)>(
+      ::loadSymbol("puleSceneDestroy", layerName)
+    )
+  );
+  layer->sceneImageAttachmentsSet = (
+    reinterpret_cast<decltype(layer->sceneImageAttachmentsSet)>(
+      ::loadSymbol("puleSceneImageAttachmentsSet", layerName)
+    )
+  );
+  layer->sceneClearColorSet = (
+    reinterpret_cast<decltype(layer->sceneClearColorSet)>(
+      ::loadSymbol("puleSceneClearColorSet", layerName)
+    )
+  );
+  layer->sceneCameraSet = (
+    reinterpret_cast<decltype(layer->sceneCameraSet)>(
+      ::loadSymbol("puleSceneCameraSet", layerName)
+    )
+  );
+  layer->sceneCameraControllerSet = (
+    reinterpret_cast<decltype(layer->sceneCameraControllerSet)>(
+      ::loadSymbol("puleSceneCameraControllerSet", layerName)
+    )
+  );
+  layer->sceneEcsWorldSet = (
+    reinterpret_cast<decltype(layer->sceneEcsWorldSet)>(
+      ::loadSymbol("puleSceneEcsWorldSet", layerName)
+    )
+  );
+  layer->sceneEcsWorld = (
+    reinterpret_cast<decltype(layer->sceneEcsWorld)>(
+      ::loadSymbol("puleSceneEcsWorld", layerName)
+    )
+  );
+  layer->scenePhysxWorldSet = (
+    reinterpret_cast<decltype(layer->scenePhysxWorldSet)>(
+      ::loadSymbol("puleScenePhysxWorldSet", layerName)
+    )
+  );
+  layer->scenePhysxWorld = (
+    reinterpret_cast<decltype(layer->scenePhysxWorld)>(
+      ::loadSymbol("puleScenePhysxWorld", layerName)
+    )
+  );
+  layer->sceneAdvance = (
+    reinterpret_cast<decltype(layer->sceneAdvance)>(
+      ::loadSymbol("puleSceneAdvance", layerName)
+    )
+  );
+  layer->sceneComponentObject = (
+    reinterpret_cast<decltype(layer->sceneComponentObject)>(
+      ::loadSymbol("puleSceneComponentObject", layerName)
+    )
+  );
+  layer->sceneComponentModel = (
+    reinterpret_cast<decltype(layer->sceneComponentModel)>(
+      ::loadSymbol("puleSceneComponentModel", layerName)
+    )
+  );
+  layer->sceneComponentPhysics = (
+    reinterpret_cast<decltype(layer->sceneComponentPhysics)>(
+      ::loadSymbol("puleSceneComponentPhysics", layerName)
+    )
+  );
+  layer->sceneNodeAttachComponents = (
+    reinterpret_cast<decltype(layer->sceneNodeAttachComponents)>(
+      ::loadSymbol("puleSceneNodeAttachComponents", layerName)
     )
   );

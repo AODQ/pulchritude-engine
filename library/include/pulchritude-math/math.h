@@ -107,11 +107,12 @@ PULE_exportFn PuleF32v3 puleF32v3Normalize(PuleF32v3 const b);
 PULE_exportFn PuleF32v3 puleF32v3Cross(PuleF32v3 const a, PuleF32v3 const b);
 
 PULE_exportFn PuleF32v4 puleF32v4(float const identity);
-/* PuleF32v4 pulef32v4Add(pulef32v4 const a, pulef32v4 const b); */
-/* PuleF32v4 pulef32v4Sub(pulef32v4 const a, pulef32v4 const b); */
-/* PuleF32v4 pulef32v4Mul(pulef32v4 const a, pulef32v4 const b); */
-/* PuleF32v4 pulef32v4Div(pulef32v4 const a, pulef32v4 const b); */
-/* PuleF32v4 pulef32v4Dot(pulef32v4 const a, pulef32v4 const b); */
+PULE_exportFn PuleF32v4 puleF32v3to4(PuleF32v3 const a, float const identity);
+PULE_exportFn PuleF32v4 puleF32v4Add(PuleF32v4 const a, PuleF32v4 const b);
+PULE_exportFn PuleF32v4 puleF32v4Sub(PuleF32v4 const a, PuleF32v4 const b);
+PULE_exportFn PuleF32v4 puleF32v4Mul(PuleF32v4 const a, PuleF32v4 const b);
+PULE_exportFn PuleF32v4 puleF32v4Div(PuleF32v4 const a, PuleF32v4 const b);
+PULE_exportFn PuleF32v4 puleF32v4Dot(PuleF32v4 const a, PuleF32v4 const b);
 
 // matrices are 'column major', the indices look like
 //

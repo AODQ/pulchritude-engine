@@ -8,6 +8,8 @@
 #include <pulchritude-platform/platform.h>
 #include <pulchritude-plugin/plugin.h>
 
+#include <pulchritude-asset/pds.h>
+
 #include <string>
 #include <vector>
 

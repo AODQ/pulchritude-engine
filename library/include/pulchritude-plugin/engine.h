@@ -49,6 +49,7 @@
 #include <pulchritude-net/net.h>
 #include <pulchritude-parser/parser.h>
 #include <pulchritude-engine-language/engine-language.h>
+#include <pulchritude-scene/scene.h>
 
 
 typedef struct PuleEngineLayer {
@@ -176,6 +177,12 @@ typedef struct PuleEngineLayer {
   PuleDsValueArray (* dsMemberAsArray)(PuleDsValue const, char const * const);
   PuleDsValueObject (* dsMemberAsObject)(PuleDsValue const, char const * const);
   PuleDsValueBuffer (* dsMemberAsBuffer)(PuleDsValue const, char const * const);
+  PuleF32v2 (* dsAsF32v2)(PuleDsValue const);
+  PuleF32v3 (* dsAsF32v3)(PuleDsValue const);
+  PuleF32v4 (* dsAsF32v4)(PuleDsValue const);
+  PuleDsValue (* dsCreateF64v2)(PuleAllocator const, PuleF32v2 const);
+  PuleDsValue (* dsCreateF64v3)(PuleAllocator const, PuleF32v3 const);
+  PuleDsValue (* dsCreateF64v4)(PuleAllocator const, PuleF32v4 const);
   // ecs-serializer
   PuleDsValue (* ecsSerializeWorld)(PuleEcsSerializeWorldInfo const);
   void (* ecsDeserializeWorld)(PuleEcsDeserializeWorldInfo const);
@@ -217,6 +224,11 @@ typedef struct PuleEngineLayer {
   bool (* errorExists)(PuleError * const);
   void (* errorPropagate)(PuleError * const, PuleError const);
   // file
+  PuleFileStream (* fileStreamReadOpen)(PuleStringView const);
+  PuleFileStream (* fileStreamWriteOpen)(PuleStringView const);
+  void (* fileStreamClose)(PuleFileStream const);
+  PuleStreamRead (* fileStreamReader)(PuleFileStream const);
+  PuleStreamWrite (* fileStreamWriter)(PuleFileStream const);
   PuleFile (* fileOpen)(PuleStringView const, PuleFileDataMode const, PuleFileOpenMode const, PuleError * const);
   void (* fileClose)(PuleFile const);
   bool (* fileIsDone)(PuleFile const);
@@ -237,8 +249,8 @@ typedef struct PuleEngineLayer {
   bool (* fileRemoveRecursive)(PuleStringView const);
   bool (* fileDirectoryCreate)(PuleStringView const);
   bool (* fileDirectoryCreateRecursive)(PuleStringView const);
+  PuleString (* filesystemPathCurrent)();
   PuleStringView (* filesystemExecutablePath)();
-  PuleString (* filesystemCurrentPath)(PuleAllocator const);
   PuleStringView (* filesystemAssetPath)();
   void (* filesystemAssetPathSet)(PuleStringView const);
   PuleString (* filesystemAbsolutePath)(PuleStringView const);
@@ -310,6 +322,12 @@ typedef struct PuleEngineLayer {
   PuleF32v3 (* f32v3Normalize)(PuleF32v3 const);
   PuleF32v3 (* f32v3Cross)(PuleF32v3 const, PuleF32v3 const);
   PuleF32v4 (* f32v4)(float const);
+  PuleF32v4 (* f32v3to4)(PuleF32v3 const, float const);
+  PuleF32v4 (* f32v4Add)(PuleF32v4 const, PuleF32v4 const);
+  PuleF32v4 (* f32v4Sub)(PuleF32v4 const, PuleF32v4 const);
+  PuleF32v4 (* f32v4Mul)(PuleF32v4 const, PuleF32v4 const);
+  PuleF32v4 (* f32v4Div)(PuleF32v4 const, PuleF32v4 const);
+  PuleF32v4 (* f32v4Dot)(PuleF32v4 const, PuleF32v4 const);
   PuleF32m44 (* f32m44)(float const);
   PuleF32m44 (* f32m44Ptr)(float const * const);
   PuleF32m44 (* f32m44PtrTranspose)(float const * const);
@@ -401,6 +419,7 @@ typedef struct PuleEngineLayer {
   void (* streamReadDestroy)(PuleStreamRead const);
   PuleBuffer (* streamDumpToBuffer)(PuleStreamRead const);
   PuleStreamRead (* streamReadFromString)(PuleStringView const);
+  PuleStreamRead (* streamReadFromBuffer)(PuleBufferView const);
   void (* streamWriteBytes)(PuleStreamWrite const, uint8_t const * const, size_t const);
   void (* streamWriteFlush)(PuleStreamWrite const);
   void (* streamWriteDestroy)(PuleStreamWrite const);
@@ -438,6 +457,7 @@ typedef struct PuleEngineLayer {
   // time
   PuleMicrosecond (* microsecond)(int64_t const);
   void (* sleepMicrosecond)(PuleMicrosecond const);
+  PuleTimestamp (* timestampNow)();
   // tui
   PuleTuiWindow (* tuiInitialize)();
   void (* tuiDestroy)(PuleTuiWindow const);
@@ -521,6 +541,9 @@ typedef struct PuleEngineLayer {
   float (* physx2DBodyAngle)(PulePhysx2DWorld const, PulePhysx2DBody const);
   void (* physx2DBodyAttachShape)(PulePhysx2DWorld const, PulePhysx2DBody const, PulePhysx2DShape const, PulePhysx2DBodyAttachShapeCreateInfo const);
   PulePhysx2DShape (* physx2DShapeCreateConvexPolygonAsBox)(PuleF32v2 const, PuleF32v2 const, float const);
+  PulePhysx3DWorld (* physx3DWorldCreate)();
+  void (* physx3DWorldDestroy)(PulePhysx3DWorld const);
+  void (* physx3DWorldAdvance)(PulePhysx3DWorld const, float const);
   // render-graph
   PuleRenderGraph (* renderGraphCreate)(PuleAllocator const);
   void (* renderGraphDestroy)(PuleRenderGraph const);
@@ -549,14 +572,19 @@ typedef struct PuleEngineLayer {
   PuleNetAddress (* netAddressLocalhost)(uint16_t const);
   PuleNetHost (* netHostCreate)(PuleNetHostCreateInfo const, PuleError * const);
   void (* netHostDestroy)(PuleNetHost const);
-  void (* netHostPoll)(PuleNetHost const);
-  void (* netHostSendPacket)(PuleNetHost const, uint64_t, PuleNetPacketSend const, PuleError * const);
-  void (* netHostBroadcastPacket)(PuleNetHost const, PuleNetPacketSend const, PuleError * const);
+  uint64_t (* netHostPollConnection)(PuleNetHost const);
+  uint32_t (* netHostPoll)(PuleNetHost const, uint32_t const, PuleNetPacketReceive * const, PuleError * const);
+  void (* netHostSendPacket)(PuleNetHost const, uint64_t, PuleNetChannelType const, uint32_t const, PuleBufferView const, PuleError * const);
+  void (* netHostBroadcastPacket)(PuleNetHost const, PuleNetChannelType const, uint32_t const, PuleBufferView const, PuleError * const);
   PuleNetClient (* netClientCreate)(PuleNetClientCreateInfo const, PuleError * const);
   void (* netClientDestroy)(PuleNetClient const);
   bool (* netClientConnected)(PuleNetClient const);
-  void (* netClientPoll)(PuleNetClient const);
-  void (* netClientSendPacket)(PuleNetClient const, PuleNetPacketSend const, PuleError * const);
+  uint32_t (* netClientPoll)(PuleNetClient const, uint32_t const, PuleNetPacketReceive * const, PuleError * const);
+  void (* netClientSendPacket)(PuleNetClient const, PuleNetChannelType const, uint32_t const, PuleBufferView const, PuleError * const);
+  PuleNetStreamTransferUpload (* netHostUploadStream)(PuleNetHost const, uint64_t, PuleStreamRead const, uint32_t);
+  PuleNetStreamTransferDownload (* netClientDownloadStreamCheck)(PuleNetClient const, uint32_t const, PuleNetPacketReceive * const, uint32_t, PuleStreamWrite const);
+  bool (* netClientDownloadStreamExists)(PuleNetClient const, PuleNetStreamTransferDownload const);
+  bool (* netClientDownloadStreamContinue)(PuleNetClient const, PuleNetStreamTransferDownload const, uint32_t const, PuleNetPacketReceive * const);
   // parser
   PuleParser (* parserCreate)(PuleStringView const, PuleStringView const, PuleStringView const);
   void (* parserDestroy)(PuleParser const);
@@ -575,12 +603,28 @@ typedef struct PuleEngineLayer {
   void (* parserAstNodeDump)(PuleParserAstNode const);
   void (* parserAstNodeDumpShallow)(PuleParserAstNode const);
   // engine-language
-  PuleELModule (* eLModuleCreate)(PuleStreamRead const, PuleError * const);
+  PuleELModule (* eLModuleCreate)(PuleStreamRead const, PuleStringView const, PuleError * const);
   void (* eLModuleDestroy)(PuleELModule const);
   PuleELJitEngine (* eLJitEngineCreate)(PuleELJitEngineCreateInfo const);
   void (* eLJitEngineDestroy)(PuleELJitEngine const);
   void (* eLJitEngineAddModule)(PuleELJitEngine const, PuleELModule const);
   void * (* eLJitEngineFunctionAddress)(PuleELJitEngine const, PuleStringView const);
+  // scene
+  PuleScene (* sceneCreate)(PuleSceneCreateInfo const);
+  void (* sceneDestroy)(PuleScene const);
+  void (* sceneImageAttachmentsSet)(PuleScene const, PuleI32v2 const, PuleI32v2 const, PuleGpuImage const, PuleGpuImage const);
+  void (* sceneClearColorSet)(PuleScene const, PuleF32v4 const);
+  void (* sceneCameraSet)(PuleScene const, PuleCamera const);
+  void (* sceneCameraControllerSet)(PuleScene const, PuleCameraController const);
+  void (* sceneEcsWorldSet)(PuleScene const, PuleEcsWorld const);
+  PuleEcsWorld (* sceneEcsWorld)(PuleScene const);
+  PuleEcsWorld (* scenePhysxWorldSet)(PuleScene const, PuleScenePhysxWorld const);
+  PuleScenePhysxWorld (* scenePhysxWorld)(PuleScene const);
+  void (* sceneAdvance)(PuleSceneAdvanceInfo const);
+  PuleEcsComponent (* sceneComponentObject)(PuleScene const);
+  PuleEcsComponent (* sceneComponentModel)(PuleScene const);
+  PuleEcsComponent (* sceneComponentPhysics)(PuleScene const);
+  void (* sceneNodeAttachComponents)(PuleSceneNodeCreateInfo const);
 } PuleEngineLayer;
 
 
