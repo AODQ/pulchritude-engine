@@ -249,8 +249,7 @@ void * puleEcsIteratorQueryComponents(
 ) {
   auto iter = reinterpret_cast<ecs_iter_t *>(iterator.id);
   // TODO
-  return nullptr;
-  //return ecs_term_w_size(iter, componentByteLength, componentIndex+1);
+  return ecs_field_w_size(iter, componentByteLength, componentIndex+1);
 }
 
 PuleEcsEntity * puleEcsIteratorQueryEntities(
