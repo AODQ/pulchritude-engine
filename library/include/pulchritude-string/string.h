@@ -90,3 +90,9 @@ PULE_exportFn size_t puleStringViewHash(PuleStringView const view);
 #ifdef __cplusplus
 } // extern c
 #endif
+
+#ifdef __cplusplus
+
+PuleStringView operator ""_pcs(char const * const cstr, size_t const len);
+
+#endif // __cplusplus

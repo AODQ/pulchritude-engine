@@ -168,3 +168,8 @@ size_t puleStringViewHash(PuleStringView const view) {
 }
 
 } // C
+
+
+PuleStringView operator ""_pcs(char const * const cstr, size_t const len) {
+  return PuleStringView { .contents = cstr, .len = len };
+}

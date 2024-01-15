@@ -55,7 +55,6 @@ PULE_exportFn void puleAssetPdsWriteToStream(
   PuleAssetPdsWriteInfo const writeInfo
 );
 
-
 // convenience function using file+stream but disables PDS streaming
 PULE_exportFn void puleAssetPdsWriteToFile(
   PuleDsValue const head,
