@@ -18,19 +18,21 @@ bool editorBuildRunApplication(
   PuleDsValue const input,
   PuleError * const error
 ) {
-  if (!editorBuildInitiate(allocator, main, input, error)) {
-    return false;
+  bool const noBuild = puleDsMemberAsBool(input, "no-build");
+  if (!noBuild) {
+    if (!editorGenerateInitiate(allocator, main, input, error)) {
+      return false;
+    }
+    if (!editorBuildInitiate(allocator, main, input, error)) {
+      return false;
+    }
   }
-  PuleString const filesystemPath = (
-    puleFilesystemCurrentPath(puleAllocateDefault())
-  );
+  PuleString const filesystemPath = puleFilesystemPathCurrent();
   std::string execute = "";
   {
     // launch application with correct plugin path
     PuleStringView const exePath = puleFilesystemExecutablePath();
-    PuleString const currentPath = (
-      puleFilesystemCurrentPath(puleAllocateDefault())
-    );
+    PuleString const currentPath = puleFilesystemPathCurrent();
     // cd & remove
     execute += "cd build-husk/install/bin; echo $PWD ;";
     execute += "rm pulchritude-application 2> /dev/null || true;";

@@ -17,6 +17,7 @@ PuleDsValue puldRegisterCommands(
       {label: "redo", apply-label: "editorUndotreeRedo",},
       {label: "undotree-show", apply-label: "editorUndotreeShow",},
       {label: "build", apply-label: "editorBuildInitiate",},
+      {label: "generate", apply-label: "editorGenerateInitiate",},
       {label: "run", apply-label: "editorBuildRunApplication",},
       {label: "gui", apply-label: "editorGui",},
       {
@@ -47,6 +48,7 @@ PuleDsValue puldRegisterCLICommands(
       show: [ { label: "all", type: "bool", default-value: false, }, ],
     },
     build: [],
+    generate: [],
     gui: [
       { label: "debug", type: "bool", default-value: false, },
       { label: "error-segfaults", type: "bool", default-value: false, },
@@ -56,6 +58,7 @@ PuleDsValue puldRegisterCLICommands(
       { label: "valgrind",   type: "bool", default-value: false, },
       { label: "strace",   type: "bool", default-value: false, },
       { label: "clear", type: "bool", default-value: false, },
+      { label: "no-build", type: "bool", default-value: false, },
     ],
     run: [
       { label: "debug", type: "bool", default-value: false, },
@@ -66,6 +69,7 @@ PuleDsValue puldRegisterCLICommands(
       { label: "valgrind",   type: "bool", default-value: false, },
       { label: "strace",   type: "bool", default-value: false, },
       { label: "clear", type: "bool", default-value: false, },
+      { label: "no-build", type: "bool", default-value: false, },
     ],
     plugin: {
       new: [

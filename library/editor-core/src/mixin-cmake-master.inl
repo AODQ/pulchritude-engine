@@ -20,8 +20,14 @@ set(CMAKE_CXX_STANDARD 20)                                                    \n
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                                           \n
 set(CMAKE_CXX_EXTENSIONS OFF)                                                 \n
 set(CMAKE_CXX_FLAGS "-march=x86-64")                                          \n
+set(CMAKE_INSTALL_RPATH "$ORIGIN/plugins/:$ORIGIN/")                          \n
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--disable-new-dtags,-z,origin")               \n
                                                                               \n
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")                       \n
                                                                               \n
+set(%project-path ${CMAKE_CURRENT_SOURCE_DIR})                                \n
+                                                                              \n
 %add_subdirs                                                                  \n
+                                                                              \n
+%add_imported_subdirs                                                         \n
 );

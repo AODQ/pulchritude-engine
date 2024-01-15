@@ -44,6 +44,11 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 add_subdirectory(box2d)
 set_target_properties(box2d PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-set(ENET_STATIC ON CACHE INTERNAL "")
-add_subdirectory(enet)
-set_target_properties(enet_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+#set(ENET_STATIC ON CACHE INTERNAL "")
+#add_subdirectory(enet)
+#set_target_properties(enet_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_subdirectory(GameNetworkingSockets)
+set_target_properties(
+  GameNetworkingSockets_s PROPERTIES POSITION_INDEPENDENT_CODE ON
+)

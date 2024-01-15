@@ -55,10 +55,88 @@ void dumpToFile(
     }
   );
   puleFileClose(masterFile);
-  puleLog("Wrote file: %s", filename.c_str());
+  puleLogDebug("Wrote file: %s", filename.c_str());
+
 }
 
-static void generateMasterCmakefile(PuleDsValue const projectValue) {
+bool systemExecuteErrorCheck(
+  char const * const command,
+  char const * const label
+) {
+  puleLogDebug("Executing command: %s\n", command);
+  std::array<char, 2> buffer;
+  FILE * pipe = popen(command, "r");
+  if (!pipe) {
+    puleLogError("Failed to run command");
+    return false;
+  }
+  std::string result = "";
+  std::string resultFormatted = "";
+  std::string lineBuffer = "";
+  while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+    result += buffer.data();
+    // print line by line to decorate it
+    for (size_t it = 0; it < buffer.size(); ++ it) {
+      if (buffer[it] == '\0') { break; }
+      char const bufferChar = buffer[it];
+      if (bufferChar == '\n') {
+        if (lineBuffer.size() == 0) { continue; }
+        auto str = (
+          puleStringFormatDefault("  [%s] %s\n", label, lineBuffer.c_str())
+        );
+        resultFormatted += str.contents;
+        puleStringDestroy(str);
+        lineBuffer = "";
+        continue;
+      }
+      lineBuffer += bufferChar;
+    }
+  }
+  for (auto const & failStr : std::vector<std::string> { "FAIL", "failed" }) {
+    if (result.find(failStr) != std::string::npos) {
+      puleLogError("failed to run command '%s'", label);
+      puleLog("%s", resultFormatted.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+
+
+// returns list of imported library directories
+static std::string generateCmakefileImportedLibs(
+  PuleDsValue const projectValue
+) {
+  puleLogDebug("generating cmakefile imported libs");
+  PuleDsValue const buildInfoValue = (
+    puleDsObjectMember(projectValue, "build-info")
+  );
+  PuleDsValueArray const importLibs = (
+    puleDsMemberAsArray(buildInfoValue, "imported-libs")
+  );
+  std::string importedLibsStr = "# imported libs\n";
+  for (size_t libIt = 0; libIt < importLibs.length; ++ libIt) {
+    PuleStringView const libType = (
+      puleDsMemberAsString(importLibs.values[libIt], "type")
+    );
+    if (puleStringViewEqCStr(libType, "relpath")) {
+      importedLibsStr += (
+          std::string("add_subdirectory(")
+        + puleDsMemberAsString(importLibs.values[libIt], "path").contents
+        + "/build-husk/"
+        + ")\n"
+      );
+    } else {
+      PULE_assert(false && "Unknown lib type");
+    }
+  }
+  return importedLibsStr;
+}
+
+static void generateMasterCmakefile(
+  PuleDsValue const projectValue,
+  std::string const & projectPathLabel
+) {
   puleLogDebug("Create master cmakefile");
   #include "mixin-cmake-master.inl"
   // insert constants to top level CMake
@@ -89,8 +167,34 @@ static void generateMasterCmakefile(PuleDsValue const projectValue) {
     }
   }
 
+  { // add library subdirs
+    PuleDsValueArray const libs = (
+      puleDsMemberAsArray(buildInfoValue, "libs")
+    );
+    for (size_t libIt = 0; libIt < libs.length; ++ libIt) {
+      subdirs += (
+          std::string("add_subdirectory(")
+        + puleDsMemberAsString(libs.values[libIt], "path").contents
+        + std::string(")\n")
+      );
+    }
+  }
+
   cmakeContents = (
     std::regex_replace(cmakeContents, std::regex("%add_subdirs"), subdirs)
+  );
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents, std::regex("%project-path"), projectPathLabel
+    )
+  );
+
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents,
+      std::regex("%add_imported_subdirs"),
+      generateCmakefileImportedLibs(projectValue)
+    )
   );
 
   dumpToFile("build-husk/CMakeLists.txt", cmakeContents);
@@ -143,7 +247,10 @@ static void generateAssets(PuleDsValue const projectValue) {
 }
 
 // will generate list of source files for consumption by CMake `target_sources`
-static std::string generateCmakeSourceFiles(PuleDsValueArray const files) {
+static std::string generateCmakeSourceFiles(
+  PuleDsValueArray const files,
+  std::string const & projectPathLabel
+) {
   std::string sourceFiles;
   for (size_t fileIt = 0; fileIt < files.length; ++ fileIt) {
     auto const file = (
@@ -155,7 +262,7 @@ static std::string generateCmakeSourceFiles(PuleDsValueArray const files) {
         file.size() > language.size()
         && file.substr(file.size()-language.size()) == language
       ) {
-        sourceFiles += std::string("${CMAKE_SOURCE_DIR}/") + file;
+        sourceFiles += std::string("${") + projectPathLabel + "}/" + file;
         sourceFiles += "\n    ";
       }
     }
@@ -176,10 +283,14 @@ static void generatePluginCmakefile(PuleDsValue const pluginValue) {
 
   // replace source-files
   std::string const sourceFiles = (
-    generateCmakeSourceFiles(puleDsMemberAsArray(pluginValue, "known-files"))
+      generateCmakeSourceFiles(
+        puleDsMemberAsArray(pluginValue, "known-files"),
+        "CMAKE_SOURCE_DIR"
+      )
     + (
       generateCmakeSourceFiles(
-        puleDsMemberAsArray(pluginValue, "generated-hidden-files")
+        puleDsMemberAsArray(pluginValue, "generated-hidden-files"),
+        "CMAKE_SOURCE_DIR"
       )
     )
   );
@@ -221,6 +332,78 @@ static void generatePluginCmakefile(PuleDsValue const pluginValue) {
   );
 }
 
+static void generateLibraryCmakefile(
+  PuleDsValue const libValue,
+  std::string const & projectPathLabel
+) {
+  puleLogDebug("Create library cmakefile");
+  #include "mixin-cmake-library.inl"
+  // TODO this is just a copy of the plugin cmakefile function, perhaps merge
+  auto libName = (
+    std::string(puleDsMemberAsString(libValue, "name").contents)
+  );
+  // replace lib-name
+  cmakeContents = (
+    std::regex_replace(cmakeContents, std::regex("%lib-name"), libName)
+  );
+  // replace project-path
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents, std::regex("%project-path"), projectPathLabel
+    )
+  );
+
+  // replace source-files
+  std::string const sourceFiles = (
+      generateCmakeSourceFiles(
+        puleDsMemberAsArray(libValue, "known-files"),
+        projectPathLabel
+      )
+    + (
+      generateCmakeSourceFiles(
+        puleDsMemberAsArray(libValue, "generated-hidden-files"),
+        projectPathLabel
+      )
+    )
+  );
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents,
+      std::regex("%source-files"),
+      sourceFiles
+    )
+  );
+
+  // replace linked-libraries
+  std::string linkedLibs = "";
+  PuleDsValueArray const linkedLibsArray = (
+    puleDsMemberAsArray(libValue, "linked-libraries")
+  );
+  for (size_t libIt = 0; libIt < linkedLibsArray.length; ++ libIt) {
+    linkedLibs += (
+      std::string(puleDsAsString(linkedLibsArray.values[libIt]).contents)
+    );
+    if (libIt+1 < linkedLibsArray.length) {
+      linkedLibs += "\n    ";
+    }
+  }
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents,
+      std::regex("%linked-libraries"),
+      linkedLibs
+    )
+  );
+  dumpToFile(
+    (
+      std::string("build-husk/")
+      + puleDsMemberAsString(libValue, "path").contents
+      + std::string("/CMakeLists.txt")
+    ),
+    cmakeContents
+  );
+}
+
 static bool generateHuskDirectory(PuleDsValue const value) {
   puleLogDebug("Creating husk directory for ");
   puleAssetPdsWriteToStdout(value);
@@ -256,7 +439,7 @@ static bool generateHuskDirectory(PuleDsValue const value) {
       PuleString const huskFilepath = (
         puleStringFormatDefault("build-husk/%s", knownFilepath.c_str())
       );
-      // count '/', to the base filepath, in order to make the symbolink link
+      // count '/', to the base filepath, in order to make the symbolic link
       // relative to the husk (rather than an absolute path)
       size_t slashCount = 0;
       for (size_t it = 0; it < knownFilepath.size(); ++ it) {
@@ -269,7 +452,7 @@ static bool generateHuskDirectory(PuleDsValue const value) {
           ++ it;
         }
       }
-      // prepend corrrect number of ../
+      // prepend correct number of ../
       for (size_t slashIt = 0; slashIt < slashCount; ++ slashIt) {
         knownFilepath = "../" + knownFilepath;
       }
@@ -318,10 +501,56 @@ static bool generateBuildHusk() {
   puleFileDirectoryCreate(puleCStr("build-husk/install/bin"));
   puleFileDirectoryCreate(puleCStr("build-husk/install/bin/plugins"));
   puleFileDirectoryCreate(puleCStr("build-husk/plugins"));
+  puleFileDirectoryCreate(puleCStr("build-husk/library"));
+  // symlink to imported-libs
+  if (puleFilesystemPathExists(puleCStr("imported-libs"))) {
+    puleFilesystemSymlinkCreate(
+      puleCStr("../imported-libs"),
+      puleCStr("build-husk/imported-libs")
+    );
+  }
 
   PuleDsValue const buildInfoValue = (
     puleDsObjectMember(projectValue, "build-info")
   );
+
+  // run 'puledit generate' on all imported libraries
+  PuleDsValueArray const importedLibs = (
+    puleDsMemberAsArray(buildInfoValue, "imported-libs")
+  );
+  for (size_t ilIt = 0; ilIt < importedLibs.length; ++ ilIt) {
+    auto const & lib = importedLibs.values[ilIt];
+    auto const libType = puleDsMemberAsString(lib, "type");
+    if (puleStringViewEqCStr(libType, "relpath")) {
+      auto const libPath = puleDsMemberAsString(lib, "path");
+      if (
+        !puleFilesystemPathExists(
+          puleCStr(
+            (std::string(libPath.contents) + "/assets/project.pds").c_str()
+          )
+        )
+      ) {
+        puleLogError("Failed to find project.pds for %s", libPath.contents);
+        PULE_assert(false);
+      }
+      puleLog("Running puledit generate on %s", libPath.contents);
+      if (
+        !systemExecuteErrorCheck(
+          (
+              std::string("cd ")
+            + std::string(libPath.contents)
+            + std::string("; puledit generate 2>&1")
+          ).c_str(),
+          libPath.contents
+        )
+      ) {
+        PULE_assert(false && "Failed to run puledit generate");
+      }
+      puleLog("Finished running puledit generate on %s", libPath.contents);
+    } else {
+      PULE_assert(false && "Unknown lib type");
+    }
+  }
 
   // create symbolic link to include
   PuleStringView const exePath = puleFilesystemExecutablePath();
@@ -358,9 +587,29 @@ static bool generateBuildHusk() {
     }
   }
 
+  { // create library husk
+    PuleDsValueArray const libs = (
+      puleDsMemberAsArray(buildInfoValue, "libs")
+    );
+    puleLogDebug("Creating library husk for %u libraries", libs.length);
+    for (size_t libIt = 0; libIt < libs.length; ++ libIt) {
+      if (!generateHuskDirectory(libs.values[libIt])) {
+        return false;
+      }
+    }
+    // library needs to symlink to the absolute include path
+    puleFilesystemSymlinkCreate(
+      puleCStr("../../library/include"),
+      puleCStr("build-husk/library/include")
+    );
+  }
+
   // generate CMake files
   puleLogDebug("Generating CMake files");
-  generateMasterCmakefile(projectValue);
+  std::string const projectPathLabel = (
+    std::string(puleDsMemberAsString(projectValue, "project-name").contents)
+  );
+  generateMasterCmakefile(projectValue, projectPathLabel);
 
   { // generate plugin CMake files
     PuleDsValueArray const plugins = (
@@ -368,6 +617,15 @@ static bool generateBuildHusk() {
     );
     for (size_t pluginIt = 0; pluginIt < plugins.length; ++ pluginIt) {
       generatePluginCmakefile(plugins.values[pluginIt]);
+    }
+  }
+
+  { // generate library CMake files
+    PuleDsValueArray const libs = (
+      puleDsMemberAsArray(buildInfoValue, "libs")
+    );
+    for (size_t libIt = 0; libIt < libs.length; ++ libIt) {
+      generateLibraryCmakefile(libs.values[libIt], projectPathLabel);
     }
   }
 
@@ -382,15 +640,18 @@ static bool generateBuildHusk() {
 // this isn't in pulchritude because system commands don't really belong as
 // a first party plugin, at least for now. However to issue CMake + build
 // commands from just C there aren't many other options
-std::string systemExecute(char const * const command) {
+std::string systemExecute(char const * const command, bool printout=false) {
   puleLogDebug("Executing command: %s\n", command);
-  std::array<char, 4> buffer;
+  std::array<char, 2> buffer;
   std::string result = "";
   FILE * pipe = popen(command, "r");
   if (!pipe) {
     return "fail";
   }
   while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+    if (printout) {
+      printf("%s", buffer.data());
+    }
     result += buffer.data();
   }
   return result;
@@ -454,10 +715,11 @@ bool runBuild(
       " -DCMAKE_INSTALL_PREFIX=../install"
       " -DCMAKE_c++_COMPILER=/usr/bin/clang++"
       " -DCMAKE_c_COMPILER=/usr/bin/clang"
-      " ../ 2>&1"
+      " ../ 2>&1",
+      false
     )
   );
-  puleLog("-----cmake:\n%s\n----", cmakeResult.c_str());
+  //printf("-----cmake:\n%s\n----", cmakeResult.c_str());
   for (
     auto const & failStr :
     std::vector<std::string> { "FAIL", "failed", "CMake Error" }
@@ -470,10 +732,11 @@ bool runBuild(
   std::string buildResult = (
     systemExecute(
       "cd build-husk/build-install;"
-      " ninja install 2>&1"
+      " ninja install 2>&1",
+      true
     )
   );
-  puleLog("-----build:\n%s\n----", buildResult.c_str());
+  //printf("-----build:\n%s\n----", buildResult.c_str());
   for (auto const & failStr : std::vector<std::string> { "FAIL", "failed" }) {
     if (buildResult.find(failStr) != std::string::npos) {
       return false;
@@ -492,14 +755,20 @@ bool editorBuildInitiate(
   [[maybe_unused]] PuleDsValue const input,
   [[maybe_unused]] PuleError * const error
 ) {
-  // generate build-husk
-  if (!generateBuildHusk()) {
-    return false;
-  }
+  generateBuildHusk();
   if (!runPuleDataProcessing(allocator, error)) {
     return false;
   }
   return runBuild(allocator, error);
+}
+bool editorGenerateInitiate(
+  [[maybe_unused]] PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  [[maybe_unused]] PuleDsValue const input,
+  [[maybe_unused]] PuleError * const error
+) {
+  // generate build-husk
+  return generateBuildHusk();
 }
 }
 

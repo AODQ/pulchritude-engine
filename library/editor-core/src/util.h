@@ -13,6 +13,12 @@ bool editorBuildInitiate(
   PuleDsValue const input,
   PuleError * const error
 );
+bool editorGenerateInitiate(
+  PuleAllocator const allocator,
+  PuleDsValue const main,
+  PuleDsValue const input,
+  PuleError * const error
+);
 }
 
 bool refreshEcsMainComponentList(
