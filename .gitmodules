@@ -34,3 +34,6 @@
 [submodule "third-party/enet"]
 	path = third-party/enet
 	url = https://github.com/zpl-c/enet
+[submodule "third-party/GameNetworkingSockets"]
+	path = third-party/GameNetworkingSockets
+	url = https://github.com/ValveSoftware/GameNetworkingSockets

@@ -3,7 +3,6 @@ add_library(pulchritude-net SHARED)
 target_include_directories(
   pulchritude-net
     PUBLIC "../include/"
-    PRIVATE "${CMAKE_SOURCE_DIR}/third-party/enet/include/"
 )
 target_sources(
   pulchritude-net
@@ -26,6 +25,7 @@ target_link_libraries(
   pulchritude-log
   pulchritude-error
   pulchritude-string
+  GameNetworkingSockets::static
 )
 
 install(
