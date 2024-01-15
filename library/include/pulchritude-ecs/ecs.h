@@ -41,12 +41,6 @@ typedef struct {
   char const * label;
   size_t byteLength;
   size_t byteAlignment;
-  void (*imguiOverviewCallbackOptional)();
-  void (*imguiEntityCallbackOptional)(
-    PuleEcsWorld const world,
-    PuleEcsEntity const entity,
-    PuleEcsComponent const component
-  );
   void (*serializeComponentCallback)(
     PuleEcsEntity const entity,
     void const * const componentData,
@@ -60,6 +54,12 @@ typedef struct {
     PuleDsValue const readObjectPds,
     PuleAllocator const allocator
   );
+  void (*imguiOverviewCallbackOptional)() PULE_defaultField(nullptr);
+  void (*imguiEntityCallbackOptional)(
+    PuleEcsWorld const world,
+    PuleEcsEntity const entity,
+    PuleEcsComponent const component
+  ) PULE_defaultField(nullptr);
 } PuleEcsComponentCreateInfo;
 
 PULE_exportFn PuleEcsComponent puleEcsComponentCreate(

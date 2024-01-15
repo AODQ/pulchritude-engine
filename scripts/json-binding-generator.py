@@ -42,7 +42,8 @@ def comment_remover(text):
 
 def macro_remover(text):
   import re
-  # remove all instances of PULE_param
+  # remove all instances of PULE_param and PULE_defaultField
+  text = re.sub(r' PULE_defaultField\(.*?\);', ';', text);
   return re.sub(r' PULE_param\(.*?\);', ';', text);
 
 def exportJsonFromFile(contents, modulename, header):
