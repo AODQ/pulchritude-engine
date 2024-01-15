@@ -590,3 +590,184 @@ PuleDsValueBuffer puleDsMemberAsBuffer(
 }
 
 } // C
+
+// -- math ---------------------------------------------------------------------
+extern "C" {
+
+PuleF32v2 puleDsAsF32v2(PuleDsValue const value) {
+  PuleF32v2 vec = {};
+  PuleDsValueArray valueArr = puleDsAsArray(value);
+  vec.x = puleDsAsF32(valueArr.values[0]);
+  vec.y = puleDsAsF32(valueArr.values[1]);
+  return vec;
+}
+
+PuleF32v3 puleDsAsF32v3(PuleDsValue const value) {
+  PuleF32v3 vec = {};
+  PuleDsValueArray valueArr = puleDsAsArray(value);
+  vec.x = puleDsAsF32(valueArr.values[0]);
+  vec.y = puleDsAsF32(valueArr.values[1]);
+  vec.z = puleDsAsF32(valueArr.values[2]);
+  return vec;
+}
+
+PuleF32v4 puleDsAsF32v4(PuleDsValue const value) {
+  PuleF32v4 vec = {};
+  PuleDsValueArray valueArr = puleDsAsArray(value);
+  vec.x = puleDsAsF32(valueArr.values[0]);
+  vec.y = puleDsAsF32(valueArr.values[1]);
+  vec.z = puleDsAsF32(valueArr.values[2]);
+  vec.w = puleDsAsF32(valueArr.values[3]);
+  return vec;
+}
+
+PuleDsValue  puleDsCreateF32v2(
+  PuleAllocator const allocator,
+  PuleF32v2 const value
+) {
+  PuleDsValue obj = puleDsCreateArray(allocator);
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.x));
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.y));
+  return obj;
+}
+
+PuleDsValue  puleDsCreateF32v3(
+  PuleAllocator const allocator,
+  PuleF32v3 const value
+) {
+  PuleDsValue obj = puleDsCreateArray(allocator);
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.x));
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.y));
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.z));
+  return obj;
+}
+
+PuleDsValue  puleDsCreateF32v4(
+  PuleAllocator allocator,
+  PuleF32v4 const value
+) {
+  PuleDsValue obj = puleDsCreateArray(allocator);
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.x));
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.y));
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.z));
+  puleDsArrayAppend(obj, puleDsCreateF64((double)value.w));
+  return obj;
+}
+
+} // extern "C"
+
+// -- struct serialization -----------------------------------------------------
+
+namespace pint {
+
+PuleDsValue serialize(
+  PuleAllocator const alloc,
+  PuleDsStructField const & field,
+  void const * const ptr
+) {
+  uint8_t const * fieldPtr = ((uint8_t const *)ptr) + field.fieldByteOffset;
+  if (field.fieldCount > 1) {
+    puleLogError("pds struct-serialize field array not yet implemented");
+  }
+  #define fieldCase(_enum, _fnlabel, _type) \
+    case PuleDt_ ## _enum: \
+      return puleDsCreate ## _fnlabel(*((_type const *)fieldPtr))
+  #define fieldCaseAlloc(_enum, _fnlabel, _type) \
+    case PuleDt_ ## _enum: \
+      return puleDsCreate ## _fnlabel(alloc, *((_type const *)fieldPtr))
+
+  switch (field.dt) {
+    default:
+      puleLogError("pds struct-serialize unknown dt '%d'", field.dt);
+    break;
+    case PuleDt_ptr:
+      puleLogError(
+        "pds struct-serialize ptr not implemented, must be done manually"
+      );
+    break;
+    fieldCase(i8, I64, int8_t);
+    fieldCase(i16, I64, int16_t);
+    fieldCase(i32, I64, int32_t);
+    fieldCase(i64, I64, int64_t);
+    fieldCase(u8, U64, uint8_t);
+    fieldCase(u16, U64, uint16_t);
+    fieldCaseAlloc(f32v2, F32v2, PuleF32v2);
+    fieldCaseAlloc(f32v3, F32v3, PuleF32v3);
+    fieldCaseAlloc(f32v4, F32v4, PuleF32v4);
+  }
+  #undef fieldCase
+  #undef fieldCaseAlloc
+  return { 0 };
+}
+
+void deserialize(
+  PuleDsValue const value,
+  PuleDsStructField const & field,
+  void const * const ptr
+) {
+  uint8_t const * fieldPtr = ((uint8_t const *)ptr) + field.fieldByteOffset;
+  if (field.fieldCount > 1) {
+    puleLogError("pds struct-serialize field array not yet implemented");
+  }
+  #define fieldCase(_enum, _fnlabel, _type) \
+    case PuleDt_ ## _enum: \
+      *(_type *)fieldPtr = puleDsAs ## _fnlabel(value); break
+
+  switch (field.dt) {
+    default:
+      puleLogError("pds struct-serialize unknown dt '%d'", field.dt);
+    break;
+    case PuleDt_ptr:
+      puleLogError(
+        "pds struct-serialize ptr not implemented, must be done manually"
+      );
+    break;
+    fieldCase(i8, I64, int8_t);
+    fieldCase(i16, I64, int16_t);
+    fieldCase(i32, I64, int32_t);
+    fieldCase(i64, I64, int64_t);
+    fieldCase(u8, U64, uint8_t);
+    fieldCase(u16, U64, uint16_t);
+    fieldCase(f32v2, F32v2, PuleF32v2);
+    fieldCase(f32v3, F32v3, PuleF32v3);
+    fieldCase(f32v4, F32v4, PuleF32v4);
+  }
+  #undef fieldCase
+}
+
+} // namespace pint
+
+extern "C" {
+
+void puleDsStructSerialize(
+  PuleDsValue const writeObjectPds,
+  PuleAllocator const allocator,
+  PuleDsStructField const * const fields,
+  void const * const structInstancePtr
+) {
+  for (size_t it = 0; fields[it].fieldCount > 0; ++ it) {
+    PuleDsStructField const & field = fields[it];
+    puleDsObjectMemberAssign(
+      writeObjectPds,
+      puleCStr(std::to_string(field.dt).c_str()),
+      pint::serialize(allocator, field, structInstancePtr)
+    );
+  }
+}
+
+void puleDsStructDeserialize(
+  PuleDsValue const serializedStruct,
+  PuleDsStructField const * const fields,
+  void * const structInstancePtr
+) {
+  for (size_t it = 0; fields[it].fieldCount > 0; ++ it) {
+    PuleDsStructField const & field = fields[it];
+    pint::deserialize(
+      puleDsObjectMember(serializedStruct, std::to_string(field.dt).c_str()),
+      field,
+      structInstancePtr
+    );
+  }
+}
+
+} // extern "C"

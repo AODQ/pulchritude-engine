@@ -29,9 +29,51 @@
 // struct initializers for C++
 #ifdef __cplusplus
 #define PULE_param(...) = __VA_ARGS__
+#define PULE_defaultField(...) = __VA_ARGS__
 #else
 #define PULE_param(...)
+#define PULE_defaultField(...)
 #endif
+
+// these are data-type enums for general usage, other plugins might use their
+//   own enums if they support a different set of data types
+typedef enum {
+  PuleDt_i8,
+  PuleDt_i16,
+  PuleDt_i32,
+  PuleDt_i64,
+  PuleDt_u8,
+  PuleDt_u16,
+  PuleDt_u32,
+  PuleDt_u64,
+  PuleDt_f32,
+  PuleDt_f64,
+  PuleDt_bool,
+  PuleDt_ptr,
+
+  PuleDt_f32v2,
+  PuleDt_f32v3,
+  PuleDt_f32v4,
+  PuleDt_f32m44,
+
+  PuleDt_f64v2,
+  PuleDt_f64v3,
+  PuleDt_f64v4,
+
+  PuleDt_i32v2,
+  PuleDt_i32v3,
+  PuleDt_i32v4,
+  PuleDt_u32v2,
+  PuleDt_u32v3,
+  PuleDt_u32v4,
+
+  PuleDt_i64v2,
+  PuleDt_i64v3,
+  PuleDt_i64v4,
+  PuleDt_u64v2,
+  PuleDt_u64v3,
+  PuleDt_u64v4,
+} PuleDt;
 
 // C++ utilities
 #ifdef __cplusplus

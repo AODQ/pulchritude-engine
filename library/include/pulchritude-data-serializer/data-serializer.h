@@ -221,3 +221,88 @@ PULE_exportFn PuleDsValueBuffer puleDsMemberAsBuffer(
 #ifdef __cplusplus
 } // extern C
 #endif
+
+// -- math serialization -------------------------------------------------------
+
+#include <pulchritude-math/math.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// below is convenient type conversion for an array of floats
+PULE_exportFn PuleF32v2 puleDsAsF32v2(PuleDsValue const value);
+PULE_exportFn PuleF32v3 puleDsAsF32v3(PuleDsValue const value);
+PULE_exportFn PuleF32v4 puleDsAsF32v4(PuleDsValue const value);
+
+// convenience object constructors (creates array of floats)
+PULE_exportFn PuleDsValue puleDsCreateF64v2(
+  PuleAllocator const allocator,
+  PuleF32v2 const value
+);
+PULE_exportFn PuleDsValue puleDsCreateF64v3(
+  PuleAllocator const allocator,
+  PuleF32v3 const value
+);
+PULE_exportFn PuleDsValue puleDsCreateF64v4(
+  PuleAllocator const allocator,
+  PuleF32v4 const value
+);
+
+#ifdef __cplusplus
+} // extern C
+#endif
+
+// -- struct serialization -----------------------------------------------------
+
+// can help serialize/deserialize POD structs, using a C-like format string,
+//   use the following macros to generate the format string
+
+/* example
+
+#define structField(fieldtype, member) \
+  PULE_dsStructField(PuleSceneComponentModelData, fieldtype, member, 1)
+static PuleDsStructField const componentModelFields[] = {
+  structField(i64, type),
+  PULE_dsStructTerminator,
+};
+#undef structField
+
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+  PuleDt dt;
+  size_t fieldByteOffset;
+  size_t fieldCount; // set field count to 0 to terminate array
+} PuleDsStructField;
+
+#define PULE_dsStructField(structtype, fieldtype, member, count) \
+  { PuleDt_##fieldtype , offsetof(structtype, member) , count , }
+#define PULE_dsStructTerminator { PuleDt_ptr , 0 , 0 , }
+
+void puleDsStructSerialize(
+  PuleDsValue const writeObjectPds,
+  PuleAllocator const allocator,
+  PuleDsStructField const * const fields,
+  void const * const structInstancePtr
+);
+
+void puleDsStructDeserialize(
+  PuleDsValue const serializedStruct,
+  PuleDsStructField const * const fields,
+  void * const structInstancePtr
+);
+
+#ifdef __cplusplus
+} // extern C
+#endif
+
+// -- C++ ----------------------------------------------------------------------
+#ifdef __cplusplus
+// remember to destroy this value
+PuleDsValue operator ""_pds(char const * const str, size_t const len);
+#endif

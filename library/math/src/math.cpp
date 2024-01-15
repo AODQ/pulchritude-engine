@@ -62,6 +62,25 @@ PuleF32v4 puleF32v4(float const identity) {
     .x = identity, .y = identity, .z = identity, .w = identity,
   };
 }
+PuleF32v4 puleF32v3to4(PuleF32v3 const a, float const w) {
+  return PuleF32v4 { .x = a.x, .y = a.y, .z = a.z, .w = w };
+}
+
+PuleF32v4 puleF32v4Add(PuleF32v4 const a, PuleF32v4 const b) {
+  return PuleF32v4 { .x = a.x+b.x, .y = a.y+b.y, .z = a.z+b.z, .w = a.w+b.w };
+}
+PuleF32v4 puleF32v4Sub(PuleF32v4 const a, PuleF32v4 const b) {
+  return PuleF32v4 { .x = a.x-b.x, .y = a.y-b.y, .z = a.z-b.z, .w = a.w-b.w };
+}
+PuleF32v4 puleF32v4Neg(PuleF32v4 const a) {
+  return PuleF32v4 { .x = -a.x, .y = -a.y, .z = -a.z, .w = -a.w };
+}
+PuleF32v4 puleF32v4Mul(PuleF32v4 const a, PuleF32v4 const b) {
+  return PuleF32v4 { .x = a.x*b.x, .y = a.y*b.y, .z = a.z*b.z, .w = a.w*b.w };
+}
+PuleF32v4 puleF32v4Div(PuleF32v4 const a, PuleF32v4 const b) {
+  return PuleF32v4 { .x = a.x/b.x, .y = a.y/b.y, .z = a.z/b.z, .w = a.w/b.w };
+}
 
 float puleF32v3Dot(PuleF32v3 const a, PuleF32v3 const b) {
   return a.x*b.x + a.y*b.y + a.z*b.z;
