@@ -29,6 +29,9 @@ PULE_exportFn PuleBuffer puleStreamDumpToBuffer(PuleStreamRead const stream);
 PULE_exportFn PuleStreamRead puleStreamReadFromString(
   PuleStringView const stringView
 );
+PULE_exportFn PuleStreamRead puleStreamReadFromBuffer(
+  PuleBufferView const bufferView
+);
 
 typedef struct {
   void * userdata;

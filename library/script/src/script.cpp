@@ -556,6 +556,7 @@ PuleScriptModuleFileWatchReturn puleScriptModuleFileWatch(
     .fileUpdatedCallback = &::scriptWatchFileUpdatedCallback,
     .filename = filename,
     .waitTime = PuleMillisecond{1000},
+    .checkMd5Sum = true,
     .userdata = watchinfo,
   });
   return {.scriptModule = scriptModule, .watcher = watcher,};

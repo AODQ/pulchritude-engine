@@ -86,6 +86,7 @@ bool editorBuildRunApplication(
       + std::string(currentPath.contents)
       + "/build-husk/install/ "
     );
+    execute += " --allow-plugin-reload ";
 
     if (isDebug) {
       execute += "--debug ";
@@ -103,6 +104,18 @@ bool editorBuildRunApplication(
       execute += "--plugin-layer debug ";
     }
     // execute += (gdb ? "" : " | c++filt");
+
+    // now add application v:arargs
+    puleAssetPdsWriteToStdout(input);
+    PuleDsValueArray const varargs = puleDsMemberAsArray(input, "varargs");
+    execute += " -- ";
+    for (size_t varargIt = 0; varargIt < varargs.length; ++ varargIt) {
+      execute += (
+          std::string(" ")
+        + puleDsAsString(varargs.values[varargIt]).contents
+        + " "
+      );
+    }
 
     printf("------\n\t%s\n\n--------", execute.c_str());
 

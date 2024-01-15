@@ -119,11 +119,8 @@ PULE_exportFn bool puleFileDirectoryCreate(PuleStringView const path);
 PULE_exportFn bool puleFileDirectoryCreateRecursive(PuleStringView const path);
 
 // TODO rename all puleFilesystem*Path to puleFilesystemPath*
+PULE_exportFn PuleString puleFilesystemPathCurrent();
 PULE_exportFn PuleStringView puleFilesystemExecutablePath();
-
-PULE_exportFn PuleString puleFilesystemCurrentPath(
-  PuleAllocator const allocator
-);
 
 PULE_exportFn PuleStringView puleFilesystemAssetPath();
 PULE_exportFn void puleFilesystemAssetPathSet(PuleStringView const path);
@@ -164,8 +161,9 @@ typedef struct {
     PuleStringView const filename,
     void * const userdata
   );
-  PuleStringView filename;
+  PuleStringView filename; // can be a list separated by ';'
   PuleMillisecond waitTime;
+  bool checkMd5Sum;
   void * userdata;
 } PuleFileWatchCreateInfo;
 PULE_exportFn PuleFileWatcher puleFileWatch(

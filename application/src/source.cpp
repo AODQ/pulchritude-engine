@@ -21,45 +21,120 @@
 
 // loading plugins
 namespace {
-  template <typename T>
-  void loadFn(T & fn, size_t const pluginId, char const * const label) {
-    fn = reinterpret_cast<T>(pulePluginLoadFn(pluginId, label));
-  }
 
-  template <typename T>
-  void tryLoadFn(T & fn, size_t const pluginId, char const * const label) {
-    fn = reinterpret_cast<T>(pulePluginLoadFnTry(pluginId, label));
-  }
+struct PluginInfo {
+  size_t id;
+  std::string name;
+  std::vector<std::string> sourceFiles;
+  bool (*updateFn)(PulePluginPayload const);
+  bool allowLiveReload;
+};
 
-  void iteratePlugins(PulePluginInfo const plugin, void * const userdata) {
-    PulePluginType (*pluginTypeFn)() = nullptr;
-    auto & componentPlugins = (
-      *reinterpret_cast<std::vector<size_t> *>(userdata)
+template <typename T>
+void loadFn(T & fn, size_t const pluginId, char const * const label) {
+  fn = reinterpret_cast<T>(pulePluginLoadFn(pluginId, label));
+}
+
+template <typename T>
+void tryLoadFn(T & fn, size_t const pluginId, char const * const label) {
+  fn = reinterpret_cast<T>(pulePluginLoadFnTry(pluginId, label));
+}
+
+struct IteratePluginsInfo {
+  std::vector<PluginInfo> & plugins;
+  PuleDsValue pluginArrayValue;
+};
+void iteratePlugins(PulePluginInfo const puPlugin, void * const userdata) {
+  PulePluginType (*pluginTypeFn)() = nullptr;
+  auto & iteratePluginInfo = (
+    *reinterpret_cast<IteratePluginsInfo *>(userdata)
+  );
+  auto pluginArray = puleDsAsArray(iteratePluginInfo.pluginArrayValue);
+  tryLoadFn(pluginTypeFn, puPlugin.id, "pulcPluginType");
+  if (!pluginTypeFn) { return; }
+  // store plugin
+  PluginInfo plugin = {};
+  plugin.id = puPlugin.id;
+  // check if updatable
+  ::tryLoadFn(plugin.updateFn, plugin.id, "pulcComponentUpdate");
+  // check if live reloadable
+  bool (*componentAllowLiveReloadFn)() = nullptr;
+  ::tryLoadFn(
+    componentAllowLiveReloadFn, plugin.id, "pulcPluginAllowLiveReload"
+  );
+  plugin.allowLiveReload = (
+       (componentAllowLiveReloadFn && componentAllowLiveReloadFn())
+    || plugin.updateFn
+  );
+  // need to find all source files that can be watched
+  PuleDsValue pluginSourceFilesValue = { .id = 0, };
+  char const * pluginName = pulePluginName(plugin.id);
+  for (size_t it = 0; it < pluginArray.length; ++ it) {
+    PuleStringView const pluginItName = (
+      puleDsMemberAsString(pluginArray.values[it], "name")
     );
-    tryLoadFn(pluginTypeFn, plugin.id, "pulcPluginType");
-    if (pluginTypeFn && pluginTypeFn() == PulePluginType_component) {
-      componentPlugins.emplace_back(plugin.id);
+    if (puleStringViewEqCStr(pluginItName, pluginName)) {
+      pluginSourceFilesValue = (
+        puleDsObjectMember(pluginArray.values[it], "known-files")
+      );
+      break;
     }
   }
-
-  struct PluginsCollectRenderGraphInfo {
-    PuleRenderGraph renderGraph;
-    PulePlatform platform;
-  };
-  void iteratePluginsCollectRenderGraphs(
-    PulePluginInfo const plugin,
-    void * const userdata
-  ) {
-    auto const info = (
-      *reinterpret_cast<PluginsCollectRenderGraphInfo *>(userdata)
+  // store name
+  plugin.name = pluginName;
+  // store source files
+  if (pluginSourceFilesValue.id != 0) {
+    PuleDsValueArray const pluginSourceFiles = (
+      puleDsAsArray(pluginSourceFilesValue)
     );
-    PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
-    tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
-    if (renderGraphFn) {
-      puleLogDebug("found pulcRenderGraph in plugin %s", plugin.name);
-      puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
+    for (size_t it = 0; it < pluginSourceFiles.length; ++ it) {
+      plugin.sourceFiles.emplace_back(
+        puleDsAsString(pluginSourceFiles.values[it]).contents
+      );
     }
   }
+  iteratePluginInfo.plugins.emplace_back(plugin);
+}
+
+struct PluginReloadInfo {
+  PulePluginPayload payload;
+  std::vector<PluginInfo> * plugins;
+};
+void componentPluginFileWatchUpdate(PuleStringView const, void * const ud) {
+  auto & info = *reinterpret_cast<PluginReloadInfo *>(ud);
+  pulePluginsReload();
+  for (auto & plugin : *info.plugins) {
+    puleLog("updating plugin %s", plugin.name.c_str());
+    plugin.updateFn = nullptr;
+    ::tryLoadFn(plugin.updateFn, plugin.id, "pulcComponentUpdate");
+    void (*componentReloadFn)(PulePluginPayload const) = nullptr;
+    ::tryLoadFn(componentReloadFn, plugin.id, "pulcComponentReload");
+    if (componentReloadFn) {
+      componentReloadFn(info.payload);
+    }
+  }
+  puleLog("reload finished");
+}
+
+struct PluginsCollectRenderGraphInfo {
+  PuleRenderGraph renderGraph;
+  PulePlatform platform;
+};
+void iteratePluginsCollectRenderGraphs(
+  PulePluginInfo const plugin,
+  void * const userdata
+) {
+  auto const info = (
+    *reinterpret_cast<PluginsCollectRenderGraphInfo *>(userdata)
+  );
+  PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
+  tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
+  if (renderGraphFn) {
+    puleLogDebug("found pulcRenderGraph in plugin %s", plugin.name);
+    puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
+  }
+}
+
 }
 
 namespace { // -- script task graph callbacks ----------------------------------
@@ -94,7 +169,6 @@ namespace { // -- render task graph callbacks ----------------------------------
 
 // update components
 namespace {
-  std::vector<bool(*)(PulePluginPayload const)> updateableComponents;
 }
 
 struct ParameterInfo {
@@ -127,13 +201,14 @@ void guiPluginLoad(PulePluginInfo const plugin, void * const userdata) {
 } // namespace editor
 
 std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
-  { "--asset-path",      {.hasParameter = true,  } },
-  { "--gui-editor",      {.hasParameter = false, } },
-  { "--debug",           {.hasParameter = false, } },
-  { "--error-segfaults", {.hasParameter = false, } },
-  { "--plugin-layer",    {.hasParameter = true,  } },
-  { "--plugin-path",     {.hasParameter = true,  } },
-  { "--early-exit",      {.hasParameter = false, } },
+  { "--asset-path",          {.hasParameter = true,  } },
+  { "--gui-editor",          {.hasParameter = false, } },
+  { "--debug",               {.hasParameter = false, } },
+  { "--error-segfaults",     {.hasParameter = false, } },
+  { "--plugin-layer",        {.hasParameter = true,  } },
+  { "--plugin-path",         {.hasParameter = true,  } },
+  { "--early-exit",          {.hasParameter = false, } },
+  { "--allow-plugin-reload", {.hasParameter = false, } },
 };
 std::vector<ParameterInfo> programParameters;
 
@@ -177,12 +252,20 @@ int32_t main(
 ) {
   //-* parse parameters/pds files -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   // parse into parameters
+  bool parseVarargs = false;
+  std::vector<std::string> userVarargs;
   for (int32_t argumentIt = 1; argumentIt < argumentLength; ++ argumentIt) {
     auto const label = std::string(arguments[argumentIt]);
     std::string content = "";
+    if (parseVarargs) {
+      userVarargs.emplace_back(label);
+      continue;
+    }
     // this breaks into application parameters
     if (label == "--") {
-      break;
+      puleLog("breaking out into application parameters");
+      parseVarargs = true;
+      continue;
     }
     auto knownInfo = knownProgramParameters.find(label);
     if (knownInfo == knownProgramParameters.end()) {
@@ -205,9 +288,15 @@ int32_t main(
       .content = content,
     });
   }
+  userVarargs.emplace_back(""); // null terminator for array
+  puleLog("user varargs:");
+  for (auto & uv : userVarargs) {
+    puleLog("\t>%s", uv.c_str());
+  }
 
   bool isGuiEditor = false;
   bool isEarlyExit = false;
+  bool allowPluginReload = false;
 
   std::vector<PuleStringView> pluginPaths;
   std::vector<PuleString> pluginLayers;
@@ -231,6 +320,8 @@ int32_t main(
       isGuiEditor = true;
     } else if (param.label == "--early-exit") {
       isEarlyExit = true;
+    } else if (param.label == "--allow-plugin-reload") {
+      allowPluginReload = true;
     }
   }
 
@@ -279,32 +370,89 @@ int32_t main(
     layers.insert(layers.begin(), engineLayer);
   }
   assert(layers.size() > 0);
-
-  std::vector<size_t> componentPluginIds;
-  pulePluginIterate(
-    ::iteratePlugins,
-    reinterpret_cast<void *>(&componentPluginIds)
-  );
-
   PulePluginPayload const payload = (
     pulePluginPayloadCreate(puleAllocateDefault())
   );
-
-  // store layer
+  // store engine layer into payload
   pulePluginPayloadStore(payload, puleCStr("pule-engine-layer"), &layers[0]);
   PuleEngineLayer & pulBase = layers[0];
+
+  // store asset path and set it to engine's filesystem
+  pulePluginPayloadStore(payload, puleCStr("pule-fs-asset-path"), &assetPath);
+  puleFilesystemAssetPathSet(puleStringView(assetPath));
+
+  // store application varargs
+  pulePluginPayloadStore(
+    payload, puleCStr("pule-application-varargs"), userVarargs.data()
+  );
+
+  // load up project configuration
+  PuleError err = puleError();
+  PuleDsValue const projectValue = (
+    layers[0].assetPdsLoadFromFile(
+      layers[0].allocateDefault(),
+      layers[0].cStr("/assets/project.pds"),
+      &err
+    )
+  );
+  if (layers[0].errorConsume(&err)) { return -1; }
+
+  // get the component plugins, also getting the slice that can be updated
+  std::vector<PluginInfo> componentPlugins;
+  auto iteratePluginInfo = IteratePluginsInfo {
+    .plugins = componentPlugins,
+    .pluginArrayValue = (
+      puleDsObjectMember(
+        puleDsObjectMember(projectValue, "build-info"),
+        "plugins"
+      )
+    )
+  };
+  pulePluginIterate(
+    ::iteratePlugins,
+    reinterpret_cast<void *>(&iteratePluginInfo)
+  );
+  std::vector<PluginInfo> componentUpdateablePlugins;
+  for (size_t it = 0; it < componentPlugins.size(); ++ it) {
+    puleLog("found component plugin '%s'", componentPlugins[it].name.c_str());
+    if (componentPlugins[it].updateFn) {
+      componentUpdateablePlugins.emplace_back(componentPlugins[it]);
+    }
+  }
+
+
+  // setup plugin reload (just for any updateable), by watching files
+  PluginReloadInfo stackAllocPluginReloadInfo;
+  if (allowPluginReload) {
+    stackAllocPluginReloadInfo = PluginReloadInfo {
+      .payload = payload,
+      .plugins = &componentPlugins,
+    };
+    std::string semicolonSeparatedPluginPaths = "";
+    for (auto & plugin : componentPlugins) {
+      if (!plugin.allowLiveReload) { continue; }
+      semicolonSeparatedPluginPaths += (
+        "plugins/lib" + plugin.name + ".so;"
+      );
+    }
+    puleFileWatch({
+      .fileUpdatedCallback = ::componentPluginFileWatchUpdate,
+      .filename = puleCStr(semicolonSeparatedPluginPaths.c_str()),
+      .waitTime = { .valueMilli = 250, },
+      .checkMd5Sum = true,
+      .userdata = (void *)&stackAllocPluginReloadInfo,
+    });
+  }
+
+  // store layer
   puleLogDebug(
     "[PuleApplication] initializing from assets/project.pds with layer '%s'",
     pulBase.layerName.contents
   );
 
-  // store asset path
-  pulePluginPayloadStore(payload, puleCStr("pule-fs-asset-path"), &assetPath);
-  puleFilesystemAssetPathSet(puleStringView(assetPath));
-
   PulePlatform platform = { .id = 0, };
   PuleScriptContext scriptContext = { .id = 0, };
-  bool fileWatcherCheckAll = true;
+  bool fileWatcherCheckAll = false;
   PuleEcsWorld ecsWorld = { .id = 0, };
   PuleRenderGraph renderGraph = { .id = 0, };
   PuleTaskGraph scriptTaskGraph = { .id = 0, };
@@ -314,17 +462,6 @@ int32_t main(
 
   // TODO break these out into functions
   { // -- load project.pds, use base layer to allow them to capture startup
-    PuleError err = puleError();
-    PuleDsValue const projectValue = (
-      pulBase.assetPdsLoadFromFile(
-        pulBase.allocateDefault(),
-        pulBase.cStr("/assets/project.pds"),
-        &err
-      )
-    );
-    if (pulBase.errorConsume(&err)) { return -1; }
-
-
     // -- entry payload
     PuleDsValue const entryPayload = (
       pulBase.dsObjectMember(projectValue, "entry-payload")
@@ -446,7 +583,7 @@ int32_t main(
         bool const loadSystem = (
           pulBase.dsMemberAsBool(payloadEcs, "register-systems")
         );
-        for (size_t const componentPluginId : componentPluginIds) {
+        for (auto const & componentPlugin : componentPlugins) {
           void (*registerComponentsFn)(
             PuleEngineLayer *,
             PuleEcsWorld const
@@ -458,7 +595,7 @@ int32_t main(
           if (loadComponent) {
             ::tryLoadFn(
               registerComponentsFn,
-              componentPluginId,
+              componentPlugin.id,
               "pulcRegisterComponents"
             );
             if (registerComponentsFn) {
@@ -468,7 +605,7 @@ int32_t main(
           if (loadSystem) {
             ::tryLoadFn(
               registerSystemsFn,
-              componentPluginId,
+              componentPlugin.id,
               "pulcRegisterSystems"
             );
             if (registerComponentsFn) {
@@ -596,30 +733,23 @@ int32_t main(
     );
   }
 
-  // initiate all plugins
+  // initiate all plugins with pulcComponentLoad
   puleLogDebug("[PuleApplication] initializing plugins");
-  for (size_t const componentPluginId : componentPluginIds) {
-    if (isGuiEditor) { break; }
+  for (auto const & componentPlugin : componentPlugins) {
+    //if (isGuiEditor) { break; } is this necessaary?
     // try to load component
     void (*componentLoadFn)(PulePluginPayload const) = nullptr;
-    ::tryLoadFn(componentLoadFn, componentPluginId, "pulcComponentLoad");
+    ::tryLoadFn(componentLoadFn, componentPlugin.id, "pulcComponentLoad");
     puleLogDebug(
       "[PuleApplication] Loading plugin %s",
-      pulePluginName(componentPluginId)
+      pulePluginName(componentPlugin.id)
     );
     if (componentLoadFn) {
       puleLogDebug(
         "[PuleApplication] Loading function for plugin %d",
-        componentPluginId
-      );
+        componentPlugin.id
+      );;
       componentLoadFn(payload);
-    }
-
-    // check if they have an update function
-    bool (*componentUpdateFn)(PulePluginPayload const) = nullptr;
-    ::tryLoadFn(componentUpdateFn, componentPluginId, "pulcComponentUpdate");
-    if (componentUpdateFn) {
-      updateableComponents.emplace_back(componentUpdateFn);
     }
   }
 
@@ -660,7 +790,7 @@ int32_t main(
   //                        \_____/ \___/  \___/ \_|                           *
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  bool hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
+  bool hasUpdate = componentUpdateablePlugins.size() > 0 || isGuiEditor;
   PuleGpuSemaphore swapchainAvailableSemaphore = { .id = 0, };
   while (hasUpdate) {
     if (isEarlyExit) {
@@ -708,15 +838,9 @@ int32_t main(
       // render out
       pulBase.imguiRender(renderGraph);
     } else {
-      std::vector<size_t> componentsToRemove;
-      for (size_t it = 0; it < updateableComponents.size(); ++ it) {
-        if (!updateableComponents.at(it)(payload)) {
-          componentsToRemove.insert(componentsToRemove.begin(), it);
-        }
-      }
-      for (auto const it : componentsToRemove) {
-        puleLog("Removing component %d", it);
-        updateableComponents.erase(updateableComponents.begin() + it);
+      // update components
+      for (size_t it = 0; it < componentUpdateablePlugins.size(); ++ it) {
+        componentUpdateablePlugins.at(it).updateFn(payload);
       }
     }
     if (renderGraph.id != 0) {
@@ -743,7 +867,6 @@ int32_t main(
       static size_t frameCount = 0;
       if (++frameCount > 2) { break; }
     }
-    hasUpdate = updateableComponents.size() > 0 || isGuiEditor;
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -762,9 +885,9 @@ int32_t main(
   );
 
   // try to unload components
-  for (size_t const componentPluginId : componentPluginIds) {
+  for (auto const & componentPlugin : componentPlugins) {
     void (*componentUnloadFn)(PulePluginPayload const) = nullptr;
-    ::tryLoadFn(componentUnloadFn, componentPluginId, "pulcComponentUnload");
+    ::tryLoadFn(componentUnloadFn, componentPlugin.id, "pulcComponentUnload");
     if (componentUnloadFn) {
       componentUnloadFn(payload);
     }

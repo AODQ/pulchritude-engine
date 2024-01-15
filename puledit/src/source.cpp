@@ -440,6 +440,7 @@ int32_t main(
       &err
     )
   );
+  puleScopeExit { puleDsDestroy(userArgs); };
   if (puleErrorConsume(&err)) {
     return 0;
   }
@@ -456,8 +457,6 @@ int32_t main(
   } else {
     puleLog("no parameters passed in");
   }
-
-  puleDsDestroy(userArgs);
 
   pulePluginsFree();
 

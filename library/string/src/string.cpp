@@ -37,6 +37,7 @@ PuleString puleStringDefault(char const * const baseContents) {
 }
 
 void puleStringDestroy(PuleString const stringInout) {
+  if (stringInout.contents == NULL) { return; }
   puleDeallocate(stringInout.allocator, stringInout.contents);
 }
 

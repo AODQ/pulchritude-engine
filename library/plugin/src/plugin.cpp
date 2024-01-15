@@ -36,7 +36,6 @@ struct Plugin {
   std::string pluginName = "";
 
   void * loadFunction(char const * label, bool shouldError);
-  void reload();
   void close();
   void open();
 };
@@ -80,11 +79,6 @@ void * Plugin::loadFunction(char const * label, bool shouldError) {
   return fn;
 }
 
-void Plugin::reload() {
-  this->close();
-  this->open();
-}
-
 void Plugin::close() {
   if (!this->data) { return; }
   #if defined(__unix__) || defined(__APPLE__)
@@ -99,12 +93,13 @@ void Plugin::close() {
   #elif defined(_WIN32) || defined(_WIN64)
     if (::FreeLibrary(this->data)) {
       puleLogError(
-        "failed to load plugin '%s'; %s"
+        "failed to close plugin '%s'; %s"
       , this->filepath.c_str(), ::GetLastError()
       );
     }
   #endif
   this->data = nullptr;
+  this->pluginName = "";
 }
 
 void Plugin::open() {
@@ -168,7 +163,8 @@ void Plugin::open() {
   for (auto & plugin : ::plugins) {
     if (&*plugin == this) { continue; }
     if (plugin->data == this->data) {
-      /* puleLogDebug("plugin %s already loaded", this->filepath.c_str()); */
+      puleLogError("plugin %s already loaded", this->filepath.c_str());
+      exit(1);
       break;
     }
   }
@@ -223,7 +219,10 @@ void pulePluginsFree() {
 
 void pulePluginsReload() {
   for (auto & pluginIt : ::plugins) {
-    pluginIt->reload();
+    pluginIt->close();
+  }
+  for (auto & pluginIt : ::plugins) {
+    pluginIt->open();
   }
 }
 

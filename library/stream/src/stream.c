@@ -16,7 +16,9 @@ bool puleStreamReadIsDone(PuleStreamRead const stream) {
 }
 
 void puleStreamReadDestroy(PuleStreamRead const stream) {
-  stream.destroy(stream.userdata);
+  if (stream.destroy) {
+    stream.destroy(stream.userdata);
+  }
 }
 
 PuleBuffer puleStreamDumpToBuffer(PuleStreamRead const stream) {
@@ -60,13 +62,20 @@ PuleStreamWrite puleStreamStdoutWrite() {
 }
 
 PULE_exportFn void puleStreamWriteFlush(PuleStreamWrite const stream) {
-  stream.flush(stream.userdata);
+  if (stream.flush) {
+    stream.flush(stream.userdata);
+  }
 }
 PULE_exportFn void puleStreamWriteDestroy(PuleStreamWrite const stream) {
-  stream.flush(stream.userdata);
-  stream.destroy(stream.userdata);
+  if (stream.flush) {
+    stream.flush(stream.userdata);
+  }
+  if (stream.destroy) {
+    stream.destroy(stream.userdata);
+  }
 }
 
+// -- from c string --
 static uint8_t puleStreamReadFromCStringReadByte(void * const userdata) {
   PuleStringView * const stringView = (PuleStringView *)(userdata);
   uint8_t const retValue = *(uint8_t *)(stringView->contents);
@@ -88,6 +97,28 @@ static void puleStreamReadFromCStringDestroy(void * const userdata) {
   free(userdata);
 }
 
+// -- from buffer view --
+static uint8_t puleStreamReadFromBufferViewReadByte(void * const userdata) {
+  PuleBufferView * const bufferView = (PuleBufferView *)(userdata);
+  uint8_t const retValue = *(uint8_t *)(bufferView->data);
+  bufferView->data += 1;
+  if (bufferView->byteLength > 0) {
+    bufferView->byteLength -= 1;
+  }
+  return retValue;
+}
+static uint8_t puleStreamReadFromBufferViewPeekByte(void * const userdata) {
+  PuleBufferView * const bufferView = (PuleBufferView *)(userdata);
+  return *(uint8_t *)(bufferView->data);
+}
+static bool puleStreamReadFromBufferViewIsDone(void * const userdata) {
+  PuleBufferView * const bufferView = (PuleBufferView *)(userdata);
+  return bufferView->byteLength == 0;
+}
+static void puleStreamReadFromBufferViewDestroy(void * const userdata) {
+  free(userdata);
+}
+
 PULE_exportFn PuleStreamRead puleStreamReadFromString(
   PuleStringView const stringView
 ) {
@@ -99,6 +130,21 @@ PULE_exportFn PuleStreamRead puleStreamReadFromString(
     .peekByte = &puleStreamReadFromCStringPeekByte,
     .isDone = &puleStreamReadFromCStringIsDone,
     .destroy = &puleStreamReadFromCStringDestroy,
+  };
+  return streamRead;
+}
+
+PULE_exportFn PuleStreamRead puleStreamReadFromBuffer(
+  PuleBufferView const bufferView
+) {
+  PuleStringView * const bufferViewPtr = malloc(sizeof(PuleBufferView));
+  memcpy(bufferViewPtr, &bufferView, sizeof(PuleBufferView));
+  PuleStreamRead streamRead = {
+    .userdata = bufferViewPtr,
+    .readByte = &puleStreamReadFromBufferViewReadByte,
+    .peekByte = &puleStreamReadFromBufferViewPeekByte,
+    .isDone = &puleStreamReadFromBufferViewIsDone,
+    .destroy = &puleStreamReadFromBufferViewDestroy,
   };
   return streamRead;
 }

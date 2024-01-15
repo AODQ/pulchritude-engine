@@ -110,12 +110,14 @@ PuleAssetShaderModule puleAssetShaderModuleCreateFromPaths(
     .fileUpdatedCallback = &::shaderWatchFileUpdatedCallback,
     .filename = puleCStr(pathVertex.contents),
     .waitTime = PuleMillisecond{1000},
+    .checkMd5Sum = true,
     .userdata = shaderModuleUserdata,
   });
   shaderModuleRef.watcherFragment = puleFileWatch({
     .fileUpdatedCallback = &::shaderWatchFileUpdatedCallback,
     .filename = puleCStr(pathFragment.contents),
     .waitTime = PuleMillisecond{1000},
+    .checkMd5Sum = true,
     .userdata = shaderModuleUserdata,
   });
 

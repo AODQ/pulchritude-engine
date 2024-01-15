@@ -13,6 +13,10 @@
 #include <unordered_map>
 #include <vector>
 
+#if defined(__unix__)
+#include <unistd.h>
+#endif
+
 // TODO:
 //   - add buffering (configurable, like 256 bytes)
 
@@ -519,16 +523,7 @@ bool puleFileDirectoryCreateRecursive(PuleStringView const path) {
   return true;
 }
 
-PuleStringView puleFilesystemExecutablePath() {
-  if (::filesystemExecutablePath == "") {
-    ::filesystemExecutablePath = (
-      std::filesystem::canonical("/proc/self/exe").remove_filename()
-    );
-  }
-  return puleCStr(::filesystemExecutablePath.c_str());
-}
-
-PuleString puleFilesystemCurrentPath(PuleAllocator const allocator) {
+PuleString puleFilesystemPathCurrent() {
   std::error_code errorCode;
   auto path = std::filesystem::current_path(errorCode);
   if (errorCode) {
@@ -536,9 +531,21 @@ PuleString puleFilesystemCurrentPath(PuleAllocator const allocator) {
       "could not fetch current path: %s",
       errorCode.message().c_str()
     );
-    return PuleString{.contents = nullptr, .len = 0, .allocator = allocator,};
+    return PuleString {
+      .contents = nullptr, .len = 0, .allocator = {.implementation = nullptr},
+    };
   }
-  return puleString(allocator, path.string().c_str());
+  return puleString(puleAllocateDefault(), path.string().c_str());
+}
+
+PuleStringView puleFilesystemExecutablePath() {
+  // TODO this needs windows port
+  if (::filesystemExecutablePath == "") {
+    ::filesystemExecutablePath = (
+      std::filesystem::canonical("/proc/self/exe").remove_filename()
+    );
+  }
+  return puleCStr(::filesystemExecutablePath.c_str());
 }
 
 bool puleFilesystemSymlinkCreate(
@@ -557,7 +564,7 @@ bool puleFilesystemSymlinkCreate(
     errorCode
   );
   if (errorCode) {
-    auto const currentPath = puleFilesystemCurrentPath(puleAllocateDefault());
+    auto const currentPath = puleFilesystemPathCurrent();
     puleLogError(
       "could not create symlink:\n\t'%s'\n\t-> '%s%s%s'\n\t"
       "[%s (current path %s)]",
@@ -576,8 +583,12 @@ bool puleFilesystemSymlinkCreate(
 
 PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
   PuleString const pathAbs = puleFilesystemAbsolutePath(path);
+  puleScopeExit { puleStringDestroy(pathAbs); };
   if (pathAbs.contents == nullptr) {
-    puleLogError("file does not exist: '%s'", path.contents);
+    puleLogError(
+      "[puleFilesystemTimestamp] file does not exist: '%s'",
+      path.contents
+    );
     return {.valueUnixTs=0,};
   }
   std::error_code errorcode;
@@ -585,7 +596,6 @@ PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
     std::filesystem::path(std::string_view(pathAbs.contents, pathAbs.len)),
     errorcode
   );
-  puleStringDestroy(pathAbs);
   if (errorcode) {
     return {.valueUnixTs=0,};
   }
@@ -605,21 +615,41 @@ PuleTimestamp puleFilesystemTimestamp(PuleStringView const path) {
 //-- file watch ----------------------------------------------------------------
 
 namespace {
-  struct FileWatcher {
-    void (*fileUpdatedCallback)(
-      PuleStringView const filename,
-      void * const userdata
-    );
-    std::string filename;
-    void * userdata;
-    PuleMillisecond waitTime;
-    PuleTimestamp lastUpdated;
-    PuleTimestamp lastUpdatedNow;
-    bool needsUpdate;
-  };
 
-  std::unordered_map<uint64_t, FileWatcher> fileWatchers;
-  size_t fileWatcherHashIt = 1;
+struct FileWatch {
+  std::string filename;
+  PuleTimestamp lastUpdated;
+  PuleTimestamp lastUpdatedNow;
+};
+struct FileWatcher {
+  void (*fileUpdatedCallback)(
+    PuleStringView const filename,
+    void * const userdata
+  );
+  std::vector<FileWatch> files;
+  void * userdata;
+  bool checkMd5Sum;
+  PuleMillisecond waitTime;
+  bool needsUpdate;
+};
+
+std::unordered_map<uint64_t, FileWatcher> fileWatchers;
+size_t fileWatcherHashIt = 1;
+
+
+std::vector<std::string> splitBySemicolon(std::string const & str) {
+  std::vector<std::string> result;
+  size_t last = 0;
+  for (size_t it = 0; it < str.size(); ++ it) {
+    if (str[it] == ';') {
+      result.emplace_back(str.substr(last, it-last));
+      last = it+1;
+    }
+  }
+  result.emplace_back(str.substr(last, str.size()-last));
+  return result;
+}
+
 }
 
 extern "C" {
@@ -627,15 +657,41 @@ extern "C" {
 PuleFileWatcher puleFileWatch(
   PuleFileWatchCreateInfo const ci
 ) {
-  auto const filename = std::string(ci.filename.contents, ci.filename.len);
+  auto const ciFilename = std::string(ci.filename.contents, ci.filename.len);
+  puleLog("watching files: '%s'", ciFilename.c_str());
+
+  std::vector<::FileWatch> filewatches;
+  for (auto const & filename : ::splitBySemicolon(ciFilename )) {
+    if (filename == "") { continue; }
+    PuleString const filenameAbs = (
+      puleFilesystemAbsolutePath(puleCStr(filename.c_str()))
+    );
+    puleScopeExit { puleStringDestroy(filenameAbs); };
+    if (filenameAbs.contents == nullptr) {
+      puleLogError(
+        "[PuleFileWatcher] file does not exist: '%s'",
+        filename.c_str()
+      );
+      continue;
+    }
+    filewatches.emplace_back(::FileWatch {
+      .filename = std::string(filenameAbs.contents, filenameAbs.len),
+      .lastUpdated = puleFilesystemTimestamp(puleStringView(filenameAbs)),
+      .lastUpdatedNow = puleTimestampNow(),
+    });
+  }
+
+  if (filewatches.size() == 0) {
+    puleLogError("[PuleFileWatcher] no files to watch");
+    return {.id = 0,};
+  }
 
   auto const watcher = FileWatcher {
     .fileUpdatedCallback = ci.fileUpdatedCallback,
-    .filename = filename,
+    .files = filewatches,
     .userdata = ci.userdata,
+    .checkMd5Sum = ci.checkMd5Sum,
     .waitTime = ci.waitTime,
-    .lastUpdated = puleFilesystemTimestamp(ci.filename),
-    .lastUpdatedNow = puleTimestampNow(),
     .needsUpdate = false,
   };
 
@@ -646,42 +702,48 @@ PuleFileWatcher puleFileWatch(
 bool puleFileWatchCheckAll() {
   bool anyFilesChanged = false;
   for (auto & filewatchPair : ::fileWatchers) {
-    auto & filewatch = std::get<1>(filewatchPair);
-    auto const timestamp = (
-      puleFilesystemTimestamp(puleCStr(filewatch.filename.c_str()))
-    );
-    auto const now = puleTimestampNow();
-    // store the last updated time
-    if (filewatch.lastUpdated.valueUnixTs < timestamp.valueUnixTs) {
-      puleLogDebug("File updated seen: '%s'", filewatch.filename.c_str());
-      filewatch.lastUpdated = timestamp;
-      filewatch.lastUpdatedNow = now;
-      filewatch.needsUpdate = true;
+    auto & filebundle = filewatchPair.second;
+    bool anyFilesInBundleChanged = false;
+    for (auto & filewatch : filewatchPair.second.files) {
+      // first check that the file exists (e.g. if it's building)
+      if (!puleFilesystemPathExists(puleCStr(filewatch.filename.c_str()))) {
+        continue;
+      }
+      auto const timestamp = (
+        puleFilesystemTimestamp(puleCStr(filewatch.filename.c_str()))
+      );
+      auto const now = puleTimestampNow();
+      // store the last updated time
+      if (filewatch.lastUpdated.valueUnixTs < timestamp.valueUnixTs) {
+        filewatch.lastUpdated = timestamp;
+        filewatch.lastUpdatedNow = now;
+        filebundle.needsUpdate = true;
+      }
+      if (!filebundle.needsUpdate) { continue; }
+      auto const timestampElapsed = (
+        now.valueUnixTs - filewatch.lastUpdatedNow.valueUnixTs
+      );
+      // then check if it's been long enough since the last update time to
+      //   trigger callback
+      if (timestampElapsed >= filebundle.waitTime.valueMilli) {
+        anyFilesInBundleChanged = true;
+        filewatch.lastUpdated = timestamp;
+        filebundle.needsUpdate = false;
+      }
     }
-    if (!filewatch.needsUpdate) { continue; }
-    puleLog("now: %llu", now.valueUnixTs);
-    puleLog("ts: %llu", filewatch.lastUpdatedNow.valueUnixTs);
-    auto const timestampElapsed = (
-      now.valueUnixTs - filewatch.lastUpdatedNow.valueUnixTs
-    );
-    puleLog("timestamp elapsed: %llu", timestampElapsed);
-    // then check if it's been long enough since the last update time to
-    //   trigger callback
-    if (timestampElapsed >= filewatch.waitTime.valueMilli) {
-      puleLogDebug("File updated true: '%s'", filewatch.filename.c_str());
-      anyFilesChanged = true;
-      filewatch.lastUpdated = timestamp;
-      filewatch.needsUpdate = false;
-      if (filewatch.fileUpdatedCallback) {
-        filewatch.fileUpdatedCallback(
+    if (anyFilesInBundleChanged) {
+      filebundle.needsUpdate = false;
+      if (filebundle.fileUpdatedCallback) {
+        filebundle.fileUpdatedCallback(
           PuleStringView {
-            .contents=filewatch.filename.c_str(),
-            .len=filewatch.filename.size(),
+            .contents="n/a",
+            .len=2,
           },
-          filewatch.userdata
+          filebundle.userdata
         );
       }
     }
+    anyFilesChanged = anyFilesChanged || anyFilesInBundleChanged;
   }
   return anyFilesChanged;
 }
@@ -704,8 +766,21 @@ void puleFilesystemAssetPathSet(PuleStringView const path) {
 PuleString puleFilesystemAbsolutePath(
     PuleStringView const path
 ) {
-  if (puleFilesystemPathExists(path)) {
+  if (path.contents == nullptr) { return {}; }
+  // check if already abs path
+  if (path.contents[0] == '/') {
     return puleString(puleAllocateDefault(), path.contents);
+  }
+  { // check current directory
+    PuleString const executableDir = puleFilesystemPathCurrent();
+    puleScopeExit { puleStringDestroy(executableDir); };
+    std::string const executablePath = (
+      std::string(executableDir.contents, executableDir.len)
+      + "/" + std::string(path.contents, path.len)
+    );
+    if (puleFilesystemPathExists(puleCStr(executablePath.c_str()))) {
+      return puleString(puleAllocateDefault(), executablePath.c_str());
+    }
   }
   { // check executable path
     PuleStringView const executableDir = puleFilesystemExecutablePath();

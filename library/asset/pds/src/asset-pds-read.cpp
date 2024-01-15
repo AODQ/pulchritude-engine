@@ -738,15 +738,48 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
       puleDsCreateObject(info.allocator)
     )
   );
+  PuleDsValue emitParametersVarargsValue = (
+    puleDsObjectMemberAssign(
+      emitParametersValue,
+      puleCStr("varargs"),
+      puleDsCreateArray(info.allocator)
+    )
+  );
 
   PuleDsValue layoutIt = info.layout;
   char const * helpPreviousLayoutArgument = info.arguments[0];
 
+  // parse varargs
+  bool parsingVarargs = false;
+  for (int32_t argumentIt = 1; argumentIt < info.argumentLength; ++ argumentIt) {
+    char const * argument = info.arguments[argumentIt];
+
+    if (parsingVarargs) {
+      puleLog("parsing vararg: %s", argument);
+      puleDsArrayAppend(
+        emitParametersVarargsValue, puleDsCreateString(puleCStr(argument))
+      );
+      continue;
+    }
+
+    if (strcmp(argument, "--") == 0 && argument[2] == '\0') {
+      puleLog("parsing --- %s", argument);
+      parsingVarargs = true;
+      continue;
+    }
+  }
+
   // parse objects
   int32_t argumentIt = 1;
+  parsingVarargs = false;
   char const * argument; // track last argument outside of function scope
   for (; argumentIt < info.argumentLength; ++ argumentIt) {
     argument = info.arguments[argumentIt];
+
+
+    if (strcmp(argument, "--") == 0 && argument[2] == '\0') {
+      break;
+    }
 
     if (strcmp(argument, "--help") == 0) {
       printCommandLineParameterHelp(helpPreviousLayoutArgument, layoutIt);
@@ -807,9 +840,15 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
   // parse arrays
   // TODO parse types (ints, floats, etc)
   // TODO enforce opt=true
+  parsingVarargs = false;
   for (; argumentIt < info.argumentLength; ++ argumentIt) {
     argument = info.arguments[argumentIt];
     size_t const argumentLen = strlen(argument);
+
+    if (strcmp(argument, "--") == 0 && argument[2] == '\0') {
+      parsingVarargs = true;
+      break;
+    }
 
     if (strcmp(argument, "--help") == 0) {
       printCommandLineParameterHelp(helpPreviousLayoutArgument, layoutIt);

@@ -23,6 +23,7 @@ The structure looks like
   - pulchritude-engine/ ; symlink
   - applications/
   - plugins/
+  - libs/ ; contains both libraries built and imported
   - build-husk/
   project.pds ; this is what we write into and used to build
 */
