@@ -30,6 +30,7 @@ PULE_exportFn void puleGfxDebugEnd(
 typedef enum {
   PuleGfxDebugRenderType_line,
   PuleGfxDebugRenderType_quad,
+  PuleGfxDebugRenderType_cube,
 } PuleGfxDebugRenderType;
 
 typedef struct PuleGfxDebugRenderLine {
@@ -47,10 +48,19 @@ typedef struct PuleGfxDebugRenderQuad {
   PuleF32v3 color;
 } PuleGfxDebugRenderQuad;
 
+typedef struct PuleGfxDebugRenderCube {
+  PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_cube);
+  PuleF32v3 originCenter;
+  PuleF32v3 rotation;
+  PuleF32v3 dimensionsHalf;
+  PuleF32v3 color;
+} PuleGfxDebugRenderCube;
+
 typedef union PuleGfxDebugRenderParam {
   PuleGfxDebugRenderType type;
   PuleGfxDebugRenderLine line;
   PuleGfxDebugRenderQuad quad;
+  PuleGfxDebugRenderCube cube;
 } PuleGfxDebugRenderParam;
 
 PULE_exportFn void puleGfxDebugRender(

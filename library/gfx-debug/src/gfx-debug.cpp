@@ -22,13 +22,10 @@ pule::ResourceContainer<in::DebugRecorder> debugRecorder;
 PuleGpuPipeline linePipeline;
 PuleGpuShaderModule lineShaderModule;
 
+PuleGpuPipeline triPipeline;
+PuleGpuShaderModule triShaderModule;
 
-} // namespace in
-
-extern "C" {
-
-void puleGfxDebugInitialize(PulePlatform const platform) {
-
+void initializeLine(PulePlatform const platform) {
   #include "autogen-debug-gfx-line.frag.spv"
   #include "autogen-debug-gfx-line.vert.spv"
 
@@ -94,6 +91,79 @@ void puleGfxDebugInitialize(PulePlatform const platform) {
   }
 }
 
+void initializeTriangle(PulePlatform const platform) {
+  #include "autogen-debug-gfx-tri.frag.spv"
+  #include "autogen-debug-gfx-tri.vert.spv"
+
+  PuleError err = puleError();
+
+  { // tri renderer
+    in::triShaderModule = (
+      puleGpuShaderModuleCreate(
+        PuleBufferView {
+          .data = debugGfxTriVert,
+          .byteLength = sizeof(debugGfxTriVert),
+        },
+        PuleBufferView {
+          .data = debugGfxTriFrag,
+          .byteLength = sizeof(debugGfxTriFrag),
+        },
+        &err
+      )
+    );
+    if (puleErrorConsume(&err)) {
+      return;
+    }
+
+    auto layoutDescriptorSet = puleGpuPipelineDescriptorSetLayout();
+
+    auto pushConstant = (
+      PuleGpuPipelineLayoutPushConstant {
+        .stage = PuleGpuDescriptorStage_vertex,
+        .byteLength = sizeof(float)*(4*4+4*4+4),
+        .byteOffset = 0,
+      }
+    );
+
+    auto pipelineInfo = (
+      PuleGpuPipelineCreateInfo {
+        .shaderModule = in::triShaderModule,
+        .layoutDescriptorSet = layoutDescriptorSet,
+        .layoutPushConstants = &pushConstant,
+        .layoutPushConstantsCount = 1,
+        .config = {
+          .depthTestEnabled = false,
+          .blendEnabled = false,
+          .scissorTestEnabled = false,
+          .viewportMin = {0, 0},
+          .viewportMax = {800, 600}, // TODO FIX
+          .scissorMin = {0, 0},
+          .scissorMax = {0, 0},
+          .drawPrimitive = PuleGpuDrawPrimitive_triangleStrip,
+          .colorAttachmentCount = 1,
+          .colorAttachmentFormats = {
+            PuleGpuImageByteFormat_rgba8U,
+          },
+          .depthAttachmentFormat = PuleGpuImageByteFormat_undefined,
+        },
+      }
+    );
+
+    in::triPipeline = puleGpuPipelineCreate(pipelineInfo, &err);
+
+    if (puleErrorConsume(&err)) {
+      return;
+    }
+  }
+}
+
+} // namespace in
+
+extern "C" {
+
+void puleGfxDebugInitialize(PulePlatform const platform) {
+}
+
 void puleGfxDebugShutdown() {
 }
 
@@ -143,6 +213,17 @@ void puleGfxDebugRender(
     || debugRecorder.previousRenderType != param.type
   ) {
     switch (param.type) {
+      case PuleGfxDebugRenderType_cube: {
+        puleGpuCommandListAppendAction(
+          debugRecorder.commandListRecorder,
+          PuleGpuCommand {
+            .bindPipeline = {
+              .action = PuleGpuAction_bindPipeline,
+              .pipeline = in::triPipeline,
+            }
+          }
+        );
+      } break;
       case PuleGfxDebugRenderType_line:
       case PuleGfxDebugRenderType_quad: // use same pipeline for now
       {
@@ -177,6 +258,101 @@ void puleGfxDebugRender(
     default:
       puleLogError("Unimplemented debug render type %d", param.type);
       PULE_assert(false && "unimplemented");
+    case PuleGfxDebugRenderType_cube: {
+      std::vector<PuleF32v4> cubeTriStripVertices = {
+        // front
+        PuleF32v4 { -1.0f, -1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, -1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, +1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, +1.0f, -1.0f, 1.0f, },
+        // right
+        PuleF32v4 { +1.0f, -1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, -1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, +1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, +1.0f, +1.0f, 1.0f, },
+        // back
+        PuleF32v4 { +1.0f, -1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, -1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, +1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, +1.0f, +1.0f, 1.0f, },
+        // left
+        PuleF32v4 { -1.0f, -1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, -1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, +1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, +1.0f, -1.0f, 1.0f, },
+        // top
+        PuleF32v4 { -1.0f, +1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, +1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, +1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, +1.0f, +1.0f, 1.0f, },
+        // bottom
+        PuleF32v4 { -1.0f, -1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, -1.0f, +1.0f, 1.0f, },
+        PuleF32v4 { -1.0f, -1.0f, -1.0f, 1.0f, },
+        PuleF32v4 { +1.0f, -1.0f, -1.0f, 1.0f, },
+      };
+      // create rotation matrix
+      PuleF32m44 const rotation = (
+        puleF32m44Rotation(0.0f, param.cube.rotation)
+      );
+      // apply rotation
+      for (auto & vertex : cubeTriStripVertices) {
+        // rotate point
+        PuleF32v4 vtx = vertex;
+        vtx = puleF32m44MulV4(rotation, vtx);
+        vertex.x = vtx.x;
+        vertex.y = vtx.y;
+        vertex.z = vtx.z;
+        // scale
+        vertex.x *= param.cube.dimensionsHalf.x;
+        vertex.y *= param.cube.dimensionsHalf.y;
+        vertex.z *= param.cube.dimensionsHalf.z;
+        // add origin
+        vertex = (
+          puleF32v4Add(vertex, puleF32v3to4(param.cube.originCenter, 0.0f))
+        );
+      }
+      // bind push constants
+      struct {
+        PuleF32v4 origins[4];
+        PuleF32v4 uv[4];
+        PuleF32v4 color;
+      } pushConstantData;
+      pushConstantData.color = puleF32v3to4(param.cube.color, 1.0f);
+      // render each face
+      for (size_t it = 0; it < 6; ++ it) {
+        // bind push constants
+        pushConstantData.origins[0] = cubeTriStripVertices[it*4+0];
+        pushConstantData.origins[1] = cubeTriStripVertices[it*4+1];
+        pushConstantData.origins[2] = cubeTriStripVertices[it*4+2];
+        pushConstantData.origins[3] = cubeTriStripVertices[it*4+3];
+        pushConstantData.uv[0] = PuleF32v4 { 0.0f, 0.0f, 0.0f, 0.0f, };
+        pushConstantData.uv[1] = PuleF32v4 { 1.0f, 0.0f, 0.0f, 0.0f, };
+        pushConstantData.uv[2] = PuleF32v4 { 0.0f, 1.0f, 0.0f, 0.0f, };
+        pushConstantData.uv[3] = PuleF32v4 { 1.0f, 1.0f, 0.0f, 0.0f, };
+        puleGpuCommandListAppendAction(
+          debugRecorder.commandListRecorder,
+          PuleGpuCommand {
+            .pushConstants = {
+              .stage = PuleGpuDescriptorStage_vertex,
+              .byteLength = sizeof(pushConstantData),
+              .byteOffset = 0,
+              .data = &pushConstantData,
+            }
+          }
+        );
+        // draw
+        puleGpuCommandListAppendAction(
+          debugRecorder.commandListRecorder,
+          PuleGpuCommand {
+            .dispatchRender = {
+              .vertexOffset = it*4,
+              .numVertices = 4,
+            }
+          }
+        );
+      }
+    } break;
     case PuleGfxDebugRenderType_quad: {
       PuleF32v2 const ul = (PuleF32v2 { -1.0f, -1.0f, });
       PuleF32v2 const ur = (PuleF32v2 { +1.0f, -1.0f, });
