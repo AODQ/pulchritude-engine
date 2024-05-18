@@ -1,0 +1,106 @@
+@entity PuleScene;
+
+@enum PuleSceneDimension {
+  PuleSceneDimension_2d;
+  PuleSceneDimension_3d;
+};
+
+@struct PuleSceneCreateInfo {
+  @field platform : PulePlatform;
+  @field dimension : PuleSceneDimension;
+  @field createPhysxWorld : bool;
+};
+
+@fn puleSceneCreate(info : PuleSceneCreateInfo) PuleScene;
+
+@fn puleSceneDestroy(scene : PuleScene) void #`
+  this will destroy the ecs & physx world if create*World was set to true
+`;
+
+@fn puleSceneImageAttachmentsSet(
+  scene : PuleScene,
+  viewportMin : PuleI32v2,
+  viewportMax : PuleI32v2,
+  colorAttachment : PuleGpuImage,
+  depthAttachment : PuleGpuImage
+) #`
+  by default the scene renders to the screen, but can be set to image
+`;
+
+@fn puleSceneClearColorSet(
+  scene : PuleScene,
+  color : PuleF32v4
+) #`
+  by default the clear color is gray
+`;
+
+@fn puleSceneCameraSet(
+  scene : PuleScene,
+  camera : PuleCamera
+) #`
+  default (based on set on dimension) is perspective or orthographic camera
+`;
+
+@fn puleSceneCameraControllerSet(
+  scene : PuleScene,
+  controller : PuleCameraController
+) #`
+  default camera controller is a simple orbit controller
+`;
+
+@fn puleSceneEcsWorldSet(
+  scene : PuleScene,
+  world : PuleEcsWorld
+) #`
+  only valid if createEcsWorld was set to false
+`;
+@fn puleSceneEcsWorld(scene : PuleScene) PuleEcsWorld;
+
+@union PuleScenePhysxWorld {
+  #`this must be consistent with what the scene was created with`
+  @field i2D : PulePhysx2DWorld;
+  @field i3D : PulePhysx3DWorld;
+};
+@fn puleScenePhysxWorldSet(
+  scene : PuleScene,
+  world : PuleScenePhysxWorld
+) PuleEcsWorld;
+@fn puleScenePhysxWorld(scene : PuleScene) PuleScenePhysxWorld;
+
+@struct PuleSceneAdvanceInfo {
+  @field scene : PuleScene;
+  @field msDelta : float;
+  @field advanceEcsWorld : bool = true;
+  @field advancePhysxWorld : bool = true;
+  @field waitSemaphore : PuleGpuSemaphore = 0;
+};
+@fn puleSceneAdvance(info : PuleSceneAdvanceInfo) void;
+
+@enum PuleSceneComponentModelType {
+  PuleSceneComponentModelType_none;
+  PuleSceneComponentModelType_cube;
+  PuleSceneComponentModelType_sphere;
+  PuleSceneComponentModelType_plane;
+};
+
+@struct PuleSceneComponentModelData {
+  @field type : PuleSceneComponentModelType;
+};
+
+@struct PuleSceneComponentPhysicsData {
+  @field body : PulePhysx3DBody;
+};
+
+@fn puleSceneComponentModel(scene : PuleScene) PuleEcsComponent;
+@fn puleSceneComponentPhysics(scene : PuleScene) PuleEcsComponent;
+
+@struct PuleSceneNodeCreateInfo {
+  @field entity : PuleEcsEntity;
+  @field scene : PuleScene;
+  @field modelType : PuleSceneComponentModelType;
+  @field physicsData : PuleSceneComponentPhysicsData;
+};
+
+@fn puleSceneNodeAttachComponents(
+  info : PuleSceneNodeCreateInfo
+) void;

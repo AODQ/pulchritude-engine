@@ -1,10 +1,14 @@
 add_library(pulchritude-shape SHARED)
 
-target_include_directories(pulchritude-shape PUBLIC "../include/")
+target_include_directories(
+  pulchritude-shape
+  PUBLIC "../include/"
+)
 target_sources(
   pulchritude-shape
   PRIVATE
     src/shape.cpp
+    src/shape-surface-mesh.cpp
 )
 
 set_target_properties(
@@ -16,7 +20,12 @@ set_target_properties(
     ENABLE_EXPORTS ON
 )
 
-target_link_libraries(pulchritude-shape pulchritude-math)
+target_link_libraries(
+  pulchritude-shape
+  pulchritude-math
+
+  pmp
+)
 
 install(
   TARGETS pulchritude-shape

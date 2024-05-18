@@ -1,0 +1,170 @@
+@struct PuleF32v2 {
+  @field x : float;
+  @field y : float;
+};
+@struct PuleF32v3 {
+  @field x : float;
+  @field y : float;
+  @field z : float;
+};
+@struct PuleF32v4 {
+  @field x : float;
+  @field y : float;
+  @field z : float;
+  @field w : float;
+};
+
+@struct PuleI32v2 {
+  @field x : int32_t;
+  @field y : int32_t;
+};
+@struct PuleI32v3 {
+  @field x : int32_t;
+  @field y : int32_t;
+  @field z : int32_t;
+};
+@struct PuleI32v4 {
+  @field x : int32_t;
+  @field y : int32_t;
+  @field z : int32_t;
+  @field w : int32_t;
+};
+
+@struct PuleU32v2 {
+  @field x : uint32_t;
+  @field y : uint32_t;
+};
+@struct PuleU32v3 {
+  @field x : uint32_t;
+  @field y : uint32_t;
+  @field z : uint32_t;
+};
+@struct PuleU32v4 {
+  @field x : uint32_t;
+  @field y : uint32_t;
+  @field z : uint32_t;
+  @field w : uint32_t;
+};
+
+@fn puleF32v2(identity : float) PuleF32v2;
+@fn puleF32v2Ptr(values : float const ptr) PuleF32v2;
+@fn puleF32v2Add(a : PuleF32v2, b : PuleF32v2) PuleF32v2;
+@fn puleF32v2Sub(a : PuleF32v2, b : PuleF32v2) PuleF32v2;
+@fn puleF32v2Abs(a : PuleF32v2) PuleF32v2;
+@fn puleF32v2Mul(a : PuleF32v2, b : PuleF32v2) PuleF32v2;
+@fn puleF32v2MulScalar(a : PuleF32v2, b : float) PuleF32v2;
+
+@fn puleI32v2(identity : int32_t) PuleI32v2;
+@fn puleI32v2Ptr(values : int32_t const ptr) PuleI32v2;
+@fn puleI32v2Add(a : PuleI32v2, b : PuleI32v2) PuleI32v2;
+@fn puleI32v2Sub(a : PuleI32v2, b : PuleI32v2) PuleI32v2;
+@fn puleI32v2Abs(a : PuleI32v2) PuleI32v2;
+
+@fn puleF32v3(identity : float) PuleF32v3;
+@fn puleF32v3Ptr(values : float const ptr) PuleF32v3;
+@fn puleF32v3Add(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+@fn puleF32v3Sub(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+@fn puleF32v3Neg(a : PuleF32v3) PuleF32v3;
+@fn puleF32v3Mul(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+@fn puleF32v3MulScalar(a : PuleF32v3, b : float) PuleF32v3;
+@fn puleF32v3Div(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+@fn puleF32v3Dot(a : PuleF32v3, b : PuleF32v3) float;
+@fn puleF32v3Length(a : PuleF32v3) float;
+@fn puleF32v3Normalize(b : PuleF32v3) PuleF32v3;
+@fn puleF32v3Cross(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+
+@fn puleF32v4(identity : float) PuleF32v4;
+@fn puleF32v3to4(a : PuleF32v3, identity : float) PuleF32v4;
+@fn puleF32v4Add(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+@fn puleF32v4Sub(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+@fn puleF32v4Mul(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+@fn puleF32v4Div(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+@fn puleF32v4Dot(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+
+
+@struct PuleF32m33 {
+#`
+matrices are 'column major', the indices look like
+
+   |  0  4  8 12 |
+   |  1  5  9 13 |
+   |  2  6 10 14 |
+   |  3  7 11 15 |
+
+which compose vectors
+  <0 .. 3>, <4 .. 7>, <8 .. 11>, <12 .. 15>
+
+for example, the 'translation' part of a view matrix would be stored at
+   <12, 13, 14, 15>
+`
+  @field elem : float @arr[9];
+};
+
+@fn puleF32m33(identity : float) PuleF32m33;
+@fn puleF32m33Ptr(data : float const ptr) PuleF32m33;
+@fn puleF32m33PtrTranspose(data : float const ptr) PuleF32m33;
+
+@struct PuleF32m44 {
+  @field elem : float @arr[16];
+};
+
+@fn puleF32m44(identity : float) PuleF32m44;
+@fn puleF32m44Ptr(data : float const ptr) PuleF32m44;
+@fn puleF32m44PtrTranspose(data : float const ptr) PuleF32m44;
+@fn puleF32m33AsM44(a : PuleF32m33) PuleF32m44;
+
+@fn puleF32m44Inverse(a : PuleF32m44) PuleF32m44;
+@fn puleF32m44MulV4(a : PuleF32m44, b : PuleF32v4) PuleF32v4;
+@fn puleF32m44Mul(a : PuleF32m44, b : PuleF32m44) PuleF32m44;
+@fn puleF32m44Translate(translate : PuleF32v3) PuleF32m44;
+
+@fn puleF32m44DumpToStdout(a : PuleF32m44) void;
+
+@fn puleProjectionPerspective(
+  fieldOfViewRadians : float,
+  aspectRatio : float,
+  nearCutoff : float,
+  farCutoff : float
+) PuleF32m44;
+
+@fn puleViewLookAt(
+  origin : PuleF32v3,
+  center : PuleF32v3,
+  up : PuleF32v3
+) PuleF32m44;
+
+@fn puleF32m44Viewport(width : float, height : float) PuleF32m44;
+
+@fn puleF32m44Rotation(
+  radians : float,
+  axis : PuleF32v3
+) PuleF32m44;
+
+@struct PuleF32q {
+  #` quaternion `
+  @field x : float;
+  @field y : float;
+  @field z : float;
+  @field w : float;
+};
+
+@fn puleF32qIdentity() PuleF32q;
+@fn puleF32qPlane(
+  normal : PuleF32v3, theta : float
+) PuleF32q;
+@fn puleF32qFromEuler(euler : PuleF32v3) PuleF32q;
+
+@fn puleF32qNormalize(a : PuleF32q) PuleF32q;
+@fn puleF32qInvert(a : PuleF32q) PuleF32q;
+@fn puleF32qMagnitude(a : PuleF32q) float;
+@fn puleF32qMagnitudeSqr(a : PuleF32q) float;
+@fn puleF32qRotateV3(a : PuleF32q, b : PuleF32v3) PuleF32v3;
+@fn puleF32qRotateM33(a : PuleF32q, b : PuleF32m33) PuleF32m33;
+@fn puleF32qAxis(a : PuleF32q) PuleF32v3;
+@fn puleF32qValid(a : PuleF32q) bool;
+
+@fn puleF32qAsM33(identity : PuleF32q) PuleF32m33;
+@fn puleF32qAsV4(identity : PuleF32q) PuleF32v4;
+
+@fn puleF32qMul(a : PuleF32q, b : PuleF32q) PuleF32q;
+@fn puleF32qMulF(a : PuleF32q, b : float) PuleF32q;

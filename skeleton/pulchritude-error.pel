@@ -1,0 +1,27 @@
+
+@struct PuleError {
+  @field description : PuleString;
+  @field id : uint32_t;
+  @field sourceLocationNullable : char const ptr;
+  @field lineNumber : size_t;
+  @field child : PuleError ptr;
+};
+
+@fn puleError() PuleError;
+
+@fn puleErrorDestroy(error : PuleError ptr) #`
+    deallocates memory used by error, does not log
+`;
+
+@fn puleErrorConsume(error : PuleError ptr) uint32_t #`
+    consumes error , logging the error appropiately with puleLog, returning the
+    ID of the error, and deallocating the description
+`;
+
+
+@fn puleErrorExists(error : PuleError ptr) bool;
+
+@fn puleErrorPropagate(
+  source : PuleError ptr,
+  newError : PuleError
+) void;

@@ -21,6 +21,7 @@ target_link_libraries(
   pulchritude-log
   pulchritude-error pulchritude-math pulchritude-platform
   pulchritude-gpu
+  pulchritude-camera
 )
 
 install(

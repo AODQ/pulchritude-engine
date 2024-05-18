@@ -1,0 +1,253 @@
+
+@enum PulePlatformVsyncMode {
+  PulePlatformVsyncMode_none;
+  PulePlatformVsyncMode_double;
+  PulePlatformVsyncMode_triple;
+};
+
+@enum PuleErrorWindow {
+  PuleErrorwindow_none;
+  PuleErrorWindow_windowCreationFailed;
+  PuleErrorWindow_invalidConfiguration;
+};
+
+@struct PulePlatformCreateInfo {
+  @field name : PuleStringView;
+  @field width : size_t #` <= 7680, can leave at 0 for full screen `;
+  @field height : size_t #` // <= 4320, can leave at 0 for full screen `;
+  @field vsyncMode : PulePlatformVsyncMode;
+};
+
+@struct PulePlatform {
+  @field id : uint64_t;
+};
+
+@fn pulePlatformInitialize(error : PuleError ptr) void;
+@fn pulePlatformShutdown() void;
+@fn pulePlatformCreate(
+  info : PulePlatformCreateInfo, error : PuleError ptr
+) PulePlatform;
+@fn pulePlatformDestroy(window : PulePlatform) void;
+
+@fn pulePlatformShouldExit(window : PulePlatform) bool;
+
+@fn pulePlatformGetProcessAddress() void ptr #`
+  TODO these need to pass in platform (puleGpuInitialize)
+`;
+@fn pulePlatformRequiredExtensions(
+  count : uint32_t ptr
+) char const ptr ptr;
+
+@fn pulePlatformPollEvents(window : PulePlatform) void;
+@fn pulePlatformSwapFramebuffer(window : PulePlatform) void;
+
+@fn pulePlatformWindowSize(
+  window : PulePlatform
+) PuleI32v2;
+@fn pulePlatformFramebufferSize(window : PulePlatform) PuleI32v2;
+
+@struct PulePlatformFramebufferResizeCallbackCreateInfo {
+  @field callback : @fnptr(void, PuleI32v2);
+};
+
+@fn pulePlatformFramebufferResizeCallback(
+  info : PulePlatformFramebufferResizeCallbackCreateInfo
+) void;
+
+@struct PulePlatformWindowResizeCallbackCreateInfo {
+  @field callback : @fnptr(void, PuleI32v2);
+};
+
+@fn pulePlatformWindowResizeCallback(
+  info : PulePlatformWindowResizeCallbackCreateInfo
+) void;
+
+@fn pulePlatformGetTime() double;
+
+@fn pulePlatformNull(window : PulePlatform) bool;
+
+@fn pulePlatformFocused(window : PulePlatform) bool;
+
+@fn pulePlatformMouseOriginSet(
+  window : PulePlatform, origin : PuleI32v2
+) void;
+@fn pulePlatformMouseOrigin(
+  window : PulePlatform
+) PuleI32v2;
+@fn pulePlatformCursorEnabled(window : PulePlatform) bool;
+@fn pulePlatformCursorHide(window : PulePlatform) void;
+@fn pulePlatformCursorShow(window : PulePlatform) void;
+
+@enum PuleInputKey {
+  PuleInputKey_tab;
+  PuleInputKey_left;
+  PuleInputKey_right;
+  PuleInputKey_up;
+  PuleInputKey_down;
+  PuleInputKey_pageUp;
+  PuleInputKey_pageDown;
+  PuleInputKey_home;
+  PuleInputKey_end;
+  PuleInputKey_insert;
+  PuleInputKey_delete;
+  PuleInputKey_backspace;
+  PuleInputKey_space;
+  PuleInputKey_enter;
+  PuleInputKey_escape;
+  PuleInputKey_apostrophe;
+  PuleInputKey_comma;
+  PuleInputKey_minus;
+  PuleInputKey_period;
+  PuleInputKey_slash;
+  PuleInputKey_semicolon;
+  PuleInputKey_equal;
+  PuleInputKey_leftBracket;
+  PuleInputKey_backslash;
+  PuleInputKey_rightBracket;
+  PuleInputKey_graveAccent;
+  PuleInputKey_capsLock;
+  PuleInputKey_scrollLock;
+  PuleInputKey_numLock;
+  PuleInputKey_printScreen;
+  PuleInputKey_pause;
+  PuleInputKey_kp0;
+  PuleInputKey_kp1;
+  PuleInputKey_kp2;
+  PuleInputKey_kp3;
+  PuleInputKey_kp4;
+  PuleInputKey_kp5;
+  PuleInputKey_kp6;
+  PuleInputKey_kp7;
+  PuleInputKey_kp8;
+  PuleInputKey_kp9;
+  PuleInputKey_kpDecimal;
+  PuleInputKey_kpDivide;
+  PuleInputKey_kpMultiply;
+  PuleInputKey_kpSubtract;
+  PuleInputKey_kpAdd;
+  PuleInputKey_kpEnter;
+  PuleInputKey_kpEqual;
+  PuleInputKey_leftShift;
+  PuleInputKey_leftControl;
+  PuleInputKey_leftAlt;
+  PuleInputKey_leftSuper;
+  PuleInputKey_rightShift;
+  PuleInputKey_rightControl;
+  PuleInputKey_rightAlt;
+  PuleInputKey_rightSuper;
+  PuleInputKey_menu;
+  PuleInputKey_i0;
+  PuleInputKey_i1;
+  PuleInputKey_i2;
+  PuleInputKey_i3;
+  PuleInputKey_i4;
+  PuleInputKey_i5;
+  PuleInputKey_i6;
+  PuleInputKey_i7;
+  PuleInputKey_i8;
+  PuleInputKey_i9;
+  PuleInputKey_a;
+  PuleInputKey_b;
+  PuleInputKey_c;
+  PuleInputKey_d;
+  PuleInputKey_e;
+  PuleInputKey_f;
+  PuleInputKey_g;
+  PuleInputKey_h;
+  PuleInputKey_i;
+  PuleInputKey_j;
+  PuleInputKey_k;
+  PuleInputKey_l;
+  PuleInputKey_m;
+  PuleInputKey_n;
+  PuleInputKey_o;
+  PuleInputKey_p;
+  PuleInputKey_q;
+  PuleInputKey_r;
+  PuleInputKey_s;
+  PuleInputKey_t;
+  PuleInputKey_u;
+  PuleInputKey_v;
+  PuleInputKey_w;
+  PuleInputKey_x;
+  PuleInputKey_y;
+  PuleInputKey_z;
+  PuleInputKey_f1;
+  PuleInputKey_f2;
+  PuleInputKey_f3;
+  PuleInputKey_f4;
+  PuleInputKey_f5;
+  PuleInputKey_f6;
+  PuleInputKey_f7;
+  PuleInputKey_f8;
+  PuleInputKey_f9;
+  PuleInputKey_f10;
+  PuleInputKey_f11;
+  PuleInputKey_f12;
+};
+
+@enum PuleInputKeyModifier {
+  PuleInputKeyModifier_ctrl = 0x1;
+  PuleInputKeyModifier_shift = 0x2;
+  PuleInputKeyModifier_alt = 0x4;
+  PuleInputKeyModifier_super = 0x8;
+};
+
+@enum PuleInputMouse {
+  PuleInputMouse_left;
+  PuleInputMouse_right;
+  PuleInputMouse_middle;
+  PuleInputMouse_side1;
+  PuleInputMouse_side2;
+  PuleInputMouse_End;
+};
+
+@fn puleInputKey(
+  window : PulePlatform,
+  key : PuleInputKey
+) bool;
+@fn puleInputKeyModifiers(
+  window : PulePlatform
+) PuleInputKeyModifier;
+@fn puleInputMouse(
+  window : PulePlatform,
+  mouseKey : PuleInputMouse
+) bool;
+
+@fn puleInputScroll(window : PulePlatform) int32_t;
+
+@struct PuleInputKeyCallbackCreateInfo {
+  #` TODO fix this to allow multiline in parser (bool waspressed)`
+  @field callback : @fnptr(void, PuleInputKey, PuleInputKeyModifier, bool);
+};
+
+@fn puleInputKeyCallback(
+  info : PuleInputKeyCallbackCreateInfo
+) void #`
+callback for keyboard input, for event-driven applications such as text
+editors. It's recommended to use 'puleInputKey' if you need to poll the input
+every frame, like for player movement input.
+`;
+
+@struct PuleInputMouseButtonCallbackCreateInfo {
+  @field callback : @fnptr(void, PuleInputMouse, PuleInputKeyModifier, bool);
+};
+
+@fn puleInputMouseButtonCallback(
+  info : PuleInputMouseButtonCallbackCreateInfo
+) void #`
+callback for mouse input, for event-driven applications. It's recommended to
+use 'puleInputMouse' if you need to poll input every frame, like for player
+direction input.
+`;
+
+@struct PuleInputRawTextCallbackCreateInfo {
+  @field callback : @fnptr(void, uint32_t);
+};
+
+@fn puleInputRawTextCallback(
+  info : PuleInputRawTextCallbackCreateInfo
+) void #`
+  callback for text input, with UTF8 support, for text editors
+`;
+

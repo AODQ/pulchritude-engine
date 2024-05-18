@@ -44,6 +44,7 @@
 #include <pulchritude-gpu/pipeline.h>
 #include <pulchritude-physx/collision.h>
 #include <pulchritude-physx/physx2d.h>
+#include <pulchritude-physx/physx3d.h>
 #include <pulchritude-render-graph/render-graph.h>
 #include <pulchritude-text/text.h>
 #include <pulchritude-net/net.h>
@@ -258,10 +259,11 @@ typedef struct PuleEngineLayer {
   PuleTimestamp (* filesystemTimestamp)(PuleStringView const);
   PuleFileWatcher (* fileWatch)(PuleFileWatchCreateInfo const);
   bool (* fileWatchCheckAll)();
+  void (* filesystemWriteString)(PuleStringView const, PuleStringView const);
   // gfx-debug
   void (* gfxDebugInitialize)(PulePlatform const);
   void (* gfxDebugShutdown)();
-  PuleGfxDebugRecorder (* gfxDebugStart)(PuleGpuCommandListRecorder const, PuleGpuActionRenderPassBegin const, PuleF32m44 const);
+  PuleGfxDebugRecorder (* gfxDebugStart)(PuleGpuCommandListRecorder const, PuleGpuActionRenderPassBegin const, PuleF32m44 const, PuleF32m44 const, PuleF32m44 const);
   void (* gfxDebugEnd)(PuleGfxDebugRecorder const);
   void (* gfxDebugRender)(PuleGfxDebugRecorder const, PuleGfxDebugRenderParam const);
   // gfx-mesh
@@ -296,6 +298,7 @@ typedef struct PuleEngineLayer {
   void (* logDebug)(char const * const, ...);
   void (* logWarn)(char const * const, ...);
   void (* logError)(char const * const, ...);
+  void (* logDev)(char const * const, ...);
   void (* logLn)(char const * const, ...);
   void (* logRaw)(char const * const, ...);
   // math
@@ -328,6 +331,9 @@ typedef struct PuleEngineLayer {
   PuleF32v4 (* f32v4Mul)(PuleF32v4 const, PuleF32v4 const);
   PuleF32v4 (* f32v4Div)(PuleF32v4 const, PuleF32v4 const);
   PuleF32v4 (* f32v4Dot)(PuleF32v4 const, PuleF32v4 const);
+  PuleF32m33 (* f32m33)(float const);
+  PuleF32m33 (* f32m33Ptr)(float const * const);
+  PuleF32m33 (* f32m33PtrTranspose)(float const * const);
   PuleF32m44 (* f32m44)(float const);
   PuleF32m44 (* f32m44Ptr)(float const * const);
   PuleF32m44 (* f32m44PtrTranspose)(float const * const);
@@ -340,6 +346,20 @@ typedef struct PuleEngineLayer {
   PuleF32m44 (* viewLookAt)(PuleF32v3 const, PuleF32v3 const, PuleF32v3 const);
   PuleF32m44 (* f32m44Viewport)(float const, float const);
   PuleF32m44 (* f32m44Rotation)(float const, PuleF32v3 const);
+  PuleF32q (* f32qIdentity)();
+  PuleF32q (* f32qPlane)(PuleF32v3 const, float const);
+  PuleF32q (* f32qNormalize)(PuleF32q const);
+  PuleF32q (* f32qInvert)(PuleF32q const);
+  float (* f32qMagnitude)(PuleF32q const);
+  float (* f32qMagnitudeSqr)(PuleF32q const);
+  PuleF32v3 (* f32qRotateV3)(PuleF32q const, PuleF32v3 const);
+  PuleF32m33 (* f32qRotateM33)(PuleF32q const, PuleF32m33 const);
+  PuleF32v3 (* f32qAxis)(PuleF32q const);
+  bool (* f32qValid)(PuleF32q const);
+  PuleF32m33 (* f32qAsM33)(PuleF32q const);
+  PuleF32v4 (* f32qAsV4)(PuleF32q const);
+  PuleF32q (* f32qMul)(PuleF32q const, PuleF32q const);
+  PuleF32q (* f32qMulF)(PuleF32q const, float const);
   // platform
   void (* platformInitialize)(PuleError * const);
   void (* platformShutdown)();
@@ -506,6 +526,7 @@ typedef struct PuleEngineLayer {
   bool (* gpuFenceWaitSignal)(PuleGpuFence const, PuleNanosecond const);
   void (* gpuFenceReset)(PuleGpuFence const);
   PuleGpuSemaphore (* gpuFrameStart)();
+  PuleGpuSemaphore (* gpuSwapchainAvailableSemaphore)();
   void (* gpuFrameEnd)(size_t const, PuleGpuSemaphore const * const);
   PuleStringView (* gpuActionToString)(PuleGpuAction const);
   PuleGpuCommandList (* gpuCommandListCreate)(PuleAllocator const, PuleStringView const);
@@ -544,8 +565,10 @@ typedef struct PuleEngineLayer {
   PulePhysx3DWorld (* physx3DWorldCreate)();
   void (* physx3DWorldDestroy)(PulePhysx3DWorld const);
   void (* physx3DWorldAdvance)(PulePhysx3DWorld const, float const);
+  PulePhysx3DBody (* physx3DBodyCreate)(PulePhysx3DWorld const, PulePhysx3DShape const);
+  void (* physx3DBodyDestroy)(PulePhysx3DBody const);
   // render-graph
-  PuleRenderGraph (* renderGraphCreate)(PuleAllocator const);
+  PuleRenderGraph (* renderGraphCreate)(PuleStringView const, PuleAllocator const);
   void (* renderGraphDestroy)(PuleRenderGraph const);
   void (* renderGraphMerge)(PuleRenderGraph const, PuleRenderGraph const);
   PuleRenderGraphNode (* renderGraphNodeCreate)(PuleRenderGraph const, PuleStringView const);

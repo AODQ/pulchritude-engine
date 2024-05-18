@@ -1,0 +1,43 @@
+
+@struct PuleTextRenderer {
+  @field id : uint64_t;
+};
+
+@enum PuleTextType {
+  PuleTextType_bitmap;
+  PuleTextType_sdf;
+};
+
+@fn puleTextRendererCreate(
+  font : PuleAssetFont,
+  type : PuleTextType
+) PuleTextRenderer;
+@fn puleTextRendererDestroy(renderer : PuleTextRenderer);
+
+@struct PuleTextRenderInfo {
+  @field fontScale : size_t;
+  @field transform : PuleF32m44;
+  @field color : PuleF32v4;
+  @field text : PuleStringView;
+};
+
+@fn puleTextRender(
+  textRenderer : PuleTextRenderer,
+  commandListRecorder : PuleGpuCommandListRecorder,
+  textInfo : PuleTextRenderInfo const ptr,
+  textInfoCount : size_t
+);
+
+@struct PuleTextRender2DInfo {
+  @field fontScale : size_t;
+  @field position : PuleI32v2;
+  @field color : PuleF32v4;
+  @field text : PuleStringView;
+};
+
+@fn puleTextRender2D(
+  textRenderer : PuleTextRenderer,
+  commandListRecorder : PuleGpuCommandListRecorder,
+  textInfo : PuleTextRender2DInfo const ptr,
+  textInfoCount : size_t
+);

@@ -407,7 +407,7 @@ int32_t main(
   [[maybe_unused]] int32_t const userArgumentLength,
   [[maybe_unused]] char const * const * const userArguments
 ) {
-  *puleLogDebugEnabled() = true;
+  //*puleLogDebugEnabled() = true;
   *puleLogErrorSegfaultsEnabled() = true;
   { // load plugins
     PuleStringView const path = puleFilesystemExecutablePath();

@@ -1,0 +1,117 @@
+
+@enum PuleErrorParser {
+  PuleErrorParser_none;
+  PuleErrorParser_astPoisoned;
+};
+
+@entity PuleParser;
+@fn puleParserCreate(
+  name : PuleStringView,
+  commentStart : PuleStringView,
+  commentEnd : PuleStringView
+) PuleParser;
+@fn puleParserDestroy(parser : PuleParser) void;
+
+@fn puleParserCreateFromString(
+  sv : PuleStringView,
+  name : PuleStringView,
+  commentStart : PuleStringView,
+  commentEnd : PuleStringView,
+  error : PuleError ptr
+) PuleParser;
+
+@fn puleParserCreateForDefaultExpressionGrammar() PuleParser;
+
+@entity PuleParserRegexToken;
+@fn puleParserRegexTokenCreate(
+  parser : PuleParser,
+  regex : PuleStringView
+) PuleParserRegexToken;
+
+@enum PuleParserNodeType {
+  PuleParserNodeType_regex;
+  PuleParserNodeType_rule;
+  PuleParserNodeType_group;
+  PuleParserNodeType_sequence;
+};
+
+@enum PuleParserNodeRepeat {
+  PuleParserNodeRepeat_zeroOrMore;
+  PuleParserNodeRepeat_oneOrMore;
+  PuleParserNodeRepeat_optional;
+  PuleParserNodeRepeat_once;
+};
+
+@struct PuleParserRuleNode {
+  @field type : PuleParserNodeType;
+  @field repeat : PuleParserNodeRepeat;
+  @field id : uint64_t;
+};
+
+@entity PuleParserGroup;
+@fn puleParserGroupCreate(
+  parser : PuleParser,
+  nodes : PuleParserRuleNode ptr,
+  nodeCount : size_t
+) PuleParserGroup;
+
+@entity PuleParserRule;
+@struct PuleParserRuleCreateInfo {
+  @field parser : PuleParser;
+  @field label : PuleStringView;
+  @field nodes : PuleParserRuleNode ptr;
+  @field nodeCount : size_t;
+  @field ignoreWhitespace : bool;
+};
+@fn puleParserRuleCreate(
+  createInfo : PuleParserRuleCreateInfo
+) PuleParserRule;
+@fn puleParserRuleSetNodes(
+  parser : PuleParser,
+  rule : PuleParserRule,
+  nodes : PuleParserRuleNode ptr,
+  nodeCount : size_t
+) void;
+@fn puleParserRule(
+  parser : PuleParser,
+  label : PuleStringView
+) PuleParserRule;
+
+@fn puleParserDump(parser : PuleParser) void;
+
+@entity PuleParserAst #`
+ parse string with the rules, returning the ast
+ TODO rename this from PuleParserAst to PuleParserTree as this is not an AST
+      e.g. there is no precedence, reordering of nodes, stripping of
+      unnecessary nodes, etc.
+`;
+@fn puleParserAstCreate(
+  parser : PuleParser,
+  string : PuleStringView,
+  headRule : PuleParserRule,
+  error : PuleError ptr
+) PuleParserAst;
+@fn puleParserAstDestroy(ast : PuleParserAst) void;
+
+@struct PuleParserAstNode {
+  @field id : uint64_t;
+  @field match : PuleStringView;
+  @field type : PuleParserNodeType;
+  @field parserNodeId : uint64_t;
+  @field childCount : size_t;
+};
+@fn puleParserAstRoot(ast : PuleParserAst) PuleParserAstNode;
+@fn puleParserAstNodeChild(
+  node : PuleParserAstNode,
+  index : size_t
+) PuleParserAstNode;
+
+@fn puleParserAstNodeMatch(node : PuleParserAstNode) PuleString #`
+this is a convenience function that returns all matches in the node; it
+recurses in-order until it finds a leaf node, then appends all leaf node
+matches together as the return value
+`;
+
+@fn puleParserAstNodeDump(node : PuleParserAstNode) void;
+
+@fn puleParserAstNodeDumpShallow(node : PuleParserAstNode) void;

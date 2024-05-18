@@ -311,7 +311,19 @@ PuleEcsSystem puleEcsSystemCreate(
       &entityDesc
     )
   );
-  desc.query.filter.expr = info.commaSeparatedComponentLabels;
+  for (size_t it = 0; it < info.componentCount; ++ it) {
+    desc.query.filter.terms[it].id = info.components[it].component.id;
+    switch (info.components[it].access) {
+      case PuleAccess_none:
+        desc.query.filter.terms[it].inout = EcsInOutNone;
+      case PuleAccess_read:
+        desc.query.filter.terms[it].inout = EcsIn;
+      case PuleAccess_write:
+        desc.query.filter.terms[it].inout = EcsOut;
+      case PuleAccess_readwrite:
+        desc.query.filter.terms[it].inout = EcsInOut;
+    }
+  }
   desc.callback = reinterpret_cast<void (*)(ecs_iter_t *)>(info.callback);
   ecs_entity_t system = (
     ecs_system_init(

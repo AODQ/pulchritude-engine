@@ -1,0 +1,18 @@
+@fn puleShapeCreateHexahedron() PuleBuffer;
+@fn puleShapeCreateTetrahedron() PuleBuffer;
+@fn puleShapeCreateOctahedron() PuleBuffer;
+@fn puleShapeCreateIcosahedron() PuleBuffer;
+@fn puleShapeCreateDodecahedron() PuleBuffer;
+@fn puleShapeCreateIcosphere(subdivisions : size_t) PuleBuffer;
+
+
+@fn puleShapeIntersectRayTriangle(
+  rayOri : PuleF32v3, rayDir : PuleF32v3,
+  tri0 : PuleF32v3, tri1 : PuleF32v3, tri2 : PuleF32v3,
+  distanceNullable : float ptr, uvNullable : PuleF32v2 ptr
+) bool;
+
+@fn puleShapeIntersectSphereSphere(
+  sphere0Center : PuleF32v3, sphere0Radius : float,
+  sphere1Center : PuleF32v3, sphere1Radius : float
+) bool;

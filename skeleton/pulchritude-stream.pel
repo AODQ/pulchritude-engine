@@ -1,0 +1,45 @@
+
+@struct PuleStreamRead {
+  @field userdata : void ptr;
+  @field readByte : @fnptr(uint8_t, void ptr);
+  @field peekByte : @fnptr(uint8_t, void ptr);
+  @field isDone : @fnptr(bool, void ptr);
+  @field destroy : @fnptr(void, void ptr);
+};
+
+@fn puleStreamReadByte(stream : PuleStreamRead) uint8_t;
+@fn puleStreamPeekByte(stream : PuleStreamRead) uint8_t;
+@fn puleStreamReadIsDone(stream : PuleStreamRead) bool;
+@fn puleStreamReadDestroy(stream : PuleStreamRead) void;
+
+@fn puleStreamDumpToBuffer(stream : PuleStreamRead) PuleBuffer;
+
+@fn puleStreamReadFromString(
+  stringView : PuleStringView
+) PuleStreamRead;
+
+@fn puleStreamReadFromBuffer(
+  bufferView : PuleBufferView
+) PuleStreamRead;
+
+@struct PuleStreamWrite {
+  @field userdata : void ptr;
+  @field writeBytes : @fnptr(void ptr, uint8_t const ptr, size_t);
+  @field flush : @fnptr(void, void ptr);
+  @field destroy : @fnptr(void, void ptr);
+};
+
+@fn puleStreamWriteBytes(
+  stream : PuleStreamWrite,
+  bytes : uint8_t const ptr,
+  length : size_t
+) void;
+@fn puleStreamWriteStrFormat(
+  stream : PuleStreamWrite,
+  format : char const ptr,
+  args : __VA_ARGS__
+) void;
+@fn puleStreamWriteFlush(stream : PuleStreamWrite) void;
+@fn puleStreamWriteDestroy(stream : PuleStreamWrite) void;
+
+@fn puleStreamStdoutWrite() PuleStreamWrite;

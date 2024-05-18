@@ -1,0 +1,23 @@
+project-name: "pulchritude-engine-binding-generator",
+supported-languages: "CXX C",
+entry-payload: { },
+build-info: {
+  applications: [ ],
+  plugins: [
+    {
+      name: "binding-generator",
+      path: "src",
+      known-files: [
+        "src/binding-generator.cpp",
+        "src/binding-generator.hpp",
+        "src/generate-binding-c.cpp",
+      ],
+      generated-hidden-files: [],
+      linked-libraries: [
+        "pulchritude-error",
+        "pulchritude-file",
+        "pulchritude-parser",
+      ],
+    },
+  ],
+},

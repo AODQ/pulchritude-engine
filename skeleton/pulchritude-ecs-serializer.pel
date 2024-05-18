@@ -1,0 +1,18 @@
+@struct PuleEcsSerializeWorldInfo {
+  @field world : PuleEcsWorld;
+  @field allocator : PuleAllocator;
+};
+
+@fn puleEcsSerializeWorld(
+  info : PuleEcsSerializeWorldInfo
+) PuleDsValue;
+
+@struct PuleEcsDeserializeWorldInfo {
+  @field world : PuleEcsWorld;
+  @field readObjectPds : PuleDsValue;
+  @field allocator : PuleAllocator;
+};
+
+@fn puleEcsDeserializeWorld(
+  info : PuleEcsDeserializeWorldInfo
+) void;

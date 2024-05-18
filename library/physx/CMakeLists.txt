@@ -9,6 +9,8 @@ target_sources(
   PRIVATE
     src/collision.cpp
     src/physx2d.cpp
+    src/physx3d.cpp
+    src/intersection.cpp
 )
 
 set_target_properties(

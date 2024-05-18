@@ -174,12 +174,12 @@ VkSwapchainKHR util::swapchainCreate() {
 
   // TODO getPhysicalDeviceSurfaceCapabilitiesKHR
   auto surfaceCapabilities = VkSurfaceCapabilitiesKHR{};
-  PULE_assert(
+  PULE_vkError(
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
       util::ctx().device.physical,
       util::ctx().surface,
       &surfaceCapabilities
-    ) == VK_SUCCESS
+    )
   );
 
   auto const imageExtent = VkExtent2D {
@@ -212,10 +212,10 @@ VkSwapchainKHR util::swapchainCreate() {
   };
 
   VkSwapchainKHR swapchain;
-  PULE_assert(
+  PULE_vkError(
     vkCreateSwapchainKHR(
       util::ctx().device.logical, &swapchainCi, nullptr, &swapchain
-    ) == VK_SUCCESS
+    )
   );
   return swapchain;
 }
@@ -228,12 +228,12 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
       .pNext = nullptr,
       .flags = VK_SEMAPHORE_TYPE_BINARY,
     };
-    PULE_assert(
+    PULE_vkError(
       vkCreateSemaphore(
         util::ctx().device.logical,
         &semaphoreCi, nullptr,
         &imageAvailableSemaphore
-      ) == VK_SUCCESS
+      )
     );
 
     std::string label = (
@@ -251,13 +251,16 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
   uint32_t imageIdx;
-  PULE_assert(
+  // TODO I need to handle cases where no image is available (this is
+  //        going to happen when the window-manager believes the window
+  //        is not visible)
+  PULE_vkError(
     vkAcquireNextImageKHR(
       util::ctx().device.logical,
       util::ctx().swapchain,
-      50, // nanosecond wait
+      1'00'000'000'000'000, // nanosecond wait, so 100ms
       imageAvailableSemaphore, fence, &imageIdx
-    ) == VK_SUCCESS
+    )
   );
   util::ctx().swapchainCurrentImageIdx = imageIdx;
 
@@ -281,12 +284,12 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
 
 void util::swapchainImagesCreate() {
   uint32_t swapchainImageCount = 0;
-  PULE_assert(
+  PULE_vkError(
     vkGetSwapchainImagesKHR(
       util::ctx().device.logical,
       util::ctx().swapchain,
       &swapchainImageCount, nullptr
-    ) == VK_SUCCESS
+    )
   );
   util::ctx().swapchainImages.resize(swapchainImageCount);
   util::ctx().swapchainImageAvailableSemaphores.resize(swapchainImageCount);
@@ -432,6 +435,8 @@ VkPipelineStageFlags util::toVkPipelineStageFlags(
     flag |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
   if (stage & PuleGpuResourceBarrierStage_outputAttachmentColor)
     flag |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  if (stage & PuleGpuResourceBarrierStage_outputAttachmentDepth)
+    flag |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
   if (stage & PuleGpuResourceBarrierStage_transfer)
     flag |= VK_PIPELINE_STAGE_TRANSFER_BIT;
   if (stage & PuleGpuResourceBarrierStage_bottom)

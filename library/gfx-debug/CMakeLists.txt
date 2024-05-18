@@ -25,6 +25,7 @@ target_link_libraries(
     pulchritude-error
     pulchritude-log
     pulchritude-platform
+    pulchritude-shape
 )
 
 install(

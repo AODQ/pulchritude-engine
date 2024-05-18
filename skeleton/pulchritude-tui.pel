@@ -1,0 +1,18 @@
+
+@entity PuleTuiWindow;
+
+@fn puleTuiInitialize() PuleTuiWindow;
+@fn puleTuiDestroy(_ : PuleTuiWindow);
+@fn puleTuiClear(_ : PuleTuiWindow);
+@fn puleTuiRefresh(_ : PuleTuiWindow);
+@fn puleTuiRenderString(
+  _ : PuleTuiWindow, content : PuleStringView, rgb : PuleF32v3
+);
+@fn puleTuiReadInputCharacterBlocking(
+  window : PuleTuiWindow
+) int32_t;
+@fn puleTuiMoveCursor(
+  window : PuleTuiWindow, position : PuleI32v2
+);
+
+@fn puleTuiWindowDim(window : PuleTuiWindow) PuleI32v2;

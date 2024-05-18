@@ -5,6 +5,8 @@
 #include <pulchritude-gfx-debug/gfx-debug.h>
 #include <pulchritude-render-graph/render-graph.h>
 
+#include <vector>
+
 // -- scene components ---------------------------------------------------------
 extern "C" {
 
@@ -23,18 +25,7 @@ static PuleDsStructField const componentModelFields[] = {
 #define structField(fieldtype, member) \
   PULE_dsStructField(PuleSceneComponentPhysicsData, fieldtype, member, 1)
 static PuleDsStructField const componentPhysicsFields[] = {
-  structField(i64, type),
-  PULE_dsStructTerminator,
-};
-#undef structField
-
-// object
-#define structField(fieldtype, member) \
-  PULE_dsStructField(PuleSceneComponentObjectData, fieldtype, member, 1)
-static PuleDsStructField const componentObjectFields[] = {
-  structField(f32v3, position),
-  structField(f32v3, rotation),
-  structField(f32v3, scale),
+  // TODO
   PULE_dsStructTerminator,
 };
 #undef structField
@@ -67,7 +58,6 @@ static PuleDsStructField const componentObjectFields[] = {
 
 componentSerialize(Model)
 componentSerialize(Physics)
-componentSerialize(Object)
 
 #undef componentSerialize
 
@@ -77,6 +67,26 @@ componentSerialize(Object)
 // -- scene --------------------------------------------------------------------
 
 namespace pint {
+
+void cameraUpdate(PuleCamera const camera, float const msDelta) {
+  static float timer = 0.0f;
+  timer += 0.000001f * msDelta;
+  puleCameraLookAt(
+    camera,
+    PuleF32v3{sinf(timer)*2.0f, 1.0f, cosf(timer)*2.0f},
+    PuleF32v3{0, 0, 0},
+    PuleF32v3{0, 0, 1}
+  );
+  puleCameraPerspectiveSet(
+    camera,
+    PuleCameraPerspective {
+      .nearCutoff = 0.001f,
+      .farCutoff = 100.0f,
+      .aspectRatio = 800.0f / 600.0f, // TODO
+      .fieldOfViewRadians = 2.0f,
+    }
+  );
+}
 
 struct Scene {
   PulePlatform platform;
@@ -91,15 +101,17 @@ struct Scene {
 
   PuleEcsComponent ecsComponentModel;
   PuleEcsComponent ecsComponentPhysics;
-  PuleEcsComponent ecsComponentObject;
 
-  PuleEcsSystem ecsSystemPhysicsUpdate; // sets position/rotation of object
   PuleEcsSystem ecsSystemModelRender;
+
+  PuleCamera camera;
+  PuleCameraController cameraController = { .id = 0, };
+
+  PuleGpuSemaphore gpuFrameWaitSemaphore;
 };
 
 pule::ResourceContainer<Scene, PuleScene> scenes;
 // to lookup Scene from EcsWorld ID in ecs update callback
-std::unordered_map<uint64_t, pint::Scene> ecsWorldToScene;
 
 } // namespace pint
 
@@ -109,6 +121,9 @@ void systemPhysicsUpdateCallback(PuleEcsIterator const iter);
 void systemModelRenderCallback(PuleEcsIterator const iter);
 
 PuleScene puleSceneCreate(PuleSceneCreateInfo const info) {
+  // for now use gfx-debug to render, however I should move to a more
+  //   refined renderer
+  puleGfxDebugInitialize(info.platform);
   pint::Scene scene;
   // fill in scene data
   scene.platform = info.platform;
@@ -124,7 +139,7 @@ PuleScene puleSceneCreate(PuleSceneCreateInfo const info) {
   } else if (info.createPhysxWorld) {
     scene.worldPhysx2D = pulePhysx2DWorldCreate();
   } else {
-    scene.worldPhysx3D = PulePhysx3DWorld { .id = 0 };
+    scene.worldPhysx3D = PulePhysx3DWorld { .id = 0 }; // assign 0
   }
 
   // create ecs components
@@ -144,41 +159,40 @@ PuleScene puleSceneCreate(PuleSceneCreateInfo const info) {
       );
     componentCreate(Model, model);
     componentCreate(Physics, physics);
-    componentCreate(Object, object);
     #undef componentCreate
   }
 
   // create ecs systems
   if (scene.worldEcs.id) {
+    std::vector<PuleEcsSystemComponentDesc> systemModelRenderComponentDesc = {
+      PuleEcsSystemComponentDesc
+      { .component = scene.ecsComponentModel,  .access = PuleAccess_read },
+      { .component = scene.ecsComponentPhysics, .access = PuleAccess_read, },
+    };
     scene.ecsSystemModelRender = (
       puleEcsSystemCreate(
         scene.worldEcs,
         PuleEcsSystemCreateInfo {
           .label = "pule-scene-model-render",
-          .commaSeparatedComponentLabels = "pule-scene-model,pule-scene-object",
+          .componentCount = systemModelRenderComponentDesc.size(),
+          .components = systemModelRenderComponentDesc.data(),
           .callback = systemModelRenderCallback,
           .callbackFrequency = PuleEcsSystemCallbackFrequency_postUpdate,
         }
       )
     );
-    scene.ecsSystemPhysicsUpdate = (
-      puleEcsSystemCreate(
-        scene.worldEcs,
-        PuleEcsSystemCreateInfo {
-          .label = "pule-scene-physics-update",
-          .commaSeparatedComponentLabels = (
-            "pule-scene-physics,pule-scene-object"
-          ),
-          .callback = systemPhysicsUpdateCallback,
-          .callbackFrequency = PuleEcsSystemCallbackFrequency_preUpdate,
-        }
-      )
-    );
   }
+
+  // create camera
+  scene.camera = puleCameraCreate();
+  scene.cameraController = (
+    puleCameraControllerOrbit(
+      scene.platform, scene.camera, puleF32v3(0.0f), 5.0f
+    )
+  );
 
   //
   PuleScene puScene = pint::scenes.create(scene);
-  pint::ecsWorldToScene.emplace(scene.worldEcs.id, scene);
   return puScene;
 }
 
@@ -197,12 +211,12 @@ void puleSceneDestroy(PuleScene const scene) {
   }
 }
 
-PULE_exportFn PuleEcsWorld puleSceneEcsWorld(PuleScene const scene) {
+PuleEcsWorld puleSceneEcsWorld(PuleScene const scene) {
   auto const s = pint::scenes.at(scene);
   return s->worldEcs;
 }
 
-PULE_exportFn PuleScenePhysxWorld puleScenePhysxWorld(PuleScene const scene) {
+PuleScenePhysxWorld puleScenePhysxWorld(PuleScene const scene) {
   PuleScenePhysxWorld result;
   auto const s = pint::scenes.at(scene);
   if (s->dimension == PuleSceneDimension_3d) {
@@ -224,17 +238,16 @@ void puleSceneAdvance(PuleSceneAdvanceInfo const info){
     }
   }
   // then update camera controls
-  // TODO
+  puleCameraControllerPollEvents();
   // then advance ECS (which should update objects + rendering)
   if (s->worldEcs.id != 0 && info.advanceEcsWorld) {
-    puleEcsWorldAdvance(s->worldEcs, info.msDelta);
+    s->gpuFrameWaitSemaphore = info.waitSemaphore;
+    puleEcsSystemAdvance(
+      s->worldEcs, s->ecsSystemModelRender, info.msDelta, (void *)info.scene.id
+    );
   }
 }
 
-PuleEcsComponent puleSceneComponentObject(PuleScene const scene) {
-  auto const s = pint::scenes.at(scene);
-  return s->ecsComponentObject;
-}
 PuleEcsComponent puleSceneComponentModel(PuleScene const scene) {
   auto const s = pint::scenes.at(scene);
   return s->ecsComponentModel;
@@ -242,6 +255,23 @@ PuleEcsComponent puleSceneComponentModel(PuleScene const scene) {
 PuleEcsComponent puleSceneComponentPhysics(PuleScene const scene) {
   auto const s = pint::scenes.at(scene);
   return s->ecsComponentPhysics;
+}
+
+void puleSceneNodeAttachComponents(
+  PuleSceneNodeCreateInfo const info
+) {
+  auto const s = pint::scenes.at(info.scene);
+  PuleSceneComponentModelData modelData;
+  PuleSceneComponentPhysicsData physicsData;
+  modelData.type = info.modelType;
+  physicsData = info.physicsData;
+
+  puleEcsEntityAttachComponent(
+    s->worldEcs, info.entity, s->ecsComponentModel, &modelData
+  );
+  puleEcsEntityAttachComponent(
+    s->worldEcs, info.entity, s->ecsComponentPhysics, &physicsData
+  );
 }
 
 } // extern "C"
@@ -257,24 +287,33 @@ struct SystemRenderInfo {
 std::unordered_map<uint64_t, SystemRenderInfo> systemRenderInfos;
 
 static PuleStringView renderGraphSource = R"(
+  render-graph-label: "pule-scene-render-graph",
   render-graph: [
     {
-      label: "pule-scene-graph-draw",
+      label: "pule-scene-draw",
+      depends-on: [],
       resources: [
         {
-          label: "pule-sccene-graph-framebuffer-image",
+          label: "pule-scene-framebuffer-image",
           image: {
             layout: "attachment-color", access: "attachment-color-write",
           },
         },
+        {
+          label: "pule-scene-framebuffer-depth",
+          image: {
+            layout: "attachment-depth",
+            access: "attachment-depth-stencil-write",
+          },
+        },
       ],
-      depends-on: [],
-    }
+    },
     {
-      label: "pule-scene-graph-blit",
+      label: "pule-scene-blit",
+      depends-on: ["pule-scene-draw",],
       resources: [
         {
-          label: "pule-sccene-graph-framebuffer-image",
+          label: "pule-scene-framebuffer-image",
           image: {
             layout: "transfer-src", access: "transfer-read",
           },
@@ -308,11 +347,29 @@ static PuleStringView renderGraphSource = R"(
         array-layers: 1,
       },
     },
+    {
+      type: "image",
+      name: "pule-scene-framebuffer-depth",
+      data-management: {
+        type: "automatic",
+        render-graph-usage: "read-write",
+        is-attachment: true,
+        scale-dimensions-relative: {
+          reference-image: "window-swapchain-image",
+          scale-width: 1.0,
+          scale-height: 1.0,
+        },
+        initial-data: "",
+        target: "2d",
+        byte-format: "depth16",
+        mipmap-levels: 1,
+        array-layers: 1,
+      },
+    },
   ],
-)"_pcs;
+)"_psv;
 
-void createSystemRender(PuleEcsWorld const world) {
-  auto scene = ecsWorldToScene.at(world.id);
+void createSystemRender(pint::Scene & scene, PuleScene const puScene) {
   SystemRenderInfo info;
   PuleError err = puleError();
   PuleDsValue const renderGraphValue = (
@@ -328,7 +385,7 @@ void createSystemRender(PuleEcsWorld const world) {
       renderGraphValue
     )
   );
-  systemRenderInfos.emplace(world.id, info);
+  systemRenderInfos.emplace(puScene.id, info);
 }
 
 } // namespace pint
@@ -344,31 +401,43 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
       )
     )
   );
-  PuleSceneComponentObjectData const * const objectData = (
-    static_cast<PuleSceneComponentObjectData const *>(
+  PuleSceneComponentPhysicsData const * const physxData = (
+    static_cast<PuleSceneComponentPhysicsData const *>(
       puleEcsIteratorQueryComponents(
-        iter, 1, sizeof(PuleSceneComponentObjectData)
+        iter, 1, sizeof(PuleSceneComponentPhysicsData)
       )
     )
   );
-  auto const world = puleEcsIteratorWorld(iter);
+  PuleScene const puScene = { (uint64_t)puleEcsIteratorUserData(iter) };
+  auto & scene = *pint::scenes.at(puScene);
+  auto const world = scene.worldEcs;
 
-  if (pint::systemRenderInfos.count(world.id) == 0) {
-    pint::createSystemRender(world);
+  if (pint::systemRenderInfos.count(puScene.id) == 0) {
+    puleLog("creating system render");
+    pint::createSystemRender(scene, puScene);
   }
 
-  auto system = pint::systemRenderInfos.at(world.id);
+  auto system = pint::systemRenderInfos.at(puScene.id);
+
+  puleRenderGraphFrameStart(system.graph);
 
   PuleRenderGraphNode renderNodeDraw = (
-    puleRenderGraphNodeFetch(system.graph, "physx-draw"_pcs)
+    puleRenderGraphNodeFetch(system.graph, "pule-scene-draw"_psv)
   );
   PuleRenderGraphNode renderNodeBlit = (
-    puleRenderGraphNodeFetch(system.graph, "physx-blit"_pcs)
+    puleRenderGraphNodeFetch(system.graph, "pule-scene-blit"_psv)
   );
   PuleGpuImage const framebufferImage = (
     puleGpuImageReference_image(
       puleRenderGraph_resource(
-        system.graph, "pule-scene-framebuffer-image"_pcs
+        system.graph, "pule-scene-framebuffer-image"_psv
+      ).image.imageReference
+    )
+  );
+  PuleGpuImage const framebufferDepth = (
+    puleGpuImageReference_image(
+      puleRenderGraph_resource(
+        system.graph, "pule-scene-framebuffer-depth"_psv
       ).image.imageReference
     )
   );
@@ -386,7 +455,77 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
 
   auto debugRecorder = (
     puleGfxDebugStart(
-      commandDraw,
+      puleF32m44(1.0f),
+      puleCameraView(scene.camera),
+      puleCameraProj(scene.camera)
+    )
+  );
+
+  size_t const entityCount = puleEcsIteratorEntityCount(iter);
+  for (size_t it = 0; it < entityCount; ++it) {
+    auto const entity = puleEcsIteratorQueryEntities(iter)[it];
+    auto const & model = modelData[it];
+    auto const & physx = physxData[it];
+    struct {
+      PuleF32v3 position;
+      PuleF32m33 rotation;
+      PuleF32v3 scale;
+    } object;
+    object.position = pulePhysx3DBodyOrigin(physx.body);
+    object.rotation = pulePhysx3DBodyOrientation(physx.body);
+    object.scale = puleF32v3(1.0f);
+    auto shape = pulePhysx3DShape(physx.body);
+    if (shape.type == PulePhysx3DShape_sphere) {
+      object.scale = puleF32v3(shape.sphere.radius);
+    }
+    (void)entity;
+
+    switch (model.type) {
+      case PuleSceneComponentModelType_none: break;
+      case PuleSceneComponentModelType_cube:
+        puleGfxDebugRender(
+          debugRecorder,
+          PuleGfxDebugRenderParam {
+            .cube = {
+              .originCenter = object.position,
+              .rotationMatrix = object.rotation,
+              .dimensionsHalf = object.scale,
+              .color = {1.0f, 0.2f, 0.2f},
+            },
+          }
+        );
+      break;
+      case PuleSceneComponentModelType_sphere:
+        puleGfxDebugRender(
+          debugRecorder,
+          PuleGfxDebugRenderParam { // TODO change this to sphere
+            .sphere = {
+              .originCenter = object.position,
+              .radius = object.scale.x,
+              .color = {1.0f, 0.2f, 0.2f},
+            },
+          }
+        );
+      break;
+      case PuleSceneComponentModelType_plane:
+        puleGfxDebugRender(
+          debugRecorder,
+          PuleGfxDebugRenderParam {
+            .plane = {
+              .originCenter = object.position,
+              .rotationMatrix = object.rotation,
+              .color = {0.8f, 0.8f, 0.8f},
+            },
+          }
+        );
+      break;
+    }
+  }
+
+  puleGfxDebugSubmit({
+    .recorder = debugRecorder,
+    .commandListRecorder = commandDraw,
+    .renderPassBegin = (
       PuleGpuActionRenderPassBegin {
         .viewportMin = {0, 0},
         .viewportMax = {800, 600}, // TODO
@@ -407,42 +546,23 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
           }
         },
         .attachmentColorCount = 1,
-      },
-      puleF32m44(1.0f)
-    )
-  );
-
-  size_t const entityCount = puleEcsIteratorEntityCount(iter);
-  for (size_t it = 0; it < entityCount; ++it) {
-    auto const entity = puleEcsIteratorQueryEntities(iter)[it];
-    auto const & model = modelData[it];
-    auto const & object = objectData[it];
-    (void)entity; (void)model; (void)object; (void)world;
-
-    switch (model.type) {
-      case PuleSceneComponentModelType_none: break;
-      case PuleSceneComponentModelType_cube:
-        puleGfxDebugRender(
-          debugRecorder,
-          PuleGfxDebugRenderParam {
-            .cube = {
-              .originCenter = object.position,
-              .rotation = object.rotation,
-              .dimensionsHalf = object.scale,
-              .color = {1.0f, 0.2f, 0.2f},
-            },
-          }
-        );
-      break;
-      case PuleSceneComponentModelType_sphere:
-        puleLogError("sphere not implemented");
-      break;
-      case PuleSceneComponentModelType_plane:
-        puleLogError("plane not implemented");
-      break;
-    }
-  }
-  puleGfxDebugEnd(debugRecorder);
+        .attachmentDepth = {
+          .opLoad = PuleGpuImageAttachmentOpLoad_clear,
+          .opStore = PuleGpuImageAttachmentOpStore_store,
+          .layout = PuleGpuImageLayout_attachmentDepth,
+          .clearDepth = 1.0f,
+          .imageView = {
+            PuleGpuImageView {
+              .image = framebufferDepth,
+              .mipmapLevelStart = 0, .mipmapLevelCount = 1,
+              .arrayLayerStart = 0, .arrayLayerCount = 1,
+              .byteFormat = PuleGpuImageByteFormat_depth16,
+            }
+          },
+        },
+      }
+    ),
+  });
 
   PuleGpuCommandListRecorder commandBlit = (
     puleRenderGraph_commandListRecorder(renderNodeBlit)
@@ -463,38 +583,13 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
       },
     }
   );
-}
 
-void systemPhysicsUpdateCallback(PuleEcsIterator const iter) {
-  // "pule-scene-physics,pule-scene-object",
-  PuleSceneComponentPhysicsData const * const physicsData = (
-    static_cast<PuleSceneComponentPhysicsData const *>(
-      puleEcsIteratorQueryComponents(
-        iter, 0, sizeof(PuleSceneComponentPhysicsData)
-      )
-    )
-  );
-  PuleSceneComponentObjectData * const objectData = (
-    static_cast<PuleSceneComponentObjectData *>(
-      puleEcsIteratorQueryComponents(
-        iter, 1, sizeof(PuleSceneComponentObjectData)
-      )
-    )
-  );
-  auto const world = puleEcsIteratorWorld(iter);
-
-  size_t const entityCount = puleEcsIteratorEntityCount(iter);
-  for (size_t it = 0; it < entityCount; ++it) {
-    auto const entity = puleEcsIteratorQueryEntities(iter)[it];
-    auto const & physics = physicsData[it];
-    auto & object = objectData[it];
-
-    // TODO update physics
-    puleLog("object position: %f", object.position.y);
-    object.position = puleF32v3(0.0f);
-    object.rotation = puleF32v3(0.0f);
-    object.scale = puleF32v3(1.0f);
+  PuleGpuSemaphore waitSemaphore = puleGpuSwapchainAvailableSemaphore();
+  if (scene.gpuFrameWaitSemaphore.id != 0) {
+    waitSemaphore = scene.gpuFrameWaitSemaphore;
   }
+
+  puleRenderGraphFrameSubmit(waitSemaphore, system.graph);
 }
 
 } // extern "C"

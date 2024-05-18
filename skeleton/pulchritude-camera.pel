@@ -1,0 +1,58 @@
+@entity PuleCamera;
+
+@fn puleCameraCreate() PuleCamera;
+@fn puleCameraDestroy(camera : PuleCamera) void;
+
+@fn puleCameraView(camera : PuleCamera) PuleF32m44;
+@fn puleCameraProj(camera : PuleCamera) PuleF32m44;
+
+@fn puleCameraLookAt(
+  camera : PuleCamera,
+  origin : PuleF32v3, normalizedTarget : PuleF32v3, up : PuleF32v3
+) void;
+
+@struct PuleCameraPerspective {
+  @field nearCutoff : float;
+  @field farCutoff : float;
+  @field aspectRatio : float;
+  @field fieldOfViewRadians : float;
+};
+
+@fn puleCameraPerspective(camera : PuleCamera) PuleCameraPerspective;
+@fn puleCameraPerspectiveSet(
+  camera : PuleCamera, perspective : PuleCameraPerspective
+) void;
+
+@entity PuleCameraSet;
+
+@fn puleCameraSetCreate(label : PuleStringView) PuleCameraSet;
+@fn puleCameraSetDestroy(camera : PuleCameraSet) void;
+
+@fn puleCameraSetAdd(set : PuleCameraSet, camera : PuleCamera) void;
+@fn puleCameraSetRemove(set : PuleCameraSet, camera : PuleCamera) void;
+
+@struct PuleCameraSetArray {
+  @field cameras : PuleCamera ptr;
+  @field cameraCount : size_t;
+};
+@fn puleCameraSetArray(set : PuleCameraSet) PuleCameraSetArray;
+
+@fn puleCameraSetUniformBuffer(set : PuleCameraSet) PuleGpuBuffer;
+@fn puleCameraSetRefresh(set : PuleCameraSet) PuleGpuFence #`
+  must be on main thread in case buffer needs to be reallocated
+`;
+
+@entity PuleCameraController;
+@fn puleCameraControllerFirstPerson(
+  platform : PulePlatform,
+  camera : PuleCamera
+) PuleCameraController;
+@fn puleCameraControllerOrbit(
+  platform : PulePlatform,
+  camera : PuleCamera,
+  origin : PuleF32v3,
+  radius : float
+) PuleCameraController;
+@fn puleCameraControllerDestroy(controller : PuleCameraController) void;
+
+@fn puleCameraControllerPollEvents() void;

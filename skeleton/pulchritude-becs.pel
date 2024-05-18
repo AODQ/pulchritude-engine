@@ -1,0 +1,117 @@
+@enum PuleErrorBecs {
+  PuleErrorBecs_none;
+};
+
+@entity PuleBecsSystem;
+@entity PuleBecsEntity;
+@entity PuleBecsComponent;
+@entity PuleBecsBundle;
+@entity PuleBecsBundleHistory;
+@entity PuleBecsWorld;
+
+@fn puleBecsWorldCreate() PuleBecsWorld;
+@fn puleBecsWorldDestroy(world : PuleBecsWorld) void;
+@fn puleBecsWorldAdvance(world : PuleBecsWorld, msDelta : float) void;
+
+@struct PuleBecsComponentCreateInfo {
+  @field label : PuleStringView;
+  @field byteLength : size_t;
+};
+
+@fn puleBecsComponentCreate(
+  world : PuleBecsWorld,
+  createInfo : PuleBecsComponentCreateInfo const ptr
+) PuleBecsComponent;
+
+@enum PuleBecsSystemCallbackFrequency {
+  PuleBecsSystemCallbackFrequency_vsync;
+  PuleBecsSystemCallbackFrequency_unlimited;
+  PuleBecsSystemCallbackFrequency_fixed;
+};
+
+@struct PuleBecsSystemCreateInfo {
+  @field world : PuleBecsWorld;
+  @field label : PuleStringView;
+  @field components : PuleBecsComponent const ptr;
+  @field componentCount : size_t;
+  @field callbackFrequency : PuleBecsSystemCallbackFrequency;
+  @field callbackFrequencyFixed : size_t #`if callbackFrequency == fixed`;
+  @field bundleHistoryCount : size_t;
+
+  @field callback : @fnptr(
+    int32_t,
+    PuleBecsSystem system,
+    PuleBecsBundle writeBundle,
+    PuleBecsBundleHistory readBundleHistory,
+    PuleBecsBundle ptr inputSystemReadBundles
+  );
+};
+
+@fn puleBecsSystemCreate(
+  world : PuleBecsWorld, ci : PuleBecsSystemCreateInfo
+) PuleBecsSystem;
+@fn puleBecsSystemDestroy(system : PuleBecsSystem) void;
+@fn puleBecsSystemAdvance(system : PuleBecsSystem, msDelta : float) void;
+
+@struct PuleBecsEntityQuery {
+  @field system : PuleBecsSystem;
+  @field components : PuleBecsComponent const ptr;
+  @field componentCount : size_t;
+};
+
+@entity PuleBecsQueryEntityIterator;
+
+@fn puleBecsQueryEntities(
+  query : PuleBecsEntityQuery
+) PuleBecsQueryEntityIterator #`
+    returns an iterator to entities that match query, the iterator must be
+    updated manually if entities are added or removed that match the query
+    TODO for now only create this once per query and call update manually do
+    not create multiple iterators for the same query
+`;
+
+@fn puleBecsQueryEntitiesUpdate(
+  system : PuleBecsSystem,
+  iter : PuleBecsQueryEntityIterator
+) void;
+
+@fn puleBecsQueryEntityIteratorCount(
+  system : PuleBecsSystem, iter : PuleBecsQueryEntityIterator
+) size_t;
+@fn puleBecsQueryEntityIteratorAt(
+  system : PuleBecsSystem, iter : PuleBecsQueryEntityIterator, idx : size_t
+) PuleBecsEntity;
+
+@enum PuleBecsSystemInputRelation {
+  PuleBecsSystemInputRelation_current #` system uses current frame `;
+  PuleBecsSystemInputRelation_previous #` system uses previous frame `;
+};
+
+@struct PuleBecsSystemInputRelationsCreateInfo {
+  @field system : PuleBecsSystem;
+  @field inputSystems : PuleBecsSystem ptr;
+  @field inputSystemRelations : PuleBecsSystemInputRelation ptr;
+  @field inputSystemCount : size_t;
+  @field threadGroup : uint8_t;
+};
+
+@fn puleBecsSystemInputRelationsSet(
+  createInfo : PuleBecsSystemInputRelationsCreateInfo
+) void;
+
+@struct PuleBecsEntityCreateInfo {
+  @field system : PuleBecsSystem;
+  @field label : PuleStringView;
+  @field components : PuleBecsComponent const ptr;
+  @field componentData : void const ptr const ptr;
+  @field componentCount : size_t;
+};
+
+@fn puleBecsEntityCreate(
+  createInfo : PuleBecsEntityCreateInfo
+) PuleBecsEntity;
+@fn puleBecsEntityDestroy(entity : PuleBecsEntity) void;
+@fn puleBecsEntityComponentData(
+  entity : PuleBecsEntity,
+  component : PuleBecsComponent
+) void ptr;

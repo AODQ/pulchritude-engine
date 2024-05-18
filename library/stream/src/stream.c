@@ -40,6 +40,19 @@ void puleStreamWriteBytes(
   stream.writeBytes(stream.userdata, bytes, length);
 }
 
+void puleStreamWriteStrFormat(
+  PuleStreamWrite const stream,
+  char const * const format,
+  ...
+) {
+  va_list args;
+  va_start(args, format);
+  PuleString str = puleStringFormatVargs(puleAllocateDefault(), format, args);
+  va_end(args);
+  puleStreamWriteBytes(stream, (uint8_t *)str.contents, str.len);
+  puleStringDestroy(str);
+}
+
 static void stdoutWriteBytes(
   void * const userdata,
   uint8_t const * const bytes,

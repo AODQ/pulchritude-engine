@@ -53,6 +53,11 @@ PULE_exportFn PuleFile puleFileOpen(
   PuleFileOpenMode const openMode,
   PuleError * const error
 );
+PULE_exportFn PuleString puleFileDump(
+  PuleStringView const filename,
+  PuleFileDataMode dataMode,
+  PuleError * const error
+);
 // FULE_exportFn PuleArray puleFileLoadContents(
 //   PuleAllocator const allocator,
 //   PuleFileDataMode const dataMode,
@@ -118,6 +123,12 @@ PULE_exportFn bool puleFileRemoveRecursive(PuleStringView const filePath);
 PULE_exportFn bool puleFileDirectoryCreate(PuleStringView const path);
 PULE_exportFn bool puleFileDirectoryCreateRecursive(PuleStringView const path);
 
+PULE_exportFn void puleFilesystemDirWalk(
+  PuleStringView const dirPath,
+  void (*walker)(void * userdata, PuleStringView path, bool isFile),
+  void * userdata
+);
+
 // TODO rename all puleFilesystem*Path to puleFilesystemPath*
 PULE_exportFn PuleString puleFilesystemPathCurrent();
 PULE_exportFn PuleStringView puleFilesystemExecutablePath();
@@ -174,6 +185,20 @@ PULE_exportFn bool puleFileWatchCheckAll();
 // TODO return a filewatch list of changed files since last check
 // TODO filewatch destroy
 
+
+#ifdef __cplusplus
+}
+#endif
+
+//-- convenience ---------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+PULE_exportFn void puleFilesystemWriteString(
+  PuleStringView const path,
+  PuleStringView const string
+);
 
 #ifdef __cplusplus
 }

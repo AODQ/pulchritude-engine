@@ -62,13 +62,13 @@ VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCi() {
 VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance const instance) {
   auto ci = createDebugMessengerCi();
   VkDebugUtilsMessengerEXT debugMessenger = nullptr;
-  PULE_assert(
+  PULE_vkError(
     vkCreateDebugUtilsMessengerEXT(
       instance,
       &ci,
       nullptr,
       &debugMessenger
-    ) == VK_SUCCESS
+    )
   );
   return debugMessenger;
 }
@@ -78,10 +78,10 @@ VkInstance createInstance(PuleError * const error) {
   auto applicationInfo = VkApplicationInfo {
     .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
     .pNext = nullptr,
-    .pApplicationName = "Made With <#",
+    .pApplicationName = "N/A",
     .applicationVersion = 0x0001,
     .pEngineName = "Pulchritude",
-    .engineVersion = 0,
+    .engineVersion = 1,
     .apiVersion = VK_API_VERSION_1_3,
   };
 
@@ -564,13 +564,13 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
       .priority = 1.0f,
     };
     puleLog("Creating staging buffer with size: %zu", 65'536);
-    PULE_assert(
+    PULE_vkError(
       vmaCreateBuffer(
         util::ctx().vmaAllocator,
         &stagingBufferCi, &stagingAllocationCi,
         &ctx.utilStagingBuffer, &ctx.utilStagingBufferAllocation,
         &ctx.utilStagingBufferAllocationInfo
-      ) == VK_SUCCESS
+      )
     );
   }
   util::ctx().swapchain = util::swapchainCreate();
@@ -760,11 +760,11 @@ PuleGpuBuffer puleGpuBufferCreate(
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = nullptr,
       };
-      PULE_assert(
+      PULE_vkError(
         vkBeginCommandBuffer(
           util::ctx().utilCommandBuffer,
           &beginInfo
-        ) == VK_SUCCESS
+        )
       );
       vmaFlushAllocation(
         util::ctx().vmaAllocator,
@@ -789,11 +789,11 @@ PuleGpuBuffer puleGpuBufferCreate(
         .pCommandBuffers = &util::ctx().utilCommandBuffer,
         .signalSemaphoreCount = 0, .pSignalSemaphores = nullptr,
       };
-      PULE_assert(
+      PULE_vkError(
         vkQueueSubmit(
           util::ctx().defaultQueue,
           1, &stagingSubmitInfo, nullptr
-        ) == VK_SUCCESS
+        )
       );
       // TODO replace with cmd pipeline barrier
       vkDeviceWaitIdle(util::ctx().device.logical);
@@ -835,6 +835,10 @@ void puleGpuBufferUnmap(PuleGpuBuffer const pBuffer) {
 
 PuleGpuSemaphore puleGpuFrameStart() {
   util::swapchainAcquireNextImage(nullptr);
+  return puleGpuSwapchainAvailableSemaphore();
+}
+
+PuleGpuSemaphore puleGpuSwapchainAvailableSemaphore() {
   size_t const swapchainImageIndex = util::ctx().swapchainCurrentImageIdx;
   VkSemaphore const swapchainImageAvailableSemaphore = (
     util::ctx().swapchainImageAvailableSemaphores[swapchainImageIndex]
@@ -874,3 +878,40 @@ PuleStringView puleGpuBufferUsageLabel(PuleGpuBufferUsage const usage) {
 }
 
 } // extern C
+
+//------------------------------------------------------------------------------
+#include <pulchritude-string/string.hpp>
+#include <pulchritude-gpu/module.h>
+pule::string pule::toStr(PuleGpuResourceAccess const access) {
+  std::string label = "(";
+
+  #define mAccess(m) \
+    if (access & PuleGpuResourceAccess_ ## m) \
+      label += #m ";"
+  mAccess(none);
+  mAccess(indirectCommandRead); mAccess(indexRead);
+  mAccess(vertexAttributeRead); mAccess(uniformRead);
+  mAccess(inputAttachmentRead); mAccess(shaderRead);
+  mAccess(shaderWrite); mAccess(attachmentColorRead);
+  mAccess(attachmentColorWrite); mAccess(attachmentDepthRead);
+  mAccess(attachmentDepthWrite); mAccess(transferRead);
+  mAccess(transferWrite); mAccess(hostRead);
+  mAccess(hostWrite); mAccess(memoryRead);
+  mAccess(memoryWrite);
+  #undef mAccess
+  label += ")";
+  return pule::string(label.c_str());
+  #undef mAccess
+}
+
+char const * pule::toStr(PuleGpuImageLayout const layout) {
+  switch (layout) {
+    case PuleGpuImageLayout_uninitialized: return "uninitialized";
+    case PuleGpuImageLayout_storage: return "storage";
+    case PuleGpuImageLayout_attachmentColor: return "attachmentColor";
+    case PuleGpuImageLayout_attachmentDepth: return "attachmentDepth";
+    case PuleGpuImageLayout_transferSrc: return "transferSrc";
+    case PuleGpuImageLayout_transferDst: return "transferDst";
+    case PuleGpuImageLayout_presentSrc: return "presentSrc";
+  }
+}

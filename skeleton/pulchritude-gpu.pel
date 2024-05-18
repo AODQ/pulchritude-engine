@@ -1,0 +1,813 @@
+@entity PuleGpuCommandList;
+@entity PuleGpuCommandListRecorder;
+@struct PuleGpuCommandListSubmitInfo {
+  @field commandList : PuleGpuCommandList;
+  @field waitSemaphoreCount : size_t;
+  @field waitSemaphores : PuleGpuSemaphore const ptr;
+  @field waitSemaphoreStages : PuleGpuPipelineStage const ptr;
+  @field signalSemaphoreCount : size_t #`
+    will create semaphore if id is 0, otherwise will use existing semaphore
+  `;
+  @field signalSemaphores : PuleGpuSemaphore ptr;
+  @field fenceTargetFinish : PuleGpuFence #`
+    at end of command list submission, if this is non-zero, fence will be
+    triggered
+  `;
+};
+
+@enum PuleGpuElementType {
+  PuleGpuElementType_u8;
+  PuleGpuElementType_u16;
+  PuleGpuElementType_u32;
+};
+
+@enum PuleGpuAction {
+  #`
+   some amount of action independent of another, such that one complete amount
+     of work can be made between the GPU and CPU. Such as blits, allocations,
+     initiating a render, etc
+   commands are not unique, and as such are treated as primitives and may not
+     refer to any specific unique index of a queue
+   TODO just rename to GpuCommand_
+`
+  PuleGpuAction_bindPipeline;
+  PuleGpuAction_bindBuffer;
+  PuleGpuAction_bindTexture;
+  PuleGpuAction_resourceBarrier;
+  PuleGpuAction_renderPassBegin;
+  PuleGpuAction_renderPassEnd;
+  PuleGpuAction_bindElementBuffer;
+  PuleGpuAction_bindAttributeBuffer;
+  PuleGpuAction_bindFramebuffer;
+  PuleGpuAction_clearImageColor;
+  PuleGpuAction_clearImageDepth;
+  PuleGpuAction_dispatchRender;
+  PuleGpuAction_dispatchRenderElements;
+  PuleGpuAction_dispatchRenderIndirect;
+  PuleGpuAction_pushConstants;
+  PuleGpuAction_dispatchCommandList;
+  PuleGpuAction_setScissor;
+  PuleGpuAction_copyImageToImage;
+};
+
+@fn puleGpuActionToString(action : PuleGpuAction) PuleStringView;
+
+@struct PuleGpuActionBindPipeline {
+  @field action : PuleGpuAction = PuleGpuAction_bindPipeline;
+  @field pipeline : PuleGpuPipeline;
+};
+
+@struct PuleGpuActionBindBuffer {
+  @field action : PuleGpuAction = PuleGpuAction_bindBuffer;
+  @field bindingDescriptor : PuleGpuBufferBindingDescriptor;
+  @field bindingIndex : size_t;
+  @field buffer : PuleGpuBuffer;
+  @field offset : size_t;
+  @field byteLen : size_t;
+};
+
+@struct PuleGpuActionBindTexture {
+  @field action : PuleGpuAction = PuleGpuAction_bindTexture;
+  @field bindingIndex : size_t;
+  @field imageView : PuleGpuImageView;
+  @field imageLayout : PuleGpuImageLayout;
+};
+
+@enum PuleGpuResourceBarrierStage {
+  PuleGpuResourceBarrierStage_top                   = 0x0001;
+  PuleGpuResourceBarrierStage_drawIndirect          = 0x0002;
+  PuleGpuResourceBarrierStage_vertexInput           = 0x0004;
+  PuleGpuResourceBarrierStage_shaderFragment        = 0x0008;
+  PuleGpuResourceBarrierStage_shaderVertex          = 0x0010;
+  PuleGpuResourceBarrierStage_shaderCompute         = 0x0020;
+  PuleGpuResourceBarrierStage_outputAttachmentColor = 0x0040;
+  PuleGpuResourceBarrierStage_outputAttachmentDepth = 0x0080;
+  PuleGpuResourceBarrierStage_transfer              = 0x0100;
+  PuleGpuResourceBarrierStage_bottom                = 0x0200;
+};
+
+@enum PuleGpuResourceAccess {
+  PuleGpuResourceAccess_none                 = 0x00000000;
+  PuleGpuResourceAccess_indirectCommandRead  = 0x00000001;
+  PuleGpuResourceAccess_indexRead            = 0x00000002;
+  PuleGpuResourceAccess_vertexAttributeRead  = 0x00000004;
+  PuleGpuResourceAccess_uniformRead          = 0x00000008;
+  PuleGpuResourceAccess_inputAttachmentRead  = 0x00000010;
+  PuleGpuResourceAccess_shaderRead           = 0x00000020;
+  PuleGpuResourceAccess_shaderWrite          = 0x00000040;
+  PuleGpuResourceAccess_attachmentColorRead  = 0x00000080;
+  PuleGpuResourceAccess_attachmentColorWrite = 0x00000100;
+  PuleGpuResourceAccess_attachmentDepthRead  = 0x00000200;
+  PuleGpuResourceAccess_attachmentDepthWrite = 0x00000400;
+  PuleGpuResourceAccess_transferRead         = 0x00000800;
+  PuleGpuResourceAccess_transferWrite        = 0x00001000;
+  PuleGpuResourceAccess_hostRead             = 0x00002000;
+  PuleGpuResourceAccess_hostWrite            = 0x00004000;
+  PuleGpuResourceAccess_memoryRead           = 0x00008000;
+  PuleGpuResourceAccess_memoryWrite          = 0x00010000;
+};
+
+@struct PuleGpuResourceBarrierImage {
+  @field image : PuleGpuImage;
+  @field accessSrc : PuleGpuResourceAccess;
+  @field accessDst : PuleGpuResourceAccess;
+  @field layoutSrc : PuleGpuImageLayout;
+  @field layoutDst : PuleGpuImageLayout;
+  @field isDepthStencil : bool;
+};
+
+@struct PuleGpuResourceBarrierBuffer {
+  @field buffer : PuleGpuBuffer;
+  @field accessSrc : PuleGpuResourceAccess;
+  @field accessDst : PuleGpuResourceAccess;
+  @field byteOffset : size_t;
+  @field byteLength : size_t;
+};
+
+@struct PuleGpuActionResourceBarrier {
+  @field action : PuleGpuAction = PuleGpuAction_resourceBarrier;
+  @field stageSrc : PuleGpuResourceBarrierStage;
+  @field stageDst : PuleGpuResourceBarrierStage;
+  @field resourceImageCount : size_t;
+  @field resourceImages : PuleGpuResourceBarrierImage const ptr;
+  @field resourceBufferCount : size_t;
+  @field resourceBuffers : PuleGpuResourceBarrierBuffer const ptr;
+};
+
+@struct PuleGpuActionRenderPassBegin {
+  @field action : PuleGpuAction = PuleGpuAction_renderPassBegin;
+  @field viewportMin : PuleI32v2;
+  @field viewportMax : PuleI32v2;
+  @field attachmentColor : PuleGpuImageAttachment @arr[8];
+  @field attachmentColorCount : size_t;
+  @field attachmentDepth : PuleGpuImageAttachment;
+};
+
+@struct PuleGpuActionRenderPassEnd {
+  @field action : PuleGpuAction = PuleGpuAction_renderPassEnd;
+};
+
+@struct PuleGpuActionBindElementBuffer {
+  @field action : PuleGpuAction = PuleGpuAction_bindElementBuffer;
+  @field buffer : PuleGpuBuffer;
+  @field offset : size_t;
+  @field elementType : PuleGpuElementType;
+};
+
+@struct PuleGpuActionBindAttributeBuffer {
+  @field action : PuleGpuAction = PuleGpuAction_bindAttributeBuffer;
+  @field bindingIndex : size_t;
+  @field buffer : PuleGpuBuffer;
+  @field offset : size_t;
+  @field stride : size_t #`
+    this can be 0 to defer to pipeline's default stride at this indx
+  `;
+};
+
+@struct PuleGpuActionBindFramebuffer {
+  @field action : PuleGpuAction = PuleGpuAction_bindFramebuffer;
+  @field framebuffer : PuleGpuFramebuffer;
+};
+
+@struct PuleGpuActionDispatchRender {
+  @field action : PuleGpuAction = PuleGpuAction_dispatchRender;
+  @field vertexOffset : size_t;
+  @field numVertices : size_t;
+};
+
+@struct PuleGpuActionDispatchRenderIndirect {
+  @field action : PuleGpuAction = PuleGpuAction_dispatchRenderIndirect;
+  @field bufferIndirect : PuleGpuBuffer;
+  @field byteOffset : size_t;
+};
+
+@struct PuleGpuActionDispatchRenderElements {
+  @field action : PuleGpuAction = PuleGpuAction_dispatchRenderElements;
+  @field numElements : size_t;
+  @field elementOffset : size_t #` can be 0 `;
+  @field baseVertexOffset : size_t #` can be 0 `;
+};
+
+@struct PuleGpuActionClearImageColor {
+  @field action : PuleGpuAction = PuleGpuAction_clearImageColor;
+  @field image : PuleGpuImage;
+  @field color : PuleF32v4;
+};
+
+@struct PuleGpuActionClearImageDepth {
+  @field action : PuleGpuAction = PuleGpuAction_clearImageDepth;
+  @field image : PuleGpuImage;
+  @field depth : float;
+};
+
+@union PuleGpuConstantValue {
+   #` TODO deprecate this in favor of shader introspection `
+  @field constantF32 : float;
+  @field constantF32v2 : PuleF32v2;
+  @field constantF32v3 : PuleF32v3;
+  @field constantF32v4 : PuleF32v4;
+  @field constantI32 : int32_t;
+  @field constantI32v2 : PuleI32v2;
+  @field constantI32v3 : PuleI32v3;
+  @field constantI32v4 : PuleI32v4;
+  @field constantF32m44 : PuleF32m44;
+};
+
+@enum PuleGpuConstantTypeTag {
+  #` TODO deprecate this in favor of shader introspection `
+  PuleGpuConstantTypeTag_f32;
+  PuleGpuConstantTypeTag_f32v2;
+  PuleGpuConstantTypeTag_f32v3;
+  PuleGpuConstantTypeTag_f32v4;
+  PuleGpuConstantTypeTag_i32;
+  PuleGpuConstantTypeTag_i32v2;
+  PuleGpuConstantTypeTag_i32v3;
+  PuleGpuConstantTypeTag_i32v4;
+  PuleGpuConstantTypeTag_f32m44;
+};
+
+@struct PuleGpuConstant {
+  @field value : PuleGpuConstantValue;
+  @field typeTag : PuleGpuConstantTypeTag;
+  @field bindingSlot : uint32_t;
+};
+
+@struct PuleGpuActionPushConstants {
+  @field action : PuleGpuAction = PuleGpuAction_pushConstants;
+  @field stage : PuleGpuDescriptorStage;
+  @field byteLength : size_t;
+  @field byteOffset : size_t;
+  @field data : void const ptr;
+};
+
+@struct PuleGpuActionDispatchCommandList {
+  @field action : PuleGpuAction = PuleGpuAction_dispatchCommandList;
+  @field submitInfo : PuleGpuCommandListSubmitInfo #` TODO remove this `;
+};
+
+@struct PuleGpuActionSetScissor {
+  @field action : PuleGpuAction = PuleGpuAction_setScissor;
+  @field scissorMin : PuleI32v2;
+  @field scissorMax : PuleI32v2;
+};
+
+@struct PuleGpuActionCopyImageToImage {
+  @field action : PuleGpuAction = PuleGpuAction_copyImageToImage;
+  @field srcImage : PuleGpuImage;
+  @field dstImage : PuleGpuImage;
+  @field srcOffset : PuleU32v3 #` TODO = PuleU32v3{0, 0, 0} `;
+  @field dstOffset : PuleU32v3 #` TODO = PuleU32v3{0, 0, 0} `;
+  @field extent : PuleU32v3 #` TODO = PuleU32v3{1, 1, 1} `;
+  @field isSrcDepthStencil : bool;
+  @field isDstDepthStencil : bool;
+};
+
+@union PuleGpuCommand {
+  @field action : PuleGpuAction;
+  @field bindPipeline : PuleGpuActionBindPipeline;
+  @field bindFramebuffer : PuleGpuActionBindFramebuffer;
+  @field bindBuffer : PuleGpuActionBindBuffer;
+  @field bindTexture : PuleGpuActionBindTexture;
+  @field renderPassBegin : PuleGpuActionRenderPassBegin;
+  @field resourceBarrier : PuleGpuActionResourceBarrier;
+  @field renderPassEnd : PuleGpuActionRenderPassEnd;
+  @field bindElementBuffer : PuleGpuActionBindElementBuffer;
+  @field bindAttributeBuffer : PuleGpuActionBindAttributeBuffer;
+  @field clearImageColor : PuleGpuActionClearImageColor;
+  @field clearImageDepth : PuleGpuActionClearImageDepth;
+  @field dispatchRender : PuleGpuActionDispatchRender;
+  @field dispatchRenderIndirect : PuleGpuActionDispatchRenderIndirect;
+  @field dispatchRenderElements : PuleGpuActionDispatchRenderElements;
+  @field pushConstants : PuleGpuActionPushConstants;
+  @field dispatchCommandList : PuleGpuActionDispatchCommandList;
+  @field setScissor : PuleGpuActionSetScissor;
+  @field copyImageToImage : PuleGpuActionCopyImageToImage;
+};
+
+@fn puleGpuCommandListCreate(
+  allocator : PuleAllocator,
+  label : PuleStringView
+) PuleGpuCommandList;
+@fn puleGpuCommandListDestroy(
+  commandList : PuleGpuCommandList
+) void;
+@fn puleGpuCommandListName(
+  commandList : PuleGpuCommandList
+) PuleStringView;
+
+@fn puleGpuCommandListRecorder(
+  commandList : PuleGpuCommandList
+) PuleGpuCommandListRecorder;
+@fn puleGpuCommandListRecorderFinish(
+  commandListRecorder : PuleGpuCommandListRecorder
+) void;
+
+@fn puleGpuCommandListAppendAction(
+  commandListRecorder : PuleGpuCommandListRecorder,
+  action : PuleGpuCommand
+) void;
+
+@fn puleGpuCommandListSubmit(
+  info : PuleGpuCommandListSubmitInfo,
+  error : PuleError ptr
+) void;
+
+@fn puleGpuCommandListSubmitAndPresent(
+  info : PuleGpuCommandListSubmitInfo,
+  error : PuleError ptr
+) void;
+
+@fn puleGpuCommandListDump(commandList : PuleGpuCommandList) void;
+
+@entity PuleGpuCommandListChain #`
+  utility to allow recording to a command list while it is being submitted,
+  which occurs if double or triple buffering for present is enabled It's an
+  implementation detail if command lists are reused or destroyed
+`;
+
+@fn puleGpuCommandListChainCreate(
+  allocator : PuleAllocator,
+  label : PuleStringView
+) PuleGpuCommandListChain;
+@fn puleGpuCommandListChainDestroy(
+  commandListChain : PuleGpuCommandListChain
+) void;
+
+@fn puleGpuCommandListChainCurrent(
+  commandListChain : PuleGpuCommandListChain
+) PuleGpuCommandList;
+
+@fn puleGpuCommandListChainCurrentFence(
+  commandListChain : PuleGpuCommandListChain
+) PuleGpuFence #`
+  when submitting command list, be sure to set 'fenceTargetFinish' to this
+`;
+
+@fn puleGpuResourceBarrierStageLabel(
+  stage : PuleGpuResourceBarrierStage
+) PuleString;
+@fn puleGpuResourceAccessLabel(
+  access : PuleGpuResourceAccess
+) PuleString;
+
+@enum PuleErrorGfx {
+  PuleErrorGfx_none;
+  PuleErrorGfx_creationFailed;
+  PuleErrorGfx_shaderModuleCompilationFailed;
+  PuleErrorGfx_invalidDescriptorSet;
+  PuleErrorGfx_invalidCommandList;
+  PuleErrorGfx_invalidFramebuffer;
+  PuleErrorGfx_submissionFenceWaitFailed;
+};
+
+@entity PuleGpuBuffer;
+
+@struct PuleGpuDrawIndirectArrays {
+  @field vertexCount : uint32_t;
+  @field instanceCount : uint32_t;
+  @field vertexOffset : uint32_t;
+  @field instanceOffset : uint32_t;
+};
+
+@enum PuleGpuBufferUsage {
+  PuleGpuBufferUsage_attribute = 0x1;
+  PuleGpuBufferUsage_element = 0x2;
+  PuleGpuBufferUsage_uniform = 0x4;
+  PuleGpuBufferUsage_storage = 0x8;
+  PuleGpuBufferUsage_accelerationStructure = 0x10;
+  PuleGpuBufferUsage_indirect = 0x20;
+};
+
+@enum PuleGpuBufferBindingDescriptor {
+  PuleGpuBufferBindingDescriptor_uniform;
+  PuleGpuBufferBindingDescriptor_storage;
+  PuleGpuBufferBindingDescriptor_accelerationStructure;
+};
+
+@enum PuleGpuBufferVisibilityFlag {
+  PuleGpuBufferVisibilityFlag_deviceOnly = 0x1 #` incompatible with rest `;
+  PuleGpuBufferVisibilityFlag_hostVisible = 0x2;
+  PuleGpuBufferVisibilityFlag_hostWritable = 0x4;
+};
+
+@fn puleGpuBufferCreate(
+  name : PuleStringView,
+  optionalInitialData : void const ptr,
+  byteLength : size_t,
+  usage : PuleGpuBufferUsage,
+  visibility : PuleGpuBufferVisibilityFlag
+) PuleGpuBuffer;
+@fn puleGpuBufferDestroy(buffer : PuleGpuBuffer);
+
+@enum PuleGpuBufferMapAccess {
+  PuleGpuBufferMapAccess_hostVisible = 0x1;
+  PuleGpuBufferMapAccess_hostWritable = 0x2;
+  PuleGpuBufferMapAccess_invalidate = 0x4;
+};
+
+@struct PuleGpuBufferMapRange {
+  @field buffer : PuleGpuBuffer;
+  @field access : PuleGpuBufferMapAccess;
+  @field byteOffset : size_t;
+  @field byteLength : size_t;
+};
+
+@struct PuleGpuBufferMappedFlushRange {
+  @field buffer : PuleGpuBuffer;
+  @field byteOffset : size_t;
+  @field byteLength : size_t;
+};
+
+@fn puleGpuBufferMap(range : PuleGpuBufferMapRange ptr);
+@fn puleGpuBufferMappedFlush(
+  range : PuleGpuBufferMappedFlushRange
+);
+@fn puleGpuBufferUnmap(buffer : PuleGpuBuffer);
+
+@fn puleGpuInitialize(
+  platform : PulePlatform,
+  error : PuleError ptr
+);
+@fn puleGpuShutdown();
+
+@fn puleGpuDebugPrint() #`
+  prints all debug information
+  TODO this should just stream out or something maybe serialize
+`;
+
+@fn puleGpuBufferUsageLabel(
+  usage : PuleGpuBufferUsage
+) PuleStringView;
+
+@enum PuleGpuImageMagnification {
+  PuleGpuImageMagnification_nearest;
+};
+
+@enum PuleGpuImageWrap {
+  PuleGpuImageWrap_clampToEdge;
+};
+
+@entity PuleGpuSampler;
+
+@struct PuleGpuSamplerCreateInfo {
+  @field minify : PuleGpuImageMagnification;
+  @field magnify : PuleGpuImageMagnification;
+  @field wrapU : PuleGpuImageWrap;
+  @field wrapV : PuleGpuImageWrap;
+  @field wrapW : PuleGpuImageWrap #` only valid on 3D targets `;
+};
+
+@fn puleGpuSamplerCreate(
+  createInfo : PuleGpuSamplerCreateInfo
+) PuleGpuSampler;
+@fn puleGpuSamplerDestroy(
+  sampler : PuleGpuSampler
+);
+
+@entity PuleGpuImage;
+
+@enum PuleGpuImageByteFormat {
+  PuleGpuImageByteFormat_undefined;
+  PuleGpuImageByteFormat_bgra8U;
+  PuleGpuImageByteFormat_rgba8U;
+  PuleGpuImageByteFormat_rgb8U;
+  PuleGpuImageByteFormat_r8U;
+  PuleGpuImageByteFormat_depth16;
+};
+
+@enum PuleGpuImageTarget {
+  PuleGpuImageTarget_i2D;
+};
+
+@struct PuleGpuImageCreateInfo {
+  @field width : uint32_t;
+  @field height : uint32_t;
+  @field target : PuleGpuImageTarget;
+  @field byteFormat : PuleGpuImageByteFormat;
+  @field sampler : PuleGpuSampler #` this should technically be changable `;
+  @field label : PuleStringView;
+  @field optionalInitialData : void const ptr;
+};
+
+@fn puleGpuImageLabel(image : PuleGpuImage) PuleStringView;
+
+@fn puleGpuImageDestroy(image : PuleGpuImage);
+
+@fn puleGpuImageCreate(
+  imageCreateInfo : PuleGpuImageCreateInfo
+) PuleGpuImage;
+
+@struct PuleGpuFramebuffer {
+  @field id : uint64_t;
+};
+
+@enum PuleGpuFramebufferAttachment {
+  PuleGpuFramebufferAttachment_color0;
+  PuleGpuFramebufferAttachment_color1;
+  PuleGpuFramebufferAttachment_color3;
+  PuleGpuFramebufferAttachment_color4;
+  PuleGpuFramebufferAttachment_depth;
+  PuleGpuFramebufferAttachment_stencil;
+  PuleGpuFramebufferAttachment_depthStencil;
+};
+
+@enum PuleGpuFramebufferType {
+  PuleGpuFramebufferType_renderStorage;
+  PuleGpuFramebufferType_imageStorage;
+};
+
+@entity PuleGpuRenderStorage;
+
+@struct PuleGpuFramebufferImageAttachment {
+  @field image : PuleGpuImage;
+  @field mipmapLevel : uint32_t = 0;
+};
+
+@union PuleGpuFramebufferAttachments {
+  @field images : PuleGpuFramebufferImageAttachment @arr[8];
+  @field renderStorages : PuleGpuRenderStorage  @arr[8];
+};
+
+@struct PuleGpuFramebufferCreateInfo {
+  @field attachment : PuleGpuFramebufferAttachments;
+  @field attachmentType : PuleGpuFramebufferType;
+};
+
+@fn puleGpuFramebufferCreateInfo() PuleGpuFramebufferCreateInfo;
+
+@fn puleGpuFramebufferCreate(
+  framebufferCreateInfo : PuleGpuFramebufferCreateInfo,
+  error : PuleError ptr
+) PuleGpuFramebuffer;
+@fn puleGpuFramebufferDestroy(
+  framebuffer : PuleGpuFramebuffer
+);
+@fn puleGpuFramebufferAttachments(
+  framebuffer : PuleGpuFramebuffer
+) PuleGpuFramebufferAttachments;
+
+@enum PuleGpuImageAttachmentOpLoad {
+  PuleGpuImageAttachmentOpLoad_load;
+  PuleGpuImageAttachmentOpLoad_clear;
+  PuleGpuImageAttachmentOpLoad_dontCare;
+};
+
+@enum PuleGpuImageAttachmentOpStore {
+  PuleGpuImageAttachmentOpStore_store;
+  PuleGpuImageAttachmentOpStore_dontCare;
+};
+
+@enum PuleGpuImageLayout {
+  PuleGpuImageLayout_uninitialized;
+  PuleGpuImageLayout_storage;
+  PuleGpuImageLayout_attachmentColor;
+  PuleGpuImageLayout_attachmentDepth;
+  PuleGpuImageLayout_transferSrc;
+  PuleGpuImageLayout_transferDst;
+  PuleGpuImageLayout_presentSrc;
+};
+
+@struct PuleGpuImageView {
+  @field image : PuleGpuImage;
+  @field mipmapLevelStart : size_t;
+  @field mipmapLevelCount : size_t;
+  @field arrayLayerStart : size_t;
+  @field arrayLayerCount : size_t;
+  @field byteFormat : PuleGpuImageByteFormat;
+};
+
+@union PuleGpuImageAttachmentClear {
+  @field color : PuleF32v4;
+  @field clearDepth : float;
+};
+
+@struct PuleGpuImageAttachment {
+  @field opLoad : PuleGpuImageAttachmentOpLoad;
+  @field opStore : PuleGpuImageAttachmentOpStore;
+  @field layout : PuleGpuImageLayout;
+  @field clear : PuleGpuImageAttachmentClear;
+  @field imageView : PuleGpuImageView;
+};
+
+@fn puleGpuImageLayoutLabel(
+  layout : PuleGpuImageLayout
+) PuleStringView;
+
+@enum PuleGpuPipelineStage {
+  PuleGpuPipelineStage_top = 0x01;
+  PuleGpuPipelineStage_drawIndirect = 0x02;
+  PuleGpuPipelineStage_vertexInput = 0x04;
+  PuleGpuPipelineStage_vertexShader = 0x08;
+  PuleGpuPipelineStage_fragmentShader = 0x10;
+  PuleGpuPipelineStage_colorAttachmentOutput = 0x20;
+  PuleGpuPipelineStage_computeShader = 0x40;
+  PuleGpuPipelineStage_transfer = 0x80;
+  PuleGpuPipelineStage_bottom = 0x100;
+};
+
+@enum PuleGpuDescriptorType {
+  PuleGpuDescriptorType_sampler;
+  PuleGpuDescriptorType_uniformBuffer;
+  PuleGpuDescriptorType_storageBuffer #` not supported `;
+};
+
+@enum PuleGpuAttributeDataType {
+  PuleGpuAttributeDataType_float;
+  PuleGpuAttributeDataType_unsignedByte;
+};
+
+@struct PuleGpuPipelineAttributeDescriptorBinding {
+  @field dataType : PuleGpuAttributeDataType;
+  @field bufferIndex : size_t;
+  @field numComponents : size_t;
+  @field convertFixedDataTypeToNormalizedFloating : bool;
+  @field offsetIntoBuffer : size_t;
+};
+
+@struct PuleGpuPipelineAttributeBufferDescriptorBinding {
+  #` TODO input rate `
+  @field stridePerElement : size_t #` must be non-zeo `;
+};
+
+
+@enum PuleGpuPipelineDescriptorMax {
+  puleGpuPipelineDescriptorMax_uniform = 16;
+  puleGpuPipelineDescriptorMax_storage = 16;
+  puleGpuPipelineDescriptorMax_attribute = 16;
+  puleGpuPipelineDescriptorMax_texture = 8;
+};
+
+@enum PuleGpuDescriptorStage {
+  PuleGpuDescriptorStage_unused = 0x0;
+  PuleGpuDescriptorStage_vertex = 0x1;
+  PuleGpuDescriptorStage_fragment = 0x2;
+};
+
+@struct PuleGpuPipelineLayoutDescriptorSet {
+  #`
+  here are some known & fixable limitations with the current model:
+    - can't reference the same buffer in separate elements
+    - can't reference relative offset strides (related to above)
+    - of course, maximum 16 attributes (I think this is fine though)
+`
+  @field bufferUniformBindings : PuleGpuDescriptorStage @arr[
+    puleGpuPipelineDescriptorMax_uniform
+  ] #`
+     TODO change 'uniform' to just 'smallStorage' in this context
+     !!!!!!!!!!!!!!
+     TODO.... DONT BIND BUFFERS HERE!!!!!!!
+     Need to just bind what stages they will be used!!!
+     !!!!!!!!!!!!!!
+  `;
+  @field bufferStorageBindings : PuleGpuDescriptorStage @arr[16] #`
+    TODO use range
+  `;
+  @field attributeBindings : PuleGpuPipelineAttributeDescriptorBinding @arr[16];
+  @field attributeBufferBindings :
+    PuleGpuPipelineAttributeBufferDescriptorBinding @arr[16];
+  @field textureBindings : PuleGpuDescriptorStage @arr[8];
+};
+
+@fn puleGpuPipelineDescriptorSetLayout() PuleGpuPipelineLayoutDescriptorSet;
+
+@struct PuleGpuPipelineLayoutPushConstant {
+  @field stage : PuleGpuDescriptorStage;
+  @field byteLength : size_t;
+  @field byteOffset : size_t;
+};
+
+@enum PuleGpuDrawPrimitive {
+  PuleGpuDrawPrimitive_triangle;
+  PuleGpuDrawPrimitive_triangleStrip;
+  PuleGpuDrawPrimitive_point;
+  PuleGpuDrawPrimitive_line;
+};
+
+@struct PuleGpuPipelineConfig {
+  #`
+  TODO viewport/scissor like this shouldn't be in a viewport
+  `
+  @field depthTestEnabled : bool;
+  @field blendEnabled : bool;
+  @field scissorTestEnabled : bool;
+  @field viewportMin : PuleI32v2 #` = 0,0 `;
+  @field viewportMax : PuleI32v2 #` = 1, 1 `;
+  @field scissorMin : PuleI32v2 #` = 0, 0 `;
+  @field scissorMax : PuleI32v2 #` = 1, 1 `;
+  @field drawPrimitive : PuleGpuDrawPrimitive;
+
+  @field colorAttachmentCount : size_t;
+  @field colorAttachmentFormats : PuleGpuImageByteFormat @arr[8];
+  @field depthAttachmentFormat : PuleGpuImageByteFormat;
+};
+
+@struct PuleGpuPipelineCreateInfo {
+  @field shaderModule : PuleGpuShaderModule;
+  @field layoutDescriptorSet : PuleGpuPipelineLayoutDescriptorSet;
+  @field layoutPushConstants : PuleGpuPipelineLayoutPushConstant const ptr;
+  @field layoutPushConstantsCount : size_t;
+  @field config : PuleGpuPipelineConfig;
+};
+
+@entity PuleGpuPipeline;
+
+@fn puleGpuPipelineCreate(
+  createInfo : PuleGpuPipelineCreateInfo,
+  error : PuleError ptr
+) PuleGpuPipeline;
+
+@fn puleGpuPipelineDestroy(pipeline : PuleGpuPipeline);
+
+@entity PuleGpuImageChain;
+
+@fn puleGpuImageChain_create(
+  allocator : PuleAllocator,
+  label : PuleStringView,
+  createInfo : PuleGpuImageCreateInfo
+) PuleGpuImageChain;
+@fn puleGpuImageChain_destroy(
+  imageChain : PuleGpuImageChain
+);
+
+@fn puleGpuImageChain_current(
+  imageChain : PuleGpuImageChain
+) PuleGpuImage;
+
+@entity PuleGpuImageReference #`
+   allows you to reference images, even if they're behind a chain, and track
+   their lifetimes (e.g. if they get reconstructed)
+`;
+
+@fn puleGpuImageReference_createImageChain(
+   imageChain : PuleGpuImageChain
+) PuleGpuImageReference;
+@fn puleGpuImageReference_createImage(
+  image : PuleGpuImage
+) PuleGpuImageReference;
+
+@fn puleGpuImageReference_updateImageChain(
+  baseImageChain : PuleGpuImageChain,
+  newImageChain : PuleGpuImageChain
+);
+
+@fn puleGpuImageReference_updateImage(
+  baseImage : PuleGpuImage,
+  newImage : PuleGpuImage
+);
+
+@fn puleGpuImageReference_destroy(
+  reference : PuleGpuImageReference
+);
+
+@fn puleGpuImageReference_image(
+  reference : PuleGpuImageReference
+) PuleGpuImage;
+
+@fn puleGpuWindowSwapchainImage() PuleGpuImage;
+@fn puleGpuWindowSwapchainImageReference() PuleGpuImageReference;
+
+@entity PuleGpuShaderModule;
+
+@fn puleGpuShaderModuleCreate(
+  vertexShaderBytecode : PuleBufferView,
+  fragmentShaderBytecode : PuleBufferView,
+  error : PuleError ptr
+) PuleGpuShaderModule;
+@fn puleGpuShaderModuleDestroy(
+  shaderModule : PuleGpuShaderModule
+);
+
+@entity PuleGpuSemaphore;
+
+@fn puleGpuSemaphoreCreate(
+  label : PuleStringView
+) PuleGpuSemaphore;
+@fn puleGpuSemaphoreDestroy(semaphore : PuleGpuSemaphore);
+
+@entity PuleGpuFence;
+
+@enum PuleGpuFenceConditionFlag {
+  PuleGpuFenceConditionFlag_all;
+};
+
+@enum PuleGpuSignalTime {
+  PuleGpuSignalTime_forever = 2000000000;
+};
+
+@fn puleGpuFenceCreate(label : PuleStringView) PuleGpuFence;
+@fn puleGpuFenceDestroy(fence : PuleGpuFence);
+@fn puleGpuFenceWaitSignal(
+  fence : PuleGpuFence,
+  timeout : PuleNanosecond
+) bool;
+@fn puleGpuFenceReset(fence : PuleGpuFence);
+
+@fn puleGpuFrameStart() PuleGpuSemaphore;
+
+@fn puleGpuSwapchainAvailableSemaphore() PuleGpuSemaphore #`
+ same value returned from puleGpuFrameStart
+`;
+@fn puleGpuFrameEnd(
+  waitSemaphoreCount : size_t,
+  waitSemaphores : PuleGpuSemaphore ptr const
+) #`call before pulePlatformSwapFramebuffer`;

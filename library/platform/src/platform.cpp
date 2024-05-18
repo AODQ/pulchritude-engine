@@ -7,6 +7,9 @@
 
 #include <vector>
 
+// TODO assign this to window
+static int32_t mouseWheel;
+
 extern "C" {
 
 static void inputKeyCallback(
@@ -25,7 +28,7 @@ static void scrollCallback(
 ) {
   (void)window; (void)xoffset; (void) yoffset;
   // need to find a way to reset to 0 at end/begin of frame
-  /* mouseWheel += static_cast<int32_t>(yoffset); */
+  mouseWheel += static_cast<int32_t>(yoffset);
 }
 
 void pulePlatformInitialize(PuleError * const error) {
@@ -134,6 +137,7 @@ bool pulePlatformShouldExit(PulePlatform const platform) {
 }
 
 void pulePlatformPollEvents([[maybe_unused]] PulePlatform const platform) {
+  mouseWheel = 0;
   glfwPollEvents();
 }
 
@@ -500,9 +504,6 @@ PuleInputMouse mouseKeyToPule(int32_t const key) {
   }
 }
 
-// TODO assign this to window
-static int32_t mouseWheel;
-
 } // namespace
 
 extern "C" {
@@ -546,7 +547,7 @@ bool puleInputMouse(PulePlatform const platform, PuleInputMouse const key) {
 
 int32_t puleInputScroll(PulePlatform const platform) {
   (void)platform;
-  return ::mouseWheel;
+  return -::mouseWheel;
 }
 
 } // extern C

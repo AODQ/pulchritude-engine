@@ -1,0 +1,6 @@
+@fn puleAssetScriptTaskGraphFromPds(
+  allocator : PuleAllocator,
+  scriptContext : PuleScriptContext,
+  taskGraphValue : PuleDsValue,
+  assetPath : PuleStringView
+) PuleTaskGraph;

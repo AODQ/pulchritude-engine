@@ -164,18 +164,18 @@ endif()
 #  message(FATAL_ERROR "could not generate zig bindings")
 #endif()
 #
-execute_process(
-  COMMAND
-    python3
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
-    "--input"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-   "--output"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua"
-    "--source"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-  RESULT_VARIABLE processFinished
-)
+#execute_process(
+#  COMMAND
+#    python3
+#    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
+#    "--input"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
+#   "--output"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua"
+#    "--source"
+#    "${CMAKE_CURRENT_SOURCE_DIR}"
+#  RESULT_VARIABLE processFinished
+#)
 if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not generate lua bindings")
 endif()

@@ -15,52 +15,6 @@
 namespace { // sampler
   std::unordered_map<uint64_t, PuleGpuSamplerCreateInfo> samplers;
   uint64_t samplersIt = 1;
-
-#if 0
-  GLenum imageMagnificationToGl(PuleGpuImageMagnification const magnify) {
-    switch (magnify) {
-      default:
-        puleLogError("unknown image magnification: %d", magnify);
-        return GL_NEAREST;
-      case PuleGpuImageMagnification_nearest:
-        return GL_NEAREST;
-    }
-  }
-
-  GLenum imageWrapToGl(PuleGpuImageWrap const wrap) {
-    switch (wrap) {
-      default:
-        puleLogError("unknown image wrap: %d", wrap);
-        return GL_CLAMP_TO_EDGE;
-      case PuleGpuImageWrap_clampToEdge:
-        return GL_CLAMP_TO_EDGE;
-    }
-  }
-
-  void applySampler(GLuint const textureHandle, PuleGpuSampler const sampler) {
-    PuleGpuSamplerCreateInfo const & samplerInfo = samplers.at(sampler.id);
-    glTextureParameteri(
-      textureHandle,
-      GL_TEXTURE_MAG_FILTER,
-      imageMagnificationToGl(samplerInfo.magnify)
-    );
-    glTextureParameteri(
-      textureHandle,
-      GL_TEXTURE_MIN_FILTER,
-      imageMagnificationToGl(samplerInfo.minify)
-    );
-    glTextureParameteri(
-      textureHandle,
-      GL_TEXTURE_WRAP_S,
-      imageWrapToGl(samplerInfo.wrapU)
-    );
-    glTextureParameteri(
-      textureHandle,
-      GL_TEXTURE_WRAP_T,
-      imageWrapToGl(samplerInfo.wrapV)
-    );
-  }
-#endif
 }
 
 extern "C" { // sampler
@@ -84,61 +38,6 @@ void puleGpuSamplerDestroy(
 }
 
 } // C
-
-#if 0
-namespace { // image
-  GLenum byteFormatToGlInternalFormat(PuleGpuImageByteFormat const byteFormat) {
-    switch (byteFormat) {
-      default:
-        puleLogError("unknown byte format: %d", byteFormat);
-        return GL_RGBA8;
-      case PuleGpuImageByteFormat_rgba8U: return GL_RGBA8;
-      case PuleGpuImageByteFormat_rgb8U: return GL_RGB8;
-      case PuleGpuImageByteFormat_r8U: return GL_R8;
-      case PuleGpuImageByteFormat_depth16: return GL_DEPTH_COMPONENT16;
-    }
-  }
-
-  GLenum byteFormatToGlFormat(PuleGpuImageByteFormat const byteFormat) {
-    switch (byteFormat) {
-      default:
-        puleLogError("unknown byte format: %d", byteFormat);
-        return GL_RGBA;
-      case PuleGpuImageByteFormat_rgba8U:
-        return GL_RGBA;
-      case PuleGpuImageByteFormat_rgb8U:
-        return GL_RGB;
-      case PuleGpuImageByteFormat_r8U:
-        return GL_RED;
-      case PuleGpuImageByteFormat_depth16: return GL_DEPTH_COMPONENT;
-    }
-  }
-
-  GLenum byteFormatToGlType(PuleGpuImageByteFormat const byteFormat) {
-    switch (byteFormat) {
-      default:
-        puleLogError("unknown byte format: %d", byteFormat);
-        return GL_UNSIGNED_BYTE;
-      case PuleGpuImageByteFormat_rgb8U:
-      case PuleGpuImageByteFormat_rgba8U:
-      case PuleGpuImageByteFormat_r8U:
-        return GL_UNSIGNED_BYTE;
-      case PuleGpuImageByteFormat_depth16:
-        return GL_UNSIGNED_SHORT;
-    }
-  }
-
-  GLenum imageTargetToGl(PuleGpuImageTarget const imageTarget) {
-    switch (imageTarget) {
-      default:
-        puleLogError("unknown image target: %d", imageTarget);
-        return GL_TEXTURE_2D;
-      case PuleGpuImageTarget_i2D:
-        return GL_TEXTURE_2D;
-    }
-  }
-}
-#endif
 
 namespace {
 
@@ -182,6 +81,17 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
   if (createInfo.width == 0 || createInfo.height == 0) {
     PULE_assert(false && "image width or height is 0");
   }
+  VkImageUsageFlags usage = 0;
+  if (createInfo.byteFormat == PuleGpuImageByteFormat_depth16) {
+    usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+  } else {
+    usage = (
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+      | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+      | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+      | VK_IMAGE_USAGE_SAMPLED_BIT
+    );
+  }
   auto const imageInfo = VkImageCreateInfo {
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
     .imageType = toVkImageType(createInfo.target),
@@ -195,13 +105,7 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     .arrayLayers = 1, // TODO
     .samples = VK_SAMPLE_COUNT_1_BIT,
     .tiling = VK_IMAGE_TILING_OPTIMAL,
-    .usage = (
-        VK_IMAGE_USAGE_SAMPLED_BIT
-      | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-      | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-      | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-
-     ),
+    .usage = usage,
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 
@@ -264,7 +168,11 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .image = image,
       .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = (
+            createInfo.byteFormat == PuleGpuImageByteFormat_depth16
+          ? VK_IMAGE_ASPECT_DEPTH_BIT
+          : VK_IMAGE_ASPECT_COLOR_BIT
+        ),
         .levelCount = 1,
         .layerCount = 1,
       },
@@ -275,11 +183,11 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
       .pInheritanceInfo = nullptr,
     };
-    PULE_assert(
+    PULE_vkError(
       vkBeginCommandBuffer(
         util::ctx().utilCommandBuffer,
         &beginInfo
-      ) == VK_SUCCESS
+      )
     );
     vkCmdPipelineBarrier(
       util::ctx().utilCommandBuffer,
@@ -293,7 +201,11 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
 
     auto const region = VkBufferImageCopy {
       .imageSubresource {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = (
+            createInfo.byteFormat == PuleGpuImageByteFormat_depth16
+          ? VK_IMAGE_ASPECT_DEPTH_BIT
+          : VK_IMAGE_ASPECT_COLOR_BIT
+        ),
         .layerCount = 1,
       },
       .imageExtent = {
@@ -320,7 +232,11 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .image = image,
       .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = (
+            createInfo.byteFormat == PuleGpuImageByteFormat_depth16
+          ? VK_IMAGE_ASPECT_DEPTH_BIT
+          : VK_IMAGE_ASPECT_COLOR_BIT
+        ),
         .levelCount = 1,
         .layerCount = 1,
       },
@@ -344,11 +260,11 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
       .pCommandBuffers = &util::ctx().utilCommandBuffer,
       .signalSemaphoreCount = 0, .pSignalSemaphores = nullptr,
     };
-    PULE_assert(
+    PULE_vkError(
       vkQueueSubmit(
         util::ctx().defaultQueue,
         1, &stagingSubmitInfo, nullptr
-      ) == VK_SUCCESS
+      )
     );
     // TODO replace with cmd pipeline barrier, or fence or something
     vkDeviceWaitIdle(util::ctx().device.logical);
@@ -402,32 +318,6 @@ PuleStringView puleGpuImageLabel(PuleGpuImage const image) {
 // -- FRAMEBUFFER ---------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-#if 0
-namespace {
-  GLuint framebufferAttachmenToGl(PuleGpuFramebufferAttachment attachment) {
-    switch (attachment) {
-      default:
-        puleLogError("unknown attachment: %d", attachment);
-      [[fallthrough]];
-      case PuleGpuFramebufferAttachment_color0:
-        return GL_COLOR_ATTACHMENT0;
-      case PuleGpuFramebufferAttachment_color1:
-        return GL_COLOR_ATTACHMENT1;
-      case PuleGpuFramebufferAttachment_color3:
-        return GL_COLOR_ATTACHMENT2;
-      case PuleGpuFramebufferAttachment_color4:
-        return GL_COLOR_ATTACHMENT3;
-      case PuleGpuFramebufferAttachment_depth:
-        return GL_DEPTH_ATTACHMENT;
-      case PuleGpuFramebufferAttachment_stencil:
-        return GL_STENCIL_ATTACHMENT;
-      case PuleGpuFramebufferAttachment_depthStencil:
-        return GL_DEPTH_STENCIL_ATTACHMENT;
-    }
-  }
-} // namespace
-#endif
-
 extern "C" {
 PuleGpuFramebufferCreateInfo puleGpuFramebufferCreateInfo() {
   PuleGpuFramebufferCreateInfo info;
@@ -443,47 +333,10 @@ PuleGpuFramebuffer puleGpuFramebufferCreate(
   PuleGpuFramebufferCreateInfo const info,
   PuleError * const error
 ) {
-  #if 0
-  GLuint framebuffer;
-  glCreateFramebuffers(1, &framebuffer);
-
-  for (size_t it = 0; it < PuleGpuFramebufferAttachment_End; ++ it) {
-    if (info.attachment.images[it].image.id == 0) {
-      continue;
-    }
-
-    puleLog("BINDING FRAMEBUFFER %u", it);
-    glNamedFramebufferTexture(
-      framebuffer,
-      framebufferAttachmenToGl(static_cast<PuleGpuFramebufferAttachment>(it)),
-      info.attachment.images[it].image.id,
-      info.attachment.images[it].mipmapLevel
-    );
-  }
-
-  PULE_errorAssert(
-    (
-      glCheckNamedFramebufferStatus(
-        framebuffer, GL_FRAMEBUFFER
-      ) == GL_FRAMEBUFFER_COMPLETE
-    ),
-    PuleErrorGfx_invalidFramebuffer,
-    {0}
-  )
-
-  return { framebuffer };
-  #endif
   return { 0 };
 }
 
 void puleGpuFramebufferDestroy(PuleGpuFramebuffer const framebuffer) {
-  #if 0
-  if (framebuffer.id == 0) { return; }
-  auto const glFramebuffer = static_cast<GLuint>(framebuffer.id);
-  if (glFramebuffer != 0) {
-    glDeleteFramebuffers(1, &glFramebuffer);
-  }
-  #endif
 }
 
 PuleGpuImage puleGpuWindowImage() {

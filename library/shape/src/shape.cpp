@@ -34,3 +34,11 @@ bool puleShapeIntersectRayTriangle(
 
   return true;
 }
+
+bool puleShapeIntersectSphereSphere(
+  PuleF32v3 const sphere0Center, float const sphere0Radius,
+  PuleF32v3 const sphere1Center, float const sphere1Radius
+) {
+  float const dist = puleF32v3Length(puleF32v3Sub(sphere1Center, sphere0Center));
+  return dist < sphere0Radius + sphere1Radius;
+}

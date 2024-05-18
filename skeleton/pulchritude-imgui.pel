@@ -1,0 +1,55 @@
+
+@fn puleImguiInitialize(window : PulePlatform) void;
+@fn puleImguiShutdown() void;
+@fn puleImguiNewFrame() void;
+@fn puleImguiRender(renderGraph : PuleRenderGraph) void;
+
+@fn puleImguiJoinNext() void;
+
+@fn puleImguiSliderF32(
+  label : char const ptr,
+  data : float ptr,
+  min : float, max : float
+) bool;
+
+@fn puleImguiSliderZu(
+  label : char const ptr,
+  data : size_t ptr,
+  min : size_t, max : size_t
+) bool;
+
+@fn puleImguiWindowBegin(labelFormat : char const ptr, openNullable : bool ptr);
+
+@fn puleImguiSectionBegin(label : char const ptr) bool;
+@fn puleImguiSectionEnd() void;
+
+@fn puleImguiText(format : char const ptr, args : __VA_ARGS__) void;
+
+@fn puleImguiImage(
+  image : PuleGpuImage,
+  size : PuleF32v2,
+  uvMin : PuleF32v2, uvMax : PuleF32v2,
+  borderColor : PuleF32v4
+) void;
+
+@fn puleImguiLastItemHovered() bool;
+@fn puleImguiCurrentOrigin() PuleI32v2;
+
+@fn puleImguiToggle(label : char const ptr, data : bool ptr) bool;
+@fn puleImguiButton(label : char const ptr) bool;
+
+@entity PuleImguiCallbackRegistry #`
+usually this isn't necessary, but since everything is so heavily
+module-based, it's easier to register callbacks to display information
+from many different callbacks
+`;
+@struct PuleImguiCallback {
+  @field callback : @fnptr(void);
+};
+@fn puleImguiCallbackRegister(
+  callback : PuleImguiCallback
+) PuleImguiCallbackRegistry;
+@fn puleImguiCallbackUnregister(
+  registry : PuleImguiCallbackRegistry
+) void;
+@fn puleImguiCallbackShowAll() void;

@@ -68,6 +68,7 @@ typedef enum {
   PuleGpuBufferVisibilityFlag_hostWritable = 0x4,
 } PuleGpuBufferVisibilityFlag;
 
+// TODO use struct for param
 PULE_exportFn PuleGpuBuffer puleGpuBufferCreate(
   PuleStringView const name,
   void const * const optionalInitialData, // TODO switch to PuleBufferView

@@ -945,6 +945,11 @@
       ::loadSymbol("puleFileWatchCheckAll", layerName)
     )
   );
+  layer->filesystemWriteString = (
+    reinterpret_cast<decltype(layer->filesystemWriteString)>(
+      ::loadSymbol("puleFilesystemWriteString", layerName)
+    )
+  );
   // gfx-debug
   layer->gfxDebugInitialize = (
     reinterpret_cast<decltype(layer->gfxDebugInitialize)>(
@@ -1115,6 +1120,11 @@
       ::loadSymbol("puleLogError", layerName)
     )
   );
+  layer->logDev = (
+    reinterpret_cast<decltype(layer->logDev)>(
+      ::loadSymbol("puleLogDev", layerName)
+    )
+  );
   layer->logLn = (
     reinterpret_cast<decltype(layer->logLn)>(
       ::loadSymbol("puleLogLn", layerName)
@@ -1271,6 +1281,21 @@
       ::loadSymbol("puleF32v4Dot", layerName)
     )
   );
+  layer->f32m33 = (
+    reinterpret_cast<decltype(layer->f32m33)>(
+      ::loadSymbol("puleF32m33", layerName)
+    )
+  );
+  layer->f32m33Ptr = (
+    reinterpret_cast<decltype(layer->f32m33Ptr)>(
+      ::loadSymbol("puleF32m33Ptr", layerName)
+    )
+  );
+  layer->f32m33PtrTranspose = (
+    reinterpret_cast<decltype(layer->f32m33PtrTranspose)>(
+      ::loadSymbol("puleF32m33PtrTranspose", layerName)
+    )
+  );
   layer->f32m44 = (
     reinterpret_cast<decltype(layer->f32m44)>(
       ::loadSymbol("puleF32m44", layerName)
@@ -1329,6 +1354,76 @@
   layer->f32m44Rotation = (
     reinterpret_cast<decltype(layer->f32m44Rotation)>(
       ::loadSymbol("puleF32m44Rotation", layerName)
+    )
+  );
+  layer->f32qIdentity = (
+    reinterpret_cast<decltype(layer->f32qIdentity)>(
+      ::loadSymbol("puleF32qIdentity", layerName)
+    )
+  );
+  layer->f32qPlane = (
+    reinterpret_cast<decltype(layer->f32qPlane)>(
+      ::loadSymbol("puleF32qPlane", layerName)
+    )
+  );
+  layer->f32qNormalize = (
+    reinterpret_cast<decltype(layer->f32qNormalize)>(
+      ::loadSymbol("puleF32qNormalize", layerName)
+    )
+  );
+  layer->f32qInvert = (
+    reinterpret_cast<decltype(layer->f32qInvert)>(
+      ::loadSymbol("puleF32qInvert", layerName)
+    )
+  );
+  layer->f32qMagnitude = (
+    reinterpret_cast<decltype(layer->f32qMagnitude)>(
+      ::loadSymbol("puleF32qMagnitude", layerName)
+    )
+  );
+  layer->f32qMagnitudeSqr = (
+    reinterpret_cast<decltype(layer->f32qMagnitudeSqr)>(
+      ::loadSymbol("puleF32qMagnitudeSqr", layerName)
+    )
+  );
+  layer->f32qRotateV3 = (
+    reinterpret_cast<decltype(layer->f32qRotateV3)>(
+      ::loadSymbol("puleF32qRotateV3", layerName)
+    )
+  );
+  layer->f32qRotateM33 = (
+    reinterpret_cast<decltype(layer->f32qRotateM33)>(
+      ::loadSymbol("puleF32qRotateM33", layerName)
+    )
+  );
+  layer->f32qAxis = (
+    reinterpret_cast<decltype(layer->f32qAxis)>(
+      ::loadSymbol("puleF32qAxis", layerName)
+    )
+  );
+  layer->f32qValid = (
+    reinterpret_cast<decltype(layer->f32qValid)>(
+      ::loadSymbol("puleF32qValid", layerName)
+    )
+  );
+  layer->f32qAsM33 = (
+    reinterpret_cast<decltype(layer->f32qAsM33)>(
+      ::loadSymbol("puleF32qAsM33", layerName)
+    )
+  );
+  layer->f32qAsV4 = (
+    reinterpret_cast<decltype(layer->f32qAsV4)>(
+      ::loadSymbol("puleF32qAsV4", layerName)
+    )
+  );
+  layer->f32qMul = (
+    reinterpret_cast<decltype(layer->f32qMul)>(
+      ::loadSymbol("puleF32qMul", layerName)
+    )
+  );
+  layer->f32qMulF = (
+    reinterpret_cast<decltype(layer->f32qMulF)>(
+      ::loadSymbol("puleF32qMulF", layerName)
     )
   );
   // platform
@@ -2117,6 +2212,11 @@
       ::loadSymbol("puleGpuFrameStart", layerName)
     )
   );
+  layer->gpuSwapchainAvailableSemaphore = (
+    reinterpret_cast<decltype(layer->gpuSwapchainAvailableSemaphore)>(
+      ::loadSymbol("puleGpuSwapchainAvailableSemaphore", layerName)
+    )
+  );
   layer->gpuFrameEnd = (
     reinterpret_cast<decltype(layer->gpuFrameEnd)>(
       ::loadSymbol("puleGpuFrameEnd", layerName)
@@ -2301,6 +2401,16 @@
   layer->physx3DWorldAdvance = (
     reinterpret_cast<decltype(layer->physx3DWorldAdvance)>(
       ::loadSymbol("pulePhysx3DWorldAdvance", layerName)
+    )
+  );
+  layer->physx3DBodyCreate = (
+    reinterpret_cast<decltype(layer->physx3DBodyCreate)>(
+      ::loadSymbol("pulePhysx3DBodyCreate", layerName)
+    )
+  );
+  layer->physx3DBodyDestroy = (
+    reinterpret_cast<decltype(layer->physx3DBodyDestroy)>(
+      ::loadSymbol("pulePhysx3DBodyDestroy", layerName)
     )
   );
   // render-graph

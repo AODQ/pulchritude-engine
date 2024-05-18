@@ -1,0 +1,5 @@
+@fn puleAssetRenderGraphFromPds(
+  allocator : PuleAllocator,
+  platform : PulePlatform,
+  renderGraphValue : PuleDsValue
+) PuleRenderGraph;

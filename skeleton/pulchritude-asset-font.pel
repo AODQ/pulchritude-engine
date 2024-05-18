@@ -1,0 +1,37 @@
+@entity PuleAssetFont;
+
+@enum PuleErrorAssetFont {
+  PuleErrorAssetFont_none;
+  PuleErrorAssetFont_decode;
+};
+
+@fn puleAssetFontLoad(
+  fontSource : PuleBufferView,
+  error : PuleError ptr
+) PuleAssetFont;
+@fn puleAssetFontLoadFromPath(
+  path : PuleStringView,
+  error : PuleError ptr
+) PuleAssetFont;
+@fn puleAssetFontDestroy(font : PuleAssetFont) void;
+
+@struct PuleAssetFontRenderInfo {
+  @field font : PuleAssetFont;
+  @field fontScale : PuleF32v2;
+  @field fontOffset : PuleF32v2;
+  @field renderFlippedY : bool;
+
+  @field glyphCodepoint : uint32_t;
+
+  @field destinationBuffer : PuleBufferViewMutable;
+  @field destinationBufferDim : PuleU32v2;
+};
+
+@fn puleAssetFontRenderToU8Buffer(
+  info : PuleAssetFontRenderInfo,
+  error : PuleError ptr
+) void #`
+    the buffer must be packed as {
+      color[0].a, color[1].a, .., color[width].a, color[1+width].a, ...
+    }
+`;

@@ -108,12 +108,12 @@ VkPipelineLayout createPipelineLayout(
     .bindingCount = (uint32_t)descriptorSetLayoutBindings.size(),
     .pBindings = descriptorSetLayoutBindings.data(),
   };
-  PULE_assert(
+  PULE_vkError(
     vkCreateDescriptorSetLayout(
       util::ctx().device.logical,
       &descriptorSetLayoutCi, nullptr,
       &descriptorSetLayout
-    ) == VK_SUCCESS
+    )
   );
   std::vector<VkPushConstantRange> pushConstantRanges;
   for (size_t pcIt = 0; pcIt < info.layoutPushConstantsCount; ++ pcIt) {
@@ -134,11 +134,11 @@ VkPipelineLayout createPipelineLayout(
     .pPushConstantRanges = pushConstantRanges.data(),
   };
   auto pipelineLayout = VkPipelineLayout{};
-  PULE_assert(
+  PULE_vkError(
     vkCreatePipelineLayout(
       util::ctx().device.logical,
       &pipelineLayoutCi, nullptr, &pipelineLayout
-    ) == VK_SUCCESS
+    )
   );
   return pipelineLayout;
 }
@@ -273,8 +273,8 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .depthClampEnable = VK_FALSE, // TODO do I want this?
     .rasterizerDiscardEnable = VK_FALSE,
     .polygonMode = VK_POLYGON_MODE_FILL,
-    .cullMode = VK_CULL_MODE_NONE, // TODO cull proper
-    .frontFace = VK_FRONT_FACE_CLOCKWISE,
+    .cullMode = VK_CULL_MODE_BACK_BIT, // TODO cull proper
+    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
     .depthBiasEnable = VK_FALSE,
     .depthBiasConstantFactor = 0.0f,
     .depthBiasClamp = 0.0f,

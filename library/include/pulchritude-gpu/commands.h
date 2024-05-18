@@ -99,8 +99,9 @@ typedef enum {
   PuleGpuResourceBarrierStage_shaderVertex          = 0x0010,
   PuleGpuResourceBarrierStage_shaderCompute         = 0x0020,
   PuleGpuResourceBarrierStage_outputAttachmentColor = 0x0040,
-  PuleGpuResourceBarrierStage_transfer              = 0x0080,
-  PuleGpuResourceBarrierStage_bottom                = 0x0100,
+  PuleGpuResourceBarrierStage_outputAttachmentDepth = 0x0080,
+  PuleGpuResourceBarrierStage_transfer              = 0x0100,
+  PuleGpuResourceBarrierStage_bottom                = 0x0200,
 } PuleGpuResourceBarrierStage;
 
 typedef enum {
@@ -124,15 +125,23 @@ typedef enum {
   PuleGpuResourceAccess_memoryWrite          = 0x00010000,
 } PuleGpuResourceAccess;
 
-
 typedef struct {
   PuleGpuImage image;
   PuleGpuResourceAccess accessSrc;
   PuleGpuResourceAccess accessDst;
   PuleGpuImageLayout layoutSrc;
   PuleGpuImageLayout layoutDst;
+  bool isDepthStencil;
   // TODO maybe subresource range
 } PuleGpuResourceBarrierImage;
+
+typedef struct {
+  PuleGpuBuffer buffer;
+  PuleGpuResourceAccess accessSrc;
+  PuleGpuResourceAccess accessDst;
+  size_t byteOffset;
+  size_t byteLength;
+} PuleGpuResourceBarrierBuffer;
 
 typedef struct PuleGpuActionResourceBarrier {
   PuleGpuAction action PULE_param(PuleGpuAction_resourceBarrier);
@@ -140,6 +149,8 @@ typedef struct PuleGpuActionResourceBarrier {
   PuleGpuResourceBarrierStage stageDst;
   size_t resourceImageCount;
   PuleGpuResourceBarrierImage const * resourceImages;
+  size_t resourceBufferCount;
+  PuleGpuResourceBarrierBuffer const * resourceBuffers;
 } PuleGpuActionResourceBarrier;
 
 typedef struct PuleGpuActionRenderPassBegin {
@@ -266,6 +277,8 @@ typedef struct PuleGpuActionCopyImageToImage {
   PuleU32v3 srcOffset PULE_param(PuleU32v3{0, 0, 0});
   PuleU32v3 dstOffset PULE_param(PuleU32v3{0, 0, 0});
   PuleU32v3 extent PULE_param(PuleU32v3{1, 1, 1});
+  bool isSrcDepthStencil;
+  bool isDstDepthStencil;
 } PuleGpuActionCopyImageToImage;
 
 typedef union {

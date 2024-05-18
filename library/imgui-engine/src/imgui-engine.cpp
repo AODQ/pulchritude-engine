@@ -184,29 +184,31 @@ void puleImguiEngineDisplay(PuleImguiEngineDisplayInfo const info) {
 //-- RENDER TASK GRAPH ---------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO redo this, just make it part of scene to avoid this weird hook-in,
+
 extern "C" {
-PuleRenderGraph pulcRenderGraph(PulePlatform const platform) {
-  if (platform.id == 0) { return { .id = 0, }; }
-  #include "imgui-engine-asset-render-graph.mixin"
-  PuleError err = puleError();
-  PuleDsValue const assetRenderPds = (
-    puleAssetPdsLoadFromString(
-      puleAllocateDefault(),
-      PuleStringView{assetRenderGraphStr.c_str(), assetRenderGraphStr.size(),},
-      &err
-    )
-  );
-  if (puleErrorConsume(&err)) { return { .id = 0, }; }
-  PuleRenderGraph const renderGraph = (
-    puleAssetRenderGraphFromPds(
-      puleAllocateDefault(),
-      platform,
-      assetRenderPds
-    )
-  );
-  puleDsDestroy(assetRenderPds);
-  return renderGraph;
-}
+//PuleRenderGraph pulcRenderGraph(PulePlatform const platform) {
+  //if (platform.id == 0) { return { .id = 0, }; }
+  //#include "imgui-engine-asset-render-graph.mixin"
+  //PuleError err = puleError();
+  //PuleDsValue const assetRenderPds = (
+  //  puleAssetPdsLoadFromString(
+  //    puleAllocateDefault(),
+  //    PuleStringView{assetRenderGraphStr.c_str(), assetRenderGraphStr.size(),},
+  //    &err
+  //  )
+  //);
+  //if (puleErrorConsume(&err)) { return { .id = 0, }; }
+  //PuleRenderGraph const renderGraph = (
+  //  puleAssetRenderGraphFromPds(
+  //    puleAllocateDefault(),
+  //    platform,
+  //    assetRenderPds
+  //  )
+  //);
+  //puleDsDestroy(assetRenderPds);
+  //return renderGraph;
+//}
 } // extern C
 
 } // C

@@ -43,7 +43,7 @@
 //   myAmazingStory:
 //   "
 //     *it goes like this and
-//     * then it went like that!
+//     * then it went like that
 //   ",
 // and
 //   myAmazingStory: "it goes like this and then it went like that!",
@@ -53,10 +53,10 @@
 //  myAmazingStory:
 //  "
 //    *it goes like this and
-//    %then it went like that!
+//    %then it went like that
 //  ",
 // and
-//   myAmazingStory: "it goes like this and\nthen it went like that!",
+//   myAmazingStory: "it goes like this and\nthen it went like that",
 // also evaluate to the same thing. The '%' denotes to not join the line.
 
 

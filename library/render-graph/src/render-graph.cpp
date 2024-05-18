@@ -1,6 +1,8 @@
 #include <pulchritude-render-graph/render-graph.h>
 
 #include <pulchritude-error/error.h>
+#include <pulchritude-file/file.h>
+#include <pulchritude-gpu/module.h>
 #include <pulchritude-log/log.h>
 #include <pulchritude-string/string.h>
 
@@ -44,10 +46,10 @@ PuleGpuResourceBarrierStage toResourceBarrierStage(
       return PuleGpuResourceBarrierStage_transfer;
     case PuleGpuResourceAccess_attachmentColorRead:
     case PuleGpuResourceAccess_attachmentColorWrite:
+      return PuleGpuResourceBarrierStage_outputAttachmentColor;
     case PuleGpuResourceAccess_attachmentDepthRead:
     case PuleGpuResourceAccess_attachmentDepthWrite:
-      return PuleGpuResourceBarrierStage_outputAttachmentColor;
-      return PuleGpuResourceBarrierStage_transfer;
+      return PuleGpuResourceBarrierStage_outputAttachmentDepth;
     case PuleGpuResourceAccess_shaderRead:
     case PuleGpuResourceAccess_shaderWrite:
     case PuleGpuResourceAccess_vertexAttributeRead:
@@ -75,6 +77,7 @@ struct RenderGraphNode {
 };
 
 struct RenderGraph {
+  std::string label;
   PuleAllocator allocator;
   std::unordered_map<uint64_t, RenderGraphNode> nodes = {};
   std::unordered_map<uint64_t, PuleRenderGraph_Resource> resources = {};
@@ -82,6 +85,7 @@ struct RenderGraph {
   std::vector<uint64_t> nodesInRelationOrder = {};
   bool needsResort = false;
   uint64_t lastSwapchainUsageNodeId = 0;
+  bool wasFrameStarted;
 };
 
 pule::ResourceContainer<::RenderGraph> renderGraphs;
@@ -370,6 +374,8 @@ void sortGraphNodes(RenderGraph & graph) {
       break;
     }
   }
+  // assert that there is at least one node that uses the swapchain image
+  PULE_assert(lastSwapchainImageNode != 0);
   if (lastSwapchainImageNode != 0) {
     graph.nodes.at(lastSwapchainImageNode).isLastSwapchainUsage = true;
     graph.lastSwapchainUsageNodeId = lastSwapchainImageNode;
@@ -400,20 +406,151 @@ void sortGraphNodes(RenderGraph & graph) {
       )
     );
   }
+
+  // dump graph to d2 file, for example what it would look like:
+  /*
+  render-graph: {
+    pule-scene-blit: {
+      properties: {
+        shape: class
+        is-last-swapchain-usage
+        transition-command-list-chain-exit
+        transition-command-list-chain-enter
+        uses-swapchain
+      }
+      resources: {
+        shape: class
+        window-swapchain-image
+        pule-scene-framebuffer-image
+      }
+    }
+  }
+
+  resource-graph: {
+    window-swapchain-image
+  }
+  */
+  std::string d2Graph = "render-graph: {\n";
+  for (uint64_t const & nodeId : graph.nodesInRelationOrder) {
+    RenderGraphNode const & node = graph.nodes.at(nodeId);
+    d2Graph += "  " + node.label + ": {\n";
+    d2Graph += "  properties: {\n";
+    d2Graph += "    shape: class\n";
+    // fill in properties --
+    if (node.isLastSwapchainUsage) {
+      d2Graph += "    is-last-swapchain-usage\n";
+    }
+    if (node.transitionCommandListChainExit.id != 0) {
+      d2Graph += "    transition-command-list-chain-exit\n";
+    }
+    if (node.transitionCommandListChainEnter.id != 0) {
+      d2Graph += "    transition-command-list-chain-enter\n";
+    }
+    if (node.usesSwapchain) {
+      d2Graph += "    uses-swapchain\n";
+    }
+
+    d2Graph += "  }\n";
+    d2Graph += "  resources: {\n";
+    // fill in resources --
+    for (auto & [_, res] : node.resourceUsage) {
+      d2Graph += "    \"" + std::string(res.resourceLabel.contents) + "\" : {";
+      d2Graph += "      shape: class\n";
+
+      d2Graph += (
+          std::string("  access-entrance: \"")
+        + pule::toStr(res.accessEntrance).cstr() + "\"\n"
+      );
+      d2Graph += (
+          std::string("  access: \"")
+        + pule::toStr(res.access).cstr() + "\"\n"
+      );
+      d2Graph += (
+          std::string("  layout-entrance: \"")
+        + pule::toStr(res.image.layoutEntrance) + "\"\n"
+      );
+      d2Graph += (
+          std::string("  layout: \"")
+        + pule::toStr(res.image.layout) + "\"\n"
+      );
+      d2Graph += "      }\n";
+    }
+    d2Graph += "    }\n";
+    d2Graph += "  }\n";
+  }
+  // describe relations
+  for (uint64_t const & nodeId : graph.nodesInRelationOrder) {
+    RenderGraphNode const & node = graph.nodes.at(nodeId);
+    for (auto & dependNodeId : node.relationDependsOn) {
+      auto & dependNode = graph.nodes.at(dependNodeId);
+      d2Graph += "  " + node.label + " -> " + dependNode.label;
+      d2Graph += " : depends-on {\n";
+      d2Graph += "    style {\n";
+      d2Graph += "      stroke-dash: 2\n";
+      d2Graph += "    }\n";
+      d2Graph += "  }\n";
+    }
+  }
+  // describe linear in-order relations
+  for (size_t id = 1; id < graph.nodesInRelationOrder.size(); ++ id) {
+    RenderGraphNode const & nodeA = (
+      graph.nodes.at(graph.nodesInRelationOrder[id-1])
+    );
+    RenderGraphNode const & nodeB = (
+      graph.nodes.at(graph.nodesInRelationOrder[id])
+    );
+    d2Graph += "  " + nodeA.label + " -> " + nodeB.label + "\n";
+  }
+  d2Graph += "}\n";
+  // describe resource graph
+  d2Graph += "resource-graph: {\n";
+  for (auto & [_, resource] : graph.resources) {
+    d2Graph += "  " + std::string(resource.resourceLabel.contents) + ": {\n";
+    d2Graph += "    shape: class\n";
+    switch (resource.resourceType) {
+      case PuleRenderGraph_ResourceType_image:
+        d2Graph += "    image : ";
+        switch (resource.image.dataManagement.automatic.resourceUsage) {
+          case PuleRenderGraph_ResourceUsage_read:
+            d2Graph += "    read\n";
+          break;
+          case PuleRenderGraph_ResourceUsage_readWrite:
+            d2Graph += "    read-write\n";
+          break;
+          case PuleRenderGraph_ResourceUsage_write:
+            d2Graph += "    write\n";
+          break;
+        }
+      break;
+      case PuleRenderGraph_ResourceType_buffer:
+        d2Graph += "    buffer\n";
+      break;
+    }
+    d2Graph += "  }\n";
+  }
+  d2Graph += "}\n";
+  puleFilesystemWriteString(
+    puleCStr("render-graph.d2"),
+    puleCStr(d2Graph.c_str())
+  );
 }
 
 } // namespace
 
 extern "C" {
 
-PuleRenderGraph puleRenderGraphCreate(PuleAllocator const allocator) {
-  RenderGraph graph = {
+PuleRenderGraph puleRenderGraphCreate(
+  PuleStringView const label, PuleAllocator const allocator
+) {
+  auto const graph = RenderGraph {
+    .label = std::string(label.contents, label.len),
     .allocator = allocator,
     .nodes = {},
     .resources = { },
     .resourceLabels = { },
     .nodesInRelationOrder = {},
     .needsResort = false,
+    .wasFrameStarted = false,
   };
   uint64_t const graphId = renderGraphs.create(graph);
   puleRenderGraph_resourceCreate(
@@ -662,9 +799,6 @@ PuleRenderGraph_Resource puleRenderGraph_resource(
   PuleStringView const resourceLabel
 ) {
   RenderGraph & graph = *::renderGraphs.at(pGraph.id);
-  auto & resource = (
-    graph.resources.at(puleStringViewHash(resourceLabel))
-  );
   return graph.resources.at(puleStringViewHash(resourceLabel));
 }
 
@@ -755,6 +889,12 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
   auto & graph = *::renderGraphs.at(pGraph.id);
   sortGraphNodes(graph);
 
+  if (graph.wasFrameStarted) {
+    puleLogError("Frame already started");
+    return;
+  }
+  graph.wasFrameStarted = true;
+
   // create entrance and potentially exittance command list (for last node) for
   // resource transitioning. This is so multiple command lists can be executed
   // post-transition
@@ -790,6 +930,9 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
               .image.imageReference
             )
           );
+          bool isDepthStencil = (
+            resource.image.layout == PuleGpuImageLayout_attachmentDepth
+          );
           barrierImages.emplace_back(
             PuleGpuResourceBarrierImage {
               .image = image,
@@ -797,6 +940,7 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
               .accessDst = resource.access,
               .layoutSrc = resource.image.layoutEntrance,
               .layoutDst = resource.image.layout,
+              .isDepthStencil = isDepthStencil,
             }
           );
           stageSrc = toResourceBarrierStage(resource.accessEntrance);
@@ -841,6 +985,7 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
         .accessDst = PuleGpuResourceAccess_none,
         .layoutSrc = swapchainResource.image.layout,
         .layoutDst = PuleGpuImageLayout_presentSrc,
+        .isDepthStencil = false,
       }
     );
     node.transitionCommandListChainExitHasCommands = true;
@@ -866,9 +1011,15 @@ void puleRenderGraphFrameSubmit(
   PuleRenderGraph const pGraph
 ) {
   auto & graph = *::renderGraphs.at(pGraph.id);
+  if (!graph.wasFrameStarted) {
+    puleLogError("Frame not started for graph %d", pGraph.id);
+    return;
+  }
+  graph.wasFrameStarted = false;
   sortGraphNodes(graph);
   PuleError err = puleError();
   bool swapchainSemaphoreWaited = false;
+  bool frameEnded = false;
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
     auto const & node = graph.nodes.at(nodeId);
     PuleGpuSemaphore entranceSignalEntranceSemaphore = { .id = 0, };
@@ -958,8 +1109,54 @@ void puleRenderGraphFrameSubmit(
           )
         ),
       }, &err);
+      frameEnded = true;
       puleGpuFrameEnd(1, &signalSwapSemaphore);
     }
+  }
+  PULE_assert(
+    swapchainSemaphoreWaited && "(internal) swapchain semaphore never waited"
+  );
+  PULE_assert(frameEnded && "(internal) frame never ended");
+  if (!swapchainSemaphoreWaited || !frameEnded) {
+    // TODO this doesn't work right now as both should be true for now
+    puleLogError("failed to wait on swapchain semaphore, no nodes use it");
+    // we don't want to hang the GPU here, so submit a dummy command list
+    PuleGpuCommandList const dummyCommandList = (
+      puleGpuCommandListCreate(
+        puleAllocateDefault(), puleCStr("dummy-command-list")
+      )
+    );
+    // record a dummy action
+    auto recorder = puleGpuCommandListRecorder(dummyCommandList);
+    puleGpuCommandListAppendAction(
+      recorder,
+      PuleGpuCommand {
+        .resourceBarrier {
+          .action = PuleGpuAction_resourceBarrier,
+          .stageSrc = PuleGpuResourceBarrierStage_top,
+          .stageDst = PuleGpuResourceBarrierStage_bottom,
+          .resourceImageCount = 0,
+          .resourceImages = nullptr,
+        },
+      }
+    );
+    puleGpuCommandListRecorderFinish(recorder);
+    // submit the dummy command list
+    PuleGpuPipelineStage const waitSemaphoreStage = (
+      PuleGpuPipelineStage_bottom
+    );
+    PuleGpuSemaphore signalSwapSemaphore = { .id = 0, };
+    puleGpuCommandListSubmit(PuleGpuCommandListSubmitInfo {
+      .commandList = dummyCommandList,
+      .waitSemaphoreCount = 1,
+      .waitSemaphores = &swapchainImageSemaphore,
+      .waitSemaphoreStages = &waitSemaphoreStage,
+      .signalSemaphoreCount = 1,
+      .signalSemaphores = &signalSwapSemaphore,
+      .fenceTargetFinish = { .id = 0, },
+    }, &err);
+    puleGpuFrameEnd(1, &signalSwapSemaphore);
+    puleGpuCommandListDestroy(dummyCommandList);
   }
 }
 

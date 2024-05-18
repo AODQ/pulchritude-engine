@@ -80,7 +80,13 @@ PULE_exportFn PuleGpuFence puleCameraSetRefresh(PuleCameraSet const);
 typedef struct { uint64_t id; } PuleCameraController;
 PULE_exportFn PuleCameraController puleCameraControllerFirstPerson(
   PulePlatform const platform,
-  PuleCamera const
+  PuleCamera const camera
+);
+PULE_exportFn PuleCameraController puleCameraControllerOrbit(
+  PulePlatform const platform,
+  PuleCamera const camera,
+  PuleF32v3 const origin,
+  float const radius
 );
 PULE_exportFn void puleCameraControllerDestroy(PuleCameraController const);
 

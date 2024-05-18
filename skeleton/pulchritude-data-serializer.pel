@@ -1,0 +1,193 @@
+@enum PuleErrorDataSerializer {
+  PuleErrorDataSerializer_none;
+  PuleErrorDataSerializer_invalidFormat;
+};
+
+@entity PuleDsValue;
+
+@struct PuleDsValueArray {
+  @field values : PuleDsValue const ptr;
+  @field length : size_t;
+};
+
+@struct PuleDsValueObject {
+  @field labels : PuleStringView const ptr;
+  @field values : PuleDsValue const ptr;
+  @field length : size_t;
+};
+
+@struct PuleDsValueBuffer {
+  #`
+  arrays store PDS values, which will reference the data through a layer of
+    indirection (PuleDsValue)
+  buffers just store raw data, there is no additional indirection.
+`
+  @field data : uint8_t const ptr;
+  @field byteLength : size_t;
+};
+
+@fn puleDsAsI64(value : PuleDsValue) int64_t;
+@fn puleDsAsF64(value : PuleDsValue) double;
+@fn puleDsAsBool(value : PuleDsValue) bool;
+@fn puleDsAsString(value : PuleDsValue) PuleStringView;
+@fn puleDsAsArray(value : PuleDsValue) PuleDsValueArray;
+@fn puleDsAsObject(value : PuleDsValue) PuleDsValueObject;
+@fn puleDsAsBuffer(value : PuleDsValue) PuleDsValueBuffer;
+
+@fn puleDsAsF32(value : PuleDsValue) float;
+
+@fn puleDsAsI32(value : PuleDsValue) int32_t;
+@fn puleDsAsUSize(value : PuleDsValue) size_t;
+@fn puleDsAsU64(value : PuleDsValue) uint64_t;
+@fn puleDsAsU32(value : PuleDsValue) uint32_t;
+@fn puleDsAsU16(value : PuleDsValue) uint16_t;
+@fn puleDsAsI16(value : PuleDsValue) int16_t;
+@fn puleDsAsU8(value : PuleDsValue) uint8_t;
+@fn puleDsAsI8(value : PuleDsValue) int8_t;
+
+@fn puleDsIsI64(value : PuleDsValue) bool;
+@fn puleDsIsF64(value : PuleDsValue) bool;
+@fn puleDsIsString(value : PuleDsValue) bool;
+@fn puleDsIsArray(value : PuleDsValue) bool;
+@fn puleDsIsObject(value : PuleDsValue) bool;
+@fn puleDsIsBuffer(value : PuleDsValue) bool;
+
+@fn puleDsDestroy(value : PuleDsValue) #` recursive destroy `;
+
+@fn puleDsCreateI64(value : int64_t) PuleDsValue;
+@fn puleDsCreateBool(value : bool) PuleDsValue;
+@fn puleDsCreateU64(value : uint64_t) PuleDsValue;
+@fn puleDsCreateF64(value : double) PuleDsValue;
+@fn puleDsCreateString(stringView : PuleStringView) PuleDsValue;
+@fn puleDsCreateArray(allocator : PuleAllocator) PuleDsValue;
+@fn puleDsCreateObject(allocator : PuleAllocator) PuleDsValue;
+@fn puleDsCreateBuffer(
+  allocator : PuleAllocator,
+  data : PuleArrayView
+) PuleDsValue;
+
+@fn puleDsArrayAppend(
+  array : PuleDsValue,
+  value : PuleDsValue
+) PuleDsValue;
+@fn puleDsArrayPopBack(array : PuleDsValue);
+@fn puleDsArrayPopFront(array : PuleDsValue);
+@fn puleDsArrayRemoveAt(
+  array : PuleDsValue,
+  idx : size_t
+);
+@fn puleDsArrayLength(array : PuleDsValue) size_t;
+@fn puleDsArrayElementAt(
+  array : PuleDsValue,
+  idx : size_t
+) PuleDsValue;
+
+@fn puleDsObjectMember(
+  object : PuleDsValue,
+  memberLabel : char const ptr
+) PuleDsValue #`object[memberLabel] , returns a null object if no member`;
+
+@fn puleDsIsNull(object : PuleDsValue) bool;
+
+@fn puleDsValueCloneRecursively(
+  object : PuleDsValue,
+  allocator : PuleAllocator
+) PuleDsValue;
+
+@fn puleDsObjectMemberAssign(
+  objectValue : PuleDsValue,
+  memberLabel : PuleStringView,
+  valueToEmplace : PuleDsValue
+) PuleDsValue;
+
+@fn puleDsObjectMemberOverwrite(
+  objectValue : PuleDsValue,
+  memberLabel : PuleStringView,
+  valueToEmplace : PuleDsValue
+) PuleDsValue;
+
+@fn puleDsMemberAsI64(
+  obj : PuleDsValue, label : char const ptr
+) int64_t #`returns 0 if nonexistent`;
+@fn puleDsMemberAsF64(
+  object : PuleDsValue, memberLabel : char const ptr
+) double #`returns 0.0 if nonexistent`;
+@fn puleDsMemberAsF32(
+  object : PuleDsValue, memberLabel : char const ptr
+) float #`returns 0.0f if nonexistent`;
+@fn puleDsMemberAsBool(
+  object : PuleDsValue, memberLabel : char const ptr
+) bool #`returns false if nonexistent`;
+@fn puleDsMemberAsString(
+  object : PuleDsValue, memberLabel : char const ptr
+) PuleStringView #`returns null string view if nonexistent`;
+@fn puleDsMemberAsArray(
+  object : PuleDsValue, memberLabel : char const ptr
+) PuleDsValueArray #`returns empty array if nonexistent`;
+@fn puleDsMemberAsObject(
+  object : PuleDsValue, memberLabel : char const ptr
+) PuleDsValueObject #`returns empty object if nonexistent`;
+@fn puleDsMemberAsBuffer(
+  object : PuleDsValue, memberLabel : char const ptr
+) PuleDsValueBuffer #`returns empty buffer if nonexistent`;
+
+@fn puleDsAsF32v2(value : PuleDsValue) PuleF32v2;
+@fn puleDsAsF32v3(value : PuleDsValue) PuleF32v3;
+@fn puleDsAsF32v4(value : PuleDsValue) PuleF32v4;
+
+@fn puleDsCreateF64v2(
+  allocator : PuleAllocator const,
+  value : PuleF32v2
+) PuleDsValue;
+@fn puleDsCreateF64v3(
+  allocator : PuleAllocator const,
+  value : PuleF32v3
+) PuleDsValue;
+@fn puleDsCreateF64v4(
+  allocator : PuleAllocator const,
+  value : PuleF32v4
+) PuleDsValue;
+
+
+@struct PuleDsStructField {
+  @field dt : PuleDt;
+  @field fieldByteOffset : size_t;
+  @field fieldCount : size_t #` set field count to 0 to terminate array `;
+};
+
+@struct PULE_DS_TODODOMP {
+  #`
+#define PULE_dsStructField(structtype, fieldtype, member, count) \
+  { PuleDt_##fieldtype , offsetof(structtype, member) , count , }
+#define PULE_dsStructTerminator { PuleDt_ptr , 0 , 0 , }
+PuleDsValue operator ""_pds(char const ptr str, size_t len);
+#`
+  @field temp : uint8_t;
+};
+
+@fn puleDsStructSerialize(
+  writeObjectPds : PuleDsValue,
+  allocator : PuleAllocator,
+  fields : PuleDsStructField const ptr,
+  structInstancePtr : void const ptr
+) #`
+  can help serialize/deserialize POD structs, using a C-like format string, use
+  the following macros to generate the format string
+
+  example
+
+  #define structField(fieldtype, member) \
+    PULE_dsStructField(PuleSceneComponentModelData, fieldtype, member, 1)
+  static PuleDsStructField const componentModelFields[] = {
+    structField(i64, type),
+    PULE_dsStructTerminator,
+  };
+  #undef structField
+*/
+`;
+
+@fn puleDsStructDeserialize(
+  serializedStruct : PuleDsValue,
+  fields : PuleDsStructField const ptr,
+  structInstancePtr : void ptr
+);

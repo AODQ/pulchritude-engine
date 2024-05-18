@@ -1,0 +1,78 @@
+
+@struct PuleTaskGraph {
+  @field id : uint64_t;
+};
+
+@fn puleTaskGraphCreate(allocator : PuleAllocator) PuleTaskGraph;
+@fn puleTaskGraphDestroy(graph : PuleTaskGraph);
+@fn puleTaskGraphMerge(
+  taskGraphPrimary : PuleTaskGraph,
+  taskGraphSecondary : PuleTaskGraph
+);
+
+@struct PuleTaskGraphNode {
+  @field id : uint64_t;
+};
+
+@fn puleTaskGraphNodeCreate(
+  graph : PuleTaskGraph, label : PuleStringView
+) PuleTaskGraphNode;
+@fn puleTaskGraphNodeRemove(
+  node : PuleTaskGraphNode
+);
+
+@fn puleTaskGraphNodeLabel(
+  node : PuleTaskGraphNode
+) PuleStringView;
+
+@fn puleTaskGraphNodeFetch(
+  graph : PuleTaskGraph, label : PuleStringView
+) PuleTaskGraphNode;
+
+@fn puleTaskGraphNodeAttributeStore(
+  graphNode : PuleTaskGraphNode,
+  label : PuleStringView,
+  attributeData : void ptr
+);
+@fn puleTaskGraphNodeAttributeStoreU64(
+  graphNode : PuleTaskGraphNode,
+  label : PuleStringView,
+  attributeData : uint64_t
+);
+
+@fn puleTaskGraphNodeAttributeFetch(
+  graphNode : PuleTaskGraphNode,
+  label : PuleStringView
+) void ptr;
+@fn puleTaskGraphNodeAttributeFetchU64(
+  graphNode : PuleTaskGraphNode,
+  label : PuleStringView
+) uint64_t;
+
+@fn puleTaskGraphNodeAttributeRemove(
+  graphNode : PuleTaskGraphNode,
+  label : PuleStringView
+);
+
+@enum PuleTaskGraphNodeRelation {
+  PuleTaskGraphNodeRelation_dependsOn;
+};
+
+@fn puleTaskGraphNodeRelationSet(
+  nodePri : PuleTaskGraphNode,
+  relation : PuleTaskGraphNodeRelation,
+  nodeSec : PuleTaskGraphNode
+);
+
+@struct PuleTaskGraphExecuteInfo {
+  @field graph : PuleTaskGraph;
+  @field callback : @fnptr(void, PuleTaskGraphNode, void ptr);
+  @field userdata : void ptr;
+  @field multithreaded : bool;
+};
+
+@fn puleTaskGraphExecuteInOrder(
+  execute : PuleTaskGraphExecuteInfo
+);
+
+@fn puleTaskGraphNodeExists(node : PuleTaskGraphNode) bool;

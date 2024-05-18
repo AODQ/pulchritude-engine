@@ -1,0 +1,10 @@
+@struct PuleImguiEngineDisplayInfo {
+#`
+  presents engine internal/debug information through the gui this can be used
+  in conjunction with an editor and the real application
+`
+  @field world : PuleEcsWorld;
+  @field platform : PulePlatform;
+};
+
+@fn puleImguiEngineDisplay(info : PuleImguiEngineDisplayInfo);

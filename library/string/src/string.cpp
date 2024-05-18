@@ -161,6 +161,11 @@ bool puleStringViewContains(PuleStringView const v0, PuleStringView const v1) {
   return false;
 }
 
+bool puleStringViewEnds(PuleStringView const v0, PuleStringView const v1) {
+  if (v0.len < v1.len) { return false; }
+  return strncmp(v0.contents+v0.len-v1.len, v1.contents, v1.len) == 0;
+}
+
 size_t puleStringViewHash(PuleStringView const view) {
   auto stringView = std::string_view(view.contents, view.len);
   auto hash = std::hash<std::string_view>{}(stringView);
@@ -169,7 +174,45 @@ size_t puleStringViewHash(PuleStringView const view) {
 
 } // C
 
+// c++
 
-PuleStringView operator ""_pcs(char const * const cstr, size_t const len) {
+#include <pulchritude-string/string.hpp>
+
+PuleStringView operator ""_psv(char const * const cstr, size_t const len) {
   return PuleStringView { .contents = cstr, .len = len };
+}
+
+pule::string::string() {}
+pule::string::string(char const * const cstr, PuleAllocator const allocator) {
+  str = (
+    puleString(
+      (allocator.allocate == nullptr ? puleAllocateDefault() : allocator),
+      cstr
+    )
+  );
+}
+pule::string::string(PuleStringView const view, PuleAllocator const allocator) {
+  str = (
+    puleString(
+      (allocator.allocate == nullptr ? puleAllocateDefault() : allocator),
+      view.contents
+    )
+  );
+}
+pule::string::~string() { puleStringDestroy(str); }
+pule::string::string(string && other) { str = other.str; other.str = {}; }
+pule::string & pule::string::operator=(string && other) {
+  str = other.str;
+  other.str = {};
+  return *this;
+}
+
+pule::string pule::string::format(char const * const fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  auto const str = puleStringFormatVargs(puleAllocateDefault(), fmt, args);
+  va_end(args);
+  pule::string pstr;
+  pstr.str = str;
+  return pstr;
 }

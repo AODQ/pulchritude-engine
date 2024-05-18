@@ -1,0 +1,19 @@
+@entity PuleAssetShaderModule;
+
+@fn puleAssetShaderModuleCreateFromPaths(
+  shaderModuleLabel : PuleStringView,
+  vertexPath : PuleStringView,
+  fragmentPath : PuleStringView
+) PuleAssetShaderModule;
+
+@fn puleAssetShaderModuleDestroy(
+  assetShaderModule : PuleAssetShaderModule
+) void #`does not destroy underlying shader module`;
+
+@fn puleAssetShaderModuleLabel(
+  assetShaderModule : PuleAssetShaderModule
+) PuleStringView;
+
+@fn puleAssetShaderModuleHandle(
+  assetShaderModule : PuleAssetShaderModule
+) PuleGpuShaderModule;

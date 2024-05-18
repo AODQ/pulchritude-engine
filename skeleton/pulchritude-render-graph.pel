@@ -1,0 +1,191 @@
+@entity PuleRenderGraph;
+
+@fn puleRenderGraphCreate(
+  label : PuleStringView, allocator : PuleAllocator
+) PuleRenderGraph;
+@fn puleRenderGraphDestroy(graph : PuleRenderGraph) void;
+@fn puleRenderGraphMerge(
+  renderGraphPrimary : PuleRenderGraph,
+  renderGraphSecondary : PuleRenderGraph
+) void;
+
+@entity PuleRenderGraphNode;
+
+@fn puleRenderGraphNodeCreate(
+  graph : PuleRenderGraph, label : PuleStringView
+) PuleRenderGraphNode;
+@fn puleRenderGraphNodeRemove(
+  node : PuleRenderGraphNode
+) void;
+
+@fn puleRenderGraphNodeLabel(
+  node : PuleRenderGraphNode
+) PuleStringView;
+
+@fn puleRenderGraphNodeFetch(
+  graph : PuleRenderGraph, label : PuleStringView
+) PuleRenderGraphNode;
+
+@enum PuleRenderGraph_ResourceType {
+  PuleRenderGraph_ResourceType_image;
+  PuleRenderGraph_ResourceType_buffer;
+};
+
+@enum PuleRenderGraph_ResourceUsage {
+  PuleRenderGraph_ResourceUsage_read;
+  PuleRenderGraph_ResourceUsage_write;
+  PuleRenderGraph_ResourceUsage_readWrite;
+};
+
+@struct PuleRenderGraph_Resource_DimensionsScaleRelative {
+  @field referenceResourceLabel : PuleString;
+  @field scaleWidth : float;
+  @field scaleHeight : float;
+};
+
+@struct PuleRenderGraph_Resource_DimensionsAbsolute {
+  @field width : uint32_t;
+  @field height : uint32_t;
+};
+
+@union PuleRenderGraph_Resource_Dimensions {
+  @field scaleRelative : PuleRenderGraph_Resource_DimensionsScaleRelative;
+  @field absolute : PuleRenderGraph_Resource_DimensionsAbsolute;
+};
+
+@struct PuleRenderGraph_Resource_Image_DataManagement_Automatic {
+  @field dimensions : PuleRenderGraph_Resource_Dimensions;
+  @field areDimensionsAbsolute : bool;
+  @field nullableInitialData : PuleBufferView;
+  @field resourceUsage : PuleRenderGraph_ResourceUsage;
+  @field isAttachment : bool;
+  @field byteFormat : PuleGpuImageByteFormat;
+  @field sampler : PuleGpuSampler;
+  @field target : PuleGpuImageTarget;
+  @field mipmapLevels : uint32_t;
+  @field arrayLayers : uint32_t;
+};
+
+@struct PuleRenderGraph_Resource_Image_DataManagement_Manual {
+  #` TODO this should be some reference to an external resource handle `
+  @field reserved : uint8_t;
+};
+
+@union PuleRenderGraph_Resource_Image_DataManagement {
+  @field automatic : PuleRenderGraph_Resource_Image_DataManagement_Automatic;
+  @field manual : PuleRenderGraph_Resource_Image_DataManagement_Manual;
+};
+
+@struct PuleRenderGraph_Resource_Image {
+  @field dataManagement : PuleRenderGraph_Resource_Image_DataManagement;
+  @field isAutomatic : bool;
+  @field imageReference : PuleGpuImageReference;
+};
+
+@struct PuleRenderGraph_Resource_Buffer {
+  @field reserved : uint8_t;
+};
+
+@union PuleRenderGraph_ResourceUnion {
+  @field PuleRenderGraph_Resource_Image : image;
+  @field PuleRenderGraph_Resource_Buffer : buffer;
+};
+
+@struct PuleRenderGraph_Resource {
+  #` tracks all metadata of a resource relating to render graph`
+  @field resourceLabel : PuleStringView;
+  @field resource : PuleRenderGraph_ResourceUnion;
+  @field resourceType : PuleRenderGraph_ResourceType;
+};
+
+@union PuleRenderGraph_Node_Image {
+  @field layout : PuleGpuImageLayout;
+  @field layoutEntrance : PuleGpuImageLayout;
+};
+
+@union PuleRenderGraph_Node_Buffer {
+  @field reserved : uint8_t;
+};
+
+@union PuleRenderGraph_Node_ResourceUnion {
+  @field image : PuleRenderGraph_Node_Image;
+  @field buffer : PuleRenderGraph_Node_Buffer;
+};
+
+@struct PuleRenderGraph_Node_Resource {
+   #`
+  contains relationship of a resource to a node, e.g. if the node's command
+  list plans to use it.
+`
+  @field resourceLabel : PuleStringView;
+  @field access : PuleGpuResourceAccess;
+  @field accessEntrance : PuleGpuResourceAccess;
+  @field resource : PuleRenderGraph_Node_ResourceUnion;
+};
+
+@fn puleRenderGraph_resourceCreate(
+  graph : PuleRenderGraph,
+  resource : PuleRenderGraph_Resource
+) void;
+
+@fn puleRenderGraph_resource(
+  graph : PuleRenderGraph,
+  resourceLabel : PuleStringView
+) PuleRenderGraph_Resource;
+
+@fn puleRenderGraph_resourceRemove(
+  graph : PuleRenderGraph,
+  resourceLabel : PuleStringView
+) void;
+
+@fn puleRenderGraph_node_resourceAssign(
+  node : PuleRenderGraphNode,
+  resourceUsage : PuleRenderGraph_Node_Resource
+) void;
+
+@fn puleRenderGraph_commandList(
+  node : PuleRenderGraphNode
+) PuleGpuCommandList;
+@fn puleRenderGraph_commandListRecorder(
+  node : PuleRenderGraphNode
+) PuleGpuCommandListRecorder;
+
+@enum PuleRenderGraphNodeRelation {
+  PuleRenderGraphNodeRelation_dependsOn;
+};
+@fn puleRenderGraphNodeRelationSet(
+  nodePri : PuleRenderGraphNode,
+  relation : PuleRenderGraphNodeRelation,
+  nodeSec : PuleRenderGraphNode
+) void;
+
+@fn puleRenderGraphFrameStart(
+  graph : PuleRenderGraph
+) void #`
+  prepares for rendering, needs to fetch resources to bake resource barriers
+  into command lists
+`;
+@fn puleRenderGraphFrameSubmit(
+  swapchainImageSemaphore : PuleGpuSemaphore,
+  graph : PuleRenderGraph
+) void #`
+  submits the render graph's command lists to the GPU, and will present the
+  swapchain image. No further GPU work can be done until the next frame.
+
+  TODO
+  probably want to return a semaphore that the user can use to manually present
+  the swapchain image
+`;
+
+@struct PuleRenderGraphExecuteInfo {
+  @field graph : PuleRenderGraph;
+  @field callback : @fnptr(void, PuleRenderGraphNode, void ptr);
+  @field userdata : void ptr;
+  @field multithreaded : bool;
+};
+
+@fn puleRenderGraphExecuteInOrder(
+  execute : PuleRenderGraphExecuteInfo
+) void;
+
+@fn puleRenderGraphNodeExists(node : PuleRenderGraphNode) bool;

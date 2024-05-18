@@ -171,9 +171,15 @@ typedef enum {
   PuleEcsSystemCallbackFrequency_postUpdate,
 } PuleEcsSystemCallbackFrequency;
 
+typedef struct PuleEcsSystemComponentDesc {
+  PuleEcsComponent component;
+  PuleAccess access;
+} PuleEcsSystemComponentDesc;
+
 typedef struct {
   char const * label;
-  char const * commaSeparatedComponentLabels;
+  size_t componentCount;
+  PuleEcsSystemComponentDesc * components;
   void (* callback)(PuleEcsIterator const iterator);
   PuleEcsSystemCallbackFrequency callbackFrequency;
 } PuleEcsSystemCreateInfo;

@@ -19,7 +19,7 @@ typedef struct {
   // returned pointer will modulate to the alignment, 0 specifies to assume
   // worst-case alignment
   size_t alignment PULE_param(0);
-  uint8_t zeroOut PULE_param(0); // if the allocated memory should be zeroed out
+  bool zeroOut PULE_param(0); // if the allocated memory should be zeroed out
 } PuleAllocateInfo;
 
 typedef struct {

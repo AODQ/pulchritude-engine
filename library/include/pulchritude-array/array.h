@@ -71,6 +71,10 @@ typedef struct {
 } PuleBuffer;
 
 PuleBuffer puleBufferCreate(PuleAllocator const allocator);
+PuleBuffer puleBufferCopyWithData(
+  PuleAllocator const allocator,
+  uint8_t const * const data, size_t const length
+);
 void puleBufferResize(PuleBuffer * const buffer, size_t const length);
 void puleBufferAppend(
   PuleBuffer * const buffer,

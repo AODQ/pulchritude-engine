@@ -13,6 +13,7 @@
 typedef enum {
   LogType_normal,
   LogType_debug,
+  LogType_dev,
   LogType_error,
   LogType_warn,
   LogType_raw,
@@ -52,6 +53,9 @@ static void logger(
 
   if (standardFormatting) {
     switch (logType) {
+      case LogType_dev:
+        printf("["COLOR_CODE_BLU"DEV"COLOR_CODE_WHT"] ");
+      break;
       case LogType_debug:
         if (!debugEnabled) {
           return;
@@ -133,6 +137,13 @@ void puleLogError(char const * const formatCStr, ...) {
   if (errorSegfaultsEnabled) {
     raise(SIGSEGV);
   }
+}
+
+void puleLogDev(char const * const formatCStr, ...) {
+  va_list args;
+  va_start(args, formatCStr);
+  logger(LogType_dev, true, formatCStr, args);
+  va_end(args);
 }
 
 void puleLogLn(char const * const formatCStr, ...) {

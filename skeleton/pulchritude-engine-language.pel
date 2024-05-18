@@ -1,0 +1,34 @@
+@enum PuleErrorEL {
+  PuleErrorEL_none;
+  PuleErrorEL_compileError;
+};
+
+@entity PuleELModule;
+
+@fn puleELModuleCreate(
+  stream : PuleStreamRead,
+  name : PuleStringView,
+  error : PuleError ptr
+) PuleELModule;
+@fn puleELModuleDestroy(module : PuleELModule) void;
+
+@entity PuleELJitEngine;
+
+@struct PuleELJitEngineCreateInfo {
+  @field optimize : bool = true;
+  @field insertEngineSymbols : bool = true;
+};
+@fn puleELJitEngineCreate(
+  ci : PuleELJitEngineCreateInfo
+) PuleELJitEngine;
+@fn puleELJitEngineDestroy(jitEngine : PuleELJitEngine) void;
+
+@fn puleELJitEngineAddModule(
+  jitEngine : PuleELJitEngine,
+  module : PuleELModule
+) void;
+
+@fn puleELJitEngineFunctionAddress(
+  jitEngine : PuleELJitEngine,
+  functionName : PuleStringView
+) void ptr;

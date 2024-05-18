@@ -1,0 +1,107 @@
+
+@enum PuleErrorScript {
+  PuleErrorScript_none;
+  PuleErrorScript_executeRuntimeError;
+  PuleErrorScript_internalError;
+  PuleErrorScript_memoryError;
+  PuleErrorScript_syntaxError;
+};
+
+@enum PuleScriptDebugSymbols {
+  PuleScriptDebugSymbols_enable;
+  PuleScriptDebugSymbols_disable;
+};
+
+@entity PuleScriptContext;
+@fn puleScriptContextCreate() PuleScriptContext;
+@fn puleScriptContextDestroy(_ : PuleScriptContext) void;
+
+@entity PuleScriptModule;
+
+@struct PuleScriptModuleFromSourceCreateInfo {
+  @field scriptSource : PuleStringView;
+  @field scriptLabel : PuleStringView;
+  @field debug : PuleScriptDebugSymbols;
+};
+@fn puleScriptModuleCreateFromSource(
+  context : PuleScriptContext,
+  createInfo : PuleScriptModuleFromSourceCreateInfo,
+  error : PuleError ptr
+) PuleScriptModule;
+@fn puleScriptModuleUpdateFromSource(
+  context : PuleScriptContext,
+  scriptModule : PuleScriptModule,
+  scriptSource : PuleStringView,
+  error : PuleError ptr
+) void;
+
+@fn puleScriptModuleCreateFromBinary(
+  context : PuleScriptContext,
+  scriptBinary : PuleArrayView,
+  error : PuleError ptr
+) PuleScriptModule;
+@fn puleScriptModuleDestroy(
+  context : PuleScriptContext,
+  scriptModule : PuleScriptModule
+);
+
+@fn puleScriptModuleExecute(
+  context : PuleScriptContext,
+  scriptModule : PuleScriptModule,
+  functionLabel : PuleStringView,
+  error : PuleError ptr
+) void;
+
+@fn puleScriptGlobal(globalLabel : PuleStringView) void ptr #`
+  this is a global table that script can use to store variables, especially
+  useful in between different script calls or environments As a simple example,
+  one function/script might create a window, but with no way to access it in
+  another function/script context/environment, you can at least store the
+  pointer on pulchritude's side
+`;
+@fn puleScriptGlobalSet(
+  globalLabel : PuleStringView,
+  data : void ptr
+) void;
+
+@entity PuleScriptArrayF32 #`
+  this is an array to allow scripts or different contexts to allocate memory
+  managed by Pulchritude. This is mostly for languages like Lua that don't have
+  built-in arrays
+`;
+@fn puleScriptArrayF32Create(
+  allocator : PuleAllocator
+) PuleScriptArrayF32;
+@fn puleScriptArrayF32Destroy(arr : PuleScriptArrayF32) void;
+@fn puleScriptArrayF32Ptr(arr : PuleScriptArrayF32) void ptr;
+@fn puleScriptArrayF32Append(
+  arr : PuleScriptArrayF32,
+  value : float
+) void;
+@fn puleScriptArrayF32Remove(
+  arr : PuleScriptArrayF32,
+  index : size_t
+) void;
+@fn puleScriptArrayF32At(
+  arr : PuleScriptArrayF32,
+  index : size_t
+) float;
+@fn puleScriptArrayF32Length(
+  arr : PuleScriptArrayF32
+) size_t;
+@fn puleScriptArrayF32ElementByteSize(
+  arr : PuleScriptArrayF32
+) size_t;
+
+@struct PuleScriptModuleFileWatchReturn {
+  @field scriptModule : PuleScriptModule;
+  @field watcher : PuleFileWatcher;
+};
+
+@fn puleScriptModuleFileWatch(
+  context : PuleScriptContext,
+  allocator : PuleAllocator,
+  filename : PuleStringView,
+  debug : PuleScriptDebugSymbols,
+  error : PuleError ptr
+) PuleScriptModuleFileWatchReturn;

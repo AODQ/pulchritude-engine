@@ -1,0 +1,68 @@
+
+
+@enum PuleErrorArray {
+  PuleErrorArray_none; PuleErrorArray_errorAllocation;
+};
+
+@struct PuleArray {
+  @field content : void ptr;
+  @field elementByteLength : size_t;
+  @field elementAlignmentByteLength : size_t;
+  @field elementCount : size_t;
+  @field allocator : PuleAllocator;
+};
+
+@struct PuleArrayCreateInfo {
+  @field elementByteLength : size_t #`must be non-zero`;
+  @field elementAlignmentByteLength : size_t #`can be zero`;
+  @field allocator : PuleAllocator;
+};
+
+@fn puleArray(_ : PuleArrayCreateInfo) PuleArray;
+@fn puleArrayDestroy(_ : PuleArray);
+@fn puleArrayAppend(_ : PuleArray ref) void ptr;
+@fn puleArrayElementAt(_ : PuleArray, idx : size_t) void ptr;
+
+@struct PuleArrayView {
+  #`view contents of an array without needing knowledge of its allocation
+    detail.`
+  @field data : uint8_t const ptr;
+  @field elementStride : size_t;
+  @field elementCount : size_t;
+};
+
+@struct PuleArrayViewMutable {
+  #`view contents of an array without needing knowledge of its allocation
+    detail.`
+  @field data : uint8_t ptr;
+  @field elementStride : size_t;
+  @field elementCount : size_t;
+};
+
+@struct PuleBufferView {
+  #`view contents of contiguous memory without needing knowledge of its
+    allocation detail.`
+  @field data : uint8_t const ptr;
+  @field byteLength : size_t;
+};
+
+@struct PuleBufferViewMutable {
+  @field data : uint8_t ptr;
+  @field byteLength : size_t;
+};
+
+@struct PuleBuffer {
+  @field data : uint8_t ptr;
+  @field byteLength : size_t;
+  @field allocator : PuleAllocator;
+};
+
+@fn puleBufferCreate(_ : PuleAllocator) PuleBuffer;
+@fn puleBufferCopyWithData(
+  _ : PuleAllocator, data : uint8_t const ptr, length : size_t
+) PuleBuffer;
+@fn puleBufferResize(_ : PuleBuffer ref, length : size_t);
+@fn puleBufferAppend(
+  _ : PuleBuffer ref, data : uint8_t const ptr, length : size_t
+);
+@fn puleBufferDestroy(_ : PuleBuffer);

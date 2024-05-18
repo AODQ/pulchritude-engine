@@ -49,20 +49,25 @@ bool editorBuildRunApplication(
     bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
     bool const isEarlyExit = puleDsMemberAsBool(input, "early-exit");
     bool const runWithGdb = puleDsMemberAsBool(input, "gdb");
+    bool const runWithGdbGui = puleDsMemberAsBool(input, "gdbgui");
     bool const runWithValgrind = puleDsMemberAsBool(input, "valgrind");
     bool const runWithStrace = puleDsMemberAsBool(input, "strace");
     bool const debugLayer = puleDsMemberAsBool(input, "debug-layer");
     bool const clear = puleDsMemberAsBool(input, "clear");
     PULE_assert(
-      !runWithValgrind || !runWithGdb
+      (!runWithGdbGui || !runWithGdb)
+      && "Cannot run with gdbgui and gdb at the same time"
+    );
+    PULE_assert(
+      (!runWithValgrind || !runWithGdb)
       && "Cannot run with valgrind and gdb at the same time"
     );
     PULE_assert(
-      !runWithStrace || !runWithGdb
+      (!runWithStrace || !runWithGdb)
       && "Cannot run with strace and gdb at the same time"
     );
     PULE_assert(
-      !runWithStrace || !runWithValgrind
+      ( !runWithStrace || !runWithValgrind )
       && "Cannot run with strace and valgrind at the same time"
     );
     if (clear) {
@@ -73,7 +78,10 @@ bool editorBuildRunApplication(
       execute += "strace ";
     }
     if (runWithGdb) {
-      execute += "gdb -ex run --args ";
+      execute += "gdb --args ";
+    }
+    if (runWithGdbGui) {
+      execute += "gdbgui --args ";
     }
     if (runWithValgrind) {
       execute += "valgrind ";

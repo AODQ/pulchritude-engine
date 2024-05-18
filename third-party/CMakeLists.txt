@@ -52,3 +52,12 @@ add_subdirectory(GameNetworkingSockets)
 set_target_properties(
   GameNetworkingSockets_s PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
+
+option(PMP_BUILD_EXAMPLES "" OFF)
+option(PMP_BUILD_TESTS    "" OFF)
+option(PMP_BUILD_DOCS     "" OFF)
+option(PMP_BUILD_VIS      "" OFF)
+option(PMP_INSTALL        "" ON)
+option(PMP_STRICT_COMPILATION "" OFF)
+add_subdirectory(pmp-library)
+set_target_properties(pmp PROPERTIES POSITION_INDEPENDENT_CODE ON)

@@ -6,6 +6,13 @@
 
 #include <volk.h>
 
+#include <string>
+#include <unordered_map>
+
+namespace {
+std::unordered_map<uint64_t, std::string> fenceDebugNames;
+}
+
 // -- semaphore --
 extern "C" {
 
@@ -16,10 +23,10 @@ PuleGpuSemaphore puleGpuSemaphoreCreate(PuleStringView const label) {
     .pNext = nullptr,
     .flags = VK_SEMAPHORE_TYPE_BINARY,
   };
-  PULE_assert(
+  PULE_vkError(
     vkCreateSemaphore(
       util::ctx().device.logical, &semaphoreCreateInfo, nullptr, &semaphore
-    ) == VK_SUCCESS
+    )
   );
   { // name the semaphore
     VkDebugUtilsObjectNameInfoEXT nameInfo = {
@@ -62,10 +69,12 @@ PuleGpuFence puleGpuFenceCreate(PuleStringView const label) {
       .pObjectName = label.contents
     };
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
+    fenceDebugNames.emplace(reinterpret_cast<uint64_t>(fence), label.contents);
   }
   return { .id = reinterpret_cast<uint64_t>(fence) };
 }
 void puleGpuFenceDestroy(PuleGpuFence const fence) {
+  fenceDebugNames.erase(fence.id);
   vkDestroyFence(
     util::ctx().device.logical,
     reinterpret_cast<VkFence>(fence.id),
@@ -88,7 +97,10 @@ bool puleGpuFenceWaitSignal(
     case VK_SUCCESS: return true;
     case VK_TIMEOUT:
       if (timeout.valueNano == PuleGpuSignalTime_forever) {
-        puleLogError("waited forever for fence");
+        puleLogError(
+          "waited forever on fence '%s'",
+          fenceDebugNames.at(fence.id).c_str()
+        );
         //PULE_assert(false);
       }
       return false;

@@ -80,6 +80,10 @@ PULE_exportFn bool puleStringViewContains(
   PuleStringView const base,
   PuleStringView const segment
 );
+PULE_exportFn bool puleStringViewEnds(
+  PuleStringView const base,
+  PuleStringView const segment
+);
 PULE_exportFn bool puleStringViewEqCStr(
   PuleStringView const v0,
   char const * const v1
@@ -93,6 +97,6 @@ PULE_exportFn size_t puleStringViewHash(PuleStringView const view);
 
 #ifdef __cplusplus
 
-PuleStringView operator ""_pcs(char const * const cstr, size_t const len);
+PuleStringView operator ""_psv(char const * const cstr, size_t const len);
 
 #endif // __cplusplus

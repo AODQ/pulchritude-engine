@@ -1,0 +1,31 @@
+
+@struct PuleAllocateInfo {
+  #`a request for an allocation of memory`
+  @field numBytes : size_t #`minimum number of bytes to be allocated`;
+  @field alignment : size_t = 0 #`alignment of pointer, 0 is allowed`;
+  @field zeroOut : bool = false #`if memory should be zeroed out`;
+};
+
+@struct PuleReallocateInfo {
+  #`a request for reallocation of existing memory`
+  @field allocation : void ptr #`address to reallocate memory for`;
+  @field numBytes : size_t #`minimum number of bytes to reallocate`;
+  @field alignment : size_t = 0 #`alignment of pointer, 0 is allowed`;
+};
+
+@struct PuleAllocator {
+  #`interface to allocate memory`
+  @field implementation : void ptr #`allocation internal details, can be null`;
+  @field allocate : @fnptr(void ptr, void ptr, PuleAllocateInfo);
+  @field reallocate : @fnptr(void ptr, void ptr, PuleReallocateInfo);
+  @field deallocate : @fnptr(void ptr, void ptr, void ptr);
+};
+
+@fn puleAllocateDefault() PuleAllocator #`
+  default allocator provided by engine, probably wrapper around C stdlib,
+   but could be wrapper to check for memory leaks
+`;
+
+@fn puleAllocate(_ : PuleAllocator, _ : PuleAllocateInfo) void ptr;
+@fn puleReallocate(_ : PuleAllocator, _ : PuleAllocateInfo) void ptr;
+@fn puleDeallocate(_ : PuleAllocator, allocAddress : void ptr);

@@ -116,24 +116,24 @@ void componentPluginFileWatchUpdate(PuleStringView const, void * const ud) {
   puleLog("reload finished");
 }
 
-struct PluginsCollectRenderGraphInfo {
-  PuleRenderGraph renderGraph;
-  PulePlatform platform;
-};
-void iteratePluginsCollectRenderGraphs(
-  PulePluginInfo const plugin,
-  void * const userdata
-) {
-  auto const info = (
-    *reinterpret_cast<PluginsCollectRenderGraphInfo *>(userdata)
-  );
-  PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
-  tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
-  if (renderGraphFn) {
-    puleLogDebug("found pulcRenderGraph in plugin %s", plugin.name);
-    puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
-  }
-}
+//struct PluginsCollectRenderGraphInfo {
+//  PuleRenderGraph renderGraph;
+//  PulePlatform platform;
+//};
+//void iteratePluginsCollectRenderGraphs(
+//  PulePluginInfo const plugin,
+//  void * const userdata
+//) {
+//  auto const info = (
+//    *reinterpret_cast<PluginsCollectRenderGraphInfo *>(userdata)
+//  );
+//  PuleRenderGraph (*renderGraphFn)(PulePlatform const plaftform) = nullptr;
+//  tryLoadFn(renderGraphFn, plugin.id, "pulcRenderGraph");
+//  if (renderGraphFn) {
+//    puleLogDebug("found pulcRenderGraph in plugin %s", plugin.name);
+//    puleRenderGraphMerge(info.renderGraph, renderGraphFn(info.platform));
+//  }
+//}
 
 }
 
@@ -676,9 +676,9 @@ int32_t main(
   }
 
   // create defaults
-  if (renderGraph.id == 0 && platform.id != 0) {
-    renderGraph = puleRenderGraphCreate(puleAllocateDefault());
-  }
+  //if (renderGraph.id == 0 && platform.id != 0) {
+  //  renderGraph = puleRenderGraphCreate(puleAllocateDefault());
+  //}
 
   // insert into payload as necessary
   if (platform.id != 0) {
@@ -753,15 +753,15 @@ int32_t main(
     }
   }
 
-  { // check if any plugin contributes to render task graph
-    auto renderGraphInfo = PluginsCollectRenderGraphInfo {
-      .renderGraph = renderGraph,
-      .platform = platform,
-    };
-    pulePluginIterate(
-      ::iteratePluginsCollectRenderGraphs, &renderGraphInfo
-    );
-  }
+  //{ // check if any plugin contributes to render task graph
+  //  auto renderGraphInfo = PluginsCollectRenderGraphInfo {
+  //    .renderGraph = renderGraph,
+  //    .platform = platform,
+  //  };
+  //  pulePluginIterate(
+  //    ::iteratePluginsCollectRenderGraphs, &renderGraphInfo
+  //  );
+  //}
 
   // load gui editor if requested
   assert(isGuiEditor ? platform.id : true);
@@ -853,7 +853,7 @@ int32_t main(
         renderGraph
       );
     }
-    if (platform.id != 0 && renderGraph.id == 0) {
+    if (platform.id != 0) {
       pulePlatformSwapFramebuffer(platform);
     }
     if (fileWatcherCheckAll) {

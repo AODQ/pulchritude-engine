@@ -5,6 +5,7 @@ target_sources(
   pulchritude-math
   PRIVATE
     src/math.cpp
+    src/math-fixed-point.cpp
 )
 
 set_target_properties(

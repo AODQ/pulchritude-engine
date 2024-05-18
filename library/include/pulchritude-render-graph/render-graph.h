@@ -16,7 +16,7 @@ extern "C" {
 typedef struct { uint64_t id; } PuleRenderGraph;
 
 PULE_exportFn PuleRenderGraph puleRenderGraphCreate(
-  PuleAllocator const allocator
+  PuleStringView const label, PuleAllocator const allocator
 );
 PULE_exportFn void puleRenderGraphDestroy(PuleRenderGraph const graph);
 PULE_exportFn void puleRenderGraphMerge(

@@ -37,6 +37,7 @@
       #X, \
       util::vkErrorToString(X) \
     ); \
+    PULE_assert(false); \
   }
 
 namespace util {

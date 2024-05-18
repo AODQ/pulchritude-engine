@@ -82,7 +82,8 @@ PULE_exportFn PuleF32v2 puleF32v2Ptr(float const * const values);
 PULE_exportFn PuleF32v2 puleF32v2Add(PuleF32v2 const a, PuleF32v2 const b);
 PULE_exportFn PuleF32v2 puleF32v2Sub(PuleF32v2 const a, PuleF32v2 const b);
 PULE_exportFn PuleF32v2 puleF32v2Abs(PuleF32v2 const a);
-//PULE_exportFn PuleF32v2 puleF32v2Mul(PuleF32v2 const a, PuleF32v2 const b);
+PULE_exportFn PuleF32v2 puleF32v2Mul(PuleF32v2 const a, PuleF32v2 const b);
+PULE_exportFn PuleF32v2 puleF32v2MulScalar(PuleF32v2 const a, float const b);
 //PULE_exportFn PuleF32v2 puleF32v2Div(PuleF32v2 const a, PuleF32v2 const b);
 //PULE_exportFn PuleF32v2 puleF32v2Dot(PuleF32v2 const a, PuleF32v2 const b);
 //
@@ -128,12 +129,21 @@ PULE_exportFn PuleF32v4 puleF32v4Dot(PuleF32v4 const a, PuleF32v4 const b);
 //   <12, 13, 14, 15>
 
 typedef struct {
+  float elem[9];
+} PuleF32m33;
+
+PULE_exportFn PuleF32m33 puleF32m33(float const identity);
+PULE_exportFn PuleF32m33 puleF32m33Ptr(float const * const data);
+PULE_exportFn PuleF32m33 puleF32m33PtrTranspose(float const * const data);
+
+typedef struct {
   float elem[16];
 } PuleF32m44;
 
 PULE_exportFn PuleF32m44 puleF32m44(float const identity);
 PULE_exportFn PuleF32m44 puleF32m44Ptr(float const * const data);
 PULE_exportFn PuleF32m44 puleF32m44PtrTranspose(float const * const data);
+PULE_exportFn PuleF32m44 puleF32m33AsM44(PuleF32m33 const a);
 
 PULE_exportFn PuleF32m44 puleF32m44Inverse(PuleF32m44 const a);
 PULE_exportFn PuleF32v4 puleF32m44MulV4(PuleF32m44 const a, PuleF32v4 const b);
@@ -164,6 +174,42 @@ PULE_exportFn PuleF32m44 puleF32m44Rotation(
   float const radians,
   PuleF32v3 const axis
 );
+
+// quaternion
+
+typedef struct {
+  float x;
+  float y;
+  float z;
+  float w;
+} PuleF32q;
+
+PULE_exportFn PuleF32q puleF32qIdentity();
+PULE_exportFn PuleF32q puleF32qPlane(
+  PuleF32v3 const normal, float const theta
+);
+PULE_exportFn PuleF32q puleF32qFromEuler(PuleF32v3 const euler);
+
+PULE_exportFn PuleF32q puleF32qNormalize(PuleF32q const a);
+PULE_exportFn PuleF32q puleF32qInvert(PuleF32q const a);
+PULE_exportFn float puleF32qMagnitude(PuleF32q const a);
+PULE_exportFn float puleF32qMagnitudeSqr(PuleF32q const a);
+PULE_exportFn PuleF32v3 puleF32qRotateV3(
+  PuleF32q const a, PuleF32v3 const b
+);
+PULE_exportFn PuleF32m33 puleF32qRotateM33(
+  PuleF32q const a, PuleF32m33 const b
+);
+PULE_exportFn PuleF32v3 puleF32qAxis(PuleF32q const a);
+PULE_exportFn bool puleF32qValid(PuleF32q const a);
+
+
+PULE_exportFn PuleF32m33 puleF32qAsM33(PuleF32q const identity);
+PULE_exportFn PuleF32v4 puleF32qAsV4(PuleF32q const identity);
+
+PULE_exportFn PuleF32q puleF32qMul(PuleF32q const a, PuleF32q const b);
+PULE_exportFn PuleF32q puleF32qMulF(PuleF32q const a, float const b);
+
 
 #ifdef __cplusplus
 } // extern C

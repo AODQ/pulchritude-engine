@@ -1,0 +1,65 @@
+
+@enum PulePluginType {
+  PulePluginType_library;
+  PulePluginType_component;
+};
+
+@struct PulePluginInfo {
+  @field name : char const ptr;
+  @field id : uint64_t;
+};
+
+@fn pulePluginsLoad(
+  paths : PuleStringView const ptr,
+  pathsLength : size_t
+) void;
+@fn pulePluginsFree() void;
+@fn pulePluginsReload() void;
+@fn pulePluginIdFromName(pluginNameCStr : char const ptr) size_t;
+@fn pulePluginName(pluginId : size_t) char const ptr;
+@fn pulePluginLoadFn(
+  pluginId : size_t,
+  fnCStr : char const ptr
+) void ptr;
+@fn pulePluginLoadFnTry(
+  pluginId : size_t,
+  fnCStr : char const ptr
+) void ptr;
+@fn pulePluginIterate(
+  fn : @fnptr(void, PulePluginInfo, void ptr),
+  userdata : void ptr
+) void;
+
+@entity PulePluginPayload;
+
+@fn pulePluginPayloadCreate(
+  allocator : PuleAllocator
+) PulePluginPayload;
+@fn pulePluginPayloadDestroy(payload : PulePluginPayload) void;
+
+@fn pulePluginPayloadFetch(
+  payload : PulePluginPayload,
+  handle : PuleStringView
+) void ptr;
+
+@fn pulePluginPayloadFetchU64(
+  payload : PulePluginPayload,
+  handle : PuleStringView
+) uint64_t;
+
+@fn pulePluginPayloadStore(
+  payload : PulePluginPayload,
+  handle : PuleStringView,
+  data : void ptr
+) void;
+
+@fn pulePluginPayloadStoreU64(
+  payload : PulePluginPayload,
+  handle : PuleStringView,
+  data : uint64_t
+) void;
+
+@fn pulePluginPayloadRemove(
+  payload : PulePluginPayload,
+  handle : PuleStringView
+) void;

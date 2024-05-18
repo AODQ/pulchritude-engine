@@ -1,0 +1,17 @@
+@fn puleLogDebugEnabled() bool ptr;
+@fn puleLogErrorSegfaultsEnabled() bool ptr;
+
+@fn puleLog(formatCStr : char const ptr, args : __VA_ARGS__) void;
+@fn puleLogDebug(formatCStr : char const ptr, args : __VA_ARGS__) void;
+@fn puleLogWarn(formatCStr : char const ptr, args : __VA_ARGS__) void;
+@fn puleLogError(formatCStr : char const ptr, args : __VA_ARGS__) void;
+
+@fn puleLogDev(formatCStr : char const ptr, args : __VA_ARGS__) void #`
+  this is just for dev purposes in a branch, not to be committed to master
+`;
+
+@fn puleLogLn(formatCStr : char const ptr, args : __VA_ARGS__) #`
+  log without newline
+`;
+
+@fn puleLogRaw(formatCStr : char const ptr, args : __VA_ARGS__) void;

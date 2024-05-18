@@ -116,6 +116,11 @@ PULE_exportFn PuleParserAstNode puleParserAstNodeChild(
   size_t const index
 );
 
+// this is a convenience function that returns all matches in the node;
+//   it recurses in-order until it finds a leaf node, then appends all
+//   leaf node matches together as the return value
+PULE_exportFn PuleString puleParserAstNodeMatch(PuleParserAstNode const node);
+
 PULE_exportFn void puleParserAstNodeDump(PuleParserAstNode const node);
 
 PULE_exportFn void puleParserAstNodeDumpShallow(PuleParserAstNode const node);

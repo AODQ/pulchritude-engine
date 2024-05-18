@@ -64,6 +64,26 @@ PuleBuffer puleBufferCreate(PuleAllocator const allocator) {
   };
 }
 
+PuleBuffer puleBufferCopyWithData(
+  PuleAllocator const allocator,
+  uint8_t const * const data, size_t const length
+) {
+  PuleBuffer buffer;
+  buffer.data = (uint8_t *)(
+    puleAllocate(
+      allocator,
+      PuleAllocateInfo {
+        .numBytes = length,
+        .alignment = 0,
+      }
+    )
+  );
+  buffer.byteLength = length;
+  buffer.allocator = allocator;
+  memcpy(buffer.data, data, length);
+  return buffer;
+}
+
 void puleBufferResize(PuleBuffer * const buffer, size_t const length) {
   if (buffer->byteLength == length) { return; }
   if (buffer->byteLength == 0) {

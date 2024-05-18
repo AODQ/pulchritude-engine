@@ -1,0 +1,137 @@
+
+@entity PuleNetHost;
+
+@struct PuleNetAddress {
+  @field address : uint8_t @arr[16];
+  @field port : uint16_t;
+};
+
+@fn puleNetAddressLocalhost(port : uint16_t) PuleNetAddress;
+
+@enum PuleErrorNet {
+  PuleErrorNet_none;
+  PuleErrorNet_initialize;
+  PuleErrorNet_hostCreate;
+  PuleErrorNet_poll;
+  PuleErrorNet_clientCreate;
+  PuleErrorNet_clientConnect;
+  PuleErrorNet_clientDisconnect;
+  PuleErrorNet_clientSend;
+  PuleErrorNet_packetSend;
+};
+
+@enum PuleNetChannelType {
+  PuleNetChannelType_reliable;
+  PuleNetChannelType_unreliable;
+  PuleNetChannelType_unsequenced;
+};
+
+@struct PuleNetPacketReceive {
+  @field data : PuleBufferView;
+  @field clientUuid : uint64_t;
+  @field lane : uint32_t;
+  @field channel : uint8_t;
+};
+
+@struct PuleNetHostCreateInfo {
+  @field address : PuleNetAddress;
+  @field connectionLimit : uint32_t;
+  @field outgoingLaneCount : uint32_t;
+};
+@fn puleNetHostCreate(
+  ci : PuleNetHostCreateInfo,
+  error : PuleError ptr
+) PuleNetHost;
+@fn puleNetHostDestroy(host : PuleNetHost) void;
+
+@fn puleNetHostPollConnection(
+  host : PuleNetHost
+) uint64_t #` returns client uuid, 0 if no connection `;
+@fn puleNetHostPoll(
+  host : PuleNetHost,
+  maxPacketsToReceive : uint32_t,
+  packets : PuleNetPacketReceive ptr,
+  error : PuleError ptr
+) uint32_t;
+@fn puleNetHostSendPacket(
+  host : PuleNetHost,
+  clientUuid : uint64_t,
+  channel : PuleNetChannelType,
+  lane : uint32_t,
+  packet : PuleBufferView,
+  error : PuleError ptr
+) void;
+@fn puleNetHostBroadcastPacket(
+  host : PuleNetHost,
+  channel : PuleNetChannelType,
+  lane : uint32_t,
+  packet : PuleBufferView,
+  error : PuleError ptr
+) void;
+
+@entity PuleNetClient;
+
+@struct PuleNetClientCreateInfo {
+  @field hostname : PuleStringView;
+  @field port : uint16_t;
+  @field outgoingLaneCount : uint32_t;
+};
+@fn puleNetClientCreate(
+  ci : PuleNetClientCreateInfo,
+  error : PuleError ptr
+) PuleNetClient;
+@fn puleNetClientDestroy(client : PuleNetClient) void;
+
+@fn puleNetClientConnected(client : PuleNetClient) bool;
+@fn puleNetClientPoll(
+  client : PuleNetClient,
+  maxPacketsToReceive : uint32_t,
+  packets : PuleNetPacketReceive ptr,
+  error : PuleError ptr
+) uint32_t;
+@fn puleNetClientSendPacket(
+  client : PuleNetClient,
+  channel : PuleNetChannelType,
+  lane : uint32_t,
+  packet : PuleBufferView,
+  error : PuleError ptr
+) void;
+
+@entity PuleNetStreamTransferUpload;
+@entity PuleNetStreamTransferDownload;
+
+@fn puleNetHostUploadStream(
+  host : PuleNetHost,
+  clientUuid : uint64_t,
+  stream : PuleStreamRead,
+  uploadStreamLane : uint32_t
+) PuleNetStreamTransferUpload #`
+You must not send packets on the specified lane until the stream is finished
+Only one transfer per-stream can be done at a time
+TODO right now this blocks, needs progress callback I suppose
+`;
+
+@fn puleNetClientDownloadStreamCheck(
+  client : PuleNetClient,
+  packetsLength : uint32_t,
+  packets : PuleNetPacketReceive ptr,
+  uploadStreamLane : uint32_t,
+  streamWriter : PuleStreamWrite
+) PuleNetStreamTransferDownload #`
+to support this on client-side, you need to pass in all packets received, and
+the stream transfer will communicate on the specified dedicated lane
+`;
+
+@fn puleNetClientDownloadStreamExists(
+  client : PuleNetClient,
+  transfer : PuleNetStreamTransferDownload
+) bool #` returns true if the stream exists `;
+
+@fn puleNetClientDownloadStreamContinue(
+  client : PuleNetClient,
+  transfer : PuleNetStreamTransferDownload,
+  packetsLength : uint32_t,
+  packets : PuleNetPacketReceive ptr
+) bool #`
+  returns true if more data to consume
+`;

@@ -157,6 +157,27 @@ PuleFile puleFileOpen(
   return {id};
 }
 
+PuleString puleFileDump(
+  PuleStringView const filename,
+  PuleFileDataMode dataMode,
+  PuleError * const error
+) {
+  auto file = puleFileOpen(filename, dataMode, PuleFileOpenMode_read, error);
+  if (puleErrorExists(error)) { return {.len=0,}; }
+  uint64_t fileSize = puleFileSize(file);
+  char * memory = (
+    (char *)(puleAllocate(puleAllocateDefault(), {.numBytes = fileSize+1,}))
+  );
+  puleFileReadBytes(file, { .data = (uint8_t *)memory, .byteLength = fileSize});
+  memory[fileSize] = '\0';
+  puleFileClose(file);
+  return {
+    .contents = memory,
+    .len = fileSize-1,
+    .allocator = puleAllocateDefault()
+  };
+}
+
 void puleFileClose(PuleFile const file) {
   if (file.id == 0) {
     return;
@@ -682,7 +703,6 @@ PuleFileWatcher puleFileWatch(
   }
 
   if (filewatches.size() == 0) {
-    puleLogError("[PuleFileWatcher] no files to watch");
     return {.id = 0,};
   }
 
@@ -752,6 +772,32 @@ bool puleFileWatchCheckAll() {
 
 extern "C" {
 
+void puleFilesystemDirWalk(
+  PuleStringView const dirPath,
+  void (*walker)(void * userdata, PuleStringView path, bool isFile),
+  void * userdata
+) {
+  std::error_code errorCode;
+  std::filesystem::directory_iterator it(
+    std::filesystem::path(std::string_view(dirPath.contents, dirPath.len)),
+    errorCode
+  );
+  if (errorCode) {
+    puleLogError(
+      "could not walk directory '%s': %s",
+      dirPath.contents, errorCode.message().c_str()
+    );
+    return;
+  }
+  for (; it != std::filesystem::directory_iterator(); ++ it) {
+    walker(
+      userdata,
+      puleCStr(it->path().c_str()),
+      std::filesystem::is_regular_file(it->path())
+    );
+  }
+}
+
 PuleStringView puleFilesystemAssetPath() {
   return PuleStringView {
     filesystemAssetPath.c_str(),
@@ -809,6 +855,22 @@ PuleString puleFilesystemAbsolutePath(
     .len = 0,
     .allocator = puleAllocateDefault(),
   };
+}
+
+} // C
+
+// -- convenience --------------------------------------------------------------
+extern "C" {
+
+void puleFilesystemWriteString(
+  PuleStringView const path,
+  PuleStringView const string
+) {
+  PuleFile const file = puleFileOpen(
+    path, PuleFileDataMode_text, PuleFileOpenMode_writeOverwrite, nullptr
+  );
+  puleFileWriteString(file, string);
+  puleFileClose(file);
 }
 
 } // C

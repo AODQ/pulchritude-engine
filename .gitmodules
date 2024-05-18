@@ -37,3 +37,6 @@
 [submodule "third-party/GameNetworkingSockets"]
 	path = third-party/GameNetworkingSockets
 	url = https://github.com/ValveSoftware/GameNetworkingSockets
+[submodule "third-party/pmp-library"]
+	path = third-party/pmp-library
+	url = https://github.com/pmp-library/pmp-library.git

@@ -1,0 +1,85 @@
+@enum PuleErrorAssetPds {
+  PuleErrorAssetPds_none;
+  PuleErrorAssetPds_decode;
+};
+
+@fn puleAssetPdsLoadFromStream(
+  allocator : PuleAllocator,
+  stream : PuleStreamRead,
+  error : PuleError ptr
+) PuleDsValue;
+
+@fn puleAssetPdsLoadFromRvalStream(
+  allocator : PuleAllocator,
+  rvalStream : PuleStreamRead,
+  error : PuleError ptr
+) PuleDsValue #`
+  convenience function, takes over management of the input stream
+`;
+
+@fn puleAssetPdsLoadFromFile(
+  allocator : PuleAllocator,
+  filename : PuleStringView,
+  error : PuleError ptr
+) PuleDsValue #`
+  convenience function, combined file+stream but disables PDS streaming
+`;
+
+@fn puleAssetPdsLoadFromString(
+  allocator : PuleAllocator,
+  contents : PuleStringView,
+  error : PuleError ptr
+) PuleDsValue;
+
+@struct PuleAssetPdsWriteInfo {
+  @field head : PuleDsValue;
+  @field prettyPrint : bool = false;
+  @field spacesPerTab : uint32_t = 2 #` pretty-print only `;
+  @field initialTabLevel : uint32_t = 0;
+};
+@fn puleAssetPdsWriteToStream(
+  stream : PuleStreamWrite,
+  writeInfo : PuleAssetPdsWriteInfo
+) void;
+
+@fn puleAssetPdsWriteToFile(
+  head : PuleDsValue,
+  filename : PuleStringView,
+  error : PuleError ptr
+) void #`convenience function using file+stream but disables PDS streaming`;
+
+@fn puleAssetPdsWriteToStdout(head : PuleDsValue) void #`
+  convenience function using puleStreamStdoutWrite
+`;
+
+@struct PuleAssetPdsCommandLineArgumentsInfo {
+#`
+  can parse command line arguments from the given PDS "help" will be inserted
+  if the user requested help flag '--help'
+`
+  @field allocator : PuleAllocator;
+  @field layout : PuleDsValue;
+  @field argumentLength : int32_t;
+  @field arguments : char const ptr const ptr;
+  @field userRequestedHelpOutNullable : bool ptr;
+};
+@fn puleAssetPdsLoadFromCommandLineArguments(
+  info : PuleAssetPdsCommandLineArgumentsInfo,
+  error : PuleError ptr
+) PuleDsValue;
+
+@struct PuleAssetPdsDescription {
+  @field data : void ptr;
+  @field label : char const ptr;
+  @field format : char const ptr;
+};
+
+@struct PuleAssetPdsDeserializeInfo {
+  @field value : PuleDsValue;
+  @field descriptions : PuleAssetPdsDescription const ptr;
+  @field descriptionCount : size_t;
+};
+@fn puleAssetPdsDeserialize(
+  info : PuleAssetPdsDeserializeInfo,
+  error : PuleError ptr
+) void;

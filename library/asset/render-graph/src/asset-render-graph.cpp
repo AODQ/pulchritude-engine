@@ -112,7 +112,12 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
   [[maybe_unused]] PulePlatform const platform,
   PuleDsValue const dsRenderGraphValue
 ) {
-  PuleRenderGraph const graph = puleRenderGraphCreate(allocator);
+  PuleRenderGraph const graph = (
+    puleRenderGraphCreate(
+      puleDsMemberAsString(dsRenderGraphValue, "render-graph-label"),
+      allocator
+    )
+  );
   PuleDsValueArray const dsGraphNodes = (
     puleDsMemberAsArray(dsRenderGraphValue, "render-graph")
   );

@@ -69,8 +69,7 @@ PULE_exportFn void pulePlatformFramebufferResizeCallback(
 );
 
 typedef struct {
-  void (* callback)(PuleI32v2 const
-      dimensions);
+  void (* callback)(PuleI32v2 const dimensions);
 } PulePlatformWindowResizeCallbackCreateInfo;
 
 PULE_exportFn void pulePlatformWindowResizeCallback(

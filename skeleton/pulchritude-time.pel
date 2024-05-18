@@ -1,0 +1,22 @@
+
+@struct PuleTimestamp {
+  #`milliseconds since epoch`
+  @field valueUnixTs : int64_t;
+};
+
+@struct PuleNanosecond {
+  @field valueNano : int64_t;
+};
+
+@struct PuleMicrosecond {
+  @field valueMicro : int64_t;
+};
+
+@struct PuleMillisecond {
+  @field valueMilli : int64_t;
+};
+
+@fn puleMicrosecond(value : int64_t) PuleMicrosecond;
+@fn puleSleepMicrosecond(us : PuleMicrosecond);
+
+@fn puleTimestampNow() PuleTimestamp;

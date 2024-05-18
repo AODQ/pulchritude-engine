@@ -40,6 +40,8 @@ PULE_exportFn bool puleGpuFenceWaitSignal(
 PULE_exportFn void puleGpuFenceReset(PuleGpuFence const fence);
 
 PULE_exportFn PuleGpuSemaphore puleGpuFrameStart();
+// same value returned from puleGpuFrameStart
+PULE_exportFn PuleGpuSemaphore puleGpuSwapchainAvailableSemaphore();
 // call before pulePlatformSwapFramebuffer
 PULE_exportFn void puleGpuFrameEnd(
   size_t const waitSemaphoreCount,

@@ -1,0 +1,37 @@
+@enum PuleErrorAssetImage {
+  PuleErrorAssetImage_none;
+  PuleErrorAssetImage_decode;
+};
+
+@entity PuleAssetImage;
+
+@enum PuleAssetImageSupportFlag {
+  PuleAssetImageSupportFlag_none = 0x0;
+  PuleAssetImageSupportFlag_read = 0x1;
+  PuleAssetImageSupportFlag_write = 0x2;
+  PuleAssetImageSupportFlag_readWrite = 0x3;
+};
+
+@fn puleAssetImageExtensionSupported(
+  extension : char const ptr
+) PuleAssetImageSupportFlag;
+
+@enum PuleAssetImageFormat {
+  PuleAssetImageFormat_rgbaU8;
+  PuleAssetImageFormat_rgbaU16;
+  PuleAssetImageFormat_rgbU8;
+};
+
+@fn puleAssetImageLoadFromStream(
+  allocator : PuleAllocator,
+  imageSource : PuleStreamRead,
+  requestedFormat : PuleAssetImageFormat,
+  error : PuleError ptr
+) PuleAssetImage;
+
+@fn puleAssetImageDestroy(image : PuleAssetImage) void;
+
+@fn puleAssetImageDecodedData(image : PuleAssetImage) void ptr;
+@fn puleAssetImageDecodedDataLength( image : PuleAssetImage) size_t;
+@fn puleAssetImageWidth(image : PuleAssetImage) uint32_t;
+@fn puleAssetImageHeight(image : PuleAssetImage) uint32_t;

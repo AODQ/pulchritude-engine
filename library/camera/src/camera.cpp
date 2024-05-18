@@ -1,5 +1,6 @@
 #include <pulchritude-camera/camera.h>
 
+#include <algorithm>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -242,6 +243,19 @@ struct CameraControllerFps {
   float dirTheta, dirPhi;
 };
 
+struct CameraControllerOrbit {
+  PuleF32v3 targetOrigin;
+  float radius;
+  float radiusOriginal;
+  PuleF32v3 up;
+
+  PuleCamera camera;
+  PulePlatform platform;
+
+  PuleI32v2 prevMouseOrigin;
+  float dirTheta, dirPhi;
+};
+
 struct CameraControllerGeneric {
   std::vector<uint8_t> cameraData;
   void (*update)(void * const userdata);
@@ -267,13 +281,13 @@ void cameraControllerFpsUpdate(void * const userdata) {
   controller.prevMouseOrigin = mouse;
 
   if (
-    puleInputKey(controller.platform, PuleInputKey_escape)
+       puleInputKey(controller.platform, PuleInputKey_escape)
     || puleInputKey(controller.platform, PuleInputKey_graveAccent)
   ) {
     pulePlatformCursorShow(controller.platform);
   }
   if (
-    !pulePlatformCursorEnabled(controller.platform)
+       !pulePlatformCursorEnabled(controller.platform)
     && puleInputMouse(controller.platform, PuleInputMouse_left)
   ) {
     pulePlatformCursorHide(controller.platform);
@@ -343,6 +357,89 @@ void cameraControllerFpsUpdate(void * const userdata) {
     controller.up
   );
 }
+
+void cameraControllerOrbitUpdate(void * const userdata) {
+  CameraControllerOrbit & controller = (
+    *reinterpret_cast<CameraControllerOrbit *>(userdata)
+  );
+  PuleI32v2 const mouse = pulePlatformMouseOrigin(controller.platform);
+  auto mouseDelta = (
+    PuleF32v2 {
+      .x = static_cast<float>(controller.prevMouseOrigin.x - mouse.x),
+      .y = static_cast<float>(controller.prevMouseOrigin.y - mouse.y),
+    }
+  );
+  controller.prevMouseOrigin = mouse;
+
+  // only apply mouse delta if mouse left is down
+  if (!puleInputMouse(controller.platform, PuleInputMouse_left)) {
+    mouseDelta = PuleF32v2{0.0f, 0.0f};
+  }
+
+  // calculate movement
+  PuleF32v2 const moveDirection = PuleF32v2 {
+    (
+      (float)(puleInputKey(controller.platform, PuleInputKey_d))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_a))
+    ),
+    (
+      (float)(puleInputKey(controller.platform, PuleInputKey_s))
+    - (float)(puleInputKey(controller.platform, PuleInputKey_w))
+    ),
+  };
+
+  // translate, use the mouse and move directrion to modify phi/theta
+  controller.dirTheta -= mouseDelta.x * 0.005f + moveDirection.x * 0.005f;
+  controller.dirPhi += mouseDelta.y * 0.005f + moveDirection.y * 0.005f;
+  if (controller.dirPhi > 1.3f)
+    controller.dirPhi = 1.3f;
+  if (controller.dirPhi < -1.3f)
+    controller.dirPhi = -1.3f;
+
+  // calculate view direction
+
+  // first get the normalized direction from theta/phi
+  PuleF32v3 modifiedOrigin = (
+    puleF32v3Normalize({
+      (float)sin(controller.dirTheta),
+      (float)controller.dirPhi,
+      (float)cos(controller.dirTheta),
+    })
+  );
+
+  // control radius by radius original
+  float const radiusDelta = puleInputScroll(controller.platform) * 0.1f;
+
+  controller.radius += radiusDelta * controller.radiusOriginal;
+  controller.radius = (
+    std::clamp(controller.radius, 0.1f, controller.radiusOriginal*10.0f)
+  );
+  if (puleInputKey(controller.platform, PuleInputKey_space)) {
+    controller.radius = controller.radiusOriginal;
+  }
+
+  // scale by radius, offfset by target
+  puleCameraLookAt(
+    controller.camera,
+    puleF32v3Add(
+      controller.targetOrigin,
+      puleF32v3MulScalar(modifiedOrigin, controller.radius)
+    ),
+    controller.targetOrigin,
+    controller.up
+  );
+
+  puleCameraPerspectiveSet(
+    controller.camera,
+    PuleCameraPerspective {
+      .nearCutoff = 0.01f,
+      .farCutoff = 10'000.0f,
+      .aspectRatio = 800.0f/600.0f,
+      .fieldOfViewRadians = 70.0f,
+    }
+  );
+}
+
 } // namespace
 
 extern "C" {
@@ -368,7 +465,35 @@ PuleCameraController puleCameraControllerFirstPerson(
   ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
   return PuleCameraController { .id=::cameraControllerIt++, };
 }
-PULE_exportFn void puleCameraControllerDestroy(
+
+PuleCameraController puleCameraControllerOrbit(
+  PulePlatform const platform,
+  PuleCamera const camera,
+  PuleF32v3 const origin,
+  float const radius
+) {
+  CameraControllerGeneric controllerContainer;
+  controllerContainer.cameraData.resize(sizeof(CameraControllerOrbit));
+  controllerContainer.update = &cameraControllerOrbitUpdate;
+  CameraControllerOrbit & controller = (
+    *reinterpret_cast<CameraControllerOrbit *>(
+      controllerContainer.cameraData.data()
+    )
+  );
+  controller.targetOrigin = origin;
+  controller.radius = controller.radiusOriginal = radius;
+  controller.up = PuleF32v3{0.0f, 1.0f, 0.0f,};
+  controller.dirPhi = 0.0f;
+  controller.dirTheta = 0.0f;
+  controller.prevMouseOrigin = pulePlatformMouseOrigin(platform);
+
+  controller.camera = camera;
+  controller.platform = platform;
+  ::cameraControllers.emplace(::cameraControllerIt, controllerContainer);
+  return PuleCameraController { .id=::cameraControllerIt++, };
+}
+
+void puleCameraControllerDestroy(
   PuleCameraController const pController
 ) {
   /* auto & controller = ::cameraControllers.at(pController.id); */

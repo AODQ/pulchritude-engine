@@ -1,0 +1,234 @@
+@enum PuleErrorEcs {
+  PuleErrorEcs_none;
+  PuleErrorEcs_queryFailed;
+};
+
+@entity PuleEcsWorld;
+@entity PuleEcsComponent;
+@entity PuleEcsSystem;
+@entity PuleEcsEntity;
+
+@fn puleEcsWorldCreate() PuleEcsWorld;
+@fn puleEcsWorldDestroy(world : PuleEcsWorld) void;
+@fn puleEcsWorldAdvance(
+  world : PuleEcsWorld,
+  msDelta : float
+) void;
+
+@struct PuleEcsComponentCreateInfo {
+  @field label : char const ptr;
+  @field byteLength : size_t;
+  @field byteAlignment : size_t;
+  @field serializeComponentCallback : @fnptr(
+    void,
+    PuleEcsEntity,
+    void const ptr,
+    PuleDsValue,
+    PuleAllocator
+  );
+  @field deserializeComponentCallback : @fnptr(
+    void,
+    PuleEcsWorld,
+    PuleEcsEntity,
+    PuleEcsComponent,
+    PuleDsValue,
+    PuleAllocator
+  );
+  @field imguiOverviewCallbackOptional : @fnptr(void) = nullptr;
+  @field imguiEntityCallbackOptional : @fnptr(
+    void,
+    PuleEcsWorld,
+    PuleEcsEntity,
+    PuleEcsComponent
+  ) = nullptr;
+};
+
+@fn puleEcsComponentCreate(
+  world : PuleEcsWorld,
+  info : PuleEcsComponentCreateInfo
+) PuleEcsComponent;
+
+@struct PuleEcsEntityIterateComponentsInfo {
+  #`
+    this is a relatively expensive operation that should only be done during
+    one-off cases (like serializing, debugging, etc)
+  `
+  @field world : PuleEcsWorld;
+  @field entity : PuleEcsEntity;
+  @field userdata : void const ptr;
+  @field callback : @fnptr(void, PuleEcsComponent , void const ptr);
+};
+@fn puleEcsEntityIterateComponents(
+  info : PuleEcsEntityIterateComponentsInfo
+) void;
+
+@fn puleEcsComponentFetchByLabel(
+  world : PuleEcsWorld,
+  label : PuleStringView
+) PuleEcsComponent;
+
+@fn puleEcsComponentLabel(
+  world : PuleEcsWorld,
+  component : PuleEcsComponent
+) PuleStringView;
+
+@struct PuleEcsComponentSerializer {
+  @field serializeComponentCallback : @fnptr(
+    void,
+    PuleEcsEntity,
+    void const ptr,
+    PuleDsValue,
+    PuleAllocator
+  );
+  @field deserializeComponentCallback : @fnptr(
+    void,
+    PuleEcsWorld,
+    PuleEcsEntity,
+    PuleEcsComponent,
+    PuleDsValue,
+    PuleAllocator
+  );
+};
+@fn puleEcsComponentSerializer(
+  world : PuleEcsWorld,
+  component : PuleEcsComponent
+) PuleEcsComponentSerializer;
+
+@struct PuleEcsComponentInfo {
+  @field label : PuleStringView;
+  @field byteLength : size_t;
+  @field imguiOverviewCallback : @fnptr(void) #`
+      callback for an overview of the component metadata
+  `;
+
+  @field imguiEntityCallback : @fnptr(
+    void,
+    PuleEcsWorld,
+    PuleEcsEntity,
+    PuleEcsComponent
+  ) #` callback to display information on specified entity's component `;
+};
+
+@fn puleEcsComponentInfo(
+  world : PuleEcsWorld,
+  component : PuleEcsComponent
+) PuleEcsComponentInfo;
+
+@struct PuleEcsComponentIterateAllCallback {
+  @field world : PuleEcsWorld;
+  @field userdata : void ptr;
+  @field fn : @fnptr(void, PuleEcsComponent, void ptr);
+};
+
+@fn puleEcsComponentIterateAll(
+  callback : PuleEcsComponentIterateAllCallback
+) void;
+
+@entity PuleEcsIterator;
+
+@fn puleEcsIteratorEntityCount(
+  iterator : PuleEcsIterator
+) size_t;
+@fn puleEcsIteratorRelativeOffset(
+  iterator : PuleEcsIterator
+) size_t;
+@fn puleEcsIteratorQueryComponents(
+  iterator : PuleEcsIterator,
+  componentIndex : size_t,
+  componentByteLength : size_t
+) void ptr;
+@fn puleEcsIteratorQueryEntities(iterator : PuleEcsIterator) PuleEcsEntity ptr;
+@fn puleEcsIteratorWorld(iterator : PuleEcsIterator) PuleEcsWorld;
+@fn puleEcsIteratorSystem(iterator : PuleEcsIterator) PuleEcsSystem;
+@fn puleEcsIteratorUserData(iterator : PuleEcsIterator) void ptr;
+
+@enum PuleEcsSystemCallbackFrequency {
+  PuleEcsSystemCallbackFrequency_preUpdate;
+  PuleEcsSystemCallbackFrequency_onUpdate;
+  PuleEcsSystemCallbackFrequency_postUpdate;
+};
+
+@struct PuleEcsSystemComponentDesc {
+  @field component : PuleEcsComponent;
+  @field access : PuleAccess;
+};
+
+@struct PuleEcsSystemCreateInfo {
+  @field label : char const ptr;
+  @field componentCount : size_t;
+  @field components : PuleEcsSystemComponentDesc ptr;
+  @field callback : @fnptr(void, PuleEcsIterator);
+  @field callbackFrequency : PuleEcsSystemCallbackFrequency;
+};
+
+@fn puleEcsSystemCreate(
+  world : PuleEcsWorld,
+  info : PuleEcsSystemCreateInfo
+) PuleEcsSystem;
+
+@fn puleEcsSystemAdvance(
+  world : PuleEcsWorld,
+  system : PuleEcsSystem,
+  deltaTime : float,
+  userdata : void ptr
+) void;
+
+@fn puleEcsEntityCreate(
+  world : PuleEcsWorld,
+  label : PuleStringView
+) PuleEcsEntity;
+@fn puleEcsEntityName(
+  world : PuleEcsWorld,
+  entity : PuleEcsEntity
+) PuleStringView;
+@fn puleEcsEntityDestroy(
+  world : PuleEcsWorld,
+  entity : PuleEcsEntity
+) void;
+
+@fn puleEcsEntityAttachComponent(
+ world : PuleEcsWorld,
+ entity : PuleEcsEntity,
+ component : PuleEcsComponent,
+ nullableInitialData : void const ptr
+) void;
+
+@fn puleEcsEntityComponentData(
+  world : PuleEcsWorld,
+  entity : PuleEcsEntity,
+  component : PuleEcsComponent
+) ptr const #`fetches the underlying-data for the component of an entity`;
+
+@struct PuleEcsQuery {
+  @field id : uint64_t;
+};
+
+@fn puleEcsQueryByComponent(
+  world : PuleEcsWorld,
+  componentList : PuleEcsComponent ptr,
+  componentListSize : size_t,
+  error : PuleError ptr
+) PuleEcsQuery;
+
+@fn puleEcsQueryAllEntities(
+  world : PuleEcsWorld,
+  error : PuleError ptr
+) PuleEcsQuery;
+
+@fn puleEcsQueryDestroy(query : PuleEcsQuery) void;
+
+@struct PuleEcsQueryIterator {
+  @field id : uint64_t;
+};
+@fn puleEcsQueryIterator(
+  world : PuleEcsWorld,
+  query : PuleEcsQuery
+) PuleEcsQueryIterator;
+@fn puleEcsQueryIteratorNext(
+  iter : PuleEcsQueryIterator
+) PuleEcsIterator #` returns .id=0 if finished `;
+@fn puleEcsQueryIteratorDestroy(
+  iter : PuleEcsQueryIterator
+) void;
+
+@fn puleEcsComponentOriginF32v3() PuleEcsComponent;

@@ -19,18 +19,30 @@ typedef struct {
 } PuleGfxDebugRecorder;
 
 PULE_exportFn PuleGfxDebugRecorder puleGfxDebugStart(
-  PuleGpuCommandListRecorder const commandListRecorder,
-  PuleGpuActionRenderPassBegin const renderPassBegin,
-  PuleF32m44 const transform
+  PuleF32m44 const transform,
+  PuleF32m44 const view,
+  PuleF32m44 const projection
 );
-PULE_exportFn void puleGfxDebugEnd(
-  PuleGfxDebugRecorder const recorder
+
+// Writes out the debug data to the render-pass
+typedef struct {
+  PuleGfxDebugRecorder recorder;
+  PuleGpuCommandListRecorder commandListRecorder;
+
+  // need this to call the begin/end render-pass;
+  //   it's a safety measure to ensure a render-pass is active when drawing
+  PuleGpuActionRenderPassBegin renderPassBegin;
+} PuleGfxDebugSubmitInfo;
+PULE_exportFn void puleGfxDebugSubmit(
+  PuleGfxDebugSubmitInfo const submitInfo
 );
 
 typedef enum {
   PuleGfxDebugRenderType_line,
   PuleGfxDebugRenderType_quad,
   PuleGfxDebugRenderType_cube,
+  PuleGfxDebugRenderType_sphere,
+  PuleGfxDebugRenderType_plane,
 } PuleGfxDebugRenderType;
 
 typedef struct PuleGfxDebugRenderLine {
@@ -51,16 +63,32 @@ typedef struct PuleGfxDebugRenderQuad {
 typedef struct PuleGfxDebugRenderCube {
   PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_cube);
   PuleF32v3 originCenter;
-  PuleF32v3 rotation;
+  PuleF32m33 rotationMatrix;
   PuleF32v3 dimensionsHalf;
   PuleF32v3 color;
 } PuleGfxDebugRenderCube;
+
+typedef struct PuleGfxDebugRenderSphere {
+  PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_sphere);
+  PuleF32v3 originCenter;
+  float radius;
+  PuleF32v3 color;
+} PuleGfxDebugRenderSphere;
+
+typedef struct PuleGfxDebugRenderPlane {
+  PuleGfxDebugRenderType type PULE_param(PuleGfxDebugRenderType_plane);
+  PuleF32v3 originCenter;
+  PuleF32m33 rotationMatrix;
+  PuleF32v3 color;
+} PuleGfxDebugRenderPlane;
 
 typedef union PuleGfxDebugRenderParam {
   PuleGfxDebugRenderType type;
   PuleGfxDebugRenderLine line;
   PuleGfxDebugRenderQuad quad;
   PuleGfxDebugRenderCube cube;
+  PuleGfxDebugRenderSphere sphere;
+  PuleGfxDebugRenderPlane plane;
 } PuleGfxDebugRenderParam;
 
 PULE_exportFn void puleGfxDebugRender(

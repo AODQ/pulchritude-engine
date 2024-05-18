@@ -16,6 +16,20 @@ VkRenderingAttachmentInfo imageAttachmentToVk(
   PuleGpuImageAttachment const attachment,
   bool const isDepth
 ) {
+  VkClearValue clearValue;
+  if (isDepth) {
+    clearValue.depthStencil = VkClearDepthStencilValue {
+      .depth = attachment.clearDepth,
+      .stencil = 0,
+    };
+  } else {
+    clearValue.color = VkClearColorValue {
+      .float32 = {
+        attachment.clearColor.x, attachment.clearColor.y,
+        attachment.clearColor.z, attachment.clearColor.w,
+      },
+    };
+  }
   return VkRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
     .pNext = nullptr,
@@ -30,14 +44,7 @@ VkRenderingAttachmentInfo imageAttachmentToVk(
     .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     .loadOp = util::toVkAttachmentOpLoad(attachment.opLoad),
     .storeOp = util::toVkAttachmentOpStore(attachment.opStore),
-    .clearValue = VkClearValue {
-      .color = VkClearColorValue {
-        .float32 = {
-          attachment.clearColor.x, attachment.clearColor.y,
-          attachment.clearColor.z, attachment.clearColor.w,
-        },
-      },
-    },
+    .clearValue = clearValue,
   };
 }
 
@@ -392,8 +399,13 @@ void puleGpuCommandListAppendAction(
       // iterate through image barriers
       for (size_t it = 0; it < action.resourceImageCount; ++ it) {
         auto const & imageBarrier = action.resourceImages[it];
+        VkImageAspectFlags aspectMask = (
+            imageBarrier.isDepthStencil
+            ? VK_IMAGE_ASPECT_DEPTH_BIT
+            : VK_IMAGE_ASPECT_COLOR_BIT
+        );
         auto const imageSubresourceRange = VkImageSubresourceRange {
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .aspectMask = aspectMask,
           .baseMipLevel = 0, .levelCount = 1,
           .baseArrayLayer = 0, .layerCount = 1,
         };
@@ -409,6 +421,24 @@ void puleGpuCommandListAppendAction(
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = reinterpret_cast<VkImage>(imageBarrier.image.id),
             .subresourceRange = imageSubresourceRange,
+          }
+        );
+      }
+      std::vector<VkBufferMemoryBarrier> bufferBarriers;
+      // iterate through buffer barriers
+      for (size_t it = 0; it < action.resourceBufferCount; ++ it) {
+        auto const & bufferBarrier = action.resourceBuffers[it];
+        bufferBarriers.emplace_back(
+          VkBufferMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = util::toVkAccessFlags(bufferBarrier.accessSrc),
+            .dstAccessMask = util::toVkAccessFlags(bufferBarrier.accessDst),
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .buffer = reinterpret_cast<VkBuffer>(bufferBarrier.buffer.id),
+            .offset = bufferBarrier.byteOffset,
+            .size = bufferBarrier.byteLength,
           }
         );
       }
@@ -504,7 +534,10 @@ void puleGpuCommandListAppendAction(
         .sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
         .pNext = nullptr,
         .srcSubresource = { // TODO::CRIT
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .aspectMask = (
+              action.isSrcDepthStencil
+            ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT
+          ),
           .mipLevel = 0,
           .baseArrayLayer = 0,
           .layerCount = 1,
@@ -515,7 +548,10 @@ void puleGpuCommandListAppendAction(
           .z = (int32_t)action.srcOffset.z,
         },
         .dstSubresource = { // TODO::CRIT
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .aspectMask = (
+              action.isDstDepthStencil
+            ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT
+          ),
           .mipLevel = 0,
           .baseArrayLayer = 0,
           .layerCount = 1,
@@ -863,6 +899,8 @@ PuleString puleGpuResourceBarrierStageLabel(
     label += "shaderCompute; ";
   if (stage & PuleGpuResourceBarrierStage_outputAttachmentColor)
     label += "outputAttachmentColor; ";
+  if (stage & PuleGpuResourceBarrierStage_outputAttachmentDepth)
+    label += "outputAttachmentDepth; ";
   if (stage & PuleGpuResourceBarrierStage_transfer)
     label += "transfer; ";
   if (stage & PuleGpuResourceBarrierStage_bottom)
@@ -916,3 +954,4 @@ PuleString puleGpuResourceAccessLabel(PuleGpuResourceAccess const access) {
 }
 
 } // extern C
+

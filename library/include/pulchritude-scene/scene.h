@@ -25,8 +25,8 @@ typedef enum {
 } PuleSceneDimension;
 
 typedef struct {
-  PulePlatform const platform;
-  PuleSceneDimension const dimension;
+  PulePlatform platform;
+  PuleSceneDimension dimension;
   //bool createEcsWorld; i think i have to always create ecs world for update
   bool createPhysxWorld;
 } PuleSceneCreateInfo;
@@ -87,6 +87,7 @@ typedef struct PuleSceneAdvanceInfo {
   float msDelta;
   bool advanceEcsWorld PULE_defaultField(true);
   bool advancePhysxWorld PULE_defaultField(true);
+  PuleGpuSemaphore const waitSemaphore PULE_defaultField({0});
 } PuleSceneAdvanceInfo;
 PULE_exportFn void puleSceneAdvance(PuleSceneAdvanceInfo const info);
 
@@ -119,24 +120,10 @@ typedef struct {
   // TODO animation support?
 } PuleSceneComponentModelData;
 
-typedef enum {
-  PuleSceneComponentPhysicsType_none,
-  PuleSceneComponentPhysicsType_rigidBody,
-  PuleSceneComponentPhysicsType_softBody,
-} PuleSceneComponentPhysicsType;
-
 typedef struct {
-  PuleSceneComponentPhysicsType type;
-  // TODO insert physics data
+  PulePhysx3DBody body;
 } PuleSceneComponentPhysicsData;
 
-typedef struct {
-  PuleF32v3 position;
-  PuleF32v3 rotation;
-  PuleF32v3 scale;
-} PuleSceneComponentObjectData;
-
-PULE_exportFn PuleEcsComponent puleSceneComponentObject(PuleScene const scene);
 PULE_exportFn PuleEcsComponent puleSceneComponentModel(PuleScene const scene);
 PULE_exportFn PuleEcsComponent puleSceneComponentPhysics(PuleScene const scene);
 
@@ -144,8 +131,7 @@ typedef struct {
   PuleEcsEntity entity;
   PuleScene scene;
   PuleSceneComponentModelType modelType;
-  PuleSceneComponentPhysicsType physicsType;
-  PuleSceneComponentObjectData objectData;
+  PuleSceneComponentPhysicsData physicsData;
 } PuleSceneNodeCreateInfo;
 
 PULE_exportFn void puleSceneNodeAttachComponents(

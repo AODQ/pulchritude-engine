@@ -1,0 +1,13 @@
+@enum PuleDt {
+  #`General purpose Data types`
+  i8; i16; i32; i64; u8; u16; u32; u64; f32; f64; bool; ptr;
+  f32v2; f32v3; f32v4; f32m44;
+  f64v2; f64v3; f64v4;
+  i32v2; i32v3; i32v4; u32v2; u32v3; u32v4;
+  i64v2; i64v3; i64v4; u64v2; u64v3; u64v4;
+};
+
+@enum PuleAccess {
+  #`general purpose Access flags`
+  none; read; write; readwrite;
+};

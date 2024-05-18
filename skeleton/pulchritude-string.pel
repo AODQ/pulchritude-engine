@@ -1,0 +1,40 @@
+@struct PuleString {
+  #`ASCII/UTF8 encoded string that must end with null-terminating character`
+  @field contents : char ptr;
+  @field len : size_t = 0 #`number of bytes excluding null-terminator`;
+  @field allocator : PuleAllocator;
+};
+
+@struct PuleStringView {
+  #`light-weight view into a string, with no knowledge of its underlying
+    allocation. Unable to modify the contents of the string. The convention
+    is to pass immutable data between interfaces with the string-view, and
+    make copies if the local system needs to retain the information.`
+  @field contents : char const ptr = null;
+  @field len : size_t = 0;
+};
+
+@fn puleStringDefault(baseContents : char const ptr) #`
+  create string with default allocator
+`;
+@fn puleString(_ : PuleAllocator, contents : char const ptr) PuleString;
+@fn puleStringCopy(_ : PuleAllocator, base : PuleStringView) PuleString;
+@fn puleStringDestroy(_ : PuleString);
+@fn puleStringAppend(str : PuleString ref, append : PuleStringView);
+
+@fn puleStringFormat(
+  _ : PuleAllocator, format : char const ptr, _ : vaArgs
+) PuleString;
+@fn puleStringFormatDefault(format : char const ptr, _ : vaArgs) PuleString;
+@fn puleStringFormatVargs(
+  _ : PuleAllocator, format : char const ptr, _ : vaList
+) PuleString;
+
+@fn puleStringView(string : PuleString) PuleStringView;
+@fn puleCStr(cstr : char const ptr) PuleStringView;
+
+@fn puleStringViewEq(v0 : PuleStringView, v1 : PuleStringView) bool;
+@fn puleStringViewContains(base : PuleStringView, seg : PuleStringView) bool;
+@fn puleStringViewEqCstr(v0 : PuleStringView, v1 : char const ptr) bool;
+
+@fn puleStringViewHash(view : PuleStringView) size_t;

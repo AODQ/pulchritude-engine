@@ -1,0 +1,146 @@
+@enum PuleErrorFile {
+  PuleErrorFile_none;
+  PuleErrorFile_fileOpen;
+};
+
+@enum PuleFileDataMode {
+  PuleFileDataMode_text;
+  PuleFileDataMode_binary;
+};
+
+@enum PuleFileOpenMode {
+  PuleFileOpenMode_read;
+  PuleFileOpenMode_writeOverwrite;
+  PuleFileOpenMode_writeAppend;
+  PuleFileOpenMode_readWriteOverwrite;
+  PuleFileOpenMode_readWrite;
+};
+
+@entity PuleFile;
+
+@entity PuleFileStream;
+
+@fn puleFileStreamReadOpen(path : PuleStringView) PuleFileStream;
+@fn puleFileStreamWriteOpen(path : PuleStringView) PuleFileStream;
+@fn puleFileStreamClose(puStream : PuleFileStream) void;
+@fn puleFileStreamReader(stream : PuleFileStream) PuleStreamRead;
+@fn puleFileStreamWriter(stream : PuleFileStream) PuleStreamWrite;
+
+@fn puleFileOpen(
+  filename : PuleStringView,
+  dataMode : PuleFileDataMode,
+  openMode : PuleFileOpenMode,
+  error : PuleError ptr
+) PuleFile;
+@fn puleFileDump(
+  filename : PuleStringView,
+  dataMode : PuleFileDataMode,
+  error : PuleError ptr
+) PuleString;
+@fn puleFileClose(file : PuleFile) void;
+@fn puleFileIsDone(file : PuleFile) bool;
+@fn puleFilePath(file : PuleFile) PuleStringView;
+@fn puleFileReadByte(file : PuleFile) uint8_t;
+@fn puleFileReadBytes(
+  file : PuleFile, destination : PuleBufferViewMutable
+) size_t;
+@fn puleFileWriteBytes(
+  file : PuleFile,
+  source : PuleArrayView
+) void;
+@fn puleFileWriteString(
+  file : PuleFile,
+  source : PuleStringView
+) void;
+@fn puleFileSize(file : PuleFile) uint64_t;
+@fn puleFileAdvanceFromStart(
+  file : PuleFile,
+  offset : int64_t
+) void;
+@fn puleFileAdvanceFromEnd(
+  file : PuleFile,
+  offset : int64_t
+) void;
+@fn puleFileAdvanceFromCurrent(
+  file : PuleFile,
+  offset : int64_t
+) void;
+
+@fn puleFileStreamRead(
+  file : PuleFile,
+  intermediateBuffer : PuleBufferViewMutable
+) PuleStreamRead #`
+  efficient manner to stream file (such as for parsing), meant to grab one byte
+  at a time rather than copying the entire contents the only limitation is that
+  you can only have one stream open per file, you can't use the normal file
+  mechanisms without closing the stream, and it's not thread-safe
+`;
+
+@fn puleFileStreamWrite(
+  file : PuleFile,
+  intermediateBuffer : PuleBufferViewMutable
+) PuleStreamWrite;
+
+@fn puleFilesystemPathExists(path : PuleStringView) bool;
+@fn puleFileCopy(
+  sourcePath : PuleStringView,
+  destinationPath : PuleStringView
+) bool;
+@fn puleFileRemove(filePath : PuleStringView) bool;
+@fn puleFileRemoveRecursive(filePath : PuleStringView) bool;
+@fn puleFileDirectoryCreate(path : PuleStringView) bool;
+@fn puleFileDirectoryCreateRecursive(path : PuleStringView) bool;
+
+@fn puleFilesystemDirWalk(
+  dirPath : PuleStringView,
+  walker : @fnptr(void, void ptr, PuleStringView, bool),
+  userdata : void ptr
+) void;
+
+@fn puleFilesystemPathCurrent() PuleString;
+@fn puleFilesystemExecutablePath() PuleStringView;
+
+@fn puleFilesystemAssetPath() PuleStringView;
+@fn puleFilesystemAssetPathSet(path : PuleStringView) void;
+
+@fn puleFilesystemAbsolutePath(
+  path : PuleStringView
+) PuleString #`
+    fetches absolute path of the file, first trying the path directly, then the
+    executable path, then the asset path. Returns empty string if the file
+    doesn't exist
+`;
+
+@fn puleFilesystemSymlinkCreate(
+  target : PuleStringView,
+  linkDst : PuleStringView
+) bool;
+
+@fn puleFilesystemTimestamp(path : PuleStringView) PuleTimestamp #`
+    returns 0 on error; sometimes this might happen if the file is being
+    written to, even if 'puleFilesystemPathExists' returns true, in which case
+    you might need to check at a later point
+`;
+
+
+@entity PuleFileWatcher #`
+    will watch files on the filesystem for you, with user-provided callbacks.
+    the file-check only happens with 'puleFileWatchCheckAll()', and is not
+    currently thread-safe
+`;
+@struct PuleFileWatchCreateInfo {
+  @field fileUpdatedCallback : @fnptr(void, PuleStringView, void ptr);
+  @field filename : PuleStringView #`  can be a list separated by '' `;
+  @field waitTime : PuleMillisecond;
+  @field checkMd5Sum : bool;
+  @field userdata : void ptr;
+};
+@fn puleFileWatch(
+  createinfo : PuleFileWatchCreateInfo
+) PuleFileWatcher;
+@fn puleFileWatchCheckAll() bool;
+
+@fn puleFilesystemWriteString(
+  path : PuleStringView,
+  string : PuleStringView
+) void;

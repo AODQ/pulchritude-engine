@@ -158,7 +158,10 @@ typedef struct {
   PuleGpuImageAttachmentOpLoad opLoad;
   PuleGpuImageAttachmentOpStore opStore;
   PuleGpuImageLayout layout;
-  PuleF32v4 clearColor;
+  union {
+    PuleF32v4 clearColor;
+    float clearDepth;
+  };
   PuleGpuImageView imageView;
 } PuleGpuImageAttachment;
 

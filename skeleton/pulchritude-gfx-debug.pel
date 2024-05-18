@@ -1,0 +1,83 @@
+@fn puleGfxDebugInitialize(platform : PulePlatform) void;
+@fn puleGfxDebugShutdown() void;
+
+@struct PuleGfxDebugRecorder {
+  @field id : uint64_t;
+};
+
+@fn puleGfxDebugStart(
+  transform : PuleF32m44,
+  view : PuleF32m44,
+  projection : PuleF32m44
+) PuleGfxDebugRecorder;
+
+@struct PuleGfxDebugSubmitInfo {
+  #` Writes out the debug data to the render-pass `
+  @field recorder : PuleGfxDebugRecorder;
+  @field commandListRecorder : PuleGpuCommandListRecorder;
+
+  @field renderPassBegin : PuleGpuActionRenderPassBegin #`
+    need this to call the begin/end render-pass; it's a safety measure to
+    ensure a render-pass is active when drawing
+  `;
+};
+@fn puleGfxDebugSubmit(submitInfo : PuleGfxDebugSubmitInfo) void;
+
+@enum PuleGfxDebugRenderType {
+  PuleGfxDebugRenderType_line;
+  PuleGfxDebugRenderType_quad;
+  PuleGfxDebugRenderType_cube;
+  PuleGfxDebugRenderType_sphere;
+  PuleGfxDebugRenderType_plane;
+};
+
+@struct PuleGfxDebugRenderLine {
+  @field type : PuleGfxDebugRenderType = PuleGfxDebugRenderType_line;
+  @field a : PuleF32v2;
+  @field b : PuleF32v2;
+  @field color : PuleF32v3;
+};
+
+@struct PuleGfxDebugRenderQuad {
+  @field type : PuleGfxDebugRenderType = PuleGfxDebugRenderType_quad;
+  @field originCenter : PuleF32v2;
+  @field angle : float;
+  @field dimensionsHalf : PuleF32v2;
+  @field color : PuleF32v3;
+};
+
+@struct PuleGfxDebugRenderCube {
+  @field type : PuleGfxDebugRenderType = PuleGfxDebugRenderType_cube;
+  @field originCenter : PuleF32v3;
+  @field rotationMatrix : PuleF32m33;
+  @field dimensionsHalf : PuleF32v3;
+  @field color : PuleF32v3;
+};
+
+@struct PuleGfxDebugRenderSphere {
+  @field type : PuleGfxDebugRenderType = PuleGfxDebugRenderType_sphere;
+  @field originCenter : PuleF32v3;
+  @field radius : float;
+  @field color : PuleF32v3;
+};
+
+@struct PuleGfxDebugRenderPlane {
+  @field type : PuleGfxDebugRenderType = PuleGfxDebugRenderType_plane;
+  @field originCenter : PuleF32v3;
+  @field rotationMatrix : PuleF32m33;
+  @field color : PuleF32v3;
+};
+
+@union PuleGfxDebugRenderParam {
+  @field type : PuleGfxDebugRenderType;
+  @field line : PuleGfxDebugRenderLine;
+  @field quad : PuleGfxDebugRenderQuad;
+  @field cube : PuleGfxDebugRenderCube;
+  @field sphere : PuleGfxDebugRenderSphere;
+  @field plane : PuleGfxDebugRenderPlane;
+};
+
+@fn puleGfxDebugRender(
+  debugRecorder : PuleGfxDebugRecorder,
+  param : PuleGfxDebugRenderParam
+) void;
