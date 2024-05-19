@@ -1,3 +1,5 @@
+@include `math`;
+
 @struct PulePhysxCollisionResultShape {
   @field hit : bool;
   @field distance : float;

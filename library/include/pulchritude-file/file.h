@@ -40,8 +40,12 @@ typedef struct {
 
 typedef struct { uint64_t id; } PuleFileStream;
 
-PULE_exportFn PuleFileStream puleFileStreamReadOpen(PuleStringView const path);
-PULE_exportFn PuleFileStream puleFileStreamWriteOpen(PuleStringView const path);
+PULE_exportFn PuleFileStream puleFileStreamReadOpen(
+  PuleStringView const path, PuleFileDataMode datamode
+);
+PULE_exportFn PuleFileStream puleFileStreamWriteOpen(
+  PuleStringView const path, PuleFileDataMode datamode
+);
 PULE_exportFn void puleFileStreamClose(PuleFileStream const puStream);
 PULE_exportFn PuleStreamRead puleFileStreamReader(PuleFileStream const stream);
 PULE_exportFn PuleStreamWrite puleFileStreamWriter(PuleFileStream const stream);

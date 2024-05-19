@@ -14,23 +14,23 @@ static std::string formatModifier(BindingTypeModifier m) {
     case BindingTypeModifierType::tPtr:
       return "* ";
     case BindingTypeModifierType::tArray:
-      return "[" + m.size + "]";
+      return "[" + m.size + "] ";
   }
 }
 
-static std::string formatType(BindingType type) {
+static std::string formatType(BindingType type, std::string const & name) {
   std::string result;
   if (type.type == BindingTypeType::fnPtr) {
-    result += formatType(type.fnptrParams[0]);
+    result += formatType(type.fnptrParams[0], "");
     result += "(* ";
     for (auto & m : type.modifiers) {
       result += formatModifier(m);
     }
-    result += type.name;
+    result += name;
     result += ")(";
     for (auto & p : type.fnptrParams) {
       if (&p == &type.fnptrParams[0]) { continue; }
-      result += formatType(p);
+      result += formatType(p, "");
       if (&p != &type.fnptrParams.back()) { result += ", "; }
     }
     result += ")";
@@ -40,26 +40,59 @@ static std::string formatType(BindingType type) {
       return "...";
     }
     result += type.name;
+    if (type.modifiers.size() > 0) {
+      result += " ";
+    }
     for (auto & m : type.modifiers) {
       result += formatModifier(m);
     }
-  }
-  if (type.modifiers.size() > 0) {
-    result += " ";
+    // remove trailing space
+    if (type.modifiers.size() > 0) {
+      result.pop_back();
+    }
+    if (name.size() > 0) {
+      result += " " + name;
+    }
   }
 
   return result;
 }
 
-void generateBindingFileC(GenerateBindingInfo const & info) {
+static PuleFileStream createFile(GenerateBindingInfo & info) {
+  static std::string prefix = "../../../../../library/include/pulchritude/";
+  if (!puleFilesystemPathExists(puleCStr(prefix.c_str()))) {
+    puleFileDirectoryCreate(puleCStr(prefix.c_str()));
+  }
+  std::string path = prefix + std::string(info.path.contents) + ".h";
+  auto fileOut = (
+    puleFileStreamWriteOpen(
+      puleCStr(path.c_str()), PuleFileDataMode_text
+    )
+  );
+  info.output = puleFileStreamWriter(fileOut);
+  return fileOut;
+}
+
+void generateBindingFileC(GenerateBindingInfo const & inforef) {
+  GenerateBindingInfo info = inforef;
+  PuleFileStream fileStream = createFile(info);
+  puleScopeExit { puleFileStreamClose(fileStream); };
   auto const & file = info.file;
   auto const & out = info.output;
   auto const & write = puleStreamWriteStrFormat;
   write(out, "/* auto generated file %s */\n", info.path);
   write(out, "#pragma once\n");
-  write(out, "#include <pulchritude-core/core.h>\n");
+  write(out, "#include <pulchritude/core.h>\n");
+  write(out, "\n");
+
+  // write out includes
+  for (auto const & i : file.includes) {
+    write(out, "#include <pulchritude/%s.h>\n", i.c_str());
+  }
+
 
   // in case included by C++ (which happens by default in C++ bindings)
+  write(out, "\n");
   write(out, "#ifdef __cplusplus\n");
   write(out, "extern \"C\" {\n");
   write(out, "#endif\n");
@@ -76,7 +109,7 @@ void generateBindingFileC(GenerateBindingInfo const & info) {
       if (f.comment.size() > 0) {
         write(out, "  /* %s */\n", f.comment.c_str());
       }
-      write(out, "  %s %s;\n", formatType(f.type).c_str(), f.name.c_str());
+      write(out, "  %s;\n", formatType(f.type, f.name).c_str());
       // C doesn't have assignments in struct definitions
     }
     write(out, "} %s;\n", s.name.c_str());
@@ -119,18 +152,19 @@ void generateBindingFileC(GenerateBindingInfo const & info) {
     write(
       out,
       "PULE_exportFn %s %s(",
-      formatType(f.returnType).c_str(),
+      formatType(f.returnType, "").c_str(),
       f.name.c_str()
     );
-    size_t paramCount = f.parameters.size();
+    size_t paramIt = 0;
     for (auto const & p : f.parameters) {
       write(
-        out, "%s %s%s",
-        formatType(p.type).c_str(), p.name.c_str()
+        out, "%s",
+        formatType(p.type, p.name).c_str()
       );
-      if (f.parameters.size()-1 != paramCount) {
+      if (f.parameters.size()-1 != paramIt) {
         write(out, ", ");
       }
+      ++ paramIt;
     }
     write(out, ");\n");
   }

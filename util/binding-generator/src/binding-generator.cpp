@@ -12,12 +12,13 @@
 
 std::string const expressionGrammar = R"(
 %globals := %global+;
-%global := (%struct_decl | %entity_decl | %enum_decl | %func_decl |);
+%global := (%struct_decl | %entity_decl | %enum_decl | %func_decl | %include |);
 %func_decl := '@fn' %identifier '\(' %parameter* '\)' %type? %comment? ';';
 %struct_decl := %struct_union %identifier '\{' %comment? %field* '\}' ';';
 %struct_union := ('@struct' | '@union' |);
 %entity_decl := '@entity' %identifier %comment? ';';
 %enum_decl := '@enum' %identifier '\{' %comment? %enum_field* '\}' ';';
+%include := '@include' '\`[^\`]*\`' ';';
 
 %parameter := %identifier ':' %type ','?;
 %field := '@field' %identifier ':' %type %assignment? %comment? ';';
@@ -275,7 +276,9 @@ BindingEnum parseEnum(PuleParserAstNode const node) {
     auto field = puleParserAstNodeChild(enumFields, it);
     PULE_assert(field.type == PuleParserNodeType_rule);
     PULE_assert(puleStringViewEqCStr(field.match, "enum_field"));
-    auto fieldIdentifier = puleParserAstNodeChild(field, 0).match;
+    auto fieldIdentifier = (
+      puleParserAstNodeMatch(puleParserAstNodeChild(field, 0))
+    );
     auto fieldAssignment = puleParserAstNodeChild(field, 1);
     auto fieldCommentChild = puleParserAstNodeChild(field, 2);
     std::string fieldComment = "";
@@ -390,6 +393,16 @@ BindingEntity parseEntity(PuleParserAstNode const node) {
   };
 }
 
+// %include := '@include '`[^\`]*`' ';';
+std::string parseInclude(PuleParserAstNode const node) {
+  PULE_assert(node.type == PuleParserNodeType_rule);
+  PULE_assert(puleStringViewEqCStr(node.match, "include"));
+  auto includePath = (
+    puleParserAstNodeMatch(puleParserAstNodeChild(node, 1))
+  );
+  return std::string(includePath.contents+1, includePath.len-2);
+}
+
 void applyPelParser(void *, PuleStringView path, bool isFile) {
   if (!isFile) { return; }
   if (!puleStringViewEnds(path, ".pel"_psv)) { return; }
@@ -433,6 +446,8 @@ void applyPelParser(void *, PuleStringView path, bool isFile) {
       file.enums.push_back(parseEnum(global));
     } else if (puleStringViewEq("entity_decl"_psv, global.match)) {
       file.entities.push_back(parseEntity(global));
+    } else if (puleStringViewEq("include"_psv, global.match)) {
+      file.includes.push_back(parseInclude(global));
     } else {
       PULE_assert(false);
     }
@@ -441,10 +456,18 @@ void applyPelParser(void *, PuleStringView path, bool isFile) {
   // generate bindings
   GenerateBindingInfo info;
   info.file = file;
-  info.path = path;
-  info.output = puleStreamStdoutWrite();
+
+  // TODO this needs to move into the binding generator
+
+  std::string newpath = std::string(path.contents, path.len);
+  // remove .pel
+  newpath = newpath.substr(0, newpath.size() - 4);
+  // remove ../../../../../skeleton/pulchritude-
+  newpath = newpath.substr(36);
+  info.path = puleCStr(newpath.c_str());
 
   generateBindingFileC(info);
+  generateBindingFileMd(info);
 }
 
 extern "C" {

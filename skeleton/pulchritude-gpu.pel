@@ -1,3 +1,10 @@
+@include `platform`;
+@include `error`;
+@include `core`;
+@include `math`;
+@include `array`;
+@include `time`;
+
 @entity PuleGpuCommandList;
 @entity PuleGpuCommandListRecorder;
 @struct PuleGpuCommandListSubmitInfo {

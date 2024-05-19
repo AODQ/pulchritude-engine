@@ -1,3 +1,7 @@
+@include `stream`;
+@include `allocator`;
+@include `error`;
+
 @enum PuleErrorAssetImage {
   PuleErrorAssetImage_none;
   PuleErrorAssetImage_decode;

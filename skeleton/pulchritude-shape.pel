@@ -1,3 +1,6 @@
+@include `array`;
+@include `math`;
+
 @fn puleShapeCreateHexahedron() PuleBuffer;
 @fn puleShapeCreateTetrahedron() PuleBuffer;
 @fn puleShapeCreateOctahedron() PuleBuffer;

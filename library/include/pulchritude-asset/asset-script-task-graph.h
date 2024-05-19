@@ -4,7 +4,6 @@
 
 #include <pulchritude-allocator/allocator.h>
 #include <pulchritude-data-serializer/data-serializer.h>
-#include <pulchritude-platform/platform.h>
 #include <pulchritude-script/script.h>
 #include <pulchritude-task-graph/task-graph.h>
 

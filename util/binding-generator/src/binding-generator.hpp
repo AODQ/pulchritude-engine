@@ -96,6 +96,7 @@ struct BindingFile {
   std::vector<BindingEnum> enums;
   std::vector<BindingFunc> funcs;
   std::vector<BindingEntity> entities;
+  std::vector<std::string> includes;
 };
 
 
@@ -108,6 +109,7 @@ struct GenerateBindingInfo {
   PuleStreamWrite output;
 };
 
+void generateBindingFileMd (GenerateBindingInfo const &);
 void generateBindingFileC  (GenerateBindingInfo const &);
 void generateBindingFileCpp(GenerateBindingInfo const &);
 void generateBindingFileLua(GenerateBindingInfo const &);

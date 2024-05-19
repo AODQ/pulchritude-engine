@@ -1,3 +1,6 @@
+@include `error`;
+@include `math`;
+@include `string`;
 
 @enum PulePlatformVsyncMode {
   PulePlatformVsyncMode_none;

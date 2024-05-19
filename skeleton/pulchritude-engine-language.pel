@@ -1,3 +1,6 @@
+@include `error`;
+@include `stream`;
+
 @enum PuleErrorEL {
   PuleErrorEL_none;
   PuleErrorEL_compileError;

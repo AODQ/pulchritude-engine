@@ -1,3 +1,4 @@
+@include `string`;
 
 @struct PuleTaskGraph {
   @field id : uint64_t;

@@ -7,7 +7,6 @@
 #include <pulchritude-data-serializer/data-serializer.h>
 #include <pulchritude-error/error.h>
 #include <pulchritude-stream/stream.h>
-#include <pulchritude-time/time.h>
 
 #ifdef __cplusplus
 extern "C" {

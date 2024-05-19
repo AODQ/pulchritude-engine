@@ -1,3 +1,10 @@
+@include `allocator`;
+@include `array`;
+@include `error`;
+@include `stream`;
+@include `string`;
+@include `time`;
+
 @enum PuleErrorFile {
   PuleErrorFile_none;
   PuleErrorFile_fileOpen;
@@ -20,8 +27,12 @@
 
 @entity PuleFileStream;
 
-@fn puleFileStreamReadOpen(path : PuleStringView) PuleFileStream;
-@fn puleFileStreamWriteOpen(path : PuleStringView) PuleFileStream;
+@fn puleFileStreamReadOpen(
+  path : PuleStringView, datamode : PuleFileDataMode
+) PuleFileStream;
+@fn puleFileStreamWriteOpen(
+  path : PuleStringView, datamode : PuleFileDataMode
+) PuleFileStream;
 @fn puleFileStreamClose(puStream : PuleFileStream) void;
 @fn puleFileStreamReader(stream : PuleFileStream) PuleStreamRead;
 @fn puleFileStreamWriter(stream : PuleFileStream) PuleStreamWrite;

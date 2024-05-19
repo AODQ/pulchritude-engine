@@ -1,6 +1,6 @@
 # Pulchritude
 
-<p align="center"> <img src="documents/pulchritude-logo.gif"> </p>
+<p align="center"> <img src="documentation/pulchritude-logo.gif"> </p>
 
 ### summary
 Pulchritude is a [lingua franca](https://en.wikipedia.org/wiki/Lingua_franca)

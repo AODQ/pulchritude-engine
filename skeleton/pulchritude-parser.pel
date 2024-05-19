@@ -1,3 +1,5 @@
+@include `string`;
+@include `file`;
 
 @enum PuleErrorParser {
   PuleErrorParser_none;

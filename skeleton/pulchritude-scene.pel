@@ -1,3 +1,9 @@
+@include `ecs`;
+@include `gpu`;
+@include `physx`;
+@include `platform`;
+@include `camera`;
+
 @entity PuleScene;
 
 @enum PuleSceneDimension {

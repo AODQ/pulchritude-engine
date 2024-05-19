@@ -2,8 +2,6 @@
 
 #include <pulchritude-core/core.h>
 
-// Gvzr, Qe Serrzna?
-
 #ifdef __cplusplus
 extern "C" {
 #endif

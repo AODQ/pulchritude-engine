@@ -1,3 +1,8 @@
+@include `allocator`;
+@include `error`;
+@include `file`;
+@include `string`;
+
 @enum PuleErrorDataSerializer {
   PuleErrorDataSerializer_none;
   PuleErrorDataSerializer_invalidFormat;

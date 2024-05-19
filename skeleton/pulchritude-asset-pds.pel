@@ -1,3 +1,8 @@
+@include `error`;
+@include `data-serializer`;
+@include `allocator`;
+@include `stream`;
+
 @enum PuleErrorAssetPds {
   PuleErrorAssetPds_none;
   PuleErrorAssetPds_decode;

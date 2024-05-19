@@ -1,3 +1,8 @@
+@include `error`;
+@include `gpu`;
+@include `math`;
+@include `platform`;
+
 @fn puleGfxDebugInitialize(platform : PulePlatform) void;
 @fn puleGfxDebugShutdown() void;
 

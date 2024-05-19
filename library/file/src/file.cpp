@@ -43,41 +43,46 @@ std::string filesystemExecutablePath;
 
 extern "C" {
 
-PuleFileStream puleFileStreamReadOpen(PuleStringView const path) {
+static PuleFileStream fileStreamOpen(
+  PuleStringView const path,
+  PuleFileDataMode const dataMode,
+  bool writemode
+) {
   PuleError err = puleError();
   PuleFile const file = puleFileOpen(
-    path, PuleFileDataMode_binary, PuleFileOpenMode_read, &err
+    path,
+    dataMode,
+    (writemode ?  PuleFileOpenMode_writeOverwrite : PuleFileOpenMode_read),
+    &err
   );
   if (puleErrorConsume(&err)) { return {0}; }
   auto streamId = fileStreams.create({});
   auto & stream = *fileStreams.at(streamId);
   stream.file = file;
-  stream.isRead = true;
+  stream.isRead = !writemode;
   stream.bufferData.resize(512);
   stream.buffer = PuleBufferViewMutable {
     .data = stream.bufferData.data(),
     .byteLength = stream.bufferData.size(),
   };
-  stream.streamRead = puleFileStreamRead(file, stream.buffer);
+  if (writemode) {
+    stream.streamWrite = puleFileStreamWrite(file, stream.buffer);
+  } else {
+    stream.streamRead = puleFileStreamRead(file, stream.buffer);
+  }
   return {streamId};
 }
-PuleFileStream puleFileStreamWriteOpen(PuleStringView const path){
-  PuleError err = puleError();
-  PuleFile const file = puleFileOpen(
-    path, PuleFileDataMode_binary, PuleFileOpenMode_read, &err
-  );
-  if (puleErrorConsume(&err)) { return {0}; }
-  auto streamId = fileStreams.create({});
-  auto & stream = *fileStreams.at(streamId);
-  stream.file = file;
-  stream.isRead = false;
-  stream.bufferData.resize(512);
-  stream.buffer = PuleBufferViewMutable {
-    .data = stream.bufferData.data(),
-    .byteLength = stream.bufferData.size(),
-  };
-  stream.streamWrite = puleFileStreamWrite(file, stream.buffer);
-  return {streamId};
+
+PuleFileStream puleFileStreamReadOpen(
+  PuleStringView const path,
+  PuleFileDataMode const dataMode
+) {
+  return fileStreamOpen(path, dataMode, false);
+}
+PuleFileStream puleFileStreamWriteOpen(
+  PuleStringView const path, PuleFileDataMode const dataMode
+) {
+  return fileStreamOpen(path, dataMode, true);
 }
 void puleFileStreamClose(PuleFileStream const puStream) {
   auto & stream = *fileStreams.at(puStream.id);
@@ -137,15 +142,13 @@ PuleFile puleFileOpen(
     file = fopen((filesystemAssetPath + filenameStr).c_str(), fileMode);
   }
   if (!file) {
-    auto const strerrorcp = std::string(strerror(errno));
-    // in C11 there is nice strerrorlen_s and strerror_s, but not in C++
-    // TODO but this doesnt seem to work, possibly bug in my code. Try to fix
-    //std::vector<char> strerrorcopy;
-    //strerrorcopy.resize(1024);
-    //strerror_r(errno, strerrorcopy.data(), 1024);
+    char * err = strerror(errno);
+    // TODO for some reason I can't pass err as arg to PULE_error
+    puleLogError(
+      "failed to open file '%s': %s", filenameStr.c_str(), err
+    );
     PULE_error(
-      PuleErrorFile_fileOpen,
-      "failed to open file '%s'", filename
+      PuleErrorFile_fileOpen, "failed to open file '%s'", filename
     );
     return { 0 };
   }
@@ -378,12 +381,14 @@ static void fileWriteStreamDestroy(void * const userdata) {
   // note that the file isn't closed -- that's still on the user to do
 }
 
-PuleStreamRead puleFileStreamRead(
-  PuleFile const file,
-  PuleBufferViewMutable const view
+static void fileStream(
+  PuleStreamRead * sread, PuleStreamWrite * swrite,
+  PuleFile file,
+  PuleBufferViewMutable view,
+  bool isWrite
 ) {
   if (::streams.find(file.id) != ::streams.end()) {
-    puleLogError("already streaming file: %d", file.id);
+    puleLogError("already streaming file: %llu", file.id);
   }
   ::streams.emplace(
     file.id,
@@ -394,37 +399,40 @@ PuleStreamRead puleFileStreamRead(
       .bufferIt = 0,
     }
   );
-  return PuleStreamRead {
-    .userdata = reinterpret_cast<void *>(file.id),
-    .readByte = fileReadStreamReadByte,
-    .peekByte = fileReadStreamPeekByte,
-    .isDone   = fileReadStreamIsDone,
-    .destroy  = fileReadStreamDestroy,
-  };
+  if (isWrite) {
+    *swrite = PuleStreamWrite {
+      .userdata = reinterpret_cast<void *>(file.id),
+      .writeBytes = fileWriteStreamWriteBytes,
+      .flush      = fileWriteStreamFlush,
+      .destroy    = fileWriteStreamDestroy,
+    };
+  } else {
+    *sread =  PuleStreamRead {
+      .userdata = reinterpret_cast<void *>(file.id),
+      .readByte = fileReadStreamReadByte,
+      .peekByte = fileReadStreamPeekByte,
+      .isDone   = fileReadStreamIsDone,
+      .destroy  = fileReadStreamDestroy,
+    };
+  }
+}
+
+PuleStreamRead puleFileStreamRead(
+  PuleFile const file,
+  PuleBufferViewMutable const view
+) {
+  PuleStreamRead sread;
+  fileStream(&sread, nullptr, file, view, false);
+  return sread;
 }
 
 PuleStreamWrite puleFileStreamWrite(
   PuleFile const file,
   PuleBufferViewMutable const view
 ) {
-  if (::streams.find(file.id) != ::streams.end()) {
-    puleLogError("already streaming file: %d", file.id);
-  }
-  ::streams.emplace(
-    file.id,
-    PdsStream {
-      .file = file,
-      .buffer = view,
-      .fetchedBufferLength = 0,
-      .bufferIt = 0,
-    }
-  );
-  return PuleStreamWrite {
-    .userdata = reinterpret_cast<void *>(file.id),
-    .writeBytes = fileWriteStreamWriteBytes,
-    .flush      = fileWriteStreamFlush,
-    .destroy    = fileWriteStreamDestroy,
-  };
+  PuleStreamWrite swrite;
+  fileStream(nullptr, &swrite, file, view, true);
+  return swrite;
 }
 
 } // C
@@ -679,7 +687,6 @@ PuleFileWatcher puleFileWatch(
   PuleFileWatchCreateInfo const ci
 ) {
   auto const ciFilename = std::string(ci.filename.contents, ci.filename.len);
-  puleLog("watching files: '%s'", ciFilename.c_str());
 
   std::vector<::FileWatch> filewatches;
   for (auto const & filename : ::splitBySemicolon(ciFilename )) {

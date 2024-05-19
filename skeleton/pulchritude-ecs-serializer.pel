@@ -1,3 +1,6 @@
+@include `data-serializer`;
+@include `ecs`;
+
 @struct PuleEcsSerializeWorldInfo {
   @field world : PuleEcsWorld;
   @field allocator : PuleAllocator;

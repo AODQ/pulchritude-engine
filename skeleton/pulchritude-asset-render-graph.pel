@@ -1,3 +1,6 @@
+@include `allocator`;
+@include `data-serialize`;
+
 @fn puleAssetRenderGraphFromPds(
   allocator : PuleAllocator,
   platform : PulePlatform,

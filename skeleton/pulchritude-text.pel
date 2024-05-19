@@ -1,3 +1,6 @@
+@include `asset-font`;
+@include `gpu`;
+@include `math`;
 
 @struct PuleTextRenderer {
   @field id : uint64_t;

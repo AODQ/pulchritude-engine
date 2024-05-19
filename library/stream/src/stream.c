@@ -80,9 +80,7 @@ PULE_exportFn void puleStreamWriteFlush(PuleStreamWrite const stream) {
   }
 }
 PULE_exportFn void puleStreamWriteDestroy(PuleStreamWrite const stream) {
-  if (stream.flush) {
-    stream.flush(stream.userdata);
-  }
+  puleStreamWriteFlush(stream);
   if (stream.destroy) {
     stream.destroy(stream.userdata);
   }

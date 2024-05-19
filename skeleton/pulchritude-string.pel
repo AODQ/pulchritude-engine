@@ -1,3 +1,6 @@
+@include `allocator`;
+@include `log`;
+
 @struct PuleString {
   #`ASCII/UTF8 encoded string that must end with null-terminating character`
   @field contents : char ptr;

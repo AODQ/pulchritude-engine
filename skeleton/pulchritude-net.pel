@@ -1,3 +1,7 @@
+@include `array`;
+@include `error`;
+@include `stream`;
+@include `string`;
 
 @entity PuleNetHost;
 

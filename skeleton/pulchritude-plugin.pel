@@ -1,3 +1,4 @@
+@include `string`;
 
 @enum PulePluginType {
   PulePluginType_library;
