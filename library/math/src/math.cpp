@@ -1,6 +1,6 @@
-#include <pulchritude-math/math.h>
+#include <pulchritude/math.h>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <cmath>
 
@@ -409,7 +409,7 @@ PuleF32v4 puleF32qAsV4(PuleF32q const id) {
 
 // -- c++ bindings -------------------------------------------------------------
 
-#include <pulchritude-math/math.hpp>
+#include <pulchritude/math.hpp>
 
 pule::F32v3::F32v3() { x = 0.0f; y = 0.0f; z = 0.0f; }
 
