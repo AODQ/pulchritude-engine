@@ -26,7 +26,7 @@
 
 @struct PuleStreamWrite {
   @field userdata : void ptr;
-  @field writeBytes : @fnptr(void ptr, uint8_t const ptr, size_t);
+  @field writeBytes : @fnptr(void, void ptr, uint8_t const ptr, size_t);
   @field flush : @fnptr(void, void ptr);
   @field destroy : @fnptr(void, void ptr);
 };

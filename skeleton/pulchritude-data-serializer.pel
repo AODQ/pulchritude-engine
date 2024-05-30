@@ -1,11 +1,12 @@
 @include `allocator`;
 @include `error`;
 @include `file`;
+@include `math`;
 @include `string`;
 
 @enum PuleErrorDataSerializer {
-  PuleErrorDataSerializer_none;
-  PuleErrorDataSerializer_invalidFormat;
+  none;
+  invalidFormat;
 };
 
 @entity PuleDsValue;
@@ -188,7 +189,6 @@ PuleDsValue operator ""_pds(char const ptr str, size_t len);
     PULE_dsStructTerminator,
   };
   #undef structField
-*/
 `;
 
 @fn puleDsStructDeserialize(

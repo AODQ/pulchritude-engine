@@ -5,9 +5,9 @@
 // fallback for your own scene renderer.
 
 #include <pulchritude-core/core.h>
-#include <pulchritude-error/error.h>
 #include <pulchritude-renderer-3d/renderer-3d.h>
 #include <pulchritude-string/string.h>
+#include <pulchritude-error/error.h>
 
 #ifdef __cplusplus
 extern "C" {

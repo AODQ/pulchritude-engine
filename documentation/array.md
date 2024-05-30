@@ -70,8 +70,8 @@ struct {
 ### PuleErrorArray
 ```c
 enum {
-  PuleErrorArray_none,
-  PuleErrorArray_errorAllocation,
+  none,
+  errorAllocation,
 }
 ```
 

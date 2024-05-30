@@ -53,17 +53,17 @@ struct {
 ### PuleSceneDimension
 ```c
 enum {
-  PuleSceneDimension_2d,
-  PuleSceneDimension_3d,
+  i2d,
+  i3d,
 }
 ```
 ### PuleSceneComponentModelType
 ```c
 enum {
-  PuleSceneComponentModelType_none,
-  PuleSceneComponentModelType_cube,
-  PuleSceneComponentModelType_sphere,
-  PuleSceneComponentModelType_plane,
+  none,
+  cube,
+  sphere,
+  plane,
 }
 ```
 

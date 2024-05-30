@@ -1,10 +1,11 @@
-#include <pulchritude-gpu/gpu.h>
+#include <pulchritude/gpu.h>
 
 #include <util.hpp>
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-platform/platform.h>
+#include <pulchritude/error.h>
+#include <pulchritude/log.h>
+#include <pulchritude/math.h>
+#include <pulchritude/platform.h>
 
 #include <functional>
 #include <string>
@@ -15,7 +16,6 @@
 #include <GLFW/glfw3.h>
 
 #include "../include/vulkan-memory-allocator.hpp"
-#include "pulchritude-math/math.h"
 
 namespace {
   std::unordered_set<std::string> loggedErrorMessages;
@@ -858,7 +858,7 @@ void puleGpuBufferMappedFlush(
   );
 }
 
-#include <pulchritude-imgui/imgui.h>
+#include <pulchritude/imgui.h>
 
 void puleGpuDebugPrint() {
   // util::printCommandsDebug();
@@ -878,40 +878,3 @@ PuleStringView puleGpuBufferUsageLabel(PuleGpuBufferUsage const usage) {
 }
 
 } // extern C
-
-//------------------------------------------------------------------------------
-#include <pulchritude-string/string.hpp>
-#include <pulchritude-gpu/module.h>
-pule::string pule::toStr(PuleGpuResourceAccess const access) {
-  std::string label = "(";
-
-  #define mAccess(m) \
-    if (access & PuleGpuResourceAccess_ ## m) \
-      label += #m ";"
-  mAccess(none);
-  mAccess(indirectCommandRead); mAccess(indexRead);
-  mAccess(vertexAttributeRead); mAccess(uniformRead);
-  mAccess(inputAttachmentRead); mAccess(shaderRead);
-  mAccess(shaderWrite); mAccess(attachmentColorRead);
-  mAccess(attachmentColorWrite); mAccess(attachmentDepthRead);
-  mAccess(attachmentDepthWrite); mAccess(transferRead);
-  mAccess(transferWrite); mAccess(hostRead);
-  mAccess(hostWrite); mAccess(memoryRead);
-  mAccess(memoryWrite);
-  #undef mAccess
-  label += ")";
-  return pule::string(label.c_str());
-  #undef mAccess
-}
-
-char const * pule::toStr(PuleGpuImageLayout const layout) {
-  switch (layout) {
-    case PuleGpuImageLayout_uninitialized: return "uninitialized";
-    case PuleGpuImageLayout_storage: return "storage";
-    case PuleGpuImageLayout_attachmentColor: return "attachmentColor";
-    case PuleGpuImageLayout_attachmentDepth: return "attachmentDepth";
-    case PuleGpuImageLayout_transferSrc: return "transferSrc";
-    case PuleGpuImageLayout_transferDst: return "transferDst";
-    case PuleGpuImageLayout_presentSrc: return "presentSrc";
-  }
-}

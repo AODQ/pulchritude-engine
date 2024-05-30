@@ -1,8 +1,8 @@
-#include <pulchritude-script/script.h>
+#include <pulchritude/script.h>
 
-#include <pulchritude-time/time.h>
+#include <pulchritude/time.h>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 extern "C" {
 #include "lua.h"
@@ -84,7 +84,7 @@ PuleScriptContext puleScriptContextCreate() {
 
   PuleScriptContext const ctx = {.id = reinterpret_cast<uint64_t>(state),};
 
-  puleScriptContextSetup(ctx);
+  //puleScriptContextSetup(ctx);
   return ctx;
 }
 

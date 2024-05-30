@@ -1,8 +1,8 @@
 @include `string`;
 
 @enum PulePluginType {
-  PulePluginType_library;
-  PulePluginType_component;
+  library;
+  component;
 };
 
 @struct PulePluginInfo {

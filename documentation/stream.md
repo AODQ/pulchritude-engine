@@ -15,7 +15,7 @@ struct {
 ```c
 struct {
   userdata : void ptr;
-  writeBytes : @fnptr(void ptr, uint8_t const ptr, size_t);
+  writeBytes : @fnptr(void, void ptr, uint8_t const ptr, size_t);
   flush : @fnptr(void, void ptr);
   destroy : @fnptr(void, void ptr);
 };

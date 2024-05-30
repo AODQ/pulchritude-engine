@@ -1,4 +1,4 @@
-#include <pulchritude-tui/tui.h>
+#include <pulchritude/tui.h>
 
 #include <ncurses.h>
 

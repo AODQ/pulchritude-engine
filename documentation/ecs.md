@@ -88,16 +88,16 @@ struct {
 ### PuleErrorEcs
 ```c
 enum {
-  PuleErrorEcs_none,
-  PuleErrorEcs_queryFailed,
+  none,
+  queryFailed,
 }
 ```
 ### PuleEcsSystemCallbackFrequency
 ```c
 enum {
-  PuleEcsSystemCallbackFrequency_preUpdate,
-  PuleEcsSystemCallbackFrequency_onUpdate,
-  PuleEcsSystemCallbackFrequency_postUpdate,
+  preUpdate,
+  onUpdate,
+  postUpdate,
 }
 ```
 
@@ -270,7 +270,7 @@ puleEcsEntityComponentData(
   world : PuleEcsWorld,
   entity : PuleEcsEntity,
   component : PuleEcsComponent
-) ptr const;
+) void const ptr;
 ```
 ### puleEcsQueryByComponent
 ```c

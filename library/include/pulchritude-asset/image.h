@@ -2,9 +2,9 @@
 
 // facilitates image assets
 
-#include <pulchritude-stream/stream.h>
-#include <pulchritude-core/core.h>
-#include <pulchritude-error/error.h>
+#include <pulchritude/stream.h>
+#include <pulchritude/core.h>
+#include <pulchritude/error.h>
 
 #ifdef __cplusplus
 extern "C" {

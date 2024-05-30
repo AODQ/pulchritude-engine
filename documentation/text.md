@@ -30,8 +30,8 @@ struct {
 ### PuleTextType
 ```c
 enum {
-  PuleTextType_bitmap,
-  PuleTextType_sdf,
+  bitmap,
+  sdf,
 }
 ```
 

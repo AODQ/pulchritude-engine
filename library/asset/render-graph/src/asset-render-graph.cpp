@@ -1,9 +1,7 @@
-#include <pulchritude-asset/render-graph.h>
+#include <pulchritude/asset-render-graph.h>
 
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-gpu/image.h>
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-gpu/commands.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/gpu.h>
 
 #include <string>
 #include <string_view>
@@ -238,45 +236,45 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
           puleDsObjectMember(dsDataManagement, "scale-dimensions-absolute")
         );
         if (scaleDimensionsRelative.id != 0) {
-          dataManagement.dimensionsScaleRelative.referenceResourceLabel = (
-            puleString(
+          dataManagement.dimensions.scaleRelative.referenceResourceLabel = (
+            puleStringCopy(
               puleAllocateDefault(),
               puleDsMemberAsString(
                 scaleDimensionsRelative, "reference-image"
-              ).contents
+              )
             )
           );
-          dataManagement.dimensionsScaleRelative.scaleHeight = (
+          dataManagement.dimensions.scaleRelative.scaleHeight = (
             puleDsMemberAsF64(scaleDimensionsRelative, "scale-height")
           );
-          dataManagement.dimensionsScaleRelative.scaleWidth = (
+          dataManagement.dimensions.scaleRelative.scaleWidth = (
             puleDsMemberAsF64(scaleDimensionsRelative, "scale-width")
           );
           PULE_assert(
-            dataManagement.dimensionsScaleRelative.scaleHeight != 0.0f
-            && dataManagement.dimensionsScaleRelative.scaleWidth != 0.0f
+            dataManagement.dimensions.scaleRelative.scaleHeight != 0.0f
+            && dataManagement.dimensions.scaleRelative.scaleWidth != 0.0f
           );
           dataManagement.areDimensionsAbsolute = false;
         } else if (scaleDimensionsAbsolute.id != 0) {
-          dataManagement.dimensionsAbsolute.width = (
+          dataManagement.dimensions.absolute.width = (
             puleDsMemberAsI64(scaleDimensionsAbsolute, "width")
           );
-          dataManagement.dimensionsAbsolute.height = (
+          dataManagement.dimensions.absolute.height = (
             puleDsMemberAsI64(scaleDimensionsAbsolute, "height")
           );
           dataManagement.areDimensionsAbsolute = true;
         } else {
           PULE_assert(false && "needs scale dimensions");
         }
-        resource.image.dataManagement.automatic = dataManagement;
-        resource.image.isAutomatic = true;
+        resource.resource.image.dataManagement.automatic = dataManagement;
+        resource.resource.image.isAutomatic = true;
       } else {
         PULE_assert(false && "unknown data management type");
-        resource.image.isAutomatic = false;
+        resource.resource.image.isAutomatic = false;
       }
       resource.resourceLabel = label;
       resource.resourceType = PuleRenderGraph_ResourceType_image;
-      resource.image.imageReference = { .id = 0, }; // created for us
+      resource.resource.image.imageReference = { .id = 0, }; // created for us
       puleRenderGraph_resourceCreate(graph, resource);
     } else {
       PULE_assert(false && "unknown type");
@@ -314,10 +312,10 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
             .resourceLabel = label,
             .access = toPayloadAccess(entranceAccess),
             .accessEntrance = (PuleGpuResourceAccess)0, // later
-            .image = {
+            .resource = { .image = {
               .layout = toPayloadLayout(entranceLayout),
               .layoutEntrance = (PuleGpuImageLayout)0, // done later
-            },
+            }},
           }
         );
       }

@@ -1,14 +1,14 @@
-#include <pulchritude-core/core.h>
-
 #include "binding-generator.hpp"
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <pulchritude-file/file.h>
-#include <pulchritude-plugin/plugin.h>
-#include <pulchritude-parser/parser.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/file.hpp>
+#include <pulchritude/plugin.hpp>
+#include <pulchritude/parser.hpp>
+#include <pulchritude/string.hpp>
 
 std::string const expressionGrammar = R"(
 %globals := %global+;
@@ -467,6 +467,7 @@ void applyPelParser(void *, PuleStringView path, bool isFile) {
   info.path = puleCStr(newpath.c_str());
 
   generateBindingFileC(info);
+  generateBindingFileCpp(info);
   generateBindingFileMd(info);
 }
 

@@ -2,18 +2,20 @@
 
 // pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl
 
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-plugin/engine.h>
-#include <pulchritude-plugin/plugin.h>
-#include <pulchritude-task-graph/task-graph.h>
-#include <pulchritude-camera/camera.h>
-
-// need struct definitions, but don't call anything from here directly
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-imgui-engine/imgui-engine.h>
-#include <pulchritude-imgui/imgui.h>
-#include <pulchritude-platform/platform.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/asset-render-graph.h>
+#include <pulchritude/asset-script-task-graph.h>
+#include <pulchritude/asset-shader-module.h>
+#include <pulchritude/camera.h>
+#include <pulchritude/gpu.h>
+#include <pulchritude/imgui-engine.h>
+#include <pulchritude/imgui.h>
+#include <pulchritude/log.h>
+#include <pulchritude/platform.h>
+#include <pulchritude/plugin.h>
+#include <pulchritude/script.h>
+#include <pulchritude/string.hpp>
+#include <pulchritude/task-graph.h>
 
 #include <string>
 #include <unordered_map>
@@ -139,7 +141,6 @@ void componentPluginFileWatchUpdate(PuleStringView const, void * const ud) {
 
 namespace { // -- script task graph callbacks ----------------------------------
 struct ScriptTaskGraphNodeUpdateInfo {
-  PuleEngineLayer * pul;
   PuleScriptContext scriptContext;
 };
 void scriptTaskGraphNodeUpdate(
@@ -147,19 +148,18 @@ void scriptTaskGraphNodeUpdate(
   void * const userdata
 ) {
   auto info = *static_cast<ScriptTaskGraphNodeUpdateInfo *>(userdata);
-  auto & pul = *info.pul;
   // fetch script module
   auto const scriptModule = PuleScriptModule {
-    pul.taskGraphNodeAttributeFetchU64(node, pul.cStr("script-module"))
+    puleTaskGraphNodeAttributeFetchU64(node, "script-module"_psv)
   };
-  PuleError err = pul.error();
-  pul.scriptModuleExecute(
+  PuleError err = puleError();
+  puleScriptModuleExecute(
     info.scriptContext,
     scriptModule,
-    pul.taskGraphNodeLabel(node),
+    puleTaskGraphNodeLabel(node),
     &err
   );
-  pul.errorConsume(&err);
+  puleErrorConsume(&err);
 }
 } // -- script task graph callbacks --------------------------------------------
 
@@ -182,7 +182,7 @@ struct KnownParameterInfo {
 
 namespace { // editor
 using GuiEditorFn = void (*)(
-  PuleAllocator const, PulePlatform const, PuleEngineLayer const
+  PuleAllocator const, PulePlatform const
 );
 
 void guiPluginLoad(PulePluginInfo const plugin, void * const userdata) {
@@ -213,7 +213,6 @@ std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
 std::vector<ParameterInfo> programParameters;
 
 PuleAssetShaderModule loadShaderModule(
-  PuleEngineLayer & pul,
   PuleDsValue const dsShaderModule,
   PuleStringView const assetPath
 ) {
@@ -238,7 +237,7 @@ PuleAssetShaderModule loadShaderModule(
   );
 
   return (
-    pul.assetShaderModuleCreateFromPaths(
+    puleAssetShaderModuleCreateFromPaths(
       shaderModuleLabel,
       puleCStr(vertexPath.c_str()),
       puleCStr(fragmentPath.c_str())
@@ -299,23 +298,20 @@ int32_t main(
   bool allowPluginReload = false;
 
   std::vector<PuleStringView> pluginPaths;
-  std::vector<PuleString> pluginLayers;
   PuleString assetPath;
   for (auto const & param : programParameters) {
     if (param.label == "--plugin-path") {
       pluginPaths.emplace_back(puleCStr(param.content.c_str()));
     } else if (param.label == "--asset-path") {
-      assetPath = puleString(puleAllocateDefault(), param.content.c_str());
+      assetPath = (
+        puleStringCopy(puleAllocateDefault(), puleCStr(param.content.c_str()))
+      );
     } else if (param.label == "--debug") {
       *puleLogDebugEnabled() = true;
       puleLogDebug("[PuleApplication] Debug enabled");
     } else if (param.label == "--error-segfaults") {
       *puleLogErrorSegfaultsEnabled() = true;
       puleLogDebug("[PuleApplication] Segfault on error enabled");
-    } else if (param.label == "--plugin-layer") {
-      pluginLayers.emplace_back(
-        puleString(puleAllocateDefault(), param.content.c_str())
-      );
     } else if (param.label == "--gui-editor") {
       isGuiEditor = true;
     } else if (param.label == "--early-exit") {
@@ -328,14 +324,6 @@ int32_t main(
   if (assetPath.len == 0) {
     puleLogError("[PuleApplication] No asset path specified");
     return -1;
-  }
-
-  // ensure default is picked
-  if (
-    pluginLayers.size() == 0
-    || !puleStringViewEqCStr(puleStringView(pluginLayers.back()), "default")
-  ) {
-    pluginLayers.emplace_back(puleString(puleAllocateDefault(), "default"));
   }
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -351,51 +339,28 @@ int32_t main(
   // load plugins
   pulePluginsLoad(pluginPaths.data(), pluginPaths.size());
 
-  // load layers, in reverse order (default->debug->etc)
-  std::vector<PuleEngineLayer> layers;
-  for (size_t layerIt = 0; layerIt < pluginLayers.size(); ++ layerIt) {
-    auto pluginLayerName = pluginLayers[pluginLayers.size()-layerIt-1];
-    puleLogDebug(
-      "[PuleApplication] Loading plugin layer '%s'",
-      pluginLayerName.contents
-    );
-    PuleEngineLayer engineLayer;
-    memset(&engineLayer, 0, sizeof(PuleEngineLayer));
-    pulePluginLoadEngineLayer(
-      &engineLayer,
-      puleStringView(pluginLayerName),
-      layers.size() > 0 ? &layers.back() : nullptr
-    );
-    puleLogDebug("[PuleApplication] Finished loading plugin layers");
-    layers.insert(layers.begin(), engineLayer);
-  }
-  assert(layers.size() > 0);
   PulePluginPayload const payload = (
     pulePluginPayloadCreate(puleAllocateDefault())
   );
-  // store engine layer into payload
-  pulePluginPayloadStore(payload, puleCStr("pule-engine-layer"), &layers[0]);
-  PuleEngineLayer & pulBase = layers[0];
-
   // store asset path and set it to engine's filesystem
-  pulePluginPayloadStore(payload, puleCStr("pule-fs-asset-path"), &assetPath);
+  pulePluginPayloadStore(payload, "pule-fs-asset-path"_psv, &assetPath);
   puleFilesystemAssetPathSet(puleStringView(assetPath));
 
   // store application varargs
   pulePluginPayloadStore(
-    payload, puleCStr("pule-application-varargs"), userVarargs.data()
+    payload, "pule-application-varargs"_psv, userVarargs.data()
   );
 
   // load up project configuration
   PuleError err = puleError();
   PuleDsValue const projectValue = (
-    layers[0].assetPdsLoadFromFile(
-      layers[0].allocateDefault(),
-      layers[0].cStr("/assets/project.pds"),
+    puleAssetPdsLoadFromFile(
+      puleAllocateDefault(),
+      "/assets/project.pds"_psv,
       &err
     )
   );
-  if (layers[0].errorConsume(&err)) { return -1; }
+  if (puleErrorConsume(&err)) { return -1; }
 
   // get the component plugins, also getting the slice that can be updated
   std::vector<PluginInfo> componentPlugins;
@@ -444,12 +409,6 @@ int32_t main(
     });
   }
 
-  // store layer
-  puleLogDebug(
-    "[PuleApplication] initializing from assets/project.pds with layer '%s'",
-    pulBase.layerName.contents
-  );
-
   PulePlatform platform = { .id = 0, };
   PuleScriptContext scriptContext = { .id = 0, };
   bool fileWatcherCheckAll = false;
@@ -464,36 +423,36 @@ int32_t main(
   { // -- load project.pds, use base layer to allow them to capture startup
     // -- entry payload
     PuleDsValue const entryPayload = (
-      pulBase.dsObjectMember(projectValue, "entry-payload")
+      puleDsObjectMember(projectValue, "entry-payload")
     );
-    if (!pulBase.dsIsNull(entryPayload)) {
+    if (!puleDsIsNull(entryPayload)) {
       // -- platform create
       PuleDsValue const payloadPlatform = (
-        pulBase.dsObjectMember(entryPayload, "platform")
+        puleDsObjectMember(entryPayload, "platform")
       );
-      if (!pulBase.dsIsNull(payloadPlatform)) {
+      if (!puleDsIsNull(payloadPlatform)) {
         puleLogDebug("[PuleApplication] creating platform");
         size_t const defaultWidth = 800; // TODO get from window?
         size_t const defaultHeight = 600;
-        PuleStringView const defaultName = pulBase.cStr("pulchritude app");
+        PuleStringView const defaultName = "pulchritude app"_psv;
         size_t const width = (
-          pulBase.dsMemberAsI64(payloadPlatform, "width") ?: defaultWidth
+          puleDsMemberAsI64(payloadPlatform, "width") ?: defaultWidth
         );
         size_t const height = (
-          pulBase.dsMemberAsI64(payloadPlatform, "height") ?: defaultHeight
+          puleDsMemberAsI64(payloadPlatform, "height") ?: defaultHeight
         );
         PuleStringView name = (
-          pulBase.dsMemberAsString(payloadPlatform, "name")
+          puleDsMemberAsString(payloadPlatform, "name")
         );
         name = (name.len == 0 ? name : defaultName);
         PulePlatformVsyncMode vsyncMode = (
           PulePlatformVsyncMode_double
           // TODO... puleDsMemberAsString */
         );
-        pulBase.platformInitialize(&err);
-        if (pulBase.errorConsume(&err)) { return -1; }
+        pulePlatformInitialize(&err);
+        if (puleErrorConsume(&err)) { return -1; }
         platform = (
-          pulBase.platformCreate(
+          pulePlatformCreate(
             PulePlatformCreateInfo {
               .name = name,
               .width = width, .height = height,
@@ -502,42 +461,42 @@ int32_t main(
             &err
           )
         );
-        if (pulBase.errorConsume(&err)) { return -1; }
+        if (puleErrorConsume(&err)) { return -1; }
       }
       // -- graphics create
       PuleDsValue const payloadGfx = (
-        pulBase.dsObjectMember(entryPayload, "gfx")
+        puleDsObjectMember(entryPayload, "gfx")
       );
-      if (!pulBase.dsIsNull(payloadGfx)) {
+      if (!puleDsIsNull(payloadGfx)) {
         puleLogDebug("[PuleApplication] creating graphics context");
-        if (pulBase.dsMemberAsBool(payloadGfx, "initialize")) {
+        if (puleDsMemberAsBool(payloadGfx, "initialize")) {
           if (platform.id == 0) {
-            pulBase.logError(
+            puleLogError(
               "Trying to initialize gfx context without platform"
             );
             return -1;
           }
-          pulBase.gpuInitialize(platform, &err);
-          if (pulBase.errorConsume(&err)) { return -1; }
+          puleGpuInitialize(platform, &err);
+          if (puleErrorConsume(&err)) { return -1; }
         }
         auto renderGraphPath = (
-          pulBase.dsObjectMember(payloadGfx, "render-graph-path")
+          puleDsObjectMember(payloadGfx, "render-graph-path")
         );
-        if (!pulBase.dsIsNull(renderGraphPath)) {
+        if (!puleDsIsNull(renderGraphPath)) {
           puleLogDebug("[PuleApplication] creating render graph");
           auto renderGraphValue = (
-            pulBase.assetPdsLoadFromFile(
-              pulBase.allocateDefault(),
-              pulBase.cStr(
+            puleAssetPdsLoadFromFile(
+              puleAllocateDefault(),
+              puleCStr(
                 (
                   std::string(assetPath.contents)
-                  + pulBase.dsAsString(renderGraphPath).contents
+                  + puleDsAsString(renderGraphPath).contents
                 ).c_str()
               ),
               &err
             )
           );
-          if (pulBase.errorConsume(&err)) { return -1; }
+          if (puleErrorConsume(&err)) { return -1; }
           renderGraph = (
             puleAssetRenderGraphFromPds(
               puleAllocateDefault(),
@@ -545,10 +504,10 @@ int32_t main(
               renderGraphValue
             )
           );
-          pulBase.dsDestroy(renderGraphValue);
+          puleDsDestroy(renderGraphValue);
         }
         auto generateWindowDepthFramebuffer = (
-          pulBase.dsObjectMember(
+          puleDsObjectMember(
             payloadGfx,
             "generate-window-depth-framebuffer"
           )
@@ -556,42 +515,36 @@ int32_t main(
         (void)generateWindowDepthFramebuffer;
         // load shader modules
         PuleDsValueArray const dsShaderModules = (
-          pulBase.dsMemberAsArray(payloadGfx, "shader-modules")
+          puleDsMemberAsArray(payloadGfx, "shader-modules")
         );
         for (size_t it = 0; it < dsShaderModules.length; ++ it) {
           PuleDsValue const dsShaderModule = dsShaderModules.values[it];
           shaderModules.emplace_back(
-            loadShaderModule(pulBase, dsShaderModule, puleStringView(assetPath))
+            loadShaderModule(dsShaderModule, puleStringView(assetPath))
           );
         }
       }
       // -- ecs create
       PuleDsValue const payloadEcs = (
-        pulBase.dsObjectMember(entryPayload, "ecs")
+        puleDsObjectMember(entryPayload, "ecs")
       );
       if (
-        !pulBase.dsIsNull(payloadEcs)
-        && pulBase.dsMemberAsBool(payloadEcs, "create-world")
+        !puleDsIsNull(payloadEcs)
+        && puleDsMemberAsBool(payloadEcs, "create-world")
       ) {
         puleLogDebug("[PuleApplication] creating ECS");
-        ecsWorld = pulBase.ecsWorldCreate();
-        ecsWorldAdvance = pulBase.dsMemberAsBool(payloadEcs, "world-advance");
+        ecsWorld = puleEcsWorldCreate();
+        ecsWorldAdvance = puleDsMemberAsBool(payloadEcs, "world-advance");
         // -- load in ECS components & systems from plugins
         bool const loadComponent = (
-          pulBase.dsMemberAsBool(payloadEcs, "register-components")
+          puleDsMemberAsBool(payloadEcs, "register-components")
         );
         bool const loadSystem = (
-          pulBase.dsMemberAsBool(payloadEcs, "register-systems")
+          puleDsMemberAsBool(payloadEcs, "register-systems")
         );
         for (auto const & componentPlugin : componentPlugins) {
-          void (*registerComponentsFn)(
-            PuleEngineLayer *,
-            PuleEcsWorld const
-          ) = nullptr;
-          void (*registerSystemsFn)(
-            PuleEngineLayer *,
-            PuleEcsWorld const
-          ) = nullptr;
+          void (*registerComponentsFn)(PuleEcsWorld const) = nullptr;
+          void (*registerSystemsFn)(PuleEcsWorld const) = nullptr;
           if (loadComponent) {
             ::tryLoadFn(
               registerComponentsFn,
@@ -599,7 +552,7 @@ int32_t main(
               "pulcRegisterComponents"
             );
             if (registerComponentsFn) {
-              registerComponentsFn(&pulBase, ecsWorld);
+              registerComponentsFn(ecsWorld);
             }
           }
           if (loadSystem) {
@@ -609,68 +562,68 @@ int32_t main(
               "pulcRegisterSystems"
             );
             if (registerComponentsFn) {
-              registerSystemsFn(&pulBase, ecsWorld);
+              registerSystemsFn(ecsWorld);
             }
           }
         }
       }
       // -- file watcher
       PuleDsValue const payloadFile = (
-        pulBase.dsObjectMember(entryPayload, "file")
+        puleDsObjectMember(entryPayload, "file")
       );
       if (
-        !pulBase.dsIsNull(payloadFile)
-        && pulBase.dsMemberAsBool(payloadFile, "watcher-check-all")
+        !puleDsIsNull(payloadFile)
+        && puleDsMemberAsBool(payloadFile, "watcher-check-all")
       ) {
         fileWatcherCheckAll = true;
       }
       // -- script create
       PuleDsValue const payloadScript = (
-        pulBase.dsObjectMember(entryPayload, "script")
+        puleDsObjectMember(entryPayload, "script")
       );
       puleLogDebug("[PuleApplication] initializing script");
       if (
-        !pulBase.dsIsNull(payloadScript)
-        && pulBase.dsMemberAsBool(payloadScript, "initialize")
+        !puleDsIsNull(payloadScript)
+        && puleDsMemberAsBool(payloadScript, "initialize")
       ) {
-        scriptContext = pulBase.scriptContextCreate();
+        scriptContext = puleScriptContextCreate();
         // script graph path
         auto scriptGraphPath = (
-          pulBase.dsObjectMember(payloadScript, "script-graph-path")
+          puleDsObjectMember(payloadScript, "script-graph-path")
         );
-        if (!pulBase.dsIsNull(scriptGraphPath)) {
+        if (!puleDsIsNull(scriptGraphPath)) {
           puleLogDebug("[PuleApplication] creating script graph");
           auto scriptGraphValue = (
-            pulBase.assetPdsLoadFromFile(
-              pulBase.allocateDefault(),
-              pulBase.cStr(
+            puleAssetPdsLoadFromFile(
+              puleAllocateDefault(),
+              puleCStr(
                 (
                   std::string(assetPath.contents)
-                  + pulBase.dsAsString(scriptGraphPath).contents
+                  + puleDsAsString(scriptGraphPath).contents
                 ).c_str()
               ),
               &err
             )
           );
-          if (pulBase.errorConsume(&err)) { return -1; }
+          if (puleErrorConsume(&err)) { return -1; }
           scriptTaskGraph = (
-            pulBase.assetScriptTaskGraphFromPds(
+            puleAssetScriptTaskGraphFromPds(
               puleAllocateDefault(),
               scriptContext,
               scriptGraphValue,
-              pulBase.stringView(assetPath)
+              puleStringView(assetPath)
             )
           );
-          pulBase.dsDestroy(scriptGraphValue);
+          puleDsDestroy(scriptGraphValue);
         }
       }
       // -- camera create
       PuleDsValue const payloadCamera = (
-        pulBase.dsObjectMember(entryPayload, "camera-set")
+        puleDsObjectMember(entryPayload, "camera-set")
       );
-      if (!pulBase.dsIsNull(payloadCamera)) {
+      if (!puleDsIsNull(payloadCamera)) {
         puleLogDebug("[PuleApplication] creating camera");
-        cameraSet = pulBase.cameraSetCreate(puleCStr("pule-primary"));
+        cameraSet = puleCameraSetCreate("pule-primary"_psv);
       }
     }
   }
@@ -682,53 +635,53 @@ int32_t main(
 
   // insert into payload as necessary
   if (platform.id != 0) {
-    pulBase.pluginPayloadStoreU64(
+    pulePluginPayloadStoreU64(
       payload,
-      pulBase.cStr("pule-platform"),
+      "pule-platform"_psv,
       platform.id
     );
   }
   if (ecsWorld.id != 0) {
-    pulBase.pluginPayloadStoreU64(
+    pulePluginPayloadStoreU64(
       payload,
-      pulBase.cStr("pule-ecs-world"),
+      "pule-ecs-world"_psv,
       ecsWorld.id
     );
   }
   if (renderGraph.id != 0) {
-    pulBase.pluginPayloadStoreU64(
+    pulePluginPayloadStoreU64(
       payload,
-      pulBase.cStr("pule-render-graph"),
+      "pule-render-graph"_psv,
       renderGraph.id
     );
   }
   if (scriptTaskGraph.id != 0) {
-    pulBase.pluginPayloadStoreU64(
+    pulePluginPayloadStoreU64(
       payload,
-      pulBase.cStr("pule-script-task-graph"),
+      "pule-script-task-graph"_psv,
       scriptTaskGraph.id
     );
   }
   if (cameraSet.id != 0) {
-    pulBase.pluginPayloadStoreU64(
+    pulePluginPayloadStoreU64(
       payload,
-      pulBase.cStr("pule-camera-set"),
+      "pule-camera-set"_psv,
       cameraSet.id
     );
   }
   for (auto shaderModule : shaderModules) {
     std::string const shaderModuleLabel = (
       std::string("pule-asset-shader-module-")
-      + pulBase.assetShaderModuleLabel(shaderModule).contents
+      + puleAssetShaderModuleLabel(shaderModule).contents
     );
     puleLogDebug(
       "[PuleApplication] storing shader module %d at payload label '%s'",
-      pulBase.assetShaderModuleHandle(shaderModule).id,
+      puleAssetShaderModuleHandle(shaderModule).id,
       shaderModuleLabel.c_str()
     );
-    pulBase.pluginPayloadStoreU64(
+    pulePluginPayloadStoreU64(
       payload,
-      pulBase.cStr(shaderModuleLabel.c_str()),
+      puleCStr(shaderModuleLabel.c_str()),
       shaderModule.id
     );
   }
@@ -764,7 +717,7 @@ int32_t main(
   //}
 
   // load gui editor if requested
-  assert(isGuiEditor ? platform.id : true);
+  PULE_assert(isGuiEditor ? platform.id : true);
   std::vector<GuiEditorFn> guiEditorFns;
   if (isGuiEditor) {
     pulePluginIterate(
@@ -776,7 +729,7 @@ int32_t main(
       guiEditorFns.size()
     );
     puleLog("Initializing imgui...");
-    pulBase.imguiInitialize(platform);
+    puleImguiInitialize(platform);
   }
 
   // get the render task graphs from plugins
@@ -801,18 +754,17 @@ int32_t main(
       pulePlatformPollEvents(platform);
     }
     if (renderGraph.id != 0) {
-      pulBase.renderGraphFrameStart(renderGraph);
+      puleRenderGraphFrameStart(renderGraph);
     }
     if (isGuiEditor) {
-      pulBase.imguiNewFrame();
+      puleImguiNewFrame();
     }
     if (cameraSet.id != 0) {
-      pulBase.cameraControllerPollEvents();
-      pulBase.cameraSetRefresh(cameraSet);
+      puleCameraControllerPollEvents();
+      puleCameraSetRefresh(cameraSet);
     }
     if (scriptTaskGraph.id != 0) {
       auto info = ScriptTaskGraphNodeUpdateInfo {
-        .pul = &pulBase,
         .scriptContext = scriptContext,
       };
       puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo {
@@ -823,7 +775,7 @@ int32_t main(
       });
     }
     if (!isGuiEditor && ecsWorldAdvance) {
-      pulBase.ecsWorldAdvance(ecsWorld, 16.0f);
+      puleEcsWorldAdvance(ecsWorld, 16.0f);
     }
     if (isGuiEditor) {
       // pulchritude engine display
@@ -833,10 +785,10 @@ int32_t main(
       });
       // plugin provided functions
       for (auto const guiFn : guiEditorFns) {
-        guiFn(puleAllocateDefault(), platform, pulBase);
+        guiFn(puleAllocateDefault(), platform);
       }
       // render out
-      pulBase.imguiRender(renderGraph);
+      puleImguiRender(renderGraph);
     } else {
       // update components
       for (size_t it = 0; it < componentUpdateablePlugins.size(); ++ it) {
@@ -848,7 +800,7 @@ int32_t main(
       // to one per scene? And only one scene is active at a time?
       // You can still have recursive render graphs since they can
       // be merged together.
-      pulBase.renderGraphFrameSubmit(
+      puleRenderGraphFrameSubmit(
         swapchainAvailableSemaphore,
         renderGraph
       );
@@ -857,9 +809,9 @@ int32_t main(
       pulePlatformSwapFramebuffer(platform);
     }
     if (fileWatcherCheckAll) {
-      pulBase.fileWatchCheckAll();
+      puleFileWatchCheckAll();
     }
-    pulBase.fileWatchCheckAll();
+    puleFileWatchCheckAll();
     if (isEarlyExit) {
       puleLog("<--> frame end <-->");
     }
@@ -893,17 +845,13 @@ int32_t main(
     }
   }
 
-  for (auto const pluginLayerName : pluginLayers) {
-    puleStringDestroy(pluginLayerName);
-  }
-
-  pulBase.stringDestroy(assetPath);
-  pulBase.pluginPayloadDestroy(payload);
-  pulBase.scriptContextDestroy(scriptContext);
+  puleStringDestroy(assetPath);
+  pulePluginPayloadDestroy(payload);
+  puleScriptContextDestroy(scriptContext);
 
   if (platform.id == 0) {
-    pulBase.platformDestroy(platform);
-    pulBase.ecsWorldDestroy(ecsWorld);
+    pulePlatformDestroy(platform);
+    puleEcsWorldDestroy(ecsWorld);
   }
 
   pulePluginsFree();

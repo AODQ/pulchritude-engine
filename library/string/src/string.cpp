@@ -1,4 +1,4 @@
-#include <pulchritude-string/string.h>
+#include <pulchritude/string.h>
 
 #include <string_view>
 
@@ -25,15 +25,8 @@ PuleString puleStringCopy(
   return str;
 }
 
-PuleString puleString(
-  PuleAllocator const allocator,
-  char const * const baseContents
-) {
-  return puleStringCopy(allocator, puleCStr(baseContents));
-}
-
-PuleString puleStringDefault(char const * const baseContents) {
-  return puleString(puleAllocateDefault(), baseContents);
+PuleString puleString(char const * const baseContents) {
+  return puleStringCopy(puleAllocateDefault(), puleCStr(baseContents));
 }
 
 void puleStringDestroy(PuleString const stringInout) {
@@ -57,7 +50,7 @@ PuleString puleStringFormatVargs(
     va_end(argsLen);
   }
 
-  if (lenOrErr == 0) { return puleString(allocator, format); }
+  if (lenOrErr == 0) { return puleStringCopy(allocator, puleCStr(format)); }
 
   size_t const len = (size_t)(lenOrErr);
 
@@ -174,45 +167,10 @@ size_t puleStringViewHash(PuleStringView const view) {
 
 } // C
 
-// c++
-
-#include <pulchritude-string/string.hpp>
-
 PuleStringView operator ""_psv(char const * const cstr, size_t const len) {
-  return PuleStringView { .contents = cstr, .len = len };
-}
-
-pule::string::string() {}
-pule::string::string(char const * const cstr, PuleAllocator const allocator) {
-  str = (
-    puleString(
-      (allocator.allocate == nullptr ? puleAllocateDefault() : allocator),
-      cstr
-    )
-  );
-}
-pule::string::string(PuleStringView const view, PuleAllocator const allocator) {
-  str = (
-    puleString(
-      (allocator.allocate == nullptr ? puleAllocateDefault() : allocator),
-      view.contents
-    )
-  );
-}
-pule::string::~string() { puleStringDestroy(str); }
-pule::string::string(string && other) { str = other.str; other.str = {}; }
-pule::string & pule::string::operator=(string && other) {
-  str = other.str;
-  other.str = {};
-  return *this;
-}
-
-pule::string pule::string::format(char const * const fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  auto const str = puleStringFormatVargs(puleAllocateDefault(), fmt, args);
-  va_end(args);
-  pule::string pstr;
-  pstr.str = str;
-  return pstr;
+  PuleStringView str = {
+    .contents = cstr,
+    .len = len,
+  };
+  return str;
 }

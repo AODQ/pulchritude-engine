@@ -4,8 +4,8 @@
 @include `stream`;
 
 @enum PuleErrorAssetPds {
-  PuleErrorAssetPds_none;
-  PuleErrorAssetPds_decode;
+  none;
+  decode;
 };
 
 @fn puleAssetPdsLoadFromStream(

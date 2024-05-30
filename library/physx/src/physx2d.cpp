@@ -1,6 +1,7 @@
-#include <pulchritude-physx/physx2d.h>
+#include <pulchritude/physx.h>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/log.h>
 
 #include <box2d/box2d.h>
 
@@ -118,31 +119,31 @@ void pulePhysx2DBodyAttachShape(
   PulePhysx2DShape const shape,
   PulePhysx2DBodyAttachShapeCreateInfo const createInfo
 ) {
-  b2FixtureDef fixtureDefinition; // userData cons prevents struct aggregate init
-  b2PolygonShape allocPolygon;
-  switch (shape.type) {
-    case PulePhysx2DShapeType_convexPolygon:
-      fixtureDefinition.shape = &allocPolygon;
-      b2Vec2 vertices[8];
-      for (size_t i = 0; i < shape.convexPolygon.vertexCount; ++ i) {
-        vertices[i] = in::vec2(shape.convexPolygon.origins[i]);
-      }
-      allocPolygon.Set(vertices, shape.convexPolygon.vertexCount);
-    break;
-  }
-  fixtureDefinition.friction = createInfo.friction;
-  fixtureDefinition.density = createInfo.density;
-  fixtureDefinition.restitution = createInfo.restitution;
-  fixtureDefinition.restitutionThreshold = createInfo.restitutionThreshold;
-  fixtureDefinition.isSensor = createInfo.isSensor;
-  fixtureDefinition.userData.pointer = (
-    reinterpret_cast<uintptr_t>(createInfo.userData)
-  );
-  fixtureDefinition.filter.categoryBits = createInfo.collisionCategoryBits;
-  fixtureDefinition.filter.maskBits = createInfo.collisionMaskBits;
-  fixtureDefinition.filter.groupIndex = createInfo.collisionGroup;
-
-  reinterpret_cast<b2Body *>(body.id)->CreateFixture(&fixtureDefinition);
+//  b2FixtureDef fixtureDefinition; // userData cons prevents struct aggregate init
+//  b2PolygonShape allocPolygon;
+//  switch (shape.type) {
+//    case PulePhysx2DShapeType_convexPolygon:
+//      fixtureDefinition.shape = &allocPolygon;
+//      b2Vec2 vertices[8];
+//      for (size_t i = 0; i < shape.convexPolygon.vertexCount; ++ i) {
+//        vertices[i] = in::vec2(shape.convexPolygon.origins[i]);
+//      }
+//      allocPolygon.Set(vertices, shape.convexPolygon.vertexCount);
+//    break;
+//  }
+//  fixtureDefinition.friction = createInfo.friction;
+//  fixtureDefinition.density = createInfo.density;
+//  fixtureDefinition.restitution = createInfo.restitution;
+//  fixtureDefinition.restitutionThreshold = createInfo.restitutionThreshold;
+//  fixtureDefinition.isSensor = createInfo.isSensor;
+//  fixtureDefinition.userData.pointer = (
+//    reinterpret_cast<uintptr_t>(createInfo.userData)
+//  );
+//  fixtureDefinition.filter.categoryBits = createInfo.collisionCategoryBits;
+//  fixtureDefinition.filter.maskBits = createInfo.collisionMaskBits;
+//  fixtureDefinition.filter.groupIndex = createInfo.collisionGroup;
+//
+//  reinterpret_cast<b2Body *>(body.id)->CreateFixture(&fixtureDefinition);
 }
 
 PulePhysx2DShape pulePhysx2DShapeCreateConvexPolygonAsBox(
@@ -157,19 +158,19 @@ PulePhysx2DShape pulePhysx2DShapeCreateConvexPolygonAsBox(
   allocPolygon.SetAsBox(halfExtents.x, halfExtents.y);
   puleLog("count: %zu", allocPolygon.m_count);
   shape.type = PulePhysx2DShapeType_convexPolygon;
-  shape.convexPolygon.vertexCount = allocPolygon.m_count;
-  shape.convexPolygon.centroid = in::vec2(allocPolygon.m_centroid);
+  shape.shape.convexPolygon.vertexCount = allocPolygon.m_count;
+  shape.shape.convexPolygon.centroid = in::vec2(allocPolygon.m_centroid);
   puleLog("count: %zu", allocPolygon.m_count);
-  for (size_t it = 0; it < shape.convexPolygon.vertexCount; ++ it) {
-    shape.convexPolygon.normals[it] = in::vec2(allocPolygon.m_normals[it]);
-    shape.convexPolygon.origins[it] = in::vec2(allocPolygon.m_vertices[it]);
+  for (size_t it = 0; it < shape.shape.convexPolygon.vertexCount; ++ it) {
+    shape.shape.convexPolygon.normals[it] = in::vec2(allocPolygon.m_normals[it]);
+    shape.shape.convexPolygon.origins[it] = in::vec2(allocPolygon.m_vertices[it]);
     puleLog(
       "new origin @ %d: %f, %f\nnew normal: %f, %f",
       it,
-      shape.convexPolygon.origins[it].x,
-      shape.convexPolygon.origins[it].y,
-      shape.convexPolygon.normals[it].x,
-      shape.convexPolygon.normals[it].y
+      shape.shape.convexPolygon.origins[it].x,
+      shape.shape.convexPolygon.origins[it].y,
+      shape.shape.convexPolygon.normals[it].x,
+      shape.shape.convexPolygon.normals[it].y
     );
   }
 

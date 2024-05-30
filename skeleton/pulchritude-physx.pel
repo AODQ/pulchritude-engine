@@ -20,11 +20,11 @@
 };
 
 @enum PulePhysxCollisionShapeType {
-  PulePhysxCollisionShapeType_sphere;
-  PulePhysxCollisionShapeType_box;
-  PulePhysxCollisionShapeType_capsule;
-  PulePhysxCollisionShapeType_plane;
-  PulePhysxCollisionShapeType_triangle;
+  sphere;
+  box;
+  capsule;
+  plane;
+  triangle;
 };
 
 @struct PulePhysxCollisionShapeSphere {
@@ -66,8 +66,8 @@
 };
 
 @enum PulePhysxMode {
-  PulePhysxMode_2d;
-  PulePhysxMode_3d;
+  i2d;
+  i3d;
 };
 
 @fn pulePhysxRaycastShape(
@@ -105,7 +105,7 @@
 @entity PulePhysx2DBody;
 
 @enum PulePhysx2DShapeType {
-  PulePhysx2DShapeType_convexPolygon;
+  convexPolygon;
 };
 
 @struct PulePhysx2DShapeConvexPolygon {
@@ -140,9 +140,9 @@
 ) void;
 
 @enum PulePhysx2DBodyType {
-  PulePhysx2DBodyType_static;
-  PulePhysx2DBodyType_kinematic;
-  PulePhysx2DBodyType_dynamic;
+  static;
+  kinematic;
+  dynamic;
 };
 
 @struct PulePhysx2DBodyCreateInfo {
@@ -206,3 +206,8 @@
   halfExtents : PuleF32v2,
   angle : float
 ) PulePhysx2DShape;
+
+@entity PulePhysx3DWorld;
+@entity PulePhysx3DBody;
+
+@fn pulePhysx3DWorldCreate() PulePhysx3DWorld;

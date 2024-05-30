@@ -1,27 +1,29 @@
 /* auto generated file imgui-engine */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/ecs.h>
-#include <pulchritude/platform.h>
+#include "ecs.h"
+#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+
+// entities
+
 // structs
+struct PuleImguiEngineDisplayInfo;
+
 /* 
   presents engine internal/debug information through the gui this can be used
   in conjunction with an editor and the real application
  */
-typedef struct {
+typedef struct PuleImguiEngineDisplayInfo {
   PuleEcsWorld world;
   PulePlatform platform;
 } PuleImguiEngineDisplayInfo;
-
-// enum
-
-// entities
 
 // functions
 PULE_exportFn void puleImguiEngineDisplay(PuleImguiEngineDisplayInfo info);

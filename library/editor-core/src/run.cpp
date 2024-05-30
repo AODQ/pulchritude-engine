@@ -1,14 +1,14 @@
 #include "util.h"
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-file/file.h>
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-imgui/imgui.h>
-#include <pulchritude-platform/platform.h>
-#include <pulchritude-plugin/plugin.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/error.h>
+#include <pulchritude/file.h>
+#include <pulchritude/gpu.h>
+#include <pulchritude/imgui.h>
+#include <pulchritude/platform.h>
+#include <pulchritude/plugin.h>
 
-#include <pulchritude-asset/pds.h>
+#include <pulchritude/asset-pds.h>
 
 #include <string>
 #include <vector>

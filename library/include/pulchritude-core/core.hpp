@@ -9,45 +9,6 @@
 
 namespace pule {
 
-
-// -- enum to string -----------------------------------------------------------
-
-// enums just need to overload this function in other plugins
-inline char const * toStr(PuleDt const dt) {
-  #define dtCase(m) case PuleDt_ ## m: return #m
-  switch (dt) {
-    dtCase(i8); dtCase(i16); dtCase(i32); dtCase(i64);
-    dtCase(u8); dtCase(u16); dtCase(u32); dtCase(u64);
-    dtCase(f32); dtCase(f64);
-    dtCase(bool); dtCase(ptr);
-
-    dtCase(f32v2); dtCase(f32v3); dtCase(f32v4);
-    dtCase(f32m44);
-
-    dtCase(f64v2); dtCase(f64v3); dtCase(f64v4);
-
-    dtCase(i32v2); dtCase(i32v3); dtCase(i32v4);
-    dtCase(u32v2); dtCase(u32v3); dtCase(u32v4);
-
-    dtCase(i64v2); dtCase(i64v3); dtCase(i64v4);
-    dtCase(u64v2); dtCase(u64v3); dtCase(u64v4);
-  }
-  #undef dtCase
-}
-
-inline char const * toStr(PuleAccess const access) {
-  #define dtCase(m) case PuleAccess_ ## m: return #m
-  switch (access) {
-    dtCase(none);
-    dtCase(read);
-    dtCase(write);
-    dtCase(readwrite);
-  }
-  #undef dtCase
-}
-
-// alternatively with pule::string if enums are not string literal
-
 // -- resource container -------------------------------------------------------
 
 // TODO replace unordered_map with own implementation that uses allocator

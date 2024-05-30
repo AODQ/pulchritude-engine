@@ -1,17 +1,165 @@
 /* auto generated file platform */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/error.h>
-#include <pulchritude/math.h>
-#include <pulchritude/string.h>
+#include "error.h"
+#include "math.h"
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PulePlatformVsyncMode_none = 0,
+  PulePlatformVsyncMode_double = 1,
+  PulePlatformVsyncMode_triple = 2,
+} PulePlatformVsyncMode;
+const uint32_t PulePlatformVsyncModeSize = 3;
+typedef enum {
+  PuleErrorWindow_none = 0,
+  PuleErrorWindow_windowCreationFailed = 1,
+  PuleErrorWindow_invalidConfiguration = 2,
+} PuleErrorWindow;
+const uint32_t PuleErrorWindowSize = 3;
+typedef enum {
+  PuleInputKey_tab = 0,
+  PuleInputKey_left = 1,
+  PuleInputKey_right = 2,
+  PuleInputKey_up = 3,
+  PuleInputKey_down = 4,
+  PuleInputKey_pageUp = 5,
+  PuleInputKey_pageDown = 6,
+  PuleInputKey_home = 7,
+  PuleInputKey_end = 8,
+  PuleInputKey_insert = 9,
+  PuleInputKey_delete = 10,
+  PuleInputKey_backspace = 11,
+  PuleInputKey_space = 12,
+  PuleInputKey_enter = 13,
+  PuleInputKey_escape = 14,
+  PuleInputKey_apostrophe = 15,
+  PuleInputKey_comma = 16,
+  PuleInputKey_minus = 17,
+  PuleInputKey_period = 18,
+  PuleInputKey_slash = 19,
+  PuleInputKey_semicolon = 20,
+  PuleInputKey_equal = 21,
+  PuleInputKey_leftBracket = 22,
+  PuleInputKey_backslash = 23,
+  PuleInputKey_rightBracket = 24,
+  PuleInputKey_graveAccent = 25,
+  PuleInputKey_capsLock = 26,
+  PuleInputKey_scrollLock = 27,
+  PuleInputKey_numLock = 28,
+  PuleInputKey_printScreen = 29,
+  PuleInputKey_pause = 30,
+  PuleInputKey_kp0 = 31,
+  PuleInputKey_kp1 = 32,
+  PuleInputKey_kp2 = 33,
+  PuleInputKey_kp3 = 34,
+  PuleInputKey_kp4 = 35,
+  PuleInputKey_kp5 = 36,
+  PuleInputKey_kp6 = 37,
+  PuleInputKey_kp7 = 38,
+  PuleInputKey_kp8 = 39,
+  PuleInputKey_kp9 = 40,
+  PuleInputKey_kpDecimal = 41,
+  PuleInputKey_kpDivide = 42,
+  PuleInputKey_kpMultiply = 43,
+  PuleInputKey_kpSubtract = 44,
+  PuleInputKey_kpAdd = 45,
+  PuleInputKey_kpEnter = 46,
+  PuleInputKey_kpEqual = 47,
+  PuleInputKey_leftShift = 48,
+  PuleInputKey_leftControl = 49,
+  PuleInputKey_leftAlt = 50,
+  PuleInputKey_leftSuper = 51,
+  PuleInputKey_rightShift = 52,
+  PuleInputKey_rightControl = 53,
+  PuleInputKey_rightAlt = 54,
+  PuleInputKey_rightSuper = 55,
+  PuleInputKey_menu = 56,
+  PuleInputKey_i0 = 57,
+  PuleInputKey_i1 = 58,
+  PuleInputKey_i2 = 59,
+  PuleInputKey_i3 = 60,
+  PuleInputKey_i4 = 61,
+  PuleInputKey_i5 = 62,
+  PuleInputKey_i6 = 63,
+  PuleInputKey_i7 = 64,
+  PuleInputKey_i8 = 65,
+  PuleInputKey_i9 = 66,
+  PuleInputKey_a = 67,
+  PuleInputKey_b = 68,
+  PuleInputKey_c = 69,
+  PuleInputKey_d = 70,
+  PuleInputKey_e = 71,
+  PuleInputKey_f = 72,
+  PuleInputKey_g = 73,
+  PuleInputKey_h = 74,
+  PuleInputKey_i = 75,
+  PuleInputKey_j = 76,
+  PuleInputKey_k = 77,
+  PuleInputKey_l = 78,
+  PuleInputKey_m = 79,
+  PuleInputKey_n = 80,
+  PuleInputKey_o = 81,
+  PuleInputKey_p = 82,
+  PuleInputKey_q = 83,
+  PuleInputKey_r = 84,
+  PuleInputKey_s = 85,
+  PuleInputKey_t = 86,
+  PuleInputKey_u = 87,
+  PuleInputKey_v = 88,
+  PuleInputKey_w = 89,
+  PuleInputKey_x = 90,
+  PuleInputKey_y = 91,
+  PuleInputKey_z = 92,
+  PuleInputKey_f1 = 93,
+  PuleInputKey_f2 = 94,
+  PuleInputKey_f3 = 95,
+  PuleInputKey_f4 = 96,
+  PuleInputKey_f5 = 97,
+  PuleInputKey_f6 = 98,
+  PuleInputKey_f7 = 99,
+  PuleInputKey_f8 = 100,
+  PuleInputKey_f9 = 101,
+  PuleInputKey_f10 = 102,
+  PuleInputKey_f11 = 103,
+  PuleInputKey_f12 = 104,
+} PuleInputKey;
+const uint32_t PuleInputKeySize = 105;
+typedef enum {
+  PuleInputKeyModifier_ctrl = 1,
+  PuleInputKeyModifier_shift = 2,
+  PuleInputKeyModifier_alt = 4,
+  PuleInputKeyModifier_super = 8,
+} PuleInputKeyModifier;
+const uint32_t PuleInputKeyModifierSize = 4;
+typedef enum {
+  PuleInputMouse_left = 0,
+  PuleInputMouse_right = 1,
+  PuleInputMouse_middle = 2,
+  PuleInputMouse_side1 = 3,
+  PuleInputMouse_side2 = 4,
+  PuleInputMouse_End = 5,
+} PuleInputMouse;
+const uint32_t PuleInputMouseSize = 6;
+
+// entities
+
 // structs
-typedef struct {
+struct PulePlatformCreateInfo;
+struct PulePlatform;
+struct PulePlatformFramebufferResizeCallbackCreateInfo;
+struct PulePlatformWindowResizeCallbackCreateInfo;
+struct PuleInputKeyCallbackCreateInfo;
+struct PuleInputMouseButtonCallbackCreateInfo;
+struct PuleInputRawTextCallbackCreateInfo;
+
+typedef struct PulePlatformCreateInfo {
   PuleStringView name;
   /*  <= 7680, can leave at 0 for full screen  */
   size_t width;
@@ -19,165 +167,30 @@ typedef struct {
   size_t height;
   PulePlatformVsyncMode vsyncMode;
 } PulePlatformCreateInfo;
-typedef struct {
+typedef struct PulePlatform {
   uint64_t id;
 } PulePlatform;
-typedef struct {
+typedef struct PulePlatformFramebufferResizeCallbackCreateInfo {
   void(* callback)(PuleI32v2);
 } PulePlatformFramebufferResizeCallbackCreateInfo;
-typedef struct {
+typedef struct PulePlatformWindowResizeCallbackCreateInfo {
   void(* callback)(PuleI32v2);
 } PulePlatformWindowResizeCallbackCreateInfo;
 /*  TODO fix this to allow multiline in parser (bool waspressed) */
-typedef struct {
+typedef struct PuleInputKeyCallbackCreateInfo {
   void(* callback)(PuleInputKey, PuleInputKeyModifier, bool);
 } PuleInputKeyCallbackCreateInfo;
-typedef struct {
+typedef struct PuleInputMouseButtonCallbackCreateInfo {
   void(* callback)(PuleInputMouse, PuleInputKeyModifier, bool);
 } PuleInputMouseButtonCallbackCreateInfo;
-typedef struct {
+typedef struct PuleInputRawTextCallbackCreateInfo {
   void(* callback)(uint32_t);
 } PuleInputRawTextCallbackCreateInfo;
 
-// enum
-typedef enum {
-  PulePlatformVsyncMode_none,
-  PulePlatformVsyncMode_double,
-  PulePlatformVsyncMode_triple,
-} PulePlatformVsyncMode;
-typedef enum {
-  PuleErrorwindow_none,
-  PuleErrorWindow_windowCreationFailed,
-  PuleErrorWindow_invalidConfiguration,
-} PuleErrorWindow;
-typedef enum {
-  PuleInputKey_tab,
-  PuleInputKey_left,
-  PuleInputKey_right,
-  PuleInputKey_up,
-  PuleInputKey_down,
-  PuleInputKey_pageUp,
-  PuleInputKey_pageDown,
-  PuleInputKey_home,
-  PuleInputKey_end,
-  PuleInputKey_insert,
-  PuleInputKey_delete,
-  PuleInputKey_backspace,
-  PuleInputKey_space,
-  PuleInputKey_enter,
-  PuleInputKey_escape,
-  PuleInputKey_apostrophe,
-  PuleInputKey_comma,
-  PuleInputKey_minus,
-  PuleInputKey_period,
-  PuleInputKey_slash,
-  PuleInputKey_semicolon,
-  PuleInputKey_equal,
-  PuleInputKey_leftBracket,
-  PuleInputKey_backslash,
-  PuleInputKey_rightBracket,
-  PuleInputKey_graveAccent,
-  PuleInputKey_capsLock,
-  PuleInputKey_scrollLock,
-  PuleInputKey_numLock,
-  PuleInputKey_printScreen,
-  PuleInputKey_pause,
-  PuleInputKey_kp0,
-  PuleInputKey_kp1,
-  PuleInputKey_kp2,
-  PuleInputKey_kp3,
-  PuleInputKey_kp4,
-  PuleInputKey_kp5,
-  PuleInputKey_kp6,
-  PuleInputKey_kp7,
-  PuleInputKey_kp8,
-  PuleInputKey_kp9,
-  PuleInputKey_kpDecimal,
-  PuleInputKey_kpDivide,
-  PuleInputKey_kpMultiply,
-  PuleInputKey_kpSubtract,
-  PuleInputKey_kpAdd,
-  PuleInputKey_kpEnter,
-  PuleInputKey_kpEqual,
-  PuleInputKey_leftShift,
-  PuleInputKey_leftControl,
-  PuleInputKey_leftAlt,
-  PuleInputKey_leftSuper,
-  PuleInputKey_rightShift,
-  PuleInputKey_rightControl,
-  PuleInputKey_rightAlt,
-  PuleInputKey_rightSuper,
-  PuleInputKey_menu,
-  PuleInputKey_i0,
-  PuleInputKey_i1,
-  PuleInputKey_i2,
-  PuleInputKey_i3,
-  PuleInputKey_i4,
-  PuleInputKey_i5,
-  PuleInputKey_i6,
-  PuleInputKey_i7,
-  PuleInputKey_i8,
-  PuleInputKey_i9,
-  PuleInputKey_a,
-  PuleInputKey_b,
-  PuleInputKey_c,
-  PuleInputKey_d,
-  PuleInputKey_e,
-  PuleInputKey_f,
-  PuleInputKey_g,
-  PuleInputKey_h,
-  PuleInputKey_i,
-  PuleInputKey_j,
-  PuleInputKey_k,
-  PuleInputKey_l,
-  PuleInputKey_m,
-  PuleInputKey_n,
-  PuleInputKey_o,
-  PuleInputKey_p,
-  PuleInputKey_q,
-  PuleInputKey_r,
-  PuleInputKey_s,
-  PuleInputKey_t,
-  PuleInputKey_u,
-  PuleInputKey_v,
-  PuleInputKey_w,
-  PuleInputKey_x,
-  PuleInputKey_y,
-  PuleInputKey_z,
-  PuleInputKey_f1,
-  PuleInputKey_f2,
-  PuleInputKey_f3,
-  PuleInputKey_f4,
-  PuleInputKey_f5,
-  PuleInputKey_f6,
-  PuleInputKey_f7,
-  PuleInputKey_f8,
-  PuleInputKey_f9,
-  PuleInputKey_f10,
-  PuleInputKey_f11,
-  PuleInputKey_f12,
-} PuleInputKey;
-typedef enum {
-  PuleInputKeyModifier_ctrl,
-  PuleInputKeyModifier_shift,
-  PuleInputKeyModifier_alt,
-  PuleInputKeyModifier_super,
-} PuleInputKeyModifier;
-typedef enum {
-  PuleInputMouse_left,
-  PuleInputMouse_right,
-  PuleInputMouse_middle,
-  PuleInputMouse_side1,
-  PuleInputMouse_side2,
-  PuleInputMouse_End,
-} PuleInputMouse;
-
-// entities
-
 // functions
-PULE_exportFn void pulePlatformInitialize(PuleError * error);
+PULE_exportFn void pulePlatformInitialize(struct PuleError * error);
 PULE_exportFn void pulePlatformShutdown();
-PULE_exportFn PulePlatform pulePlatformCreate(PulePlatformCreateInfo info, PuleError * error);
+PULE_exportFn PulePlatform pulePlatformCreate(PulePlatformCreateInfo info, struct PuleError * error);
 PULE_exportFn void pulePlatformDestroy(PulePlatform window);
 PULE_exportFn bool pulePlatformShouldExit(PulePlatform window);
 /* 

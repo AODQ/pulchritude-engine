@@ -13,8 +13,8 @@ struct {
 ### PuleErrorEL
 ```c
 enum {
-  PuleErrorEL_none,
-  PuleErrorEL_compileError,
+  none,
+  compileError,
 }
 ```
 

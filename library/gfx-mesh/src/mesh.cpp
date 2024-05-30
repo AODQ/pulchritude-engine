@@ -1,4 +1,3 @@
-#include <pulchritude-gfx-mesh/mesh.h>
 //
 //void puleGpuMeshRender(
 //  PuleGpuMesh const * const pMesh,

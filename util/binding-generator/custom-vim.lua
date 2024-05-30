@@ -1,4 +1,4 @@
 function makeprg_release()
-  vim.o.makeprg = 'puledit run'
+  vim.o.makeprg = 'puledit build'
   vim.cmd("make")
 end

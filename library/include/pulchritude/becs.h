@@ -1,20 +1,54 @@
 /* auto generated file becs */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/error.h>
-#include <pulchritude/string.h>
+#include "error.h"
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleErrorBecs_none = 0,
+} PuleErrorBecs;
+const uint32_t PuleErrorBecsSize = 1;
+typedef enum {
+  PuleBecsSystemCallbackFrequency_vsync = 0,
+  PuleBecsSystemCallbackFrequency_unlimited = 1,
+  PuleBecsSystemCallbackFrequency_fixed = 2,
+} PuleBecsSystemCallbackFrequency;
+const uint32_t PuleBecsSystemCallbackFrequencySize = 3;
+typedef enum {
+  /*  system uses current frame  */
+  PuleBecsSystemInputRelation_current = 0,
+  /*  system uses previous frame  */
+  PuleBecsSystemInputRelation_previous = 1,
+} PuleBecsSystemInputRelation;
+const uint32_t PuleBecsSystemInputRelationSize = 2;
+
+// entities
+typedef struct PuleBecsSystem { uint64_t id; } PuleBecsSystem;
+typedef struct PuleBecsEntity { uint64_t id; } PuleBecsEntity;
+typedef struct PuleBecsComponent { uint64_t id; } PuleBecsComponent;
+typedef struct PuleBecsBundle { uint64_t id; } PuleBecsBundle;
+typedef struct PuleBecsBundleHistory { uint64_t id; } PuleBecsBundleHistory;
+typedef struct PuleBecsWorld { uint64_t id; } PuleBecsWorld;
+typedef struct PuleBecsQueryEntityIterator { uint64_t id; } PuleBecsQueryEntityIterator;
+
 // structs
-typedef struct {
+struct PuleBecsComponentCreateInfo;
+struct PuleBecsSystemCreateInfo;
+struct PuleBecsEntityQuery;
+struct PuleBecsSystemInputRelationsCreateInfo;
+struct PuleBecsEntityCreateInfo;
+
+typedef struct PuleBecsComponentCreateInfo {
   PuleStringView label;
   size_t byteLength;
 } PuleBecsComponentCreateInfo;
-typedef struct {
+typedef struct PuleBecsSystemCreateInfo {
   PuleBecsWorld world;
   PuleStringView label;
   PuleBecsComponent const * components;
@@ -23,52 +57,27 @@ typedef struct {
   /* if callbackFrequency == fixed */
   size_t callbackFrequencyFixed;
   size_t bundleHistoryCount;
-  int32_t(* callback)(PuleBecsSystem, system, PuleBecsBundle, writeBundle, PuleBecsBundleHistory, readBundleHistory, PuleBecsBundle *, inputSystemReadBundles);
+  int32_t(* callback)(PuleBecsSystem, system, PuleBecsBundle, writeBundle, PuleBecsBundleHistory, readBundleHistory, struct PuleBecsBundle *, inputSystemReadBundles);
 } PuleBecsSystemCreateInfo;
-typedef struct {
+typedef struct PuleBecsEntityQuery {
   PuleBecsSystem system;
   PuleBecsComponent const * components;
   size_t componentCount;
 } PuleBecsEntityQuery;
-typedef struct {
+typedef struct PuleBecsSystemInputRelationsCreateInfo {
   PuleBecsSystem system;
-  PuleBecsSystem * inputSystems;
-  PuleBecsSystemInputRelation * inputSystemRelations;
+  struct PuleBecsSystem * inputSystems;
+  struct PuleBecsSystemInputRelation * inputSystemRelations;
   size_t inputSystemCount;
   uint8_t threadGroup;
 } PuleBecsSystemInputRelationsCreateInfo;
-typedef struct {
+typedef struct PuleBecsEntityCreateInfo {
   PuleBecsSystem system;
   PuleStringView label;
   PuleBecsComponent const * components;
   void const * const * componentData;
   size_t componentCount;
 } PuleBecsEntityCreateInfo;
-
-// enum
-typedef enum {
-  PuleErrorBecs_none,
-} PuleErrorBecs;
-typedef enum {
-  PuleBecsSystemCallbackFrequency_vsync,
-  PuleBecsSystemCallbackFrequency_unlimited,
-  PuleBecsSystemCallbackFrequency_fixed,
-} PuleBecsSystemCallbackFrequency;
-typedef enum {
-  /*  system uses current frame  */
-  PuleBecsSystemInputRelation_current,
-  /*  system uses previous frame  */
-  PuleBecsSystemInputRelation_previous,
-} PuleBecsSystemInputRelation;
-
-// entities
-typedef struct { uint64_t id; } PuleBecsSystem;
-typedef struct { uint64_t id; } PuleBecsEntity;
-typedef struct { uint64_t id; } PuleBecsComponent;
-typedef struct { uint64_t id; } PuleBecsBundle;
-typedef struct { uint64_t id; } PuleBecsBundleHistory;
-typedef struct { uint64_t id; } PuleBecsWorld;
-typedef struct { uint64_t id; } PuleBecsQueryEntityIterator;
 
 // functions
 PULE_exportFn PuleBecsWorld puleBecsWorldCreate();

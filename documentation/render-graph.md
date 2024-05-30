@@ -69,8 +69,8 @@ struct {
 ### PuleRenderGraph_ResourceUnion
 ```c
 union {
-  PuleRenderGraph_Resource_Image : image;
-  PuleRenderGraph_Resource_Buffer : buffer;
+  image : PuleRenderGraph_Resource_Image;
+  buffer : PuleRenderGraph_Resource_Buffer;
 };
 ```
 ### PuleRenderGraph_Resource
@@ -84,14 +84,14 @@ struct {
 ```
 ### PuleRenderGraph_Node_Image
 ```c
-union {
+struct {
   layout : PuleGpuImageLayout;
   layoutEntrance : PuleGpuImageLayout;
 };
 ```
 ### PuleRenderGraph_Node_Buffer
 ```c
-union {
+struct {
   reserved : uint8_t;
 };
 ```
@@ -129,22 +129,22 @@ struct {
 ### PuleRenderGraph_ResourceType
 ```c
 enum {
-  PuleRenderGraph_ResourceType_image,
-  PuleRenderGraph_ResourceType_buffer,
+  image,
+  buffer,
 }
 ```
 ### PuleRenderGraph_ResourceUsage
 ```c
 enum {
-  PuleRenderGraph_ResourceUsage_read,
-  PuleRenderGraph_ResourceUsage_write,
-  PuleRenderGraph_ResourceUsage_readWrite,
+  read,
+  write,
+  readWrite,
 }
 ```
 ### PuleRenderGraphNodeRelation
 ```c
 enum {
-  PuleRenderGraphNodeRelation_dependsOn,
+  dependsOn,
 }
 ```
 

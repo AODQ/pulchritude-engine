@@ -17,20 +17,19 @@
   @field len : size_t = 0;
 };
 
-@fn puleStringDefault(baseContents : char const ptr) #`
+@fn puleString(baseContents : char const ptr) PuleString #`
   create string with default allocator
 `;
-@fn puleString(_ : PuleAllocator, contents : char const ptr) PuleString;
 @fn puleStringCopy(_ : PuleAllocator, base : PuleStringView) PuleString;
 @fn puleStringDestroy(_ : PuleString);
 @fn puleStringAppend(str : PuleString ref, append : PuleStringView);
 
 @fn puleStringFormat(
-  _ : PuleAllocator, format : char const ptr, _ : vaArgs
+  _ : PuleAllocator, format : char const ptr, _ : __VA_ARGS__
 ) PuleString;
-@fn puleStringFormatDefault(format : char const ptr, _ : vaArgs) PuleString;
+@fn puleStringFormatDefault(format : char const ptr, _ : __VA_ARGS__) PuleString;
 @fn puleStringFormatVargs(
-  _ : PuleAllocator, format : char const ptr, _ : vaList
+  _ : PuleAllocator, format : char const ptr, _ : va_list
 ) PuleString;
 
 @fn puleStringView(string : PuleString) PuleStringView;
@@ -38,6 +37,7 @@
 
 @fn puleStringViewEq(v0 : PuleStringView, v1 : PuleStringView) bool;
 @fn puleStringViewContains(base : PuleStringView, seg : PuleStringView) bool;
-@fn puleStringViewEqCstr(v0 : PuleStringView, v1 : char const ptr) bool;
+@fn puleStringViewEnds(base : PuleStringView, seg : PuleStringView) bool;
+@fn puleStringViewEqCStr(v0 : PuleStringView, v1 : char const ptr) bool;
 
 @fn puleStringViewHash(view : PuleStringView) size_t;

@@ -17,25 +17,25 @@ struct {
 ### PuleErrorFile
 ```c
 enum {
-  PuleErrorFile_none,
-  PuleErrorFile_fileOpen,
+  none,
+  fileOpen,
 }
 ```
 ### PuleFileDataMode
 ```c
 enum {
-  PuleFileDataMode_text,
-  PuleFileDataMode_binary,
+  text,
+  binary,
 }
 ```
 ### PuleFileOpenMode
 ```c
 enum {
-  PuleFileOpenMode_read,
-  PuleFileOpenMode_writeOverwrite,
-  PuleFileOpenMode_writeAppend,
-  PuleFileOpenMode_readWriteOverwrite,
-  PuleFileOpenMode_readWrite,
+  read,
+  writeOverwrite,
+  writeAppend,
+  readWriteOverwrite,
+  readWrite,
 }
 ```
 

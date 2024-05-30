@@ -1,32 +1,35 @@
 /* auto generated file engine-language */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/error.h>
-#include <pulchritude/stream.h>
+#include "error.h"
+#include "stream.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleErrorEL_none = 0,
+  PuleErrorEL_compileError = 1,
+} PuleErrorEL;
+const uint32_t PuleErrorELSize = 2;
+
+// entities
+typedef struct PuleELModule { uint64_t id; } PuleELModule;
+typedef struct PuleELJitEngine { uint64_t id; } PuleELJitEngine;
+
 // structs
-typedef struct {
+struct PuleELJitEngineCreateInfo;
+
+typedef struct PuleELJitEngineCreateInfo {
   bool optimize;
   bool insertEngineSymbols;
 } PuleELJitEngineCreateInfo;
 
-// enum
-typedef enum {
-  PuleErrorEL_none,
-  PuleErrorEL_compileError,
-} PuleErrorEL;
-
-// entities
-typedef struct { uint64_t id; } PuleELModule;
-typedef struct { uint64_t id; } PuleELJitEngine;
-
 // functions
-PULE_exportFn PuleELModule puleELModuleCreate(PuleStreamRead stream, PuleStringView name, PuleError * error);
+PULE_exportFn PuleELModule puleELModuleCreate(PuleStreamRead stream, PuleStringView name, struct PuleError * error);
 PULE_exportFn void puleELModuleDestroy(PuleELModule module);
 PULE_exportFn PuleELJitEngine puleELJitEngineCreate(PuleELJitEngineCreateInfo ci);
 PULE_exportFn void puleELJitEngineDestroy(PuleELJitEngine jitEngine);

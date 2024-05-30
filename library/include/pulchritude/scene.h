@@ -1,62 +1,71 @@
 /* auto generated file scene */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/ecs.h>
-#include <pulchritude/gpu.h>
-#include <pulchritude/physx.h>
-#include <pulchritude/platform.h>
-#include <pulchritude/camera.h>
+#include "ecs.h"
+#include "gpu.h"
+#include "physx.h"
+#include "platform.h"
+#include "camera.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleSceneDimension_i2d = 0,
+  PuleSceneDimension_i3d = 1,
+} PuleSceneDimension;
+const uint32_t PuleSceneDimensionSize = 2;
+typedef enum {
+  PuleSceneComponentModelType_none = 0,
+  PuleSceneComponentModelType_cube = 1,
+  PuleSceneComponentModelType_sphere = 2,
+  PuleSceneComponentModelType_plane = 3,
+} PuleSceneComponentModelType;
+const uint32_t PuleSceneComponentModelTypeSize = 4;
+
+// entities
+typedef struct PuleScene { uint64_t id; } PuleScene;
+
 // structs
-typedef struct {
+struct PuleSceneCreateInfo;
+union PuleScenePhysxWorld;
+struct PuleSceneAdvanceInfo;
+struct PuleSceneComponentModelData;
+struct PuleSceneComponentPhysicsData;
+struct PuleSceneNodeCreateInfo;
+
+typedef struct PuleSceneCreateInfo {
   PulePlatform platform;
   PuleSceneDimension dimension;
   bool createPhysxWorld;
 } PuleSceneCreateInfo;
 /* this must be consistent with what the scene was created with */
-typedef union {
+typedef union PuleScenePhysxWorld {
   PulePhysx2DWorld i2D;
   PulePhysx3DWorld i3D;
 } PuleScenePhysxWorld;
-typedef struct {
+typedef struct PuleSceneAdvanceInfo {
   PuleScene scene;
   float msDelta;
   bool advanceEcsWorld;
   bool advancePhysxWorld;
   PuleGpuSemaphore waitSemaphore;
 } PuleSceneAdvanceInfo;
-typedef struct {
+typedef struct PuleSceneComponentModelData {
   PuleSceneComponentModelType type;
 } PuleSceneComponentModelData;
-typedef struct {
+typedef struct PuleSceneComponentPhysicsData {
   PulePhysx3DBody body;
 } PuleSceneComponentPhysicsData;
-typedef struct {
+typedef struct PuleSceneNodeCreateInfo {
   PuleEcsEntity entity;
   PuleScene scene;
   PuleSceneComponentModelType modelType;
   PuleSceneComponentPhysicsData physicsData;
 } PuleSceneNodeCreateInfo;
-
-// enum
-typedef enum {
-  PuleSceneDimension_2d,
-  PuleSceneDimension_3d,
-} PuleSceneDimension;
-typedef enum {
-  PuleSceneComponentModelType_none,
-  PuleSceneComponentModelType_cube,
-  PuleSceneComponentModelType_sphere,
-  PuleSceneComponentModelType_plane,
-} PuleSceneComponentModelType;
-
-// entities
-typedef struct { uint64_t id; } PuleScene;
 
 // functions
 PULE_exportFn PuleScene puleSceneCreate(PuleSceneCreateInfo info);

@@ -1,7 +1,7 @@
 #include <pulchritude-math/math-fixed-point.h>
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-log/log.h>
+#include <pulchritude/error.h>
+#include <pulchritude/log.h>
 
 #include <cmath>
 
@@ -764,7 +764,7 @@ PuleF32m33 puleFix64m33ToF32(PuleFix64m33 a) {
 // AT SOME POINT, I will be able to run unit tests on all the modules
 //    puledit unittest
 // or something.
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 namespace {
 template <typename Fn> bool run(char const * label, Fn fn) {
   auto const ret = fn();

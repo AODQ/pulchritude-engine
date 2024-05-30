@@ -1,4 +1,6 @@
-#include <pulchritude-becs/becs.h>
+#include <pulchritude/becs.h>
+
+#include <pulchritude/core.hpp>
 
 #include <string>
 #include <vector>

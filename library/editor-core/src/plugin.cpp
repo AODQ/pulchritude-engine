@@ -1,11 +1,11 @@
 #include "util.h"
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-core/core.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-file/file.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/core.h>
+#include <pulchritude/error.h>
+#include <pulchritude/file.h>
+#include <pulchritude/string.h>
 
 #include <regex>
 
@@ -77,7 +77,7 @@ bool refreshEcsMainComponentList(
       content += "#include \"pulchritude-plugin/engine.h\"\n";
       content += "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
       content += "\nvoid pulcRegisterComponents(";
-      content += "PuleEngineLayer * layer, PuleEcsWorld const world);";
+      content += "PuleEcsWorld const world);";
       content += "\n\n#ifdef __cplusplus\n}\n#endif\n";
       puleFileWriteString(
         pluginsComponentHeaderFile,
@@ -112,7 +112,6 @@ bool refreshEcsMainComponentList(
       // write registry
       content += (
         "\nvoid pulcRegisterComponents(\n"
-        "  PuleEngineLayer * const pul,\n"
         "  PuleEcsWorld const world\n"
         ") {\n"
       );
@@ -206,7 +205,7 @@ bool refreshEcsMainSystemList(
       content += "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
       // write out the system registry
       content += "\nvoid pulcRegisterSystems(";
-      content += "PuleEngineLayer * layer, PuleEcsWorld const world);\n";
+      content += "PuleEcsWorld const world);\n";
       // now write out all the function signatures (user implements, but
       // we can prototype here as the implementation is in the same plugin)
       for (size_t systemIt = 0; systemIt < systems.length; ++ systemIt) {
@@ -248,7 +247,6 @@ bool refreshEcsMainSystemList(
       // write registry
       content += (
         "\nvoid pulcRegisterSystems(\n"
-        "  PuleEngineLayer * const pul,\n"
         "  PuleEcsWorld const world\n"
         ") {\n"
       );

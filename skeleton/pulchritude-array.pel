@@ -2,7 +2,8 @@
 @include `allocator`;
 
 @enum PuleErrorArray {
-  PuleErrorArray_none; PuleErrorArray_errorAllocation;
+  none;
+  errorAllocation;
 };
 
 @struct PuleArray {

@@ -1,9 +1,10 @@
-#include <pulchritude-engine-language/engine-language.h>
+#include <pulchritude/engine-language.h>
 
 // this is a simple LLVM IR wrapper
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-time/time.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/error.h>
+#include <pulchritude/time.h>
 
 #include <llvm-c/Core.h>
 #include <llvm-c/ExecutionEngine.h>
@@ -11,8 +12,6 @@
 #include <llvm-c/LLJIT.h>
 #include <llvm-c/Orc.h>
 #include <llvm-c/Target.h>
-
-#include <llvm-c/Transforms/Scalar.h>
 
 #include <atomic>
 #include <string>

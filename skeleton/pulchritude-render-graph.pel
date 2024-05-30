@@ -34,14 +34,14 @@
 ) PuleRenderGraphNode;
 
 @enum PuleRenderGraph_ResourceType {
-  PuleRenderGraph_ResourceType_image;
-  PuleRenderGraph_ResourceType_buffer;
+  image;
+  buffer;
 };
 
 @enum PuleRenderGraph_ResourceUsage {
-  PuleRenderGraph_ResourceUsage_read;
-  PuleRenderGraph_ResourceUsage_write;
-  PuleRenderGraph_ResourceUsage_readWrite;
+  read;
+  write;
+  readWrite;
 };
 
 @struct PuleRenderGraph_Resource_DimensionsScaleRelative {
@@ -94,8 +94,8 @@
 };
 
 @union PuleRenderGraph_ResourceUnion {
-  @field PuleRenderGraph_Resource_Image : image;
-  @field PuleRenderGraph_Resource_Buffer : buffer;
+  @field image : PuleRenderGraph_Resource_Image ;
+  @field buffer : PuleRenderGraph_Resource_Buffer;
 };
 
 @struct PuleRenderGraph_Resource {
@@ -105,12 +105,12 @@
   @field resourceType : PuleRenderGraph_ResourceType;
 };
 
-@union PuleRenderGraph_Node_Image {
+@struct PuleRenderGraph_Node_Image {
   @field layout : PuleGpuImageLayout;
   @field layoutEntrance : PuleGpuImageLayout;
 };
 
-@union PuleRenderGraph_Node_Buffer {
+@struct PuleRenderGraph_Node_Buffer {
   @field reserved : uint8_t;
 };
 
@@ -158,7 +158,7 @@
 ) PuleGpuCommandListRecorder;
 
 @enum PuleRenderGraphNodeRelation {
-  PuleRenderGraphNodeRelation_dependsOn;
+  dependsOn;
 };
 @fn puleRenderGraphNodeRelationSet(
   nodePri : PuleRenderGraphNode,

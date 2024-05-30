@@ -18,8 +18,8 @@ struct {
 ### PuleErrorAssetFont
 ```c
 enum {
-  PuleErrorAssetFont_none,
-  PuleErrorAssetFont_decode,
+  none,
+  decode,
 }
 ```
 

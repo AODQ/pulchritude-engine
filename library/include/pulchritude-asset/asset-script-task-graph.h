@@ -1,11 +1,11 @@
 #pragma once
 
-#include <pulchritude-core/core.h>
+#include <pulchritude/core.h>
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-data-serializer/data-serializer.h>
-#include <pulchritude-script/script.h>
-#include <pulchritude-task-graph/task-graph.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/data-serializer.h>
+#include <pulchritude/script.h>
+#include <pulchritude/task-graph.h>
 
 #ifdef __cplusplus
 extern "C" {

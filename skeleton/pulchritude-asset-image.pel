@@ -3,17 +3,17 @@
 @include `error`;
 
 @enum PuleErrorAssetImage {
-  PuleErrorAssetImage_none;
-  PuleErrorAssetImage_decode;
+  none;
+  decode;
 };
 
 @entity PuleAssetImage;
 
 @enum PuleAssetImageSupportFlag {
-  PuleAssetImageSupportFlag_none = 0x0;
-  PuleAssetImageSupportFlag_read = 0x1;
-  PuleAssetImageSupportFlag_write = 0x2;
-  PuleAssetImageSupportFlag_readWrite = 0x3;
+  none = 0x0;
+  read = 0x1;
+  write = 0x2;
+  readWrite = 0x3;
 };
 
 @fn puleAssetImageExtensionSupported(
@@ -21,9 +21,9 @@
 ) PuleAssetImageSupportFlag;
 
 @enum PuleAssetImageFormat {
-  PuleAssetImageFormat_rgbaU8;
-  PuleAssetImageFormat_rgbaU16;
-  PuleAssetImageFormat_rgbU8;
+  rgbaU8;
+  rgbaU16;
+  rgbU8;
 };
 
 @fn puleAssetImageLoadFromStream(

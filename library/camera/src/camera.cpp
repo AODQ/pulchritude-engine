@@ -1,4 +1,4 @@
-#include <pulchritude-camera/camera.h>
+#include <pulchritude/camera.h>
 
 #include <algorithm>
 #include <string>

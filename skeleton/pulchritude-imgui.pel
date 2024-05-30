@@ -24,6 +24,7 @@
 ) bool;
 
 @fn puleImguiWindowBegin(labelFormat : char const ptr, openNullable : bool ptr);
+@fn puleImguiWindowEnd();
 
 @fn puleImguiSectionBegin(label : char const ptr) bool;
 @fn puleImguiSectionEnd() void;

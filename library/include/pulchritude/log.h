@@ -1,17 +1,18 @@
 /* auto generated file log */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// structs
-
 // enum
 
 // entities
+
+// structs
+
 
 // functions
 PULE_exportFn bool * puleLogDebugEnabled();

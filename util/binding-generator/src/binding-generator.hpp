@@ -4,8 +4,11 @@
 #include <string>
 #include <vector>
 
-#include <pulchritude-string/string.h>
-#include <pulchritude-file/file.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/string.hpp>
+#include <pulchritude/file.hpp>
+
+// TODO replace with the .hpp when that is generated
 
 enum struct BindingTypeModifierType {
   tConst,
@@ -116,3 +119,9 @@ void generateBindingFileLua(GenerateBindingInfo const &);
 void generateBindingFileZig(GenerateBindingInfo const &);
 void generateBindingFilePy (GenerateBindingInfo const &);
 void generateBindingFilePds(GenerateBindingInfo const &);
+
+// used btwn c-based generators
+std::string formatTypeC(
+  BindingType type, std::string const & name,
+  std::string (*formatModifier)(BindingTypeModifier)
+);

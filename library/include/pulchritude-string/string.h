@@ -35,8 +35,8 @@ typedef struct PuleStringView {
   size_t len PULE_param(0); // TODO rename to byteLen
 } PuleStringView;
 
-PULE_exportFn PuleString puleStringDefault(char const * const baseContents);
-PULE_exportFn PuleString puleString(
+PULE_exportFn PuleString puleString(char const * const baseContents);
+PULE_exportFn PuleString puleStringAllo(
   PuleAllocator const allocator,
   char const * const baseContents
 );

@@ -1,4 +1,4 @@
-#include <pulchritude-time/time.h>
+#include <pulchritude/time.h>
 
 #include <errno.h>
 #include <time.h>

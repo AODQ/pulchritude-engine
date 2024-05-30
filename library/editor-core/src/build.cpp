@@ -1,10 +1,10 @@
 #include "util.h"
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-core/core.h>
-#include <pulchritude-file/file.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/core.h>
+#include <pulchritude/file.h>
+#include <pulchritude/string.h>
 
 #include <array>
 #include <regex>

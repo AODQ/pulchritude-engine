@@ -24,20 +24,13 @@ struct {
 ```
 
 ## functions
-### puleStringDefault
+### puleString
 
   create string with default allocator
 
 ```c
-puleStringDefault(
-  baseContents : char const ptr
-) void;
-```
-### puleString
-```c
 puleString(
-  _ : PuleAllocator,
-  contents : char const ptr
+  baseContents : char const ptr
 ) PuleString;
 ```
 ### puleStringCopy
@@ -65,14 +58,14 @@ puleStringAppend(
 puleStringFormat(
   _ : PuleAllocator,
   format : char const ptr,
-  _ : vaArgs
+  _ : __VA_ARGS__
 ) PuleString;
 ```
 ### puleStringFormatDefault
 ```c
 puleStringFormatDefault(
   format : char const ptr,
-  _ : vaArgs
+  _ : __VA_ARGS__
 ) PuleString;
 ```
 ### puleStringFormatVargs
@@ -80,7 +73,7 @@ puleStringFormatDefault(
 puleStringFormatVargs(
   _ : PuleAllocator,
   format : char const ptr,
-  _ : vaList
+  _ : va_list
 ) PuleString;
 ```
 ### puleStringView
@@ -109,9 +102,16 @@ puleStringViewContains(
   seg : PuleStringView
 ) bool;
 ```
-### puleStringViewEqCstr
+### puleStringViewEnds
 ```c
-puleStringViewEqCstr(
+puleStringViewEnds(
+  base : PuleStringView,
+  seg : PuleStringView
+) bool;
+```
+### puleStringViewEqCStr
+```c
+puleStringViewEqCStr(
   v0 : PuleStringView,
   v1 : char const ptr
 ) bool;

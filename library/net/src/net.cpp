@@ -1,4 +1,6 @@
-#include <pulchritude-net/net.h>
+#include <pulchritude/net.h>
+
+#include <unordered_map>
 
 #if defined(PULCHRITUDE_FEATURE_NET)
 

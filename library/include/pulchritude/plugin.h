@@ -1,27 +1,30 @@
 /* auto generated file plugin */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/string.h>
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PulePluginType_library = 0,
+  PulePluginType_component = 1,
+} PulePluginType;
+const uint32_t PulePluginTypeSize = 2;
+
+// entities
+typedef struct PulePluginPayload { uint64_t id; } PulePluginPayload;
+
 // structs
-typedef struct {
+struct PulePluginInfo;
+
+typedef struct PulePluginInfo {
   char const * name;
   uint64_t id;
 } PulePluginInfo;
-
-// enum
-typedef enum {
-  PulePluginType_library,
-  PulePluginType_component,
-} PulePluginType;
-
-// entities
-typedef struct { uint64_t id; } PulePluginPayload;
 
 // functions
 PULE_exportFn void pulePluginsLoad(PuleStringView const * paths, size_t pathsLength);

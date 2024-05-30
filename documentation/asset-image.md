@@ -4,25 +4,25 @@
 ### PuleErrorAssetImage
 ```c
 enum {
-  PuleErrorAssetImage_none,
-  PuleErrorAssetImage_decode,
+  none,
+  decode,
 }
 ```
 ### PuleAssetImageSupportFlag
 ```c
 enum {
-  PuleAssetImageSupportFlag_none,
-  PuleAssetImageSupportFlag_read,
-  PuleAssetImageSupportFlag_write,
-  PuleAssetImageSupportFlag_readWrite,
+  none,
+  read,
+  write,
+  readWrite,
 }
 ```
 ### PuleAssetImageFormat
 ```c
 enum {
-  PuleAssetImageFormat_rgbaU8,
-  PuleAssetImageFormat_rgbaU16,
-  PuleAssetImageFormat_rgbU8,
+  rgbaU8,
+  rgbaU16,
+  rgbU8,
 }
 ```
 

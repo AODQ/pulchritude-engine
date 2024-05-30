@@ -1,22 +1,43 @@
 /* auto generated file data-serializer */
 #pragma once
-#include <pulchritude/core.h>
+#define PULE_dsStructField(structtype, fieldtype, member, count) \
+  { PuleDt_##fieldtype , offsetof(structtype, member) , count , }
+#define PULE_dsStructTerminator { PuleDt_ptr , 0 , 0 , }
 
-#include <pulchritude/allocator.h>
-#include <pulchritude/error.h>
-#include <pulchritude/file.h>
-#include <pulchritude/string.h>
+#include "core.h"
+
+#include "allocator.h"
+#include "error.h"
+#include "file.h"
+#include "math.h"
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleErrorDataSerializer_none = 0,
+  PuleErrorDataSerializer_invalidFormat = 1,
+} PuleErrorDataSerializer;
+const uint32_t PuleErrorDataSerializerSize = 2;
+
+// entities
+typedef struct PuleDsValue { uint64_t id; } PuleDsValue;
+
 // structs
-typedef struct {
+struct PuleDsValueArray;
+struct PuleDsValueObject;
+struct PuleDsValueBuffer;
+struct PuleDsStructField;
+struct PULE_DS_TODODOMP;
+
+typedef struct PuleDsValueArray {
   PuleDsValue const * values;
   size_t length;
 } PuleDsValueArray;
-typedef struct {
+typedef struct PuleDsValueObject {
   PuleStringView const * labels;
   PuleDsValue const * values;
   size_t length;
@@ -26,11 +47,11 @@ typedef struct {
     indirection (PuleDsValue)
   buffers just store raw data, there is no additional indirection.
  */
-typedef struct {
+typedef struct PuleDsValueBuffer {
   uint8_t const * data;
   size_t byteLength;
 } PuleDsValueBuffer;
-typedef struct {
+typedef struct PuleDsStructField {
   PuleDt dt;
   size_t fieldByteOffset;
   /*  set field count to 0 to terminate array  */
@@ -42,18 +63,9 @@ typedef struct {
 #define PULE_dsStructTerminator { PuleDt_ptr , 0 , 0 , }
 PuleDsValue operator ""_pds(char const ptr str, size_t len);
 # */
-typedef struct {
+typedef struct PULE_DS_TODODOMP {
   uint8_t temp;
 } PULE_DS_TODODOMP;
-
-// enum
-typedef enum {
-  PuleErrorDataSerializer_none,
-  PuleErrorDataSerializer_invalidFormat,
-} PuleErrorDataSerializer;
-
-// entities
-typedef struct { uint64_t id; } PuleDsValue;
 
 // functions
 PULE_exportFn int64_t puleDsAsI64(PuleDsValue value);
@@ -135,7 +147,6 @@ PULE_exportFn PuleDsValue puleDsCreateF64v4(PuleAllocator const allocator, PuleF
     PULE_dsStructTerminator,
   };
   #undef structField
-*/
  */
 PULE_exportFn void puleDsStructSerialize(PuleDsValue writeObjectPds, PuleAllocator allocator, PuleDsStructField const * fields, void const * structInstancePtr);
 PULE_exportFn void puleDsStructDeserialize(PuleDsValue serializedStruct, PuleDsStructField const * fields, void * structInstancePtr);

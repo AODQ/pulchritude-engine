@@ -1,8 +1,8 @@
-#include <pulchritude-task-graph/task-graph.h>
+#include <pulchritude/task-graph.h>
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/error.h>
+#include <pulchritude/log.h>
+#include <pulchritude/string.h>
 
 #include <string>
 #include <unordered_map>
@@ -160,7 +160,7 @@ PuleTaskGraphNode puleTaskGraphNodeCreate(
   uint64_t const id = puleStringViewHash(puleCStr(labelToHash.c_str()));
 
   // set ID mappings
-  assert(!taskGraphNodeToGraph.contains(id));
+  PULE_assert(!taskGraphNodeToGraph.contains(id));
   taskGraphNodeToGraph.emplace(id, pGraph.id);
   graph.nodes.emplace(
     id,
@@ -195,7 +195,7 @@ PuleTaskGraphNode puleTaskGraphNodeFetch(
     std::string(label.contents) + "--" + std::to_string(pGraph.id)
   );
   uint64_t const id = puleStringViewHash(puleCStr(labelToHash.c_str()));
-  assert(graph.nodes.contains(id));
+  PULE_assert(graph.nodes.contains(id));
   return PuleTaskGraphNode { .id = id, };
 }
 
@@ -266,14 +266,16 @@ void puleTaskGraphNodeRelationSet(
   PuleTaskGraphNodeRelation const relation,
   PuleTaskGraphNode const pNodeSec
 ) {
-  assert(relation == PuleTaskGraphNodeRelation_dependsOn);
+  PULE_assert(relation == PuleTaskGraphNodeRelation_dependsOn);
   TaskGraph & graph = ::taskGraphs.at(taskGraphNodeToGraph.at(pNodePri.id));
   TaskGraphNode & nodePri = graph.nodes.at(pNodePri.id);
   nodePri.relationDependsOn.emplace_back(pNodeSec.id);
 }
 
 void puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo const execute) {
-  assert(!execute.multithreaded && "multithreaded support not yet implemented");
+  PULE_assert(
+    !execute.multithreaded && "multithreaded support not yet implemented"
+  );
   TaskGraph & graph = ::taskGraphs.at(execute.graph.id);
   sortGraphNodes(graph);
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {

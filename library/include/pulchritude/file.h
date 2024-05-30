@@ -1,20 +1,52 @@
 /* auto generated file file */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/allocator.h>
-#include <pulchritude/array.h>
-#include <pulchritude/error.h>
-#include <pulchritude/stream.h>
-#include <pulchritude/string.h>
-#include <pulchritude/time.h>
+#include "allocator.h"
+#include "array.h"
+#include "error.h"
+#include "stream.h"
+#include "string.h"
+#include "time.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleErrorFile_none = 0,
+  PuleErrorFile_fileOpen = 1,
+} PuleErrorFile;
+const uint32_t PuleErrorFileSize = 2;
+typedef enum {
+  PuleFileDataMode_text = 0,
+  PuleFileDataMode_binary = 1,
+} PuleFileDataMode;
+const uint32_t PuleFileDataModeSize = 2;
+typedef enum {
+  PuleFileOpenMode_read = 0,
+  PuleFileOpenMode_writeOverwrite = 1,
+  PuleFileOpenMode_writeAppend = 2,
+  PuleFileOpenMode_readWriteOverwrite = 3,
+  PuleFileOpenMode_readWrite = 4,
+} PuleFileOpenMode;
+const uint32_t PuleFileOpenModeSize = 5;
+
+// entities
+typedef struct PuleFile { uint64_t id; } PuleFile;
+typedef struct PuleFileStream { uint64_t id; } PuleFileStream;
+/* 
+    will watch files on the filesystem for you, with user-provided callbacks.
+    the file-check only happens with 'puleFileWatchCheckAll()', and is not
+    currently thread-safe
+ */
+typedef struct PuleFileWatcher { uint64_t id; } PuleFileWatcher;
+
 // structs
-typedef struct {
+struct PuleFileWatchCreateInfo;
+
+typedef struct PuleFileWatchCreateInfo {
   void(* fileUpdatedCallback)(PuleStringView, void *);
   /*   can be a list separated by ''  */
   PuleStringView filename;
@@ -23,41 +55,14 @@ typedef struct {
   void * userdata;
 } PuleFileWatchCreateInfo;
 
-// enum
-typedef enum {
-  PuleErrorFile_none,
-  PuleErrorFile_fileOpen,
-} PuleErrorFile;
-typedef enum {
-  PuleFileDataMode_text,
-  PuleFileDataMode_binary,
-} PuleFileDataMode;
-typedef enum {
-  PuleFileOpenMode_read,
-  PuleFileOpenMode_writeOverwrite,
-  PuleFileOpenMode_writeAppend,
-  PuleFileOpenMode_readWriteOverwrite,
-  PuleFileOpenMode_readWrite,
-} PuleFileOpenMode;
-
-// entities
-typedef struct { uint64_t id; } PuleFile;
-typedef struct { uint64_t id; } PuleFileStream;
-/* 
-    will watch files on the filesystem for you, with user-provided callbacks.
-    the file-check only happens with 'puleFileWatchCheckAll()', and is not
-    currently thread-safe
- */
-typedef struct { uint64_t id; } PuleFileWatcher;
-
 // functions
 PULE_exportFn PuleFileStream puleFileStreamReadOpen(PuleStringView path, PuleFileDataMode datamode);
 PULE_exportFn PuleFileStream puleFileStreamWriteOpen(PuleStringView path, PuleFileDataMode datamode);
 PULE_exportFn void puleFileStreamClose(PuleFileStream puStream);
 PULE_exportFn PuleStreamRead puleFileStreamReader(PuleFileStream stream);
 PULE_exportFn PuleStreamWrite puleFileStreamWriter(PuleFileStream stream);
-PULE_exportFn PuleFile puleFileOpen(PuleStringView filename, PuleFileDataMode dataMode, PuleFileOpenMode openMode, PuleError * error);
-PULE_exportFn PuleString puleFileDump(PuleStringView filename, PuleFileDataMode dataMode, PuleError * error);
+PULE_exportFn PuleFile puleFileOpen(PuleStringView filename, PuleFileDataMode dataMode, PuleFileOpenMode openMode, struct PuleError * error);
+PULE_exportFn PuleString puleFileDump(PuleStringView filename, PuleFileDataMode dataMode, struct PuleError * error);
 PULE_exportFn void puleFileClose(PuleFile file);
 PULE_exportFn bool puleFileIsDone(PuleFile file);
 PULE_exportFn PuleStringView puleFilePath(PuleFile file);

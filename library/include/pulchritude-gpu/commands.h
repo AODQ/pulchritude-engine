@@ -6,7 +6,7 @@
 #include <pulchritude-gpu/shader-module.h>
 #include <pulchritude-gpu/synchronization.h>
 
-#include <pulchritude-allocator/allocator.h>
+#include <pulchritude/allocator.h>
 
 #include <pulchritude-core/core.h>
 #include <pulchritude-error/error.h>

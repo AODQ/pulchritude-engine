@@ -2,7 +2,7 @@
 @include `string`;
 
 @enum PuleErrorBecs {
-  PuleErrorBecs_none;
+  none;
 };
 
 @entity PuleBecsSystem;
@@ -27,9 +27,9 @@
 ) PuleBecsComponent;
 
 @enum PuleBecsSystemCallbackFrequency {
-  PuleBecsSystemCallbackFrequency_vsync;
-  PuleBecsSystemCallbackFrequency_unlimited;
-  PuleBecsSystemCallbackFrequency_fixed;
+  vsync;
+  unlimited;
+  fixed;
 };
 
 @struct PuleBecsSystemCreateInfo {
@@ -86,8 +86,8 @@
 ) PuleBecsEntity;
 
 @enum PuleBecsSystemInputRelation {
-  PuleBecsSystemInputRelation_current #` system uses current frame `;
-  PuleBecsSystemInputRelation_previous #` system uses previous frame `;
+  current #` system uses current frame `;
+  previous #` system uses previous frame `;
 };
 
 @struct PuleBecsSystemInputRelationsCreateInfo {

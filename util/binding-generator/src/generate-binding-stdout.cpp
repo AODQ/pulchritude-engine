@@ -1,6 +1,6 @@
 #include "binding-generator.hpp"
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 // C binding generator
 

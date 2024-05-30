@@ -1,33 +1,38 @@
 /* auto generated file task-graph */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/string.h>
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleTaskGraphNodeRelation_dependsOn = 0,
+} PuleTaskGraphNodeRelation;
+const uint32_t PuleTaskGraphNodeRelationSize = 1;
+
+// entities
+
 // structs
-typedef struct {
+struct PuleTaskGraph;
+struct PuleTaskGraphNode;
+struct PuleTaskGraphExecuteInfo;
+
+typedef struct PuleTaskGraph {
   uint64_t id;
 } PuleTaskGraph;
-typedef struct {
+typedef struct PuleTaskGraphNode {
   uint64_t id;
 } PuleTaskGraphNode;
-typedef struct {
+typedef struct PuleTaskGraphExecuteInfo {
   PuleTaskGraph graph;
   void(* callback)(PuleTaskGraphNode, void *);
   void * userdata;
   bool multithreaded;
 } PuleTaskGraphExecuteInfo;
-
-// enum
-typedef enum {
-  PuleTaskGraphNodeRelation_dependsOn,
-} PuleTaskGraphNodeRelation;
-
-// entities
 
 // functions
 PULE_exportFn PuleTaskGraph puleTaskGraphCreate(PuleAllocator allocator);

@@ -1,4 +1,4 @@
-#include <pulchritude-data-serializer/data-serializer.h>
+#include <pulchritude/data-serializer.h>
 
 #include <string>
 #include <unordered_map>
@@ -169,7 +169,7 @@ int8_t puleDsAsI8(PuleDsValue const value) {
 }
 bool puleDsAsBool(PuleDsValue const value) {
   auto isBool = std::get_if<int64_t>(&::pdsValues.at(value.id));
-  assert(isBool && "value is not bool");
+  PULE_assert(isBool && "value is not bool");
   return (*isBool) != 0;
 }
 double puleDsAsF64(PuleDsValue const value) {

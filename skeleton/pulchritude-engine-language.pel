@@ -2,8 +2,8 @@
 @include `stream`;
 
 @enum PuleErrorEL {
-  PuleErrorEL_none;
-  PuleErrorEL_compileError;
+  none;
+  compileError;
 };
 
 @entity PuleELModule;

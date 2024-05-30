@@ -1,22 +1,23 @@
 /* auto generated file asset-shader-module */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/gpu.h>
-#include <pulchritude/string.h>
-#include <pulchritude/error.h>
-#include <pulchritude/core.h>
+#include "gpu.h"
+#include "string.h"
+#include "error.h"
+#include "core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// structs
-
 // enum
 
 // entities
-typedef struct { uint64_t id; } PuleAssetShaderModule;
+typedef struct PuleAssetShaderModule { uint64_t id; } PuleAssetShaderModule;
+
+// structs
+
 
 // functions
 PULE_exportFn PuleAssetShaderModule puleAssetShaderModuleCreateFromPaths(PuleStringView shaderModuleLabel, PuleStringView vertexPath, PuleStringView fragmentPath);

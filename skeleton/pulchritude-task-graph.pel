@@ -56,7 +56,7 @@
 );
 
 @enum PuleTaskGraphNodeRelation {
-  PuleTaskGraphNodeRelation_dependsOn;
+  dependsOn;
 };
 
 @fn puleTaskGraphNodeRelationSet(

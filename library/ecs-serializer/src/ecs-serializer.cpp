@@ -1,4 +1,4 @@
-#include <pulchritude-ecs-serializer/ecs-serializer.h>
+#include <pulchritude/ecs-serializer.h>
 
 // essentially want to have plugins register their components,
 //   so they are serializable

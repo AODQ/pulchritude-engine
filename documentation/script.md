@@ -21,18 +21,18 @@ struct {
 ### PuleErrorScript
 ```c
 enum {
-  PuleErrorScript_none,
-  PuleErrorScript_executeRuntimeError,
-  PuleErrorScript_internalError,
-  PuleErrorScript_memoryError,
-  PuleErrorScript_syntaxError,
+  none,
+  executeRuntimeError,
+  internalError,
+  memoryError,
+  syntaxError,
 }
 ```
 ### PuleScriptDebugSymbols
 ```c
 enum {
-  PuleScriptDebugSymbols_enable,
-  PuleScriptDebugSymbols_disable,
+  enable,
+  disable,
 }
 ```
 

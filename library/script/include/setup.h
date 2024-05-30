@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pulchritude-script/script.h"
+#include "pulchritude/script.h"
 
 #ifdef __cplusplus
 extern "C" {

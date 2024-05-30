@@ -1,8 +1,8 @@
 #pragma once
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-data-serializer/data-serializer.h>
-#include <pulchritude-error/error.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/data-serializer.h>
+#include <pulchritude/error.h>
 
 #include <string>
 

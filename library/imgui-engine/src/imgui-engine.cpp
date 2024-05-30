@@ -1,19 +1,17 @@
-#include <pulchritude-imgui-engine/imgui-engine.h>
+#include <pulchritude/imgui-engine.h>
 
-#include <pulchritude-ecs/ecs.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-gpu/commands.h>
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-gpu/image.h>
-#include <pulchritude-imgui/imgui.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-platform/platform.h>
+#include <pulchritude/ecs.h>
+#include <pulchritude/error.h>
+#include <pulchritude/gpu.h>
+#include <pulchritude/imgui.h>
+#include <pulchritude/log.h>
+#include <pulchritude/platform.h>
 
 // only needed for pulcRenderGraph which should probably
 // be moved later
-#include <pulchritude-task-graph/task-graph.h>
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-asset/render-graph.h>
+#include <pulchritude/task-graph.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/asset-render-graph.h>
 
 #include <string>
 

@@ -1,22 +1,43 @@
 /* auto generated file gfx-debug */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/error.h>
-#include <pulchritude/gpu.h>
-#include <pulchritude/math.h>
-#include <pulchritude/platform.h>
+#include "error.h"
+#include "gpu.h"
+#include "math.h"
+#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleGfxDebugRenderType_line = 0,
+  PuleGfxDebugRenderType_quad = 1,
+  PuleGfxDebugRenderType_cube = 2,
+  PuleGfxDebugRenderType_sphere = 3,
+  PuleGfxDebugRenderType_plane = 4,
+} PuleGfxDebugRenderType;
+const uint32_t PuleGfxDebugRenderTypeSize = 5;
+
+// entities
+
 // structs
-typedef struct {
+struct PuleGfxDebugRecorder;
+struct PuleGfxDebugSubmitInfo;
+struct PuleGfxDebugRenderLine;
+struct PuleGfxDebugRenderQuad;
+struct PuleGfxDebugRenderCube;
+struct PuleGfxDebugRenderSphere;
+struct PuleGfxDebugRenderPlane;
+union PuleGfxDebugRenderParam;
+
+typedef struct PuleGfxDebugRecorder {
   uint64_t id;
 } PuleGfxDebugRecorder;
 /*  Writes out the debug data to the render-pass  */
-typedef struct {
+typedef struct PuleGfxDebugSubmitInfo {
   PuleGfxDebugRecorder recorder;
   PuleGpuCommandListRecorder commandListRecorder;
   /* 
@@ -25,39 +46,39 @@ typedef struct {
    */
   PuleGpuActionRenderPassBegin renderPassBegin;
 } PuleGfxDebugSubmitInfo;
-typedef struct {
+typedef struct PuleGfxDebugRenderLine {
   PuleGfxDebugRenderType type;
   PuleF32v2 a;
   PuleF32v2 b;
   PuleF32v3 color;
 } PuleGfxDebugRenderLine;
-typedef struct {
+typedef struct PuleGfxDebugRenderQuad {
   PuleGfxDebugRenderType type;
   PuleF32v2 originCenter;
   float angle;
   PuleF32v2 dimensionsHalf;
   PuleF32v3 color;
 } PuleGfxDebugRenderQuad;
-typedef struct {
+typedef struct PuleGfxDebugRenderCube {
   PuleGfxDebugRenderType type;
   PuleF32v3 originCenter;
   PuleF32m33 rotationMatrix;
   PuleF32v3 dimensionsHalf;
   PuleF32v3 color;
 } PuleGfxDebugRenderCube;
-typedef struct {
+typedef struct PuleGfxDebugRenderSphere {
   PuleGfxDebugRenderType type;
   PuleF32v3 originCenter;
   float radius;
   PuleF32v3 color;
 } PuleGfxDebugRenderSphere;
-typedef struct {
+typedef struct PuleGfxDebugRenderPlane {
   PuleGfxDebugRenderType type;
   PuleF32v3 originCenter;
   PuleF32m33 rotationMatrix;
   PuleF32v3 color;
 } PuleGfxDebugRenderPlane;
-typedef union {
+typedef union PuleGfxDebugRenderParam {
   PuleGfxDebugRenderType type;
   PuleGfxDebugRenderLine line;
   PuleGfxDebugRenderQuad quad;
@@ -65,17 +86,6 @@ typedef union {
   PuleGfxDebugRenderSphere sphere;
   PuleGfxDebugRenderPlane plane;
 } PuleGfxDebugRenderParam;
-
-// enum
-typedef enum {
-  PuleGfxDebugRenderType_line,
-  PuleGfxDebugRenderType_quad,
-  PuleGfxDebugRenderType_cube,
-  PuleGfxDebugRenderType_sphere,
-  PuleGfxDebugRenderType_plane,
-} PuleGfxDebugRenderType;
-
-// entities
 
 // functions
 PULE_exportFn void puleGfxDebugInitialize(PulePlatform platform);

@@ -1,32 +1,35 @@
 /* auto generated file stream */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/array.h>
-#include <pulchritude/string.h>
+#include "array.h"
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+
+// entities
+
 // structs
-typedef struct {
+struct PuleStreamRead;
+struct PuleStreamWrite;
+
+typedef struct PuleStreamRead {
   void * userdata;
   uint8_t(* readByte)(void *);
   uint8_t(* peekByte)(void *);
   bool(* isDone)(void *);
   void(* destroy)(void *);
 } PuleStreamRead;
-typedef struct {
+typedef struct PuleStreamWrite {
   void * userdata;
-  void *(* writeBytes)(uint8_t const *, size_t);
+  void(* writeBytes)(void *, uint8_t const *, size_t);
   void(* flush)(void *);
   void(* destroy)(void *);
 } PuleStreamWrite;
-
-// enum
-
-// entities
 
 // functions
 PULE_exportFn uint8_t puleStreamReadByte(PuleStreamRead stream);

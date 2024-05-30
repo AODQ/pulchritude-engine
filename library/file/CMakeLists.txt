@@ -18,6 +18,7 @@ set_target_properties(
 target_link_libraries(
   pulchritude-file
   pulchritude-error pulchritude-log pulchritude-array
+  pulchritude-string
 )
 
 install(

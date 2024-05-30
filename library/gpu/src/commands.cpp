@@ -1,4 +1,4 @@
-#include <pulchritude-gpu/commands.h>
+#include <pulchritude/gpu.h>
 
 #include <util.hpp>
 
@@ -19,14 +19,14 @@ VkRenderingAttachmentInfo imageAttachmentToVk(
   VkClearValue clearValue;
   if (isDepth) {
     clearValue.depthStencil = VkClearDepthStencilValue {
-      .depth = attachment.clearDepth,
+      .depth = attachment.clear.clearDepth,
       .stencil = 0,
     };
   } else {
     clearValue.color = VkClearColorValue {
       .float32 = {
-        attachment.clearColor.x, attachment.clearColor.y,
-        attachment.clearColor.z, attachment.clearColor.w,
+        attachment.clear.color.x, attachment.clear.color.y,
+        attachment.clear.color.z, attachment.clear.color.w,
       },
     };
   }
@@ -880,78 +880,4 @@ PuleGpuFence puleGpuCommandListChainCurrentFence(
   return currentCommandList.fence;
 }
 
-PuleString puleGpuResourceBarrierStageLabel(
-  PuleGpuResourceBarrierStage const stage
-) {
-  puleLogDebug("stage %d", stage);
-  std::string label = "[";
-  if (stage & PuleGpuResourceBarrierStage_top)
-    label += "top; ";
-  if (stage & PuleGpuResourceBarrierStage_drawIndirect)
-    label += "drawIndirect; ";
-  if (stage & PuleGpuResourceBarrierStage_vertexInput)
-    label += "vertexInput; ";
-  if (stage & PuleGpuResourceBarrierStage_shaderFragment)
-    label += "shaderFragment; ";
-  if (stage & PuleGpuResourceBarrierStage_shaderVertex)
-    label += "shaderVertex; ";
-  if (stage & PuleGpuResourceBarrierStage_shaderCompute)
-    label += "shaderCompute; ";
-  if (stage & PuleGpuResourceBarrierStage_outputAttachmentColor)
-    label += "outputAttachmentColor; ";
-  if (stage & PuleGpuResourceBarrierStage_outputAttachmentDepth)
-    label += "outputAttachmentDepth; ";
-  if (stage & PuleGpuResourceBarrierStage_transfer)
-    label += "transfer; ";
-  if (stage & PuleGpuResourceBarrierStage_bottom)
-    label += "bottom; ";
-  label += "] ";
-  PuleString str = puleString(puleAllocateDefault(), label.c_str());
-  return str;
-}
-
-PuleString puleGpuResourceAccessLabel(PuleGpuResourceAccess const access) {
-  std::string label = "[";
-  if (access == PuleGpuResourceAccess_none)
-    label += "PuleGpuResourceAccess_none; ";
-  if (access == PuleGpuResourceAccess_indirectCommandRead)
-    label += "PuleGpuResourceAccess_indirectCommandRead; ";
-  if (access == PuleGpuResourceAccess_indexRead)
-    label += "PuleGpuResourceAccess_indexRead; ";
-  if (access == PuleGpuResourceAccess_vertexAttributeRead)
-    label += "PuleGpuResourceAccess_vertexAttributeRead; ";
-  if (access == PuleGpuResourceAccess_uniformRead)
-    label += "PuleGpuResourceAccess_uniformRead; ";
-  if (access == PuleGpuResourceAccess_inputAttachmentRead)
-    label += "PuleGpuResourceAccess_inputAttachmentRead; ";
-  if (access == PuleGpuResourceAccess_shaderRead)
-    label += "PuleGpuResourceAccess_shaderRead; ";
-  if (access == PuleGpuResourceAccess_shaderWrite)
-    label += "PuleGpuResourceAccess_shaderWrite; ";
-  if (access == PuleGpuResourceAccess_attachmentColorRead)
-    label += "PuleGpuResourceAccess_attachmentColorRead; ";
-  if (access == PuleGpuResourceAccess_attachmentColorWrite)
-    label += "PuleGpuResourceAccess_attachmentColorWrite; ";
-  if (access == PuleGpuResourceAccess_attachmentDepthRead)
-    label += "PuleGpuResourceAccess_attachmentDepthRead; ";
-  if (access == PuleGpuResourceAccess_attachmentDepthWrite)
-    label += "PuleGpuResourceAccess_attachmentDepthWrite; ";
-  if (access == PuleGpuResourceAccess_transferRead)
-    label += "PuleGpuResourceAccess_transferRead; ";
-  if (access == PuleGpuResourceAccess_transferWrite)
-    label += "PuleGpuResourceAccess_transferWrite; ";
-  if (access == PuleGpuResourceAccess_hostRead)
-    label += "PuleGpuResourceAccess_hostRead; ";
-  if (access == PuleGpuResourceAccess_hostWrite)
-    label += "PuleGpuResourceAccess_hostWrite; ";
-  if (access == PuleGpuResourceAccess_memoryRead)
-    label += "PuleGpuResourceAccess_memoryRead; ";
-  if (access == PuleGpuResourceAccess_memoryWrite)
-    label += "PuleGpuResourceAccess_memoryWrite; ";
-  label += "]";
-  PuleString str = puleString(puleAllocateDefault(), label.c_str());
-  return str;
-}
-
 } // extern C
-

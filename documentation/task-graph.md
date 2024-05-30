@@ -27,7 +27,7 @@ struct {
 ### PuleTaskGraphNodeRelation
 ```c
 enum {
-  PuleTaskGraphNodeRelation_dependsOn,
+  dependsOn,
 }
 ```
 

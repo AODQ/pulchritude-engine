@@ -1,78 +1,126 @@
 /* auto generated file physx */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/math.h>
+#include "math.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PulePhysxCollisionShapeType_sphere = 0,
+  PulePhysxCollisionShapeType_box = 1,
+  PulePhysxCollisionShapeType_capsule = 2,
+  PulePhysxCollisionShapeType_plane = 3,
+  PulePhysxCollisionShapeType_triangle = 4,
+} PulePhysxCollisionShapeType;
+const uint32_t PulePhysxCollisionShapeTypeSize = 5;
+typedef enum {
+  PulePhysxMode_i2d = 0,
+  PulePhysxMode_i3d = 1,
+} PulePhysxMode;
+const uint32_t PulePhysxModeSize = 2;
+typedef enum {
+  PulePhysx2DShapeType_convexPolygon = 0,
+} PulePhysx2DShapeType;
+const uint32_t PulePhysx2DShapeTypeSize = 1;
+typedef enum {
+  PulePhysx2DBodyType_static = 0,
+  PulePhysx2DBodyType_kinematic = 1,
+  PulePhysx2DBodyType_dynamic = 2,
+} PulePhysx2DBodyType;
+const uint32_t PulePhysx2DBodyTypeSize = 3;
+
+// entities
+typedef struct PulePhysx2DWorld { uint64_t id; } PulePhysx2DWorld;
+typedef struct PulePhysx2DBody { uint64_t id; } PulePhysx2DBody;
+typedef struct PulePhysx3DWorld { uint64_t id; } PulePhysx3DWorld;
+typedef struct PulePhysx3DBody { uint64_t id; } PulePhysx3DBody;
+
 // structs
-typedef struct {
+struct PulePhysxCollisionResultShape;
+struct PulePhysxCollisionResultMesh;
+struct PulePhysxRay;
+struct PulePhysxCollisionShapeSphere;
+struct PulePhysxCollisionShapeBox;
+struct PulePhysxCollisionShapeCapsule;
+struct PulePhysxCollisionShapePlane;
+struct PulePhysxCollisionShapeTriangle;
+union PulePhysxCollisionShapeUnion;
+struct PulePhysxCollisionShape;
+struct PulePhysxCollisionMesh;
+struct PulePhysx2DShapeConvexPolygon;
+union PulePhysx2DShapeUnion;
+struct PulePhysx2DShape;
+struct PulePhysx2DBodyCreateInfo;
+struct PulePhysx2DBodyAttachShapeCreateInfo;
+
+typedef struct PulePhysxCollisionResultShape {
   bool hit;
   float distance;
   PuleF32v3 origin;
 } PulePhysxCollisionResultShape;
-typedef struct {
+typedef struct PulePhysxCollisionResultMesh {
   bool hit;
   float distance;
   PuleF32v3 origin;
   uint32_t triangleIndex;
   PuleF32v2 barycentric;
 } PulePhysxCollisionResultMesh;
-typedef struct {
+typedef struct PulePhysxRay {
   PuleF32v3 origin;
   PuleF32v3 direction;
 } PulePhysxRay;
-typedef struct {
+typedef struct PulePhysxCollisionShapeSphere {
   float radius;
 } PulePhysxCollisionShapeSphere;
-typedef struct {
+typedef struct PulePhysxCollisionShapeBox {
   PuleF32v3 halfExtent;
 } PulePhysxCollisionShapeBox;
-typedef struct {
+typedef struct PulePhysxCollisionShapeCapsule {
   float radius;
   float height;
 } PulePhysxCollisionShapeCapsule;
-typedef struct {
+typedef struct PulePhysxCollisionShapePlane {
   PuleF32v3 normal;
   float distance;
 } PulePhysxCollisionShapePlane;
-typedef struct {
-  PuleF32v3 [3] origins;
+typedef struct PulePhysxCollisionShapeTriangle {
+  PuleF32v3 origins[3] ;
 } PulePhysxCollisionShapeTriangle;
-typedef union {
+typedef union PulePhysxCollisionShapeUnion {
   PulePhysxCollisionShapeSphere sphere;
   PulePhysxCollisionShapeBox box;
   PulePhysxCollisionShapeCapsule capsule;
   PulePhysxCollisionShapePlane plane;
   PulePhysxCollisionShapeTriangle triangle;
 } PulePhysxCollisionShapeUnion;
-typedef struct {
+typedef struct PulePhysxCollisionShape {
   PulePhysxCollisionShapeType type;
   PulePhysxCollisionShapeUnion shape;
 } PulePhysxCollisionShape;
-typedef struct {
-  PuleF32v3 * origins;
+typedef struct PulePhysxCollisionMesh {
+  struct PuleF32v3 * origins;
   uint32_t * indices;
   size_t originCount;
   size_t indexCount;
 } PulePhysxCollisionMesh;
-typedef struct {
+typedef struct PulePhysx2DShapeConvexPolygon {
   PuleF32v2 centroid;
-  PuleF32v2 [8] origins;
-  PuleF32v2 [8] normals;
+  PuleF32v2 origins[8] ;
+  PuleF32v2 normals[8] ;
   uint32_t vertexCount;
 } PulePhysx2DShapeConvexPolygon;
-typedef union {
+typedef union PulePhysx2DShapeUnion {
   PulePhysx2DShapeConvexPolygon convexPolygon;
 } PulePhysx2DShapeUnion;
-typedef struct {
+typedef struct PulePhysx2DShape {
   PulePhysx2DShapeType type;
   PulePhysx2DShapeUnion shape;
 } PulePhysx2DShape;
-typedef struct {
+typedef struct PulePhysx2DBodyCreateInfo {
   PulePhysx2DBodyType type;
   /*  TODO = {0.0f, 0.0f}  */
   PuleF32v2 origin;
@@ -90,7 +138,7 @@ typedef struct {
   bool bullet;
   void * userData;
 } PulePhysx2DBodyCreateInfo;
-typedef struct {
+typedef struct PulePhysx2DBodyAttachShapeCreateInfo {
   float friction;
   float density;
   float restitution;
@@ -101,31 +149,6 @@ typedef struct {
   uint16_t collisionMaskBits;
   uint16_t collisionGroup;
 } PulePhysx2DBodyAttachShapeCreateInfo;
-
-// enum
-typedef enum {
-  PulePhysxCollisionShapeType_sphere,
-  PulePhysxCollisionShapeType_box,
-  PulePhysxCollisionShapeType_capsule,
-  PulePhysxCollisionShapeType_plane,
-  PulePhysxCollisionShapeType_triangle,
-} PulePhysxCollisionShapeType;
-typedef enum {
-  PulePhysxMode_2d,
-  PulePhysxMode_3d,
-} PulePhysxMode;
-typedef enum {
-  PulePhysx2DShapeType_convexPolygon,
-} PulePhysx2DShapeType;
-typedef enum {
-  PulePhysx2DBodyType_static,
-  PulePhysx2DBodyType_kinematic,
-  PulePhysx2DBodyType_dynamic,
-} PulePhysx2DBodyType;
-
-// entities
-typedef struct { uint64_t id; } PulePhysx2DWorld;
-typedef struct { uint64_t id; } PulePhysx2DBody;
 
 // functions
 PULE_exportFn PulePhysxCollisionResultShape pulePhysxRaycastShape(PulePhysxMode mode, PulePhysxRay ray, PuleF32m44 shapeTransform, PulePhysxCollisionShape shape);
@@ -142,6 +165,7 @@ PULE_exportFn PuleF32v2 pulePhysx2DBodyPosition(PulePhysx2DWorld world, PulePhys
 PULE_exportFn float pulePhysx2DBodyAngle(PulePhysx2DWorld world, PulePhysx2DBody body);
 PULE_exportFn void pulePhysx2DBodyAttachShape(PulePhysx2DWorld world, PulePhysx2DBody body, PulePhysx2DShape shape, PulePhysx2DBodyAttachShapeCreateInfo createInfo);
 PULE_exportFn PulePhysx2DShape pulePhysx2DShapeCreateConvexPolygonAsBox(PuleF32v2 origin, PuleF32v2 halfExtents, float angle);
+PULE_exportFn PulePhysx3DWorld pulePhysx3DWorldCreate();
 
 #ifdef __cplusplus
 } // extern C

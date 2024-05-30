@@ -54,8 +54,8 @@ struct {
 ### PuleErrorDataSerializer
 ```c
 enum {
-  PuleErrorDataSerializer_none,
-  PuleErrorDataSerializer_invalidFormat,
+  none,
+  invalidFormat,
 }
 ```
 
@@ -444,7 +444,6 @@ puleDsCreateF64v4(
     PULE_dsStructTerminator,
   };
   #undef structField
-*/
 
 ```c
 puleDsStructSerialize(

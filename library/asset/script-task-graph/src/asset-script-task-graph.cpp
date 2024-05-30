@@ -1,7 +1,7 @@
-#include <pulchritude-asset/asset-script-task-graph.h>
+#include <pulchritude/asset-script-task-graph.h>
 
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-script/script.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/script.h>
 
 #include <string>
 #include <string_view>

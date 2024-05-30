@@ -1,8 +1,8 @@
-#include <pulchritude-gpu/module.h>
+#include <pulchritude/gpu.h>
 
 #include <util.hpp>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <volk.h>
 
@@ -18,7 +18,7 @@ void createPipelineVertexInputState(
   std::vector<VkVertexInputAttributeDescription> & vtxAttributes
 ) {
   // attribute bindings
-  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
+  for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_attribute; ++ it) {
     auto const binding = info.layoutDescriptorSet.attributeBindings[it];
     if (binding.numComponents == 0) {
       continue;
@@ -38,7 +38,7 @@ void createPipelineVertexInputState(
     });
   }
   // attribute buffer bindings
-  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
+  for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_attribute; ++ it) {
     auto const binding = info.layoutDescriptorSet.attributeBufferBindings[it];
     if (binding.stridePerElement == 0) {
       continue;
@@ -62,7 +62,7 @@ VkPipelineLayout createPipelineLayout(
     std::vector<VkDescriptorSetLayoutBinding>{}
   );
   // compactStorage buffers
-  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_uniform; ++ it) {
+  for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_uniform; ++ it) {
     auto bufferStage = info.layoutDescriptorSet.bufferUniformBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
@@ -74,7 +74,7 @@ VkPipelineLayout createPipelineLayout(
     });
   }
   // storage buffers
-  for (size_t it = 0; it < puleGpuPipelineDescriptorMax_storage; ++ it) {
+  for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_storage; ++ it) {
     auto bufferStage = info.layoutDescriptorSet.bufferStorageBindings[it];
     if (bufferStage == 0) { continue; }
     descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
@@ -88,7 +88,7 @@ VkPipelineLayout createPipelineLayout(
   // TODO::CRIT how to bind images?
   for (
     size_t imageIt = 0;
-    imageIt < puleGpuPipelineDescriptorMax_texture;
+    imageIt < PuleGpuPipelineDescriptorMax_texture;
     ++ imageIt
   ) {
     auto imageStage = info.layoutDescriptorSet.textureBindings[imageIt];
@@ -339,7 +339,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
   };
   { // if there are any attribute bindings, enable dynamic strides on pipeline
     bool hasAnyAttributeBindings = false;
-    for (size_t it = 0; it < puleGpuPipelineDescriptorMax_attribute; ++ it) {
+    for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_attribute; ++ it) {
       auto const binding = info.layoutDescriptorSet.attributeBindings[it];
       if (binding.numComponents == 0) {
         continue;

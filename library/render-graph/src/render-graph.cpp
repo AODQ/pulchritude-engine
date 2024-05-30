@@ -1,10 +1,11 @@
-#include <pulchritude-render-graph/render-graph.h>
+#include <pulchritude/render-graph.h>
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-file/file.h>
-#include <pulchritude-gpu/module.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/error.h>
+#include <pulchritude/file.h>
+#include <pulchritude/gpu.h>
+#include <pulchritude/log.h>
+#include <pulchritude/string.h>
 
 #include <string>
 #include <thread>
@@ -121,7 +122,9 @@ void nodeDependencyCalculateResourceIntersection(
     switch (graphResource.resourceType) {
       case PuleRenderGraph_ResourceType_image: {
         resource.accessEntrance = dependResource.accessEntrance;
-        resource.image.layoutEntrance = dependResource.image.layoutEntrance;
+        resource.resource.image.layoutEntrance = (
+          dependResource.resource.image.layoutEntrance
+        );
       } break;
       case PuleRenderGraph_ResourceType_buffer:
       break;
@@ -133,25 +136,25 @@ void graphCreateResourceImage(
   RenderGraph & graph,
   PuleRenderGraph_Resource & resource
 ) {
-  PULE_assert(resource.image.isAutomatic);
-  auto & image = resource.image;
-  auto & data = resource.image.dataManagement.automatic;
+  PULE_assert(resource.resource.image.isAutomatic);
+  auto & image = resource.resource.image;
+  auto & data = resource.resource.image.dataManagement.automatic;
   PuleU32v2 dimensions = { .x = 0, .y = 0, };
   // calculate dimensions
   if (data.areDimensionsAbsolute) {
-    dimensions.x = data.dimensionsAbsolute.width;
-    dimensions.y = data.dimensionsAbsolute.width;
+    dimensions.x = data.dimensions.absolute.width;
+    dimensions.y = data.dimensions.absolute.width;
   } else {
     // TODO need to create a list of acyclic dependencies of resources for below
     if (
       puleStringViewEqCStr(
-        puleStringView(data.dimensionsScaleRelative.referenceResourceLabel),
+        puleStringView(data.dimensions.scaleRelative.referenceResourceLabel),
         "window-swapchain-image"
       )
     ) {
       // TODO grab correct window dimensions
-      dimensions.x = std::round(800 * data.dimensionsScaleRelative.scaleWidth);
-      dimensions.y = std::round(600 * data.dimensionsScaleRelative.scaleHeight);
+      dimensions.x = std::round(800 * data.dimensions.scaleRelative.scaleWidth);
+      dimensions.y = std::round(600 * data.dimensions.scaleRelative.scaleHeight);
     } else {
       puleLogError("Unimplemented [relative dimensions to resource]");
     }
@@ -180,7 +183,7 @@ void graphCreateResourceImage(
     break;
   }
   if (isChain) {
-    resource.image.imageReference = (
+    resource.resource.image.imageReference = (
       puleGpuImageReference_createImageChain(
         puleGpuImageChain_create(
           graph.allocator, // TODO change allocator?
@@ -190,7 +193,7 @@ void graphCreateResourceImage(
       )
     );
   } else {
-    resource.image.imageReference = (
+    resource.resource.image.imageReference = (
       puleGpuImageReference_createImage(puleGpuImageCreate(imageCreateInfo))
     );
   }
@@ -313,7 +316,7 @@ void sortGraphNodes(RenderGraph & graph) {
           resPair.second.accessEntrance = (
             PuleGpuResourceAccess_none
           );
-          resPair.second.image.layoutEntrance = (
+          resPair.second.resource.image.layoutEntrance = (
             PuleGpuImageLayout_presentSrc
           );
           continue;
@@ -345,8 +348,8 @@ void sortGraphNodes(RenderGraph & graph) {
           switch (graphResource.resourceType) {
             case PuleRenderGraph_ResourceType_image: {
               resource.accessEntrance = dependResource.accessEntrance;
-              resource.image.layoutEntrance = (
-                dependResource.image.layoutEntrance
+              resource.resource.image.layoutEntrance = (
+                dependResource.resource.image.layoutEntrance
               );
             } break;
             case PuleRenderGraph_ResourceType_buffer:
@@ -457,23 +460,23 @@ void sortGraphNodes(RenderGraph & graph) {
       d2Graph += "    \"" + std::string(res.resourceLabel.contents) + "\" : {";
       d2Graph += "      shape: class\n";
 
-      d2Graph += (
-          std::string("  access-entrance: \"")
-        + pule::toStr(res.accessEntrance).cstr() + "\"\n"
-      );
-      d2Graph += (
-          std::string("  access: \"")
-        + pule::toStr(res.access).cstr() + "\"\n"
-      );
-      d2Graph += (
-          std::string("  layout-entrance: \"")
-        + pule::toStr(res.image.layoutEntrance) + "\"\n"
-      );
-      d2Graph += (
-          std::string("  layout: \"")
-        + pule::toStr(res.image.layout) + "\"\n"
-      );
-      d2Graph += "      }\n";
+      //d2Graph += (
+      //    std::string("  access-entrance: \"")
+      //  + pule::toStr(res.accessEntrance).cstr() + "\"\n"
+      //);
+      //d2Graph += (
+      //    std::string("  access: \"")
+      //  + pule::toStr(res.access).cstr() + "\"\n"
+      //);
+      //d2Graph += (
+      //    std::string("  layout-entrance: \"")
+      //  + pule::toStr(res.image.layoutEntrance) + "\"\n"
+      //);
+      //d2Graph += (
+      //    std::string("  layout: \"")
+      //  + pule::toStr(res.image.layout) + "\"\n"
+      //);
+      //d2Graph += "      }\n";
     }
     d2Graph += "    }\n";
     d2Graph += "  }\n";
@@ -508,9 +511,11 @@ void sortGraphNodes(RenderGraph & graph) {
     d2Graph += "  " + std::string(resource.resourceLabel.contents) + ": {\n";
     d2Graph += "    shape: class\n";
     switch (resource.resourceType) {
+      default:PULE_assert(false);
       case PuleRenderGraph_ResourceType_image:
         d2Graph += "    image : ";
-        switch (resource.image.dataManagement.automatic.resourceUsage) {
+        switch (resource.resource.image.dataManagement.automatic.resourceUsage){
+          default:PULE_assert(false);
           case PuleRenderGraph_ResourceUsage_read:
             d2Graph += "    read\n";
           break;
@@ -557,13 +562,13 @@ PuleRenderGraph puleRenderGraphCreate(
     { .id = graphId, },
     PuleRenderGraph_Resource {
       .resourceLabel = puleCStr("window-swapchain-image"),
-      .image = {
+      .resource = { .image = {
         .dataManagement = {
           .manual = {},
         },
         .isAutomatic = false,
         .imageReference = puleGpuWindowSwapchainImageReference(),
-      },
+      }},
       .resourceType = PuleRenderGraph_ResourceType_image,
     }
   );
@@ -584,14 +589,14 @@ void puleRenderGraphDestroy(PuleRenderGraph const pGraph) {
     PuleRenderGraph_Resource & resource = resourcePair.second;
     switch (resource.resourceType) {
       case PuleRenderGraph_ResourceType_image: {
-        auto & image = resource.image;
+        auto & image = resource.resource.image;
         if (
           image.isAutomatic && image.isAutomatic
           && !image.dataManagement.automatic.areDimensionsAbsolute
         ) {
           puleStringDestroy(
             image
-              .dataManagement.automatic.dimensionsScaleRelative
+              .dataManagement.automatic.dimensions.scaleRelative
               .referenceResourceLabel
           );
         }
@@ -709,7 +714,7 @@ PuleRenderGraphNode puleRenderGraphNodeCreate(
   uint64_t const id = puleStringViewHash(puleCStr(labelToHash.c_str()));
 
   // set ID mappings
-  assert(!renderGraphNodeToGraph.contains(id));
+  PULE_assert(!renderGraphNodeToGraph.contains(id));
   renderGraphNodeToGraph.emplace(id, pGraph.id);
   graph.nodes.emplace(
     id,
@@ -782,7 +787,7 @@ void puleRenderGraph_resourceCreate(
   );
   switch (resource.resourceType) {
     case PuleRenderGraph_ResourceType_image: {
-      auto & image = resource.image;
+      auto & image = resource.resource.image;
       // create image if user requests
       if (image.isAutomatic) {
         graphCreateResourceImage(graph, resource);
@@ -927,19 +932,19 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
                 pGraph,
                 resourcePair.second.resourceLabel
               )
-              .image.imageReference
+              .resource.image.imageReference
             )
           );
           bool isDepthStencil = (
-            resource.image.layout == PuleGpuImageLayout_attachmentDepth
+            resource.resource.image.layout == PuleGpuImageLayout_attachmentDepth
           );
           barrierImages.emplace_back(
             PuleGpuResourceBarrierImage {
               .image = image,
               .accessSrc = resource.accessEntrance,
               .accessDst = resource.access,
-              .layoutSrc = resource.image.layoutEntrance,
-              .layoutDst = resource.image.layout,
+              .layoutSrc = resource.resource.image.layoutEntrance,
+              .layoutDst = resource.resource.image.layout,
               .isDepthStencil = isDepthStencil,
             }
           );
@@ -983,7 +988,7 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
         .image = puleGpuWindowSwapchainImage(),
         .accessSrc = swapchainResource.access,
         .accessDst = PuleGpuResourceAccess_none,
-        .layoutSrc = swapchainResource.image.layout,
+        .layoutSrc = swapchainResource.resource.image.layout,
         .layoutDst = PuleGpuImageLayout_presentSrc,
         .isDepthStencil = false,
       }
@@ -1161,7 +1166,9 @@ void puleRenderGraphFrameSubmit(
 }
 
 void puleRenderGraphExecuteInOrder(PuleRenderGraphExecuteInfo const execute) {
-  assert(!execute.multithreaded && "multithreaded support not yet implemented");
+  PULE_assert(
+    !execute.multithreaded && "multithreaded support not yet implemented"
+  );
   RenderGraph & graph = *::renderGraphs.at(execute.graph.id);
   sortGraphNodes(graph);
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {

@@ -7,8 +7,8 @@
 };
 
 @enum PuleTextType {
-  PuleTextType_bitmap;
-  PuleTextType_sdf;
+  bitmap;
+  sdf;
 };
 
 @fn puleTextRendererCreate(

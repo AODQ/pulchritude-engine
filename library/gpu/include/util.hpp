@@ -1,9 +1,7 @@
-#include <pulchritude-gpu/commands.h>
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-gpu/pipeline.h>
-#include <pulchritude-gpu/resource.h>
+#include <pulchritude/gpu.h>
 
-#include <pulchritude-math/math.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/math.h>
 
 #include <volk.h>
 

@@ -46,8 +46,8 @@ struct {
 ### PuleErrorAssetPds
 ```c
 enum {
-  PuleErrorAssetPds_none,
-  PuleErrorAssetPds_decode,
+  none,
+  decode,
 }
 ```
 

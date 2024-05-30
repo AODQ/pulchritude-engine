@@ -1,39 +1,44 @@
 /* auto generated file text */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/asset-font.h>
-#include <pulchritude/gpu.h>
-#include <pulchritude/math.h>
+#include "asset-font.h"
+#include "gpu.h"
+#include "math.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleTextType_bitmap = 0,
+  PuleTextType_sdf = 1,
+} PuleTextType;
+const uint32_t PuleTextTypeSize = 2;
+
+// entities
+
 // structs
-typedef struct {
+struct PuleTextRenderer;
+struct PuleTextRenderInfo;
+struct PuleTextRender2DInfo;
+
+typedef struct PuleTextRenderer {
   uint64_t id;
 } PuleTextRenderer;
-typedef struct {
+typedef struct PuleTextRenderInfo {
   size_t fontScale;
   PuleF32m44 transform;
   PuleF32v4 color;
   PuleStringView text;
 } PuleTextRenderInfo;
-typedef struct {
+typedef struct PuleTextRender2DInfo {
   size_t fontScale;
   PuleI32v2 position;
   PuleF32v4 color;
   PuleStringView text;
 } PuleTextRender2DInfo;
-
-// enum
-typedef enum {
-  PuleTextType_bitmap,
-  PuleTextType_sdf,
-} PuleTextType;
-
-// entities
 
 // functions
 PULE_exportFn PuleTextRenderer puleTextRendererCreate(PuleAssetFont font, PuleTextType type);

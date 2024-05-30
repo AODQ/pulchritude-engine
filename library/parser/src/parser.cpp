@@ -1,4 +1,6 @@
-#include <pulchritude-parser/parser.h>
+#include <pulchritude/parser.h>
+
+#include <pulchritude/core.hpp>
 
 #include <regex>
 
@@ -657,13 +659,12 @@ PuleString puleParserAstNodeMatch(PuleParserAstNode const node) {
   std::string str;
   pint::AstNode * astNode = (pint::AstNode *)node.id;
   pint::astNodeMatch(*astNode, str);
-  return puleString(puleAllocateDefault(), str.c_str());
+  return puleString(str.c_str());
 }
 
 void puleParserAstNodeDumpShallow(PuleParserAstNode const puNode) {
   if (puNode.id == 0) { return; }
   auto const & node = *(pint::AstNode *)puNode.id;
-  auto const childrenCount = node.children.size();
   std::string type;
   switch (node.type) {
     case PuleParserNodeType_sequence: type = "sequence"; break;

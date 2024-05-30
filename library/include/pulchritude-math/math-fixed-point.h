@@ -1,8 +1,9 @@
 #pragma once
 
-#include <pulchritude-core/core.h>
+#include <pulchritude/core.h>
 
-#include <pulchritude-math/math.h>
+#include <pulchritude/math.h>
+
 // provides Q31.32 fixed floating-point 64-bit deterministic arithmetic
 
 // Performance is poor, should be avoided if determinism is unnecessary
@@ -303,6 +304,8 @@ PULE_exportFn PuleFix64m33 rotateM33(
 
 // -- c++ binding 3x3 matrix ---------------------------------------------------
 #ifdef __cplusplus
+
+#include <initializer_list>
 
 namespace pule {
 

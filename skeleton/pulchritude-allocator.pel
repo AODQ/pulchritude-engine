@@ -18,7 +18,7 @@
   @field implementation : void ptr #`allocation internal details, can be null`;
   @field allocate : @fnptr(void ptr, void ptr, PuleAllocateInfo);
   @field reallocate : @fnptr(void ptr, void ptr, PuleReallocateInfo);
-  @field deallocate : @fnptr(void ptr, void ptr, void ptr);
+  @field deallocate : @fnptr(void, void ptr, void ptr);
 };
 
 @fn puleAllocateDefault() PuleAllocator #`
@@ -27,5 +27,5 @@
 `;
 
 @fn puleAllocate(_ : PuleAllocator, _ : PuleAllocateInfo) void ptr;
-@fn puleReallocate(_ : PuleAllocator, _ : PuleAllocateInfo) void ptr;
+@fn puleReallocate(_ : PuleAllocator, _ : PuleReallocateInfo) void ptr;
 @fn puleDeallocate(_ : PuleAllocator, allocAddress : void ptr);

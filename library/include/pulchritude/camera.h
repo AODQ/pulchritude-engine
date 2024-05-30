@@ -1,34 +1,37 @@
 /* auto generated file camera */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/data-serialize.h>
-#include <pulchritude/gpu.h>
-#include <pulchritude/math.h>
-#include <pulchritude/platform.h>
+#include "data-serializer.h"
+#include "gpu.h"
+#include "math.h"
+#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+
+// entities
+typedef struct PuleCamera { uint64_t id; } PuleCamera;
+typedef struct PuleCameraSet { uint64_t id; } PuleCameraSet;
+typedef struct PuleCameraController { uint64_t id; } PuleCameraController;
+
 // structs
-typedef struct {
+struct PuleCameraPerspective;
+struct PuleCameraSetArray;
+
+typedef struct PuleCameraPerspective {
   float nearCutoff;
   float farCutoff;
   float aspectRatio;
   float fieldOfViewRadians;
 } PuleCameraPerspective;
-typedef struct {
-  PuleCamera * cameras;
+typedef struct PuleCameraSetArray {
+  struct PuleCamera * cameras;
   size_t cameraCount;
 } PuleCameraSetArray;
-
-// enum
-
-// entities
-typedef struct { uint64_t id; } PuleCamera;
-typedef struct { uint64_t id; } PuleCameraSet;
-typedef struct { uint64_t id; } PuleCameraController;
 
 // functions
 PULE_exportFn PuleCamera puleCameraCreate();

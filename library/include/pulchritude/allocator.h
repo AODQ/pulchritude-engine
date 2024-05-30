@@ -1,15 +1,23 @@
 /* auto generated file allocator */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+
+// entities
+
 // structs
+struct PuleAllocateInfo;
+struct PuleReallocateInfo;
+struct PuleAllocator;
+
 /* a request for an allocation of memory */
-typedef struct {
+typedef struct PuleAllocateInfo {
   /* minimum number of bytes to be allocated */
   size_t numBytes;
   /* alignment of pointer, 0 is allowed */
@@ -18,7 +26,7 @@ typedef struct {
   bool zeroOut;
 } PuleAllocateInfo;
 /* a request for reallocation of existing memory */
-typedef struct {
+typedef struct PuleReallocateInfo {
   /* address to reallocate memory for */
   void * allocation;
   /* minimum number of bytes to reallocate */
@@ -27,17 +35,13 @@ typedef struct {
   size_t alignment;
 } PuleReallocateInfo;
 /* interface to allocate memory */
-typedef struct {
+typedef struct PuleAllocator {
   /* allocation internal details, can be null */
   void * implementation;
   void *(* allocate)(void *, PuleAllocateInfo);
   void *(* reallocate)(void *, PuleReallocateInfo);
-  void *(* deallocate)(void *, void *);
+  void(* deallocate)(void *, void *);
 } PuleAllocator;
-
-// enum
-
-// entities
 
 // functions
 /* 
@@ -45,9 +49,9 @@ typedef struct {
    but could be wrapper to check for memory leaks
  */
 PULE_exportFn PuleAllocator puleAllocateDefault();
-PULE_exportFn void * puleAllocate(PuleAllocator _, PuleAllocateInfo _);
-PULE_exportFn void * puleReallocate(PuleAllocator _, PuleAllocateInfo _);
-PULE_exportFn void puleDeallocate(PuleAllocator _, void * allocAddress);
+PULE_exportFn void * puleAllocate(PuleAllocator, PuleAllocateInfo);
+PULE_exportFn void * puleReallocate(PuleAllocator, PuleReallocateInfo);
+PULE_exportFn void puleDeallocate(PuleAllocator, void * allocAddress);
 
 #ifdef __cplusplus
 } // extern C

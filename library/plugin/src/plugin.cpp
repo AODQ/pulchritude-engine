@@ -1,9 +1,9 @@
-#include <pulchritude-plugin/plugin.h>
+#include <pulchritude/plugin.h>
 
-#include <pulchritude-file/file.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-plugin/engine.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/file.h>
+#include <pulchritude/log.h>
+#include <pulchritude/plugin.h>
+#include <pulchritude/string.h>
 
 #include <filesystem>
 #include <string>
@@ -343,33 +343,6 @@ void * loadSymbol(
 
 extern "C" {
 
-void pulePluginLoadEngineLayer(
-  PuleEngineLayer * layer,
-  PuleStringView const layerName,
-  PuleEngineLayer * layerParentNullable
-) {
-  layer->parent = layerParentNullable;
-  layer->layerName = puleString(puleAllocateDefault(), layerName.contents);
-#include "engine-loader-mixin.inl"
-  auto layerEntryFn = (
-    reinterpret_cast<void (*)(PuleEngineLayer * const layer)>(
-      ::loadSymbol("puleEngineLayerEntry", layerName) // TODO chop last
-    )
-  );
-  PULE_assert(
-    (!layerParentNullable || layerEntryFn) && "missing layer entry function"
-  );
-  if (layerEntryFn) {
-    puleLogDebug("Loading layer entry function");
-    assert(layerParentNullable); // should have parent (as this is not default)
-    layerEntryFn(layerParentNullable);
-  }
-}
-
 } // extern c
 
-// ybbxvat va qrrc qbja
-// ng nyy gung'f tbar
-// gur cnva lbh srry tbrf ba naq ba
-// pybfr lbhe rlrf naq snyy
 // ornhgvshy snyy ornhgvshy raq

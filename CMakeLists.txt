@@ -118,68 +118,6 @@ function(watchfile)
   )
 endfunction()
 
-# perform binding generation
-execute_process(
-  COMMAND
-    python3
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
-    "--input"
-    "${CMAKE_CURRENT_SOURCE_DIR}/library/include/"
-    "--output"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-  RESULT_VARIABLE processFinished
-)
-if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate json bindings")
-endif()
-
-# perform layer mixin generation
-execute_process(
-  COMMAND
-    python3
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-layer-from-json-binding-generator.py"
-    "--input"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-    "--output-header"
-    "${CMAKE_CURRENT_SOURCE_DIR}/library/include/pulchritude-plugin/engine.h"
-    "--output-load-mixin"
-    "${CMAKE_CURRENT_SOURCE_DIR}/library/plugin/src/engine-loader-mixin.inl"
-  RESULT_VARIABLE processFinished
-)
-if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate c-layer")
-endif()
-
-#execute_process(
-#  COMMAND
-#    python3
-#    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
-#    "--input"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-#    "--output"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/zig/pulchritude.zig"
-#  RESULT_VARIABLE processFinished
-#)
-#if (NOT processFinished STREQUAL "0")
-#  message(FATAL_ERROR "could not generate zig bindings")
-#endif()
-#
-#execute_process(
-#  COMMAND
-#    python3
-#    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
-#    "--input"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/json/bindings.json"
-#   "--output"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua"
-#    "--source"
-#    "${CMAKE_CURRENT_SOURCE_DIR}"
-#  RESULT_VARIABLE processFinished
-#)
-if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate lua bindings")
-endif()
-
 execute_process(
   COMMAND
     python3
@@ -191,18 +129,21 @@ execute_process(
 if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not compile shaders")
 endif()
-#watchfile(
-#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/json-binding-generator.py"
-#)
-#watchfile(
-#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lua-from-json-binding-generator.py"
-#)
-#watchfile(
-#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/zig-from-json-binding-generator.py"
-#)
-#watchfile(
-#  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/c-ecs-components-from-json-binding-generator.py"
-#)
+
+find_program(PULEDIT_FOUND puledit)
+if (PULEDIT_FOUND)
+  execute_process(
+    COMMAND
+      python3
+      "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate-bindings.py"
+      "--dir"
+      "${CMAKE_CURRENT_SOURCE_DIR}"
+    RESULT_VARIABLE processFinished
+  )
+endif()
+if (NOT processFinished STREQUAL "0")
+  message(FATAL_ERROR "could not generate bindings")
+endif()
 
 watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.frag)
 watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.vert)

@@ -22,6 +22,9 @@ target_link_libraries(
   pulchritude-string
   pulchritude-allocator
   pulchritude-error
+  pulchritude-camera
+  pulchritude-asset-script-task-graph
+  pulchritude-script
   pulchritude-asset-pds
   pulchritude-asset-render-graph
   pulchritude-imgui-engine

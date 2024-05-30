@@ -1,9 +1,8 @@
-#include <pulchritude-gpu/shader-module.h>
+#include <pulchritude/gpu.h>
 
 #include <util.hpp>
 
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <volk.h>
 

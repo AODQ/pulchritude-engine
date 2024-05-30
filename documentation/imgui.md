@@ -66,6 +66,10 @@ puleImguiWindowBegin(
   openNullable : bool ptr
 ) void;
 ```
+### puleImguiWindowEnd
+```c
+puleImguiWindowEnd() void;
+```
 ### puleImguiSectionBegin
 ```c
 puleImguiSectionBegin(

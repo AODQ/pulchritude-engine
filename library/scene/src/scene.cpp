@@ -1,9 +1,11 @@
-#include <pulchritude-scene/scene.h>
+#include <pulchritude/scene.h>
 
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-asset/render-graph.h>
-#include <pulchritude-gfx-debug/gfx-debug.h>
-#include <pulchritude-render-graph/render-graph.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/asset-render-graph.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/gfx-debug.h>
+#include <pulchritude/render-graph.h>
+#include <pulchritude/string.hpp>
 
 #include <vector>
 
@@ -134,7 +136,7 @@ PuleScene puleSceneCreate(PuleSceneCreateInfo const info) {
     scene.worldEcs = puleEcsWorldCreate();
   }
   scene.dimension = info.dimension;
-  if (info.createPhysxWorld && scene.dimension == PuleSceneDimension_3d) {
+  if (info.createPhysxWorld && scene.dimension == PuleSceneDimension_i3d) {
     scene.worldPhysx3D = pulePhysx3DWorldCreate();
   } else if (info.createPhysxWorld) {
     scene.worldPhysx2D = pulePhysx2DWorldCreate();
@@ -203,8 +205,8 @@ void puleSceneDestroy(PuleScene const scene) {
     puleEcsWorldDestroy(s->worldEcs);
   }
   if (s->createdPhysxWorld) {
-    if (s->dimension == PuleSceneDimension_3d) {
-      pulePhysx3DWorldDestroy(s->worldPhysx3D);
+    if (s->dimension == PuleSceneDimension_i3d) {
+      //pulePhysx3DWorldDestroy(s->worldPhysx3D);
     } else {
       pulePhysx2DWorldDestroy(s->worldPhysx2D);
     }
@@ -219,7 +221,7 @@ PuleEcsWorld puleSceneEcsWorld(PuleScene const scene) {
 PuleScenePhysxWorld puleScenePhysxWorld(PuleScene const scene) {
   PuleScenePhysxWorld result;
   auto const s = pint::scenes.at(scene);
-  if (s->dimension == PuleSceneDimension_3d) {
+  if (s->dimension == PuleSceneDimension_i3d) {
     result.i3D = s->worldPhysx3D;
   } else {
     result.i2D = s->worldPhysx2D;
@@ -231,8 +233,8 @@ void puleSceneAdvance(PuleSceneAdvanceInfo const info){
   auto const s = pint::scenes.at(info.scene);
   // advance physx system first
   if (s->worldPhysx3D.id != 0 && info.advancePhysxWorld) {
-    if (s->dimension == PuleSceneDimension_3d) {
-      pulePhysx3DWorldAdvance(s->worldPhysx3D, info.msDelta);
+    if (s->dimension == PuleSceneDimension_i3d) {
+      //pulePhysx3DWorldAdvance(s->worldPhysx3D, info.msDelta);
     } else {
       pulePhysx2DWorldStep(s->worldPhysx2D, info.msDelta, 8, 3);
     }
@@ -431,21 +433,21 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
     puleGpuImageReference_image(
       puleRenderGraph_resource(
         system.graph, "pule-scene-framebuffer-image"_psv
-      ).image.imageReference
+      ).resource.image.imageReference
     )
   );
   PuleGpuImage const framebufferDepth = (
     puleGpuImageReference_image(
       puleRenderGraph_resource(
         system.graph, "pule-scene-framebuffer-depth"_psv
-      ).image.imageReference
+      ).resource.image.imageReference
     )
   );
   PuleGpuImage const windowImage = (
     puleGpuImageReference_image(
       puleRenderGraph_resource(
         system.graph, puleCStr("window-swapchain-image")
-      ).image.imageReference
+      ).resource.image.imageReference
     )
   );
 
@@ -471,14 +473,14 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
       PuleF32m33 rotation;
       PuleF32v3 scale;
     } object;
-    object.position = pulePhysx3DBodyOrigin(physx.body);
-    object.rotation = pulePhysx3DBodyOrientation(physx.body);
-    object.scale = puleF32v3(1.0f);
-    auto shape = pulePhysx3DShape(physx.body);
-    if (shape.type == PulePhysx3DShape_sphere) {
-      object.scale = puleF32v3(shape.sphere.radius);
-    }
-    (void)entity;
+    //object.position = pulePhysx3DBodyOrigin(physx.body);
+    //object.rotation = pulePhysx3DBodyOrientation(physx.body);
+    //object.scale = puleF32v3(1.0f);
+    //auto shape = pulePhysx3DShape(physx.body);
+    //if (shape.type == PulePhysx3DShape_sphere) {
+    //  object.scale = puleF32v3(shape.sphere.radius);
+    //}
+    //(void)entity;
 
     switch (model.type) {
       case PuleSceneComponentModelType_none: break;
@@ -534,7 +536,7 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
             .opLoad = PuleGpuImageAttachmentOpLoad_clear,
             .opStore = PuleGpuImageAttachmentOpStore_store,
             .layout = PuleGpuImageLayout_attachmentColor,
-            .clearColor = {0.0f, 0.0f, 0.0f, 1.0f},
+            .clear = { .color = {0.0f, 0.0f, 0.0f, 1.0f}},
             .imageView = {
               PuleGpuImageView {
                 .image = framebufferImage,
@@ -550,7 +552,7 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
           .opLoad = PuleGpuImageAttachmentOpLoad_clear,
           .opStore = PuleGpuImageAttachmentOpStore_store,
           .layout = PuleGpuImageLayout_attachmentDepth,
-          .clearDepth = 1.0f,
+          .clear = { .clearDepth = 1.0f, },
           .imageView = {
             PuleGpuImageView {
               .image = framebufferDepth,

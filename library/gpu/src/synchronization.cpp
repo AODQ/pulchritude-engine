@@ -1,8 +1,8 @@
-#include <pulchritude-gpu/synchronization.h>
+#include <pulchritude/gpu.h>
 
 #include "util.hpp"
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <volk.h>
 

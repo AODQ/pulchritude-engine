@@ -1,7 +1,7 @@
-#include <pulchritude-shape/shape.h>
+#include <pulchritude/shape.h>
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-math/math.h>
+#include <pulchritude/error.h>
+#include <pulchritude/math.h>
 
 #include <vector>
 

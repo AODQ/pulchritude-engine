@@ -1,8 +1,8 @@
-#include <pulchritude-gpu/resource.h>
+#include <pulchritude/gpu.h>
 
 #include <util.hpp>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <volk.h>
 
@@ -83,7 +83,7 @@ PuleGpuImageReference imageReferenceCreate(
     .ownerCount = 1,
   };
   switch (type) {
-    default: assert(false && "unknown image reference type");
+    default: PULE_assert(false && "unknown image reference type");
     case util::ImageReferenceType::imageChain:
       imageReference.image = { .id = handle, };
     break;
@@ -110,7 +110,7 @@ void imageReferenceUpdate(
   auto imageReferenceHandle = imageHandleToReference.at(baseHandle);
   auto & imageReference = *util::ctx().imageReferences.at(imageReferenceHandle);
   switch (type) {
-    default: assert(false && "unknown image reference type");
+    default: PULE_assert(false && "unknown image reference type");
     case util::ImageReferenceType::imageChain:
       imageReference.image = { .id = newHandle, };
     break;
@@ -195,7 +195,7 @@ PuleGpuImage puleGpuImageReference_image(
   }
   auto & imageReference = *util::ctx().imageReferences.at(reference.id);
   switch (imageReference.type) {
-    default: assert(false && "unknown image reference type");
+    default: PULE_assert(false && "unknown image reference type");
     case util::ImageReferenceType::image:
       return imageReference.image;
     case util::ImageReferenceType::imageChain: {

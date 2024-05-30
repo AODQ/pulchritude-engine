@@ -1,10 +1,10 @@
-#include <pulchritude-gpu/image.h>
+#include <pulchritude/gpu.h>
 
 // module include
 #include <util.hpp>
 
 // pulchritude engine include
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 // third party include
 #include <volk.h>

@@ -1,4 +1,4 @@
-#include <pulchritude-ecs/ecs.h>
+#include <pulchritude/ecs.h>
 
 #include <string>
 #include <unordered_map>

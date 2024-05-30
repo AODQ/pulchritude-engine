@@ -3,6 +3,8 @@
 
 #include <pulchritude-math/math.h>
 
+#include <initializer_list>
+
 namespace pule {
 
 using F32 = float;

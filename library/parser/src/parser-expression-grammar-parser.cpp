@@ -1,4 +1,8 @@
-#include <pulchritude-parser/parser.h>
+#include <pulchritude/parser.h>
+
+#include <pulchritude/core.hpp>
+
+#include <unordered_map>
 
 #include <string>
 #include <vector>

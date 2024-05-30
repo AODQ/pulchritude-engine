@@ -29,11 +29,11 @@
 @fn puleGfxDebugSubmit(submitInfo : PuleGfxDebugSubmitInfo) void;
 
 @enum PuleGfxDebugRenderType {
-  PuleGfxDebugRenderType_line;
-  PuleGfxDebugRenderType_quad;
-  PuleGfxDebugRenderType_cube;
-  PuleGfxDebugRenderType_sphere;
-  PuleGfxDebugRenderType_plane;
+  line;
+  quad;
+  cube;
+  sphere;
+  plane;
 };
 
 @struct PuleGfxDebugRenderLine {

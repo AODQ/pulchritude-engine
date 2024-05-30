@@ -1,16 +1,14 @@
-#include <pulchritude-imgui/imgui.h>
+#include <pulchritude/imgui.h>
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-asset/render-graph.h>
-#include <pulchritude-asset/shader-module.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-gpu/commands.h>
-#include <pulchritude-gpu/gpu.h>
-#include <pulchritude-gpu/image.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-platform/platform.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/asset-render-graph.h>
+#include <pulchritude/asset-shader-module.h>
+#include <pulchritude/error.h>
+#include <pulchritude/gpu.h>
+#include <pulchritude/log.h>
+#include <pulchritude/platform.h>
+#include <pulchritude/string.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -218,8 +216,8 @@ void renderDrawData(
   std::vector<size_t> flattenedVtxOffsets;
   std::vector<size_t> flattenedIdxOffsets;
   uint8_t * const vtxMappedData = (
-      reinterpret_cast<uint8_t *>(
-        puleGpuBufferMap({
+    reinterpret_cast<uint8_t *>(
+      puleGpuBufferMap({
         .buffer = bd.vertexBuffer,
         .access = PuleGpuBufferMapAccess_hostWritable,
         .byteOffset = 0,
@@ -295,7 +293,7 @@ void renderDrawData(
             .opLoad = PuleGpuImageAttachmentOpLoad_clear, // TODO don't clear?
             .opStore = PuleGpuImageAttachmentOpStore_store,
             .layout = PuleGpuImageLayout_attachmentColor,
-            .clearColor = { 1.0f, 1.0f, 1.0f, 0.0f},
+            .clear = { .color = { 1.0f, 1.0f, 1.0f, 0.0f, } },
             .imageView = (
               PuleGpuImageView {
                 .image = imguiImage,
@@ -878,7 +876,7 @@ void puleImguiRender(
     puleGpuImageReference_image(
       puleRenderGraph_resource(
         renderGraph, puleCStr("imgui-framebuffer-image")
-      ).image.imageReference
+      ).resource.image.imageReference
     )
   );
   blitDrawData(
@@ -889,12 +887,12 @@ void puleImguiRender(
     puleGpuImageReference_image(
       puleRenderGraph_resource(
         renderGraph, puleCStr("imgui-framebuffer-image")
-      ).image.imageReference
+      ).resource.image.imageReference
     ),
     puleGpuImageReference_image(
       puleRenderGraph_resource(
         renderGraph, puleCStr("window-swapchain-image")
-      ).image.imageReference
+      ).resource.image.imageReference
     )
   );
 }

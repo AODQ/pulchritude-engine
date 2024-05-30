@@ -33,7 +33,7 @@ struct {
   implementation : void ptr;
   allocate : @fnptr(void ptr, void ptr, PuleAllocateInfo);
   reallocate : @fnptr(void ptr, void ptr, PuleReallocateInfo);
-  deallocate : @fnptr(void ptr, void ptr, void ptr);
+  deallocate : @fnptr(void, void ptr, void ptr);
 };
 ```
 
@@ -57,7 +57,7 @@ puleAllocate(
 ```c
 puleReallocate(
   _ : PuleAllocator,
-  _ : PuleAllocateInfo
+  _ : PuleReallocateInfo
 ) void ptr;
 ```
 ### puleDeallocate

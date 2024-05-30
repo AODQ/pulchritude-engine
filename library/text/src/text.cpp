@@ -1,11 +1,12 @@
-#include <pulchritude-text/text.h>
+#include <pulchritude/text.h>
 
 #if defined(PULCHRITUDE_FEATURE_TEXT)
 
-#include <pulchritude-asset/shader-module.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-gpu/module.h>
-#include <pulchritude-log/log.h>
+#include <pulchritude/asset-shader-module.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/error.h>
+#include <pulchritude/gpu.h>
+#include <pulchritude/log.h>
 
 #include <array>
 #include <string>

@@ -1,4 +1,6 @@
-#include <pulchritude-array/array.h>
+#include <pulchritude/array.h>
+
+#include <pulchritude/allocator.h>
 
 namespace {
 size_t bytesPerElement(PuleArray const & array) {

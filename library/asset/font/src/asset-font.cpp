@@ -1,6 +1,7 @@
-#include <pulchritude-asset/font.h>
+#include <pulchritude/asset-font.h>
 
-#include <pulchritude-file/file.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/file.h>
 
 #include <schrift.h>
 

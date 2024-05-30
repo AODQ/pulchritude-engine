@@ -1,13 +1,14 @@
 /* pulchritude editor | github.com/aodq/pulchritude-engine | aodq.net */
 
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-data-serializer/data-serializer.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-file/file.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-plugin/plugin.h>
-#include <pulchritude-tui/tui.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/core.hpp>
+#include <pulchritude/data-serializer.h>
+#include <pulchritude/error.h>
+#include <pulchritude/file.h>
+#include <pulchritude/log.h>
+#include <pulchritude/plugin.h>
+#include <pulchritude/tui.h>
 
 #include <string>
 #include <unordered_map>

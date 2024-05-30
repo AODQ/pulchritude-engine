@@ -1,6 +1,6 @@
-#include <pulchritude-asset/image.h>
+#include <pulchritude/asset-image.h>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <spng.h>
 

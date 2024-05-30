@@ -1,8 +1,8 @@
-#include <pulchritude-file/file.h>
+#include <pulchritude/file.h>
 
-#include <pulchritude-core/core.h>
+#include <pulchritude/core.hpp>
 
-#include <pulchritude-time/time.h>
+#include <pulchritude/time.h>
 
 #include <sys/file.h>
 
@@ -564,7 +564,7 @@ PuleString puleFilesystemPathCurrent() {
       .contents = nullptr, .len = 0, .allocator = {.implementation = nullptr},
     };
   }
-  return puleString(puleAllocateDefault(), path.string().c_str());
+  return puleStringCopy(puleAllocateDefault(), puleCStr(path.string().c_str()));
 }
 
 PuleStringView puleFilesystemExecutablePath() {
@@ -822,7 +822,7 @@ PuleString puleFilesystemAbsolutePath(
   if (path.contents == nullptr) { return {}; }
   // check if already abs path
   if (path.contents[0] == '/') {
-    return puleString(puleAllocateDefault(), path.contents);
+    return puleStringCopy(puleAllocateDefault(), path);
   }
   { // check current directory
     PuleString const executableDir = puleFilesystemPathCurrent();
@@ -832,7 +832,7 @@ PuleString puleFilesystemAbsolutePath(
       + "/" + std::string(path.contents, path.len)
     );
     if (puleFilesystemPathExists(puleCStr(executablePath.c_str()))) {
-      return puleString(puleAllocateDefault(), executablePath.c_str());
+      return puleString(executablePath.c_str());
     }
   }
   { // check executable path
@@ -842,7 +842,7 @@ PuleString puleFilesystemAbsolutePath(
       + "/" + std::string(path.contents, path.len)
     );
     if (puleFilesystemPathExists(puleCStr(executablePath.c_str()))) {
-      return puleString(puleAllocateDefault(), executablePath.c_str());
+      return puleString(executablePath.c_str());
     }
   }
   { // check asset path
@@ -852,7 +852,7 @@ PuleString puleFilesystemAbsolutePath(
       + "/" + std::string(path.contents, path.len)
     );
     if (puleFilesystemPathExists(puleCStr(assetPath.c_str()))) {
-      return puleString(puleAllocateDefault(), assetPath.c_str());
+      return puleString(assetPath.c_str());
     }
   }
 

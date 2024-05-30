@@ -1,6 +1,6 @@
-#include <pulchritude-physx/collision.h>
+#include <pulchritude/physx.h>
 
-#include <pulchritude-error/error.h>
+#include <pulchritude/error.h>
 
 namespace in { // primitive collisions
 
@@ -50,7 +50,7 @@ PulePhysxCollisionResultShape pulePhysxRaycastShape(
   PuleF32m44 const shapeTransform,
   PulePhysxCollisionShape const shape
 ) {
-  PULE_assert(mode == PulePhysxMode_2d && "no 3d physx support yet");
+  PULE_assert(mode == PulePhysxMode_i2d && "no 3d physx support yet");
 
   // transform ray into shape space
   PuleF32m44 const inverseShapeTransform = puleF32m44Inverse(shapeTransform);
@@ -82,7 +82,7 @@ PulePhysxCollisionResultShape pulePhysxRaycastShape(
     }
     case PulePhysxCollisionShapeType_sphere: {
       result.distance = (
-        in::intersectRaySphere(rayShapeSpace, shape.sphere.radius)
+        in::intersectRaySphere(rayShapeSpace, shape.shape.sphere.radius)
       );
     }
   }

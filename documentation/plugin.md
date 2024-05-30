@@ -13,8 +13,8 @@ struct {
 ### PulePluginType
 ```c
 enum {
-  PulePluginType_library,
-  PulePluginType_component,
+  library,
+  component,
 }
 ```
 

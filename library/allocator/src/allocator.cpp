@@ -1,6 +1,6 @@
-#include <pulchritude-allocator/allocator.h>
+#include <pulchritude/allocator.h>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -44,7 +44,7 @@ void * releaseReallocate(void * const, PuleReallocateInfo const info) {
   return reallocatedMemory;
 }
 
-void releaseDeallocate(void * const, void * const allocationNullable) {
+void releaseDeallocate(void *, void * allocationNullable) {
   free(allocationNullable);
 }
 
@@ -74,8 +74,8 @@ void * puleAllocate(
 }
 
 void * puleReallocate(
-  PuleAllocator const allocator,
-  PuleReallocateInfo const info
+  PuleAllocator allocator,
+  PuleReallocateInfo info
 ) {
   if (allocator.reallocate == nullptr) {
     puleLogError("null reallocator!");

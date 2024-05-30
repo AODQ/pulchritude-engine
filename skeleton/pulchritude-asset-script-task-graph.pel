@@ -1,4 +1,5 @@
 @include `allocator`;
+@include `data-serializer`;
 @include `script`;
 @include `task-graph`;
 

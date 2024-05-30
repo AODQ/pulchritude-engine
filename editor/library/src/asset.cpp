@@ -1,9 +1,8 @@
-#include <pulchritude-allocator/allocator.h>
-#include <pulchritude-asset/pds.h>
-#include <pulchritude-error/error.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-string/string.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/allocator.h>
+#include <pulchritude/asset-pds.h>
+#include <pulchritude/error.h>
+#include <pulchritude/log.h>
+#include <pulchritude/string.h>
 
 extern "C" {
 

@@ -1,18 +1,32 @@
 /* auto generated file asset-pds */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/error.h>
-#include <pulchritude/data-serializer.h>
-#include <pulchritude/allocator.h>
-#include <pulchritude/stream.h>
+#include "error.h"
+#include "data-serializer.h"
+#include "allocator.h"
+#include "stream.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleErrorAssetPds_none = 0,
+  PuleErrorAssetPds_decode = 1,
+} PuleErrorAssetPds;
+const uint32_t PuleErrorAssetPdsSize = 2;
+
+// entities
+
 // structs
-typedef struct {
+struct PuleAssetPdsWriteInfo;
+struct PuleAssetPdsCommandLineArgumentsInfo;
+struct PuleAssetPdsDescription;
+struct PuleAssetPdsDeserializeInfo;
+
+typedef struct PuleAssetPdsWriteInfo {
   PuleDsValue head;
   bool prettyPrint;
   /*  pretty-print only  */
@@ -23,52 +37,44 @@ typedef struct {
   can parse command line arguments from the given PDS "help" will be inserted
   if the user requested help flag '--help'
  */
-typedef struct {
+typedef struct PuleAssetPdsCommandLineArgumentsInfo {
   PuleAllocator allocator;
   PuleDsValue layout;
   int32_t argumentLength;
   char const * const * arguments;
   bool * userRequestedHelpOutNullable;
 } PuleAssetPdsCommandLineArgumentsInfo;
-typedef struct {
+typedef struct PuleAssetPdsDescription {
   void * data;
   char const * label;
   char const * format;
 } PuleAssetPdsDescription;
-typedef struct {
+typedef struct PuleAssetPdsDeserializeInfo {
   PuleDsValue value;
   PuleAssetPdsDescription const * descriptions;
   size_t descriptionCount;
 } PuleAssetPdsDeserializeInfo;
 
-// enum
-typedef enum {
-  PuleErrorAssetPds_none,
-  PuleErrorAssetPds_decode,
-} PuleErrorAssetPds;
-
-// entities
-
 // functions
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromStream(PuleAllocator allocator, PuleStreamRead stream, PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromStream(PuleAllocator allocator, PuleStreamRead stream, struct PuleError * error);
 /* 
   convenience function, takes over management of the input stream
  */
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(PuleAllocator allocator, PuleStreamRead rvalStream, PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(PuleAllocator allocator, PuleStreamRead rvalStream, struct PuleError * error);
 /* 
   convenience function, combined file+stream but disables PDS streaming
  */
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(PuleAllocator allocator, PuleStringView filename, PuleError * error);
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromString(PuleAllocator allocator, PuleStringView contents, PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(PuleAllocator allocator, PuleStringView filename, struct PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromString(PuleAllocator allocator, PuleStringView contents, struct PuleError * error);
 PULE_exportFn void puleAssetPdsWriteToStream(PuleStreamWrite stream, PuleAssetPdsWriteInfo writeInfo);
 /* convenience function using file+stream but disables PDS streaming */
-PULE_exportFn void puleAssetPdsWriteToFile(PuleDsValue head, PuleStringView filename, PuleError * error);
+PULE_exportFn void puleAssetPdsWriteToFile(PuleDsValue head, PuleStringView filename, struct PuleError * error);
 /* 
   convenience function using puleStreamStdoutWrite
  */
 PULE_exportFn void puleAssetPdsWriteToStdout(PuleDsValue head);
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(PuleAssetPdsCommandLineArgumentsInfo info, PuleError * error);
-PULE_exportFn void puleAssetPdsDeserialize(PuleAssetPdsDeserializeInfo info, PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(PuleAssetPdsCommandLineArgumentsInfo info, struct PuleError * error);
+PULE_exportFn void puleAssetPdsDeserialize(PuleAssetPdsDeserializeInfo info, struct PuleError * error);
 
 #ifdef __cplusplus
 } // extern C

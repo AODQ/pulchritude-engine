@@ -1,33 +1,70 @@
 /* auto generated file render-graph */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
-#include <pulchritude/data-serializer.h>
-#include <pulchritude/error.h>
-#include <pulchritude/gpu.h>
-#include <pulchritude/platform.h>
-#include <pulchritude/render-graph.h>
-#include <pulchritude/allocator.h>
+#include "data-serializer.h"
+#include "error.h"
+#include "gpu.h"
+#include "platform.h"
+#include "render-graph.h"
+#include "allocator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+typedef enum {
+  PuleRenderGraph_ResourceType_image = 0,
+  PuleRenderGraph_ResourceType_buffer = 1,
+} PuleRenderGraph_ResourceType;
+const uint32_t PuleRenderGraph_ResourceTypeSize = 2;
+typedef enum {
+  PuleRenderGraph_ResourceUsage_read = 0,
+  PuleRenderGraph_ResourceUsage_write = 1,
+  PuleRenderGraph_ResourceUsage_readWrite = 2,
+} PuleRenderGraph_ResourceUsage;
+const uint32_t PuleRenderGraph_ResourceUsageSize = 3;
+typedef enum {
+  PuleRenderGraphNodeRelation_dependsOn = 0,
+} PuleRenderGraphNodeRelation;
+const uint32_t PuleRenderGraphNodeRelationSize = 1;
+
+// entities
+typedef struct PuleRenderGraph { uint64_t id; } PuleRenderGraph;
+typedef struct PuleRenderGraphNode { uint64_t id; } PuleRenderGraphNode;
+
 // structs
-typedef struct {
+struct PuleRenderGraph_Resource_DimensionsScaleRelative;
+struct PuleRenderGraph_Resource_DimensionsAbsolute;
+union PuleRenderGraph_Resource_Dimensions;
+struct PuleRenderGraph_Resource_Image_DataManagement_Automatic;
+struct PuleRenderGraph_Resource_Image_DataManagement_Manual;
+union PuleRenderGraph_Resource_Image_DataManagement;
+struct PuleRenderGraph_Resource_Image;
+struct PuleRenderGraph_Resource_Buffer;
+union PuleRenderGraph_ResourceUnion;
+struct PuleRenderGraph_Resource;
+struct PuleRenderGraph_Node_Image;
+struct PuleRenderGraph_Node_Buffer;
+union PuleRenderGraph_Node_ResourceUnion;
+struct PuleRenderGraph_Node_Resource;
+struct PuleRenderGraphExecuteInfo;
+
+typedef struct PuleRenderGraph_Resource_DimensionsScaleRelative {
   PuleString referenceResourceLabel;
   float scaleWidth;
   float scaleHeight;
 } PuleRenderGraph_Resource_DimensionsScaleRelative;
-typedef struct {
+typedef struct PuleRenderGraph_Resource_DimensionsAbsolute {
   uint32_t width;
   uint32_t height;
 } PuleRenderGraph_Resource_DimensionsAbsolute;
-typedef union {
+typedef union PuleRenderGraph_Resource_Dimensions {
   PuleRenderGraph_Resource_DimensionsScaleRelative scaleRelative;
   PuleRenderGraph_Resource_DimensionsAbsolute absolute;
 } PuleRenderGraph_Resource_Dimensions;
-typedef struct {
+typedef struct PuleRenderGraph_Resource_Image_DataManagement_Automatic {
   PuleRenderGraph_Resource_Dimensions dimensions;
   bool areDimensionsAbsolute;
   PuleBufferView nullableInitialData;
@@ -40,39 +77,39 @@ typedef struct {
   uint32_t arrayLayers;
 } PuleRenderGraph_Resource_Image_DataManagement_Automatic;
 /*  TODO this should be some reference to an external resource handle  */
-typedef struct {
+typedef struct PuleRenderGraph_Resource_Image_DataManagement_Manual {
   uint8_t reserved;
 } PuleRenderGraph_Resource_Image_DataManagement_Manual;
-typedef union {
+typedef union PuleRenderGraph_Resource_Image_DataManagement {
   PuleRenderGraph_Resource_Image_DataManagement_Automatic automatic;
   PuleRenderGraph_Resource_Image_DataManagement_Manual manual;
 } PuleRenderGraph_Resource_Image_DataManagement;
-typedef struct {
+typedef struct PuleRenderGraph_Resource_Image {
   PuleRenderGraph_Resource_Image_DataManagement dataManagement;
   bool isAutomatic;
   PuleGpuImageReference imageReference;
 } PuleRenderGraph_Resource_Image;
-typedef struct {
+typedef struct PuleRenderGraph_Resource_Buffer {
   uint8_t reserved;
 } PuleRenderGraph_Resource_Buffer;
-typedef union {
-  image PuleRenderGraph_Resource_Image;
-  buffer PuleRenderGraph_Resource_Buffer;
+typedef union PuleRenderGraph_ResourceUnion {
+  PuleRenderGraph_Resource_Image image;
+  PuleRenderGraph_Resource_Buffer buffer;
 } PuleRenderGraph_ResourceUnion;
 /*  tracks all metadata of a resource relating to render graph */
-typedef struct {
+typedef struct PuleRenderGraph_Resource {
   PuleStringView resourceLabel;
   PuleRenderGraph_ResourceUnion resource;
   PuleRenderGraph_ResourceType resourceType;
 } PuleRenderGraph_Resource;
-typedef union {
+typedef struct PuleRenderGraph_Node_Image {
   PuleGpuImageLayout layout;
   PuleGpuImageLayout layoutEntrance;
 } PuleRenderGraph_Node_Image;
-typedef union {
+typedef struct PuleRenderGraph_Node_Buffer {
   uint8_t reserved;
 } PuleRenderGraph_Node_Buffer;
-typedef union {
+typedef union PuleRenderGraph_Node_ResourceUnion {
   PuleRenderGraph_Node_Image image;
   PuleRenderGraph_Node_Buffer buffer;
 } PuleRenderGraph_Node_ResourceUnion;
@@ -80,36 +117,18 @@ typedef union {
   contains relationship of a resource to a node, e.g. if the node's command
   list plans to use it.
  */
-typedef struct {
+typedef struct PuleRenderGraph_Node_Resource {
   PuleStringView resourceLabel;
   PuleGpuResourceAccess access;
   PuleGpuResourceAccess accessEntrance;
   PuleRenderGraph_Node_ResourceUnion resource;
 } PuleRenderGraph_Node_Resource;
-typedef struct {
+typedef struct PuleRenderGraphExecuteInfo {
   PuleRenderGraph graph;
   void(* callback)(PuleRenderGraphNode, void *);
   void * userdata;
   bool multithreaded;
 } PuleRenderGraphExecuteInfo;
-
-// enum
-typedef enum {
-  PuleRenderGraph_ResourceType_image,
-  PuleRenderGraph_ResourceType_buffer,
-} PuleRenderGraph_ResourceType;
-typedef enum {
-  PuleRenderGraph_ResourceUsage_read,
-  PuleRenderGraph_ResourceUsage_write,
-  PuleRenderGraph_ResourceUsage_readWrite,
-} PuleRenderGraph_ResourceUsage;
-typedef enum {
-  PuleRenderGraphNodeRelation_dependsOn,
-} PuleRenderGraphNodeRelation;
-
-// entities
-typedef struct { uint64_t id; } PuleRenderGraph;
-typedef struct { uint64_t id; } PuleRenderGraphNode;
 
 // functions
 PULE_exportFn PuleRenderGraph puleRenderGraphCreate(PuleStringView label, PuleAllocator allocator);

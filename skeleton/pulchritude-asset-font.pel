@@ -5,8 +5,8 @@
 @entity PuleAssetFont;
 
 @enum PuleErrorAssetFont {
-  PuleErrorAssetFont_none;
-  PuleErrorAssetFont_decode;
+  none;
+  decode;
 };
 
 @fn puleAssetFontLoad(

@@ -7,8 +7,8 @@
 @entity PuleScene;
 
 @enum PuleSceneDimension {
-  PuleSceneDimension_2d;
-  PuleSceneDimension_3d;
+  i2d;
+  i3d;
 };
 
 @struct PuleSceneCreateInfo {
@@ -83,10 +83,10 @@
 @fn puleSceneAdvance(info : PuleSceneAdvanceInfo) void;
 
 @enum PuleSceneComponentModelType {
-  PuleSceneComponentModelType_none;
-  PuleSceneComponentModelType_cube;
-  PuleSceneComponentModelType_sphere;
-  PuleSceneComponentModelType_plane;
+  none;
+  cube;
+  sphere;
+  plane;
 };
 
 @struct PuleSceneComponentModelData {

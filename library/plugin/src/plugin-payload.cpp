@@ -1,8 +1,8 @@
-#include <pulchritude-plugin/plugin.h>
+#include <pulchritude/plugin.h>
 
-#include <pulchritude-file/file.h>
-#include <pulchritude-log/log.h>
-#include <pulchritude-string/string.h>
+#include <pulchritude/file.h>
+#include <pulchritude/log.h>
+#include <pulchritude/string.h>
 
 #include <unordered_map>
 

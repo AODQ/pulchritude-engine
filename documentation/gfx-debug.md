@@ -83,11 +83,11 @@ union {
 ### PuleGfxDebugRenderType
 ```c
 enum {
-  PuleGfxDebugRenderType_line,
-  PuleGfxDebugRenderType_quad,
-  PuleGfxDebugRenderType_cube,
-  PuleGfxDebugRenderType_sphere,
-  PuleGfxDebugRenderType_plane,
+  line,
+  quad,
+  cube,
+  sphere,
+  plane,
 }
 ```
 

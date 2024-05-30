@@ -1,4 +1,4 @@
-#include <pulchritude-stream/stream.h>
+#include <pulchritude/stream.h>
 
 #include <stdio.h>
 #include <string.h>

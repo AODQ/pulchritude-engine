@@ -146,38 +146,40 @@ struct {
 ### PulePhysxCollisionShapeType
 ```c
 enum {
-  PulePhysxCollisionShapeType_sphere,
-  PulePhysxCollisionShapeType_box,
-  PulePhysxCollisionShapeType_capsule,
-  PulePhysxCollisionShapeType_plane,
-  PulePhysxCollisionShapeType_triangle,
+  sphere,
+  box,
+  capsule,
+  plane,
+  triangle,
 }
 ```
 ### PulePhysxMode
 ```c
 enum {
-  PulePhysxMode_2d,
-  PulePhysxMode_3d,
+  i2d,
+  i3d,
 }
 ```
 ### PulePhysx2DShapeType
 ```c
 enum {
-  PulePhysx2DShapeType_convexPolygon,
+  convexPolygon,
 }
 ```
 ### PulePhysx2DBodyType
 ```c
 enum {
-  PulePhysx2DBodyType_static,
-  PulePhysx2DBodyType_kinematic,
-  PulePhysx2DBodyType_dynamic,
+  static,
+  kinematic,
+  dynamic,
 }
 ```
 
 ## entities
 ### PulePhysx2DWorld
 ### PulePhysx2DBody
+### PulePhysx3DWorld
+### PulePhysx3DBody
 
 ## functions
 ### pulePhysxRaycastShape
@@ -288,4 +290,8 @@ pulePhysx2DShapeCreateConvexPolygonAsBox(
   halfExtents : PuleF32v2,
   angle : float
 ) PulePhysx2DShape;
+```
+### pulePhysx3DWorldCreate
+```c
+pulePhysx3DWorldCreate() PulePhysx3DWorld;
 ```

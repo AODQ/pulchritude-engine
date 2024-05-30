@@ -1,7 +1,7 @@
-#include <pulchritude-platform/platform.h>
+#include <pulchritude/platform.h>
 
-#include <pulchritude-error/error.h>
-#include <pulchritude-log/log.h>
+#include <pulchritude/error.h>
+#include <pulchritude/log.h>
 
 #include <GLFW/glfw3.h>
 

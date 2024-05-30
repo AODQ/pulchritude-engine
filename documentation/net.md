@@ -38,23 +38,23 @@ struct {
 ### PuleErrorNet
 ```c
 enum {
-  PuleErrorNet_none,
-  PuleErrorNet_initialize,
-  PuleErrorNet_hostCreate,
-  PuleErrorNet_poll,
-  PuleErrorNet_clientCreate,
-  PuleErrorNet_clientConnect,
-  PuleErrorNet_clientDisconnect,
-  PuleErrorNet_clientSend,
-  PuleErrorNet_packetSend,
+  none,
+  initialize,
+  hostCreate,
+  poll,
+  clientCreate,
+  clientConnect,
+  clientDisconnect,
+  clientSend,
+  packetSend,
 }
 ```
 ### PuleNetChannelType
 ```c
 enum {
-  PuleNetChannelType_reliable,
-  PuleNetChannelType_unreliable,
-  PuleNetChannelType_unsequenced,
+  reliable,
+  unreliable,
+  unsequenced,
 }
 ```
 

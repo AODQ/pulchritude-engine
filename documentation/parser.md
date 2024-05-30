@@ -34,26 +34,26 @@ struct {
 ### PuleErrorParser
 ```c
 enum {
-  PuleErrorParser_none,
-  PuleErrorParser_astPoisoned,
+  none,
+  astPoisoned,
 }
 ```
 ### PuleParserNodeType
 ```c
 enum {
-  PuleParserNodeType_regex,
-  PuleParserNodeType_rule,
-  PuleParserNodeType_group,
-  PuleParserNodeType_sequence,
+  regex,
+  rule,
+  group,
+  sequence,
 }
 ```
 ### PuleParserNodeRepeat
 ```c
 enum {
-  PuleParserNodeRepeat_zeroOrMore,
-  PuleParserNodeRepeat_oneOrMore,
-  PuleParserNodeRepeat_optional,
-  PuleParserNodeRepeat_once,
+  zeroOrMore,
+  oneOrMore,
+  optional,
+  once,
 }
 ```
 

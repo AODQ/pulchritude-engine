@@ -1,53 +1,70 @@
 /* auto generated file math */
 #pragma once
-#include <pulchritude/core.h>
+#include "core.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// enum
+
+// entities
+
 // structs
-typedef struct {
+struct PuleF32v2;
+struct PuleF32v3;
+struct PuleF32v4;
+struct PuleI32v2;
+struct PuleI32v3;
+struct PuleI32v4;
+struct PuleU32v2;
+struct PuleU32v3;
+struct PuleU32v4;
+struct PuleF32m33;
+struct PuleF32m44;
+struct PuleF32q;
+
+typedef struct PuleF32v2 {
   float x;
   float y;
 } PuleF32v2;
-typedef struct {
+typedef struct PuleF32v3 {
   float x;
   float y;
   float z;
 } PuleF32v3;
-typedef struct {
+typedef struct PuleF32v4 {
   float x;
   float y;
   float z;
   float w;
 } PuleF32v4;
-typedef struct {
+typedef struct PuleI32v2 {
   int32_t x;
   int32_t y;
 } PuleI32v2;
-typedef struct {
+typedef struct PuleI32v3 {
   int32_t x;
   int32_t y;
   int32_t z;
 } PuleI32v3;
-typedef struct {
+typedef struct PuleI32v4 {
   int32_t x;
   int32_t y;
   int32_t z;
   int32_t w;
 } PuleI32v4;
-typedef struct {
+typedef struct PuleU32v2 {
   uint32_t x;
   uint32_t y;
 } PuleU32v2;
-typedef struct {
+typedef struct PuleU32v3 {
   uint32_t x;
   uint32_t y;
   uint32_t z;
 } PuleU32v3;
-typedef struct {
+typedef struct PuleU32v4 {
   uint32_t x;
   uint32_t y;
   uint32_t z;
@@ -67,23 +84,19 @@ which compose vectors
 for example, the 'translation' part of a view matrix would be stored at
    <12, 13, 14, 15>
  */
-typedef struct {
-  float [9] elem;
+typedef struct PuleF32m33 {
+  float elem[9] ;
 } PuleF32m33;
-typedef struct {
-  float [16] elem;
+typedef struct PuleF32m44 {
+  float elem[16] ;
 } PuleF32m44;
 /*  quaternion  */
-typedef struct {
+typedef struct PuleF32q {
   float x;
   float y;
   float z;
   float w;
 } PuleF32q;
-
-// enum
-
-// entities
 
 // functions
 PULE_exportFn PuleF32v2 puleF32v2(float identity);

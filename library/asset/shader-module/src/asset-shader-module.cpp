@@ -1,7 +1,7 @@
-#include <pulchritude-asset/shader-module.h>
+#include <pulchritude/asset-shader-module.h>
 
-#include <pulchritude-file/file.h>
-#include <pulchritude-time/time.h>
+#include <pulchritude/file.h>
+#include <pulchritude/time.h>
 
 #include <string>
 #include <unordered_map>

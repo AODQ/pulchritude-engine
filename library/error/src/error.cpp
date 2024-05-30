@@ -1,6 +1,6 @@
-#include <pulchritude-error/error.h>
+#include <pulchritude/error.h>
 
-#include <pulchritude-log/log.h>
+#include <pulchritude/log.h>
 
 #include <string>
 

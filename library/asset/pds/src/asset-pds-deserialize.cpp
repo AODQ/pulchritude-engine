@@ -1,6 +1,6 @@
-#include <pulchritude-asset/pds.h>
+#include <pulchritude/asset-pds.h>
 
-#include <pulchritude-core/core.h>
+#include <pulchritude/core.h>
 
 #include <string>
 #include <vector>

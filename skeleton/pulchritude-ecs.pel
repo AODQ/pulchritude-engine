@@ -3,8 +3,8 @@
 @include `math`;
 
 @enum PuleErrorEcs {
-  PuleErrorEcs_none;
-  PuleErrorEcs_queryFailed;
+  none;
+  queryFailed;
 };
 
 @entity PuleEcsWorld;
@@ -147,9 +147,9 @@
 @fn puleEcsIteratorUserData(iterator : PuleEcsIterator) void ptr;
 
 @enum PuleEcsSystemCallbackFrequency {
-  PuleEcsSystemCallbackFrequency_preUpdate;
-  PuleEcsSystemCallbackFrequency_onUpdate;
-  PuleEcsSystemCallbackFrequency_postUpdate;
+  preUpdate;
+  onUpdate;
+  postUpdate;
 };
 
 @struct PuleEcsSystemComponentDesc {
@@ -201,7 +201,7 @@
   world : PuleEcsWorld,
   entity : PuleEcsEntity,
   component : PuleEcsComponent
-) ptr const #`fetches the underlying-data for the component of an entity`;
+) void const ptr #`fetches the underlying-data for the component of an entity`;
 
 @struct PuleEcsQuery {
   @field id : uint64_t;

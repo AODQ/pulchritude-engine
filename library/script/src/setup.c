@@ -1,6 +1,6 @@
 #include "setup.h"
 
-#include "pulchritude-core/core.h"
+#include "pulchritude/core.h"
 
 #include "lua.h"
 #include "lualib.h"

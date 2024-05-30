@@ -55,24 +55,24 @@ struct {
 ### PuleErrorBecs
 ```c
 enum {
-  PuleErrorBecs_none,
+  none,
 }
 ```
 ### PuleBecsSystemCallbackFrequency
 ```c
 enum {
-  PuleBecsSystemCallbackFrequency_vsync,
-  PuleBecsSystemCallbackFrequency_unlimited,
-  PuleBecsSystemCallbackFrequency_fixed,
+  vsync,
+  unlimited,
+  fixed,
 }
 ```
 ### PuleBecsSystemInputRelation
 ```c
 enum {
   /*  system uses current frame  */
-  PuleBecsSystemInputRelation_current,
+  current,
   /*  system uses previous frame  */
-  PuleBecsSystemInputRelation_previous,
+  previous,
 }
 ```
 
