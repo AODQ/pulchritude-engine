@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace { // error
-PuleError err = { {}, 0, nullptr, 0 };
+PuleError err = { {}, 0, nullptr, 0, 0 };
 }
 
 namespace { // command registry
@@ -62,7 +62,7 @@ enum class ApplyToActionHistory { Yes, No };
 
 // where ./application <arguments>,
 // arguments = <commands> <parameters>
-void parseArguments(
+bool parseArguments(
   PuleDsValue const cliArgumentLayout,
   PuleDsValue const userArguments,
   ActionDirection const actionDirection,
@@ -105,7 +105,7 @@ void parseArguments(
   auto const command = commandRegistry.find(userCommandHash);
   if (command == commandRegistry.end()) {
     puleLogError("failed to locate command: '%s'", userCommandJoined.c_str());
-    return;
+    return false;
   }
 
   PuleAllocator const allocator = puleAllocateDefault();
@@ -133,7 +133,7 @@ void parseArguments(
         actionDirection == ActionDirection::Forward ? "forward" : "reverse",
         command->second.label.c_str()
       );
-      return;
+      return false;
     }
     // TODO after command succeeds, add to commands list
     PuleDsValue const commandsFileValue = (
@@ -143,7 +143,7 @@ void parseArguments(
         &err
       )
     );
-    if (puleErrorConsume(&err)) { return; }
+    if (puleErrorConsume(&err)) { return false; }
 
     puleLogDebug("----- assets/puldata/commands.pds ------");
     if (*puleLogDebugEnabled()) {
@@ -219,7 +219,7 @@ void parseArguments(
       );
     }
     puleDsDestroy(commandsFileValue);
-    if (puleErrorConsume(&err)) { return; }
+    if (puleErrorConsume(&err)) { return false; }
   }
   else
   if (command->second.apply) {
@@ -231,13 +231,7 @@ void parseArguments(
       &err
     );
 
-    if (puleErrorConsume(&err) || !result) {
-      puleLogError(
-        "failed to apply action '%s'",
-        command->second.label.c_str()
-      );
-      return;
-    }
+    if (puleErrorConsume(&err) || !result) { return false; }
 
     // if the user requests to apply more actions, (ex undo/redo), apply them
     PuleDsValue const commandsToApply = (
@@ -260,12 +254,16 @@ void parseArguments(
         commandIt < commandsToApplyAsArray.length;
         ++ commandIt
       ) {
-        parseArguments(
-          cliArgumentLayout,
-          commandsToApplyAsArray.values[commandIt],
-          newActionDirection,
-          ApplyToActionHistory::No
-        );
+        if (
+          !parseArguments(
+            cliArgumentLayout,
+            commandsToApplyAsArray.values[commandIt],
+            newActionDirection,
+            ApplyToActionHistory::No
+          )
+        ) {
+          return false;
+        }
       }
     }
     puleDsDestroy(mainValue);
@@ -449,12 +447,15 @@ int32_t main(
   // check if user passed anything in
   if (userRequestedHelp) {}
   else if (userArgs.id != 0) {
-    parseArguments(
-      cliArgumentLayout,
-      userArgs,
-      ActionDirection::Forward,
-      ApplyToActionHistory::Yes
+    bool result = (
+      parseArguments(
+        cliArgumentLayout,
+        userArgs,
+        ActionDirection::Forward,
+        ApplyToActionHistory::Yes
+      )
     );
+    if (!result) return 1;
   } else {
     puleLog("no parameters passed in");
   }

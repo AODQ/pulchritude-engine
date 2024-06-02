@@ -262,7 +262,6 @@ int32_t main(
     }
     // this breaks into application parameters
     if (label == "--") {
-      puleLog("breaking out into application parameters");
       parseVarargs = true;
       continue;
     }
@@ -288,10 +287,6 @@ int32_t main(
     });
   }
   userVarargs.emplace_back(""); // null terminator for array
-  puleLog("user varargs:");
-  for (auto & uv : userVarargs) {
-    puleLog("\t>%s", uv.c_str());
-  }
 
   bool isGuiEditor = false;
   bool isEarlyExit = false;
@@ -379,7 +374,6 @@ int32_t main(
   );
   std::vector<PluginInfo> componentUpdateablePlugins;
   for (size_t it = 0; it < componentPlugins.size(); ++ it) {
-    puleLog("found component plugin '%s'", componentPlugins[it].name.c_str());
     if (componentPlugins[it].updateFn) {
       componentUpdateablePlugins.emplace_back(componentPlugins[it]);
     }
