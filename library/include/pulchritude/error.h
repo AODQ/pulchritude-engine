@@ -75,14 +75,14 @@ PULE_exportFn PuleError puleError();
 /* 
     deallocates memory used by error, does not log
  */
-PULE_exportFn void puleErrorDestroy(struct PuleError * error);
+PULE_exportFn void puleErrorDestroy(PuleError * error);
 /* 
     consumes error , logging the error appropiately with puleLog, returning the
     ID of the error, and deallocating the description
  */
-PULE_exportFn uint32_t puleErrorConsume(struct PuleError * error);
-PULE_exportFn bool puleErrorExists(struct PuleError * error);
-PULE_exportFn void puleErrorPropagate(struct PuleError * source, PuleError newError);
+PULE_exportFn uint32_t puleErrorConsume(PuleError * error);
+PULE_exportFn bool puleErrorExists(PuleError * error);
+PULE_exportFn void puleErrorPropagate(PuleError * source, PuleError newError);
 
 #ifdef __cplusplus
 } // extern C

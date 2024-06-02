@@ -13,6 +13,9 @@ PuleString puleStringCopy(
   PuleAllocator const allocator,
   PuleStringView const base
 ) {
+  if (base.len == 0 || base.contents == nullptr) {
+    return { .contents = nullptr, .len = 0, .allocator = allocator, };
+  }
   PuleAllocateInfo allocateInfo = { .numBytes = base.len+1, };
   char * data = (char *)(puleAllocate(allocator, allocateInfo));
   memcpy(data, base.contents, base.len);

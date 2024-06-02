@@ -92,12 +92,23 @@ puleFileOpen(
 ) PuleFile;
 ```
 ### puleFileDump
+ deprecated 
 ```c
 puleFileDump(
   filename : PuleStringView,
   dataMode : PuleFileDataMode,
   error : PuleError ptr
 ) PuleString;
+```
+### puleFileDumpContents
+ dumps contents of file at path to an allocated buffer 
+```c
+puleFileDumpContents(
+  allocator : PuleAllocator,
+  filename : PuleStringView,
+  dataMode : PuleFileDataMode,
+  error : PuleError ptr
+) PuleBuffer;
 ```
 ### puleFileClose
 ```c

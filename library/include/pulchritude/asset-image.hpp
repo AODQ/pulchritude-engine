@@ -1,6 +1,6 @@
 /* auto generated file asset-image */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "asset-image.h"
 #include "stream.hpp"
@@ -28,7 +28,7 @@ struct AssetImage {
   inline uint32_t height() {
     return puleAssetImageHeight(this->_handle);
   }
-  static inline AssetImage loadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleAssetImageFormat requestedFormat, struct PuleError * error) {
+  static inline AssetImage loadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleAssetImageFormat requestedFormat, PuleError * error) {
     return { ._handle = puleAssetImageLoadFromStream(allocator, imageSource, requestedFormat, error),};
   }
 };

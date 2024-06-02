@@ -1,6 +1,6 @@
 /* auto generated file engine-language */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "engine-language.h"
 #include "error.hpp"
@@ -15,7 +15,7 @@ struct ELModule {
   inline void destroy() {
     return puleELModuleDestroy(this->_handle);
   }
-  static inline ELModule create(PuleStreamRead stream, PuleStringView name, struct PuleError * error) {
+  static inline ELModule create(PuleStreamRead stream, PuleStringView name, PuleError * error) {
     return { ._handle = puleELModuleCreate(stream, name, error),};
   }
 };

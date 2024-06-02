@@ -1,6 +1,6 @@
 /* auto generated file shape */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "shape.h"
 #include "array.hpp"

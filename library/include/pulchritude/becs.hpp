@@ -1,6 +1,6 @@
 /* auto generated file becs */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "becs.h"
 #include "error.hpp"

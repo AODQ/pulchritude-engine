@@ -1,6 +1,6 @@
 /* auto generated file asset-script-task-graph */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "asset-script-task-graph.h"
 #include "allocator.hpp"

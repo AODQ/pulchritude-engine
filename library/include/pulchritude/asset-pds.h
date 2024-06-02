@@ -56,25 +56,25 @@ typedef struct PuleAssetPdsDeserializeInfo {
 } PuleAssetPdsDeserializeInfo;
 
 // functions
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromStream(PuleAllocator allocator, PuleStreamRead stream, struct PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromStream(PuleAllocator allocator, PuleStreamRead stream, PuleError * error);
 /* 
   convenience function, takes over management of the input stream
  */
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(PuleAllocator allocator, PuleStreamRead rvalStream, struct PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromRvalStream(PuleAllocator allocator, PuleStreamRead rvalStream, PuleError * error);
 /* 
   convenience function, combined file+stream but disables PDS streaming
  */
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(PuleAllocator allocator, PuleStringView filename, struct PuleError * error);
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromString(PuleAllocator allocator, PuleStringView contents, struct PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromFile(PuleAllocator allocator, PuleStringView filename, PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromString(PuleAllocator allocator, PuleStringView contents, PuleError * error);
 PULE_exportFn void puleAssetPdsWriteToStream(PuleStreamWrite stream, PuleAssetPdsWriteInfo writeInfo);
 /* convenience function using file+stream but disables PDS streaming */
-PULE_exportFn void puleAssetPdsWriteToFile(PuleDsValue head, PuleStringView filename, struct PuleError * error);
+PULE_exportFn void puleAssetPdsWriteToFile(PuleDsValue head, PuleStringView filename, PuleError * error);
 /* 
   convenience function using puleStreamStdoutWrite
  */
 PULE_exportFn void puleAssetPdsWriteToStdout(PuleDsValue head);
-PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(PuleAssetPdsCommandLineArgumentsInfo info, struct PuleError * error);
-PULE_exportFn void puleAssetPdsDeserialize(PuleAssetPdsDeserializeInfo info, struct PuleError * error);
+PULE_exportFn PuleDsValue puleAssetPdsLoadFromCommandLineArguments(PuleAssetPdsCommandLineArgumentsInfo info, PuleError * error);
+PULE_exportFn void puleAssetPdsDeserialize(PuleAssetPdsDeserializeInfo info, PuleError * error);
 
 #ifdef __cplusplus
 } // extern C

@@ -1,6 +1,6 @@
 /* auto generated file platform */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "platform.h"
 #include "error.hpp"
@@ -55,7 +55,7 @@ struct Platform {
   inline void cursorShow() {
     return pulePlatformCursorShow(this->_handle);
   }
-  static inline Platform create(PulePlatformCreateInfo info, struct PuleError * error) {
+  static inline Platform create(PulePlatformCreateInfo info, PuleError * error) {
     return { ._handle = pulePlatformCreate(info, error),};
   }
 };

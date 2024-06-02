@@ -1,6 +1,6 @@
 /* auto generated file tui */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "tui.h"
 #include "math.hpp"

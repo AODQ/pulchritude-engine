@@ -27,5 +27,6 @@
 `;
 
 @fn puleAllocate(_ : PuleAllocator, _ : PuleAllocateInfo) void ptr;
+@fn puleMalloc(allocator : PuleAllocator, numBytes : size_t) void ptr;
 @fn puleReallocate(_ : PuleAllocator, _ : PuleReallocateInfo) void ptr;
 @fn puleDeallocate(_ : PuleAllocator, allocAddress : void ptr);

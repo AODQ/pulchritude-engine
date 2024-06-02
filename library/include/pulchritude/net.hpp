@@ -1,6 +1,6 @@
 /* auto generated file net */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "net.h"
 #include "array.hpp"
@@ -20,19 +20,19 @@ struct NetHost {
   inline uint64_t pollConnection() {
     return puleNetHostPollConnection(this->_handle);
   }
-  inline uint32_t poll(uint32_t maxPacketsToReceive, struct PuleNetPacketReceive * packets, struct PuleError * error) {
+  inline uint32_t poll(uint32_t maxPacketsToReceive, PuleNetPacketReceive * packets, PuleError * error) {
     return puleNetHostPoll(this->_handle, maxPacketsToReceive, packets, error);
   }
-  inline void sendPacket(uint64_t clientUuid, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error) {
+  inline void sendPacket(uint64_t clientUuid, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error) {
     return puleNetHostSendPacket(this->_handle, clientUuid, channel, lane, packet, error);
   }
-  inline void broadcastPacket(PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error) {
+  inline void broadcastPacket(PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error) {
     return puleNetHostBroadcastPacket(this->_handle, channel, lane, packet, error);
   }
   inline PuleNetStreamTransferUpload uploadStream(uint64_t clientUuid, PuleStreamRead stream, uint32_t uploadStreamLane) {
     return puleNetHostUploadStream(this->_handle, clientUuid, stream, uploadStreamLane);
   }
-  static inline NetHost create(PuleNetHostCreateInfo ci, struct PuleError * error) {
+  static inline NetHost create(PuleNetHostCreateInfo ci, PuleError * error) {
     return { ._handle = puleNetHostCreate(ci, error),};
   }
 };
@@ -43,13 +43,13 @@ struct NetHost {
   inline uint64_t pollConnection(pule::NetHost self) {
     return puleNetHostPollConnection(self._handle);
   }
-  inline uint32_t poll(pule::NetHost self, uint32_t maxPacketsToReceive, struct PuleNetPacketReceive * packets, struct PuleError * error) {
+  inline uint32_t poll(pule::NetHost self, uint32_t maxPacketsToReceive, PuleNetPacketReceive * packets, PuleError * error) {
     return puleNetHostPoll(self._handle, maxPacketsToReceive, packets, error);
   }
-  inline void sendPacket(pule::NetHost self, uint64_t clientUuid, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error) {
+  inline void sendPacket(pule::NetHost self, uint64_t clientUuid, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error) {
     return puleNetHostSendPacket(self._handle, clientUuid, channel, lane, packet, error);
   }
-  inline void broadcastPacket(pule::NetHost self, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error) {
+  inline void broadcastPacket(pule::NetHost self, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error) {
     return puleNetHostBroadcastPacket(self._handle, channel, lane, packet, error);
   }
   inline PuleNetStreamTransferUpload uploadStream(pule::NetHost self, uint64_t clientUuid, PuleStreamRead stream, uint32_t uploadStreamLane) {
@@ -67,22 +67,22 @@ struct NetClient {
   inline bool connected() {
     return puleNetClientConnected(this->_handle);
   }
-  inline uint32_t poll(uint32_t maxPacketsToReceive, struct PuleNetPacketReceive * packets, struct PuleError * error) {
+  inline uint32_t poll(uint32_t maxPacketsToReceive, PuleNetPacketReceive * packets, PuleError * error) {
     return puleNetClientPoll(this->_handle, maxPacketsToReceive, packets, error);
   }
-  inline void sendPacket(PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error) {
+  inline void sendPacket(PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error) {
     return puleNetClientSendPacket(this->_handle, channel, lane, packet, error);
   }
-  inline PuleNetStreamTransferDownload downloadStreamCheck(uint32_t packetsLength, struct PuleNetPacketReceive * packets, uint32_t uploadStreamLane, PuleStreamWrite streamWriter) {
+  inline PuleNetStreamTransferDownload downloadStreamCheck(uint32_t packetsLength, PuleNetPacketReceive * packets, uint32_t uploadStreamLane, PuleStreamWrite streamWriter) {
     return puleNetClientDownloadStreamCheck(this->_handle, packetsLength, packets, uploadStreamLane, streamWriter);
   }
   inline bool downloadStreamExists(PuleNetStreamTransferDownload transfer) {
     return puleNetClientDownloadStreamExists(this->_handle, transfer);
   }
-  inline bool downloadStreamContinue(PuleNetStreamTransferDownload transfer, uint32_t packetsLength, struct PuleNetPacketReceive * packets) {
+  inline bool downloadStreamContinue(PuleNetStreamTransferDownload transfer, uint32_t packetsLength, PuleNetPacketReceive * packets) {
     return puleNetClientDownloadStreamContinue(this->_handle, transfer, packetsLength, packets);
   }
-  static inline NetClient create(PuleNetClientCreateInfo ci, struct PuleError * error) {
+  static inline NetClient create(PuleNetClientCreateInfo ci, PuleError * error) {
     return { ._handle = puleNetClientCreate(ci, error),};
   }
 };
@@ -93,19 +93,19 @@ struct NetClient {
   inline bool connected(pule::NetClient self) {
     return puleNetClientConnected(self._handle);
   }
-  inline uint32_t poll(pule::NetClient self, uint32_t maxPacketsToReceive, struct PuleNetPacketReceive * packets, struct PuleError * error) {
+  inline uint32_t poll(pule::NetClient self, uint32_t maxPacketsToReceive, PuleNetPacketReceive * packets, PuleError * error) {
     return puleNetClientPoll(self._handle, maxPacketsToReceive, packets, error);
   }
-  inline void sendPacket(pule::NetClient self, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error) {
+  inline void sendPacket(pule::NetClient self, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error) {
     return puleNetClientSendPacket(self._handle, channel, lane, packet, error);
   }
-  inline PuleNetStreamTransferDownload downloadStreamCheck(pule::NetClient self, uint32_t packetsLength, struct PuleNetPacketReceive * packets, uint32_t uploadStreamLane, PuleStreamWrite streamWriter) {
+  inline PuleNetStreamTransferDownload downloadStreamCheck(pule::NetClient self, uint32_t packetsLength, PuleNetPacketReceive * packets, uint32_t uploadStreamLane, PuleStreamWrite streamWriter) {
     return puleNetClientDownloadStreamCheck(self._handle, packetsLength, packets, uploadStreamLane, streamWriter);
   }
   inline bool downloadStreamExists(pule::NetClient self, PuleNetStreamTransferDownload transfer) {
     return puleNetClientDownloadStreamExists(self._handle, transfer);
   }
-  inline bool downloadStreamContinue(pule::NetClient self, PuleNetStreamTransferDownload transfer, uint32_t packetsLength, struct PuleNetPacketReceive * packets) {
+  inline bool downloadStreamContinue(pule::NetClient self, PuleNetStreamTransferDownload transfer, uint32_t packetsLength, PuleNetPacketReceive * packets) {
     return puleNetClientDownloadStreamContinue(self._handle, transfer, packetsLength, packets);
   }
 namespace pule {

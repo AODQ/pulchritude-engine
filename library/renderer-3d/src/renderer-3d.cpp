@@ -74,7 +74,7 @@
 //    case PuleAssetMeshAttributeComponentDataType_u8:
 //      return PuleGpuAttributeDataType_unsignedByte;
 //    case PuleAssetMeshAttributeComponentDataType_f32:
-//      return PuleGpuAttributeDataType_float;
+//      return PuleGpuAttributeDataType_f32;
 //    case PuleAssetMeshAttributeComponentDataType_u16:
 //    case PuleAssetMeshAttributeComponentDataType_u32:
 //    case PuleAssetMeshAttributeComponentDataType_i8:

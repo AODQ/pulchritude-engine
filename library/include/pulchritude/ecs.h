@@ -86,7 +86,7 @@ typedef struct PuleEcsSystemComponentDesc {
 typedef struct PuleEcsSystemCreateInfo {
   char const * label;
   size_t componentCount;
-  struct PuleEcsSystemComponentDesc * components;
+  PuleEcsSystemComponentDesc * components;
   void(* callback)(PuleEcsIterator);
   PuleEcsSystemCallbackFrequency callbackFrequency;
 } PuleEcsSystemCreateInfo;
@@ -111,7 +111,7 @@ PULE_exportFn void puleEcsComponentIterateAll(PuleEcsComponentIterateAllCallback
 PULE_exportFn size_t puleEcsIteratorEntityCount(PuleEcsIterator iterator);
 PULE_exportFn size_t puleEcsIteratorRelativeOffset(PuleEcsIterator iterator);
 PULE_exportFn void * puleEcsIteratorQueryComponents(PuleEcsIterator iterator, size_t componentIndex, size_t componentByteLength);
-PULE_exportFn struct PuleEcsEntity * puleEcsIteratorQueryEntities(PuleEcsIterator iterator);
+PULE_exportFn PuleEcsEntity * puleEcsIteratorQueryEntities(PuleEcsIterator iterator);
 PULE_exportFn PuleEcsWorld puleEcsIteratorWorld(PuleEcsIterator iterator);
 PULE_exportFn PuleEcsSystem puleEcsIteratorSystem(PuleEcsIterator iterator);
 PULE_exportFn void * puleEcsIteratorUserData(PuleEcsIterator iterator);
@@ -123,8 +123,8 @@ PULE_exportFn void puleEcsEntityDestroy(PuleEcsWorld world, PuleEcsEntity entity
 PULE_exportFn void puleEcsEntityAttachComponent(PuleEcsWorld world, PuleEcsEntity entity, PuleEcsComponent component, void const * nullableInitialData);
 /* fetches the underlying-data for the component of an entity */
 PULE_exportFn void const * puleEcsEntityComponentData(PuleEcsWorld world, PuleEcsEntity entity, PuleEcsComponent component);
-PULE_exportFn PuleEcsQuery puleEcsQueryByComponent(PuleEcsWorld world, struct PuleEcsComponent * componentList, size_t componentListSize, struct PuleError * error);
-PULE_exportFn PuleEcsQuery puleEcsQueryAllEntities(PuleEcsWorld world, struct PuleError * error);
+PULE_exportFn PuleEcsQuery puleEcsQueryByComponent(PuleEcsWorld world, PuleEcsComponent * componentList, size_t componentListSize, PuleError * error);
+PULE_exportFn PuleEcsQuery puleEcsQueryAllEntities(PuleEcsWorld world, PuleError * error);
 PULE_exportFn void puleEcsQueryDestroy(PuleEcsQuery query);
 PULE_exportFn PuleEcsQueryIterator puleEcsQueryIterator(PuleEcsWorld world, PuleEcsQuery query);
 /*  returns .id=0 if finished  */

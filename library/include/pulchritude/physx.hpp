@@ -1,6 +1,6 @@
 /* auto generated file physx */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "physx.h"
 #include "math.hpp"

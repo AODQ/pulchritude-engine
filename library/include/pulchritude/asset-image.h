@@ -38,7 +38,7 @@ typedef struct PuleAssetImage { uint64_t id; } PuleAssetImage;
 
 // functions
 PULE_exportFn PuleAssetImageSupportFlag puleAssetImageExtensionSupported(char const * extension);
-PULE_exportFn PuleAssetImage puleAssetImageLoadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleAssetImageFormat requestedFormat, struct PuleError * error);
+PULE_exportFn PuleAssetImage puleAssetImageLoadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleAssetImageFormat requestedFormat, PuleError * error);
 PULE_exportFn void puleAssetImageDestroy(PuleAssetImage image);
 PULE_exportFn void * puleAssetImageDecodedData(PuleAssetImage image);
 PULE_exportFn size_t puleAssetImageDecodedDataLength(PuleAssetImage image);

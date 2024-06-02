@@ -66,18 +66,18 @@ typedef struct PuleNetClientCreateInfo {
 
 // functions
 PULE_exportFn PuleNetAddress puleNetAddressLocalhost(uint16_t port);
-PULE_exportFn PuleNetHost puleNetHostCreate(PuleNetHostCreateInfo ci, struct PuleError * error);
+PULE_exportFn PuleNetHost puleNetHostCreate(PuleNetHostCreateInfo ci, PuleError * error);
 PULE_exportFn void puleNetHostDestroy(PuleNetHost host);
 /*  returns client uuid, 0 if no connection  */
 PULE_exportFn uint64_t puleNetHostPollConnection(PuleNetHost host);
-PULE_exportFn uint32_t puleNetHostPoll(PuleNetHost host, uint32_t maxPacketsToReceive, struct PuleNetPacketReceive * packets, struct PuleError * error);
-PULE_exportFn void puleNetHostSendPacket(PuleNetHost host, uint64_t clientUuid, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error);
-PULE_exportFn void puleNetHostBroadcastPacket(PuleNetHost host, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error);
-PULE_exportFn PuleNetClient puleNetClientCreate(PuleNetClientCreateInfo ci, struct PuleError * error);
+PULE_exportFn uint32_t puleNetHostPoll(PuleNetHost host, uint32_t maxPacketsToReceive, PuleNetPacketReceive * packets, PuleError * error);
+PULE_exportFn void puleNetHostSendPacket(PuleNetHost host, uint64_t clientUuid, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error);
+PULE_exportFn void puleNetHostBroadcastPacket(PuleNetHost host, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error);
+PULE_exportFn PuleNetClient puleNetClientCreate(PuleNetClientCreateInfo ci, PuleError * error);
 PULE_exportFn void puleNetClientDestroy(PuleNetClient client);
 PULE_exportFn bool puleNetClientConnected(PuleNetClient client);
-PULE_exportFn uint32_t puleNetClientPoll(PuleNetClient client, uint32_t maxPacketsToReceive, struct PuleNetPacketReceive * packets, struct PuleError * error);
-PULE_exportFn void puleNetClientSendPacket(PuleNetClient client, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, struct PuleError * error);
+PULE_exportFn uint32_t puleNetClientPoll(PuleNetClient client, uint32_t maxPacketsToReceive, PuleNetPacketReceive * packets, PuleError * error);
+PULE_exportFn void puleNetClientSendPacket(PuleNetClient client, PuleNetChannelType channel, uint32_t lane, PuleBufferView packet, PuleError * error);
 /* 
 You must not send packets on the specified lane until the stream is finished
 Only one transfer per-stream can be done at a time
@@ -88,13 +88,13 @@ PULE_exportFn PuleNetStreamTransferUpload puleNetHostUploadStream(PuleNetHost ho
 to support this on client-side, you need to pass in all packets received, and
 the stream transfer will communicate on the specified dedicated lane
  */
-PULE_exportFn PuleNetStreamTransferDownload puleNetClientDownloadStreamCheck(PuleNetClient client, uint32_t packetsLength, struct PuleNetPacketReceive * packets, uint32_t uploadStreamLane, PuleStreamWrite streamWriter);
+PULE_exportFn PuleNetStreamTransferDownload puleNetClientDownloadStreamCheck(PuleNetClient client, uint32_t packetsLength, PuleNetPacketReceive * packets, uint32_t uploadStreamLane, PuleStreamWrite streamWriter);
 /*  returns true if the stream exists  */
 PULE_exportFn bool puleNetClientDownloadStreamExists(PuleNetClient client, PuleNetStreamTransferDownload transfer);
 /* 
   returns true if more data to consume
  */
-PULE_exportFn bool puleNetClientDownloadStreamContinue(PuleNetClient client, PuleNetStreamTransferDownload transfer, uint32_t packetsLength, struct PuleNetPacketReceive * packets);
+PULE_exportFn bool puleNetClientDownloadStreamContinue(PuleNetClient client, PuleNetStreamTransferDownload transfer, uint32_t packetsLength, PuleNetPacketReceive * packets);
 
 #ifdef __cplusplus
 } // extern C

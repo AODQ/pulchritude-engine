@@ -188,9 +188,9 @@ typedef struct PuleInputRawTextCallbackCreateInfo {
 } PuleInputRawTextCallbackCreateInfo;
 
 // functions
-PULE_exportFn void pulePlatformInitialize(struct PuleError * error);
+PULE_exportFn void pulePlatformInitialize(PuleError * error);
 PULE_exportFn void pulePlatformShutdown();
-PULE_exportFn PulePlatform pulePlatformCreate(PulePlatformCreateInfo info, struct PuleError * error);
+PULE_exportFn PulePlatform pulePlatformCreate(PulePlatformCreateInfo info, PuleError * error);
 PULE_exportFn void pulePlatformDestroy(PulePlatform window);
 PULE_exportFn bool pulePlatformShouldExit(PulePlatform window);
 /* 

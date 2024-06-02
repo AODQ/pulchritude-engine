@@ -57,7 +57,7 @@ typedef struct PuleBecsSystemCreateInfo {
   /* if callbackFrequency == fixed */
   size_t callbackFrequencyFixed;
   size_t bundleHistoryCount;
-  int32_t(* callback)(PuleBecsSystem, system, PuleBecsBundle, writeBundle, PuleBecsBundleHistory, readBundleHistory, struct PuleBecsBundle *, inputSystemReadBundles);
+  int32_t(* callback)(PuleBecsSystem, PuleBecsBundle, PuleBecsBundleHistory, PuleBecsBundle *, float);
 } PuleBecsSystemCreateInfo;
 typedef struct PuleBecsEntityQuery {
   PuleBecsSystem system;
@@ -66,8 +66,8 @@ typedef struct PuleBecsEntityQuery {
 } PuleBecsEntityQuery;
 typedef struct PuleBecsSystemInputRelationsCreateInfo {
   PuleBecsSystem system;
-  struct PuleBecsSystem * inputSystems;
-  struct PuleBecsSystemInputRelation * inputSystemRelations;
+  PuleBecsSystem * inputSystems;
+  PuleBecsSystemInputRelation * inputSystemRelations;
   size_t inputSystemCount;
   uint8_t threadGroup;
 } PuleBecsSystemInputRelationsCreateInfo;

@@ -71,6 +71,7 @@ uint32_t puleErrorConsume(PuleError * const error) {
     errorString += puleErrorPrettyPrint(errorIter);
     errorIter = errorIter->child;
   }
+  puleLog("Logging error consume");
   if (errorString.length() > 4) {
     puleLogError("%s", errorString.c_str()+4);
   }

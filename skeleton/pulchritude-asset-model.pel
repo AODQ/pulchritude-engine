@@ -1,0 +1,195 @@
+@include `allocator`;
+@include `asset-image`;
+@include `data-serializer`;
+@include `error`;
+@include `gpu`;
+@include `math`;
+@include `string`;
+
+@enum PuleErrorAssetModel {
+  none;
+  decode;
+};
+
+@struct PuleAssetModelLoadInfo {
+  @field allocator : PuleAllocator;
+  @field modelPath : PuleStringView;
+  @field modelSource : PuleDsValue #`doesn't destroy`;
+  @field loadBuffers : bool;
+  @field loadImages : bool;
+  @field error : PuleError ptr;
+};
+
+@fn puleAssetModelLoad(info : PuleAssetModelLoadInfo) PuleAssetModel;
+
+@struct PuleAssetModel {
+  @field allocator : PuleAllocator;
+  @field sceneLen : uint32_t;
+  @field scenes : PuleAssetModelScene ptr;
+  @field nodeLen : uint32_t;
+  @field nodes : PuleAssetModelNode ptr;
+  @field cameraLen : uint32_t;
+  @field cameras : PuleAssetModelCamera ptr;
+  @field meshLen : uint32_t;
+  @field meshes : PuleAssetModelMesh ptr;
+  @field materialLen : uint32_t;
+  @field materials : PuleAssetModelMaterial ptr;
+  @field skinLen : uint32_t;
+  @field skins : PuleAssetModelSkin ptr;
+  @field accessorLen : uint32_t;
+  @field accessors : PuleAssetModelAccessor ptr;
+  @field bufferViewLen : uint32_t;
+  @field bufferViews : PuleAssetModelBufferView ptr;
+  @field bufferLen : uint32_t;
+  @field buffers : PuleAssetModelBuffer ptr;
+  @field imageLen : uint32_t;
+  @field images : PuleAssetModelImage ptr;
+  @field textureLen : uint32_t;
+  @field textures : PuleAssetModelTexture ptr;
+};
+
+@struct PuleAssetModelScene {
+  @field nodeLen : uint32_t;
+  @field nodes : PuleAssetModelNode ptr ptr;
+  @field name : PuleString;
+};
+
+@struct PuleAssetModelNode {
+  @field camera : PuleAssetModelCamera ptr;
+  @field skin : PuleAssetModelSkin ptr;
+  @field mesh : PuleAssetModelMesh ptr;
+  @field childrenLen : uint32_t;
+  @field children : PuleAssetModelNode ptr ptr;
+  @field transform : PuleF32m44;
+  @field morphWeightLen : uint32_t;
+  @field morphWeights : float ptr;
+  @field name : PuleString;
+};
+
+
+@struct PuleAssetModelMesh {
+  @field primitiveLen : uint32_t;
+  @field primitives : PuleAssetModelMeshPrimitive ptr #` allocates data `;
+  @field weightLen : uint32_t;
+  @field weights : float ptr;
+  @field name : PuleString;
+};
+
+
+@enum PuleAssetModelAttribute {
+  index;
+  origin;
+  normal;
+  tangent;
+  uvcoord_0; uvcoord_1; uvcoord_2; uvcoord_3;
+  color_0; color_1; color_2; color_3;
+  joints_0; joints_1; joints_2; joints_3;
+  weights_0; weights_1; weights_2; weights_3;
+};
+
+@struct PuleAssetModelMeshPrimitive {
+  @field attributeAccessors :
+    PuleAssetModelAccessor ptr @arr[PuleAssetModelAttributeSize]
+  ;
+  @field material : PuleAssetModelMaterial ptr;
+  @field topology : PuleGpuDrawPrimitive;
+  @field morphTargetLen : uint32_t;
+  @field morphTargets : void ptr #` TODO `;
+};
+
+@struct PuleAssetModelCamera {
+  @field isPerspective : bool;
+  @field transform : PuleF32m44;
+  @field name : PuleString;
+};
+
+@enum PuleAssetModelElementType {
+  scalar;
+  vec2;
+  vec3;
+  vec4;
+  mat2;
+  mat3;
+  mat4;
+};
+
+@struct PuleAssetModelAccessor {
+  #` TODO sparse `
+  @field bufferView : PuleAssetModelBufferView ptr;
+  @field byteOffset : uint32_t;
+  @field dataType : PuleGpuAttributeDataType;
+  @field convertFixedToNormalized : bool;
+  @field elementCount : uint32_t;
+  @field elementType : PuleAssetModelElementType;
+  @field name : PuleString;
+};
+
+@struct PuleAssetModelSkin {
+  @field inverseBindMatrixAccessor : PuleAssetModelAccessor ptr;
+  @field rootSkeletonNode : PuleAssetModelNode ptr;
+  @field jointNodeIdxLen : uint32_t;
+  @field jointNodeIdxes : PuleAssetModelNode ptr;
+  @field name : PuleString;
+};
+
+@struct PuleAssetModelBufferView {
+  @field buffer : PuleAssetModelBuffer ptr;
+  @field byteOffset : uint32_t;
+  @field byteLen : uint32_t;
+  @field byteStride : uint32_t;
+  @field isIndexTarget : bool;
+  @field name : PuleString;
+};
+
+@struct PuleAssetModelBuffer {
+  @field resourceUri : PuleString;
+  @field dataView : PuleBufferView;
+  @field name : PuleString;
+};
+
+@struct PuleAssetModelMaterialPbrMetallicRoughness {
+  @field baseColorFactor : float @arr[4];
+  @field metallicFactor : float = 1.0f;
+  @field roughnessFactor : float = 1.0f;
+};
+
+@struct PuleAssetModelMaterial {
+  @field name : PuleString;
+  @field pbrMetallicRoughness : PuleAssetModelMaterialPbrMetallicRoughness;
+};
+@struct PuleAssetModelTexture {
+  @field sampler : PuleAssetModelSampler ptr;
+  @field srcImg : PuleAssetModelImage ptr;
+  @field name : PuleString;
+};
+@struct PuleAssetModelImage {
+  @field resourceUri : PuleString;
+  @field name : PuleString;
+  @field image : PuleAssetImage #`.id=0 if image not requested to load`;
+};
+
+@enum PuleAssetModelFilterMag {
+  nearest;
+  linear;
+};
+
+@enum PuleAssetModelFilterMin {
+  nearest;
+  nearestMipmapNearest;
+  nearestMipmapLinear;
+  linear;
+  linearMipmapNearest;
+  linearMipmapLinear;
+};
+
+@enum PuleAssetModelWrap {
+  clampToEdge; repeat; repeatMirrored;
+};
+
+@struct PuleAssetModelSampler {
+  @field filterMag : PuleAssetModelFilterMag;
+  @field filterMin : PuleAssetModelFilterMin;
+  @field wrapU : PuleAssetModelWrap;
+  @field wrapV : PuleAssetModelWrap;
+  @field name : PuleString;
+};

@@ -56,7 +56,7 @@ typedef struct PuleParserRuleNode {
 typedef struct PuleParserRuleCreateInfo {
   PuleParser parser;
   PuleStringView label;
-  struct PuleParserRuleNode * nodes;
+  PuleParserRuleNode * nodes;
   size_t nodeCount;
   bool ignoreWhitespace;
 } PuleParserRuleCreateInfo;
@@ -71,15 +71,15 @@ typedef struct PuleParserAstNode {
 // functions
 PULE_exportFn PuleParser puleParserCreate(PuleStringView name, PuleStringView commentStart, PuleStringView commentEnd);
 PULE_exportFn void puleParserDestroy(PuleParser parser);
-PULE_exportFn PuleParser puleParserCreateFromString(PuleStringView sv, PuleStringView name, PuleStringView commentStart, PuleStringView commentEnd, struct PuleError * error);
+PULE_exportFn PuleParser puleParserCreateFromString(PuleStringView sv, PuleStringView name, PuleStringView commentStart, PuleStringView commentEnd, PuleError * error);
 PULE_exportFn PuleParser puleParserCreateForDefaultExpressionGrammar();
 PULE_exportFn PuleParserRegexToken puleParserRegexTokenCreate(PuleParser parser, PuleStringView regex);
-PULE_exportFn PuleParserGroup puleParserGroupCreate(PuleParser parser, struct PuleParserRuleNode * nodes, size_t nodeCount);
+PULE_exportFn PuleParserGroup puleParserGroupCreate(PuleParser parser, PuleParserRuleNode * nodes, size_t nodeCount);
 PULE_exportFn PuleParserRule puleParserRuleCreate(PuleParserRuleCreateInfo createInfo);
-PULE_exportFn void puleParserRuleSetNodes(PuleParser parser, PuleParserRule rule, struct PuleParserRuleNode * nodes, size_t nodeCount);
+PULE_exportFn void puleParserRuleSetNodes(PuleParser parser, PuleParserRule rule, PuleParserRuleNode * nodes, size_t nodeCount);
 PULE_exportFn PuleParserRule puleParserRule(PuleParser parser, PuleStringView label);
 PULE_exportFn void puleParserDump(PuleParser parser);
-PULE_exportFn PuleParserAst puleParserAstCreate(PuleParser parser, PuleStringView string, PuleParserRule headRule, struct PuleError * error);
+PULE_exportFn PuleParserAst puleParserAstCreate(PuleParser parser, PuleStringView string, PuleParserRule headRule, PuleError * error);
 PULE_exportFn void puleParserAstDestroy(PuleParserAst ast);
 PULE_exportFn PuleParserAstNode puleParserAstRoot(PuleParserAst ast);
 PULE_exportFn PuleParserAstNode puleParserAstNodeChild(PuleParserAstNode node, size_t index);

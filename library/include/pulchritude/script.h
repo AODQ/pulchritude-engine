@@ -53,11 +53,11 @@ typedef struct PuleScriptModuleFileWatchReturn {
 // functions
 PULE_exportFn PuleScriptContext puleScriptContextCreate();
 PULE_exportFn void puleScriptContextDestroy(PuleScriptContext);
-PULE_exportFn PuleScriptModule puleScriptModuleCreateFromSource(PuleScriptContext context, PuleScriptModuleFromSourceCreateInfo createInfo, struct PuleError * error);
-PULE_exportFn void puleScriptModuleUpdateFromSource(PuleScriptContext context, PuleScriptModule scriptModule, PuleStringView scriptSource, struct PuleError * error);
-PULE_exportFn PuleScriptModule puleScriptModuleCreateFromBinary(PuleScriptContext context, PuleArrayView scriptBinary, struct PuleError * error);
+PULE_exportFn PuleScriptModule puleScriptModuleCreateFromSource(PuleScriptContext context, PuleScriptModuleFromSourceCreateInfo createInfo, PuleError * error);
+PULE_exportFn void puleScriptModuleUpdateFromSource(PuleScriptContext context, PuleScriptModule scriptModule, PuleStringView scriptSource, PuleError * error);
+PULE_exportFn PuleScriptModule puleScriptModuleCreateFromBinary(PuleScriptContext context, PuleArrayView scriptBinary, PuleError * error);
 PULE_exportFn void puleScriptModuleDestroy(PuleScriptContext context, PuleScriptModule scriptModule);
-PULE_exportFn void puleScriptModuleExecute(PuleScriptContext context, PuleScriptModule scriptModule, PuleStringView functionLabel, struct PuleError * error);
+PULE_exportFn void puleScriptModuleExecute(PuleScriptContext context, PuleScriptModule scriptModule, PuleStringView functionLabel, PuleError * error);
 /* 
   this is a global table that script can use to store variables, especially
   useful in between different script calls or environments As a simple example,
@@ -75,7 +75,7 @@ PULE_exportFn void puleScriptArrayF32Remove(PuleScriptArrayF32 arr, size_t index
 PULE_exportFn float puleScriptArrayF32At(PuleScriptArrayF32 arr, size_t index);
 PULE_exportFn size_t puleScriptArrayF32Length(PuleScriptArrayF32 arr);
 PULE_exportFn size_t puleScriptArrayF32ElementByteSize(PuleScriptArrayF32 arr);
-PULE_exportFn PuleScriptModuleFileWatchReturn puleScriptModuleFileWatch(PuleScriptContext context, PuleAllocator allocator, PuleStringView filename, PuleScriptDebugSymbols debug, struct PuleError * error);
+PULE_exportFn PuleScriptModuleFileWatchReturn puleScriptModuleFileWatch(PuleScriptContext context, PuleAllocator allocator, PuleStringView filename, PuleScriptDebugSymbols debug, PuleError * error);
 
 #ifdef __cplusplus
 } // extern C

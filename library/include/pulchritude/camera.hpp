@@ -1,6 +1,6 @@
 /* auto generated file camera */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "camera.h"
 #include "data-serializer.hpp"

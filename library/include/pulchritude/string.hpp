@@ -1,6 +1,6 @@
 /* auto generated file string */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "string.h"
 #include "allocator.hpp"

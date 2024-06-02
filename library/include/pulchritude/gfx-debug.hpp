@@ -1,6 +1,6 @@
 /* auto generated file gfx-debug */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "gfx-debug.h"
 #include "error.hpp"

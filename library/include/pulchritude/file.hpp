@@ -1,6 +1,6 @@
 /* auto generated file file */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "file.h"
 #include "allocator.hpp"
@@ -55,7 +55,7 @@ struct File {
   inline PuleStreamWrite streamWrite(PuleBufferViewMutable intermediateBuffer) {
     return puleFileStreamWrite(this->_handle, intermediateBuffer);
   }
-  static inline File open(PuleStringView filename, PuleFileDataMode dataMode, PuleFileOpenMode openMode, struct PuleError * error) {
+  static inline File open(PuleStringView filename, PuleFileDataMode dataMode, PuleFileOpenMode openMode, PuleError * error) {
     return { ._handle = puleFileOpen(filename, dataMode, openMode, error),};
   }
 };

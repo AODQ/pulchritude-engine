@@ -576,7 +576,7 @@ PuleDsValue pdsParseValue(
 
   // make sure all characters are digits
   for (auto ch : value) {
-    if (ch < '0' || ch > '9') {
+    if ((ch < '0' || ch > '9') && ch != '-') {
       PULE_error(
         PuleErrorAssetPds_decode,
         "could not parse int value from: '%s'", value.c_str()
@@ -972,7 +972,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
     );
 
     // check if optional
-    if (defaultValue.id == 0) { continue; }
+    if (puleDsMemberAsBool(obj, "opt")) { continue; }
 
     // check if user already supplied argument
     if (puleDsObjectMember(emitParametersValue, objLabel.contents).id != 0) {
@@ -982,7 +982,7 @@ PuleDsValue puleAssetPdsLoadFromCommandLineArguments(
     if (defaultValue.id == 0) {
       PULE_error(
         PuleErrorAssetPds_decode,
-        "layout for '%s' is optional but doesn't have a default value",
+        "layout for '%s' is non-optional, user must supply value",
         objLabel.contents
       );
       puleDsDestroy(emitValue);

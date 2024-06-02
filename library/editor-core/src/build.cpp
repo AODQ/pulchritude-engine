@@ -4,7 +4,7 @@
 #include <pulchritude/asset-pds.h>
 #include <pulchritude/core.h>
 #include <pulchritude/file.h>
-#include <pulchritude/string.h>
+#include <pulchritude/string.hpp>
 
 #include <array>
 #include <regex>
@@ -224,24 +224,37 @@ static void generateAssets(PuleDsValue const projectValue) {
         fragmentPath.contents, vertexPath.contents
       );
       // TODO this is pretty gross, but it works for now
-      system(
+
+      auto fp = popen(
         (
-          std::string("cd assets/")
-          + std::string("; glslangValidator -V -o ")
-          + std::string(fragmentPath.contents)
+          std::string("glslangValidator -V -o ")
+          + "assets/" + std::string(fragmentPath.contents)
           + std::string(".spv ")
-          + std::string(fragmentPath.contents)
-        ).c_str()
+          + "assets/" + std::string(fragmentPath.contents)
+          + " 2>&1"
+        ).c_str(),
+        "r"
       );
-      system(
+      char strbuff[1024];
+      while (fgets(strbuff, sizeof(strbuff), fp) != NULL) {
+        puleLog("%s", strbuff);
+      }
+      pclose(fp);
+      strbuff[0] = '\0';
+      fp = popen(
         (
-          std::string("cd assets/")
-          + std::string("; glslangValidator -V -o ")
-          + std::string(vertexPath.contents)
+          std::string("glslangValidator -V -o ")
+          + "assets/" + std::string(vertexPath.contents)
           + std::string(".spv ")
-          + std::string(vertexPath.contents)
-        ).c_str()
+          + "assets/" + std::string(vertexPath.contents)
+          + " 2>&1"
+        ).c_str(),
+        "r"
       );
+      while (fgets(strbuff, sizeof(strbuff), fp) != NULL) {
+        puleLog("%s", strbuff);
+      }
+      pclose(fp);
     }
   }
 }
@@ -479,7 +492,7 @@ static bool generateBuildHusk() {
   PuleDsValue const projectValue = (
     puleAssetPdsLoadFromFile(
       puleAllocateDefault(),
-      puleCStr("assets/project.pds"),
+      "assets/project.pds"_psv,
       &err
     )
   );
@@ -489,24 +502,24 @@ static bool generateBuildHusk() {
 
   // create husk directory
   puleLogDebug("Creating husk directory");
-  if (puleFilesystemPathExists(puleCStr("build-husk"))) {
-    puleFileRemoveRecursive(puleCStr("build-husk"));
+  if (puleFilesystemPathExists("build-husk"_psv)) {
+    puleFileRemoveRecursive("build-husk"_psv);
   }
-  puleFileDirectoryCreate(puleCStr("build-husk"));
-  puleFileDirectoryCreate(puleCStr("build-husk/applications"));
-  puleFileDirectoryCreate(puleCStr("build-husk/build-install"));
-  puleFileDirectoryCreate(puleCStr("build-husk/install"));
+  puleFileDirectoryCreate("build-husk"_psv);
+  puleFileDirectoryCreate("build-husk/applications"_psv);
+  puleFileDirectoryCreate("build-husk/build-install"_psv);
+  puleFileDirectoryCreate("build-husk/install"_psv);
   // theoretically CMake will install the below, but if there are no targets
   // then it won't
-  puleFileDirectoryCreate(puleCStr("build-husk/install/bin"));
-  puleFileDirectoryCreate(puleCStr("build-husk/install/bin/plugins"));
-  puleFileDirectoryCreate(puleCStr("build-husk/plugins"));
-  puleFileDirectoryCreate(puleCStr("build-husk/library"));
+  puleFileDirectoryCreate("build-husk/install/bin"_psv);
+  puleFileDirectoryCreate("build-husk/install/bin/plugins"_psv);
+  puleFileDirectoryCreate("build-husk/plugins"_psv);
+  puleFileDirectoryCreate("build-husk/library"_psv);
   // symlink to imported-libs
-  if (puleFilesystemPathExists(puleCStr("imported-libs"))) {
+  if (puleFilesystemPathExists("imported-libs"_psv)) {
     puleFilesystemSymlinkCreate(
-      puleCStr("../imported-libs"),
-      puleCStr("build-husk/imported-libs")
+      "../imported-libs"_psv,
+      "build-husk/imported-libs"_psv
     );
   }
 
@@ -560,7 +573,7 @@ static bool generateBuildHusk() {
     !puleFilesystemSymlinkCreate(
       // TODO get this path from a known relpath
       puleCStr(includePath.c_str()),
-      puleCStr("build-husk/engine-include")
+      "build-husk/engine-include"_psv
     )
   ) {
     return false;
@@ -599,8 +612,8 @@ static bool generateBuildHusk() {
     }
     // library needs to symlink to the absolute include path
     puleFilesystemSymlinkCreate(
-      puleCStr("../../library/include"),
-      puleCStr("build-husk/library/include")
+      "../../library/include"_psv,
+      "build-husk/library/include"_psv
     );
   }
 
@@ -628,10 +641,6 @@ static bool generateBuildHusk() {
       generateLibraryCmakefile(libs.values[libIt], projectPathLabel);
     }
   }
-
-  // generate assets
-  puleLogDebug("Generating assets");
-  generateAssets(projectValue);
 
   puleLogDebug("Finished preparing for build");
   return true;
@@ -678,8 +687,8 @@ bool refreshAssets(PuleAllocator const allocator, PuleError * const error) {
   (void)allocator;
   (void)error;
   puleFilesystemSymlinkCreate(
-    puleCStr("../../assets"),
-    puleCStr("build-husk/install/assets")
+    "../../assets"_psv,
+    "build-husk/install/assets"_psv
   );
   // TODO strip out unnecessary metadata (like source files)
   return true;
@@ -761,6 +770,24 @@ bool editorBuildInitiate(
   }
   return runBuild(allocator, error);
 }
+bool editorAssetRefresh(
+  [[maybe_unused]] PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  [[maybe_unused]] PuleDsValue const input,
+  [[maybe_unused]] PuleError * const error
+) {
+  PuleError err = puleError();
+  PuleDsValue const projectValue = (
+    puleAssetPdsLoadFromFile(
+      puleAllocateDefault(),
+      "assets/project.pds"_psv,
+      &err
+    )
+  );
+  if (puleErrorConsume(&err)) { return false; }
+  generateAssets(projectValue);
+  return true;
+}
 bool editorGenerateInitiate(
   [[maybe_unused]] PuleAllocator const allocator,
   [[maybe_unused]] PuleDsValue const main,
@@ -770,9 +797,124 @@ bool editorGenerateInitiate(
   // generate build-husk
   return generateBuildHusk();
 }
+
+bool editorInitProject(
+  [[maybe_unused]] PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  [[maybe_unused]] PuleDsValue const input,
+  [[maybe_unused]] PuleError * const error
+) {
+  // can only initialize if project doesn't exist
+  if (puleFilesystemPathExists("assets/project.pds"_psv)) {
+    puleLogError("Project already exists");
+    return false;
+  }
+
+  // create assets & src dir
+  if (!puleFilesystemPathExists("assets"_psv)) {
+    puleFileDirectoryCreate("assets"_psv);
+  }
+  if (!puleFilesystemPathExists("src"_psv)) {
+    puleFileDirectoryCreate("src"_psv);
+  }
+
+  PuleStringView projectName = puleDsMemberAsString(input, "name");
+  if (puleDsObjectMember(input, "support-gpu").id == 0) {
+    puleLogError("Project GPU support must be provided");
+    return false;
+  }
+  bool projectGpuSupport = puleDsMemberAsBool(input, "support-gpu");
+  if (projectName.len == 0) {
+    puleLogError("Project name must be provided");
+    return false;
+  }
+  puleLogDev("project gpu support: %d", projectGpuSupport);
+
+  std::string projectPds = R"(
+project-name: "%s",
+supported-languages: "CXX C",
+entry-payload: { },
+build-info: {
+  applications: [ ],
+  plugins: [
+    {
+      name: "%s",
+      path: "src",
+      known-files: [
+        "src/main.cpp",
+      ],
+      generated-hidden-files: [],
+      linked-libraries: [
+        %gpu
+        "pulchritude-allocator",
+        "pulchritude-asset-pds",
+        "pulchritude-asset-script-task-graph",
+        "pulchritude-error",
+        "pulchritude-file",
+        "pulchritude-log",
+        "pulchritude-math",
+        "pulchritude-parser",
+        "pulchritude-platform",
+        "pulchritude-plugin",
+        "pulchritude-script",
+        "pulchritude-string",
+        "pulchritude-text",
+        "pulchritude-time",
+      ],
+    },
+  ],
+},
+  )";
+  std::string projectGpuSupportMixin = R"(
+        "pulchritude-asset-font",
+        "pulchritude-asset-image",
+        "pulchritude-asset-pds",
+        "pulchritude-asset-shader-module",
+        "pulchritude-asset-shader-module",
+        "pulchritude-camera",
+        "pulchritude-gfx-debug",
+        "pulchritude-gpu",
+        "pulchritude-imgui",
+        "pulchritude-imgui-engine",
+        "pulchritude-render-graph",
+  )";
+  // replace %s with project name
+  projectPds = std::regex_replace(
+    projectPds, std::regex("%s"), projectName.contents
+  );
+  // replace %gpu with gpu support
+  projectPds = std::regex_replace(
+    projectPds,
+    std::regex("%gpu"),
+    projectGpuSupport ? projectGpuSupportMixin : ""
+  );
+  dumpToFile("assets/project.pds", projectPds);
+
+
+  dumpToFile("src/main.cpp", R"(
+#include <pulchritude/plugin.hpp>
+#include <pulchritude/log.hpp>
+
+extern "C" {
+
+PulePluginType pulcPluginType() { return PulePluginType_component; }
+
+void pulcComponentLoad([[maybe_unused]] PulePluginPayload const payload) {
+  puleLog("Hello world");
 }
+
+
+void pulcComponentUnload([[maybe_unused]] PulePluginPayload const payload) {
+}
+
+} // extern C
+  )");
+
+  return true;
+}
+} // extern C
 
 void buildClean() {
   puleLog("Cleaning build");
-  puleFileRemoveRecursive(puleCStr("build-husk"));
+  puleFileRemoveRecursive("build-husk"_psv);
 }

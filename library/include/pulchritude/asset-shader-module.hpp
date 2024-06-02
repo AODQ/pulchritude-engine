@@ -1,6 +1,6 @@
 /* auto generated file asset-shader-module */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "asset-shader-module.h"
 #include "gpu.hpp"

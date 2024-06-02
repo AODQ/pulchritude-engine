@@ -1,6 +1,6 @@
 /* auto generated file time */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "time.h"
 

@@ -1,6 +1,6 @@
 /* auto generated file log */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "log.h"
 

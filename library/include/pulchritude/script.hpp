@@ -1,6 +1,6 @@
 /* auto generated file script */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "script.h"
 #include "string.hpp"
@@ -31,10 +31,10 @@ struct ScriptModule {
   inline operator PuleScriptModule() const {
     return _handle;
   }
-  static inline ScriptModule createFromSource(PuleScriptContext context, PuleScriptModuleFromSourceCreateInfo createInfo, struct PuleError * error) {
+  static inline ScriptModule createFromSource(PuleScriptContext context, PuleScriptModuleFromSourceCreateInfo createInfo, PuleError * error) {
     return { ._handle = puleScriptModuleCreateFromSource(context, createInfo, error),};
   }
-  static inline ScriptModule createFromBinary(PuleScriptContext context, PuleArrayView scriptBinary, struct PuleError * error) {
+  static inline ScriptModule createFromBinary(PuleScriptContext context, PuleArrayView scriptBinary, PuleError * error) {
     return { ._handle = puleScriptModuleCreateFromBinary(context, scriptBinary, error),};
   }
 };

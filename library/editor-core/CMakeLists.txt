@@ -9,6 +9,8 @@ target_sources(
     src/plugin.cpp
     src/run.cpp
     src/undotree.cpp
+    src/json-conv.cpp
+    src/cJSON.c
 )
 
 set_target_properties(

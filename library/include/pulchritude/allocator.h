@@ -50,6 +50,7 @@ typedef struct PuleAllocator {
  */
 PULE_exportFn PuleAllocator puleAllocateDefault();
 PULE_exportFn void * puleAllocate(PuleAllocator, PuleAllocateInfo);
+PULE_exportFn void * puleMalloc(PuleAllocator allocator, size_t numBytes);
 PULE_exportFn void * puleReallocate(PuleAllocator, PuleReallocateInfo);
 PULE_exportFn void puleDeallocate(PuleAllocator, void * allocAddress);
 

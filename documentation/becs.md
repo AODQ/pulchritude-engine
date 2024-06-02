@@ -19,7 +19,7 @@ struct {
   /* if callbackFrequency == fixed */
   callbackFrequencyFixed : size_t;
   bundleHistoryCount : size_t;
-  callback : @fnptr(int32_t, PuleBecsSystem, system, PuleBecsBundle, writeBundle, PuleBecsBundleHistory, readBundleHistory, PuleBecsBundle ptr, inputSystemReadBundles);
+  callback : @fnptr(int32_t, PuleBecsSystem, PuleBecsBundle, PuleBecsBundleHistory, PuleBecsBundle ptr, float);
 };
 ```
 ### PuleBecsEntityQuery

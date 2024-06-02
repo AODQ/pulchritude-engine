@@ -142,7 +142,7 @@ std::string formatTypeC(
       && type.modifiers.size() == 1
       && type.modifiers[0].type == BindingTypeModifierType::tPtr
     ) {
-      result += "struct ";
+      //result += "struct ";
     }
     result += type.name;
     if (type.modifiers.size() > 0) {
@@ -286,7 +286,13 @@ void generateBindingFileC(GenerateBindingInfo const & inforef) {
       if (f.comment.size() > 0) {
         write(out, "  /* %s */\n", f.comment.c_str());
       }
-      write(out, "  %s;\n", formatType(f.type, f.name).c_str());
+      // if field type has same name as struct, need to use struct keyword
+      if (f.type.name == s.name) {
+        write(out, "  struct ");
+      } else {
+        write(out, "  ");
+      }
+      write(out, "%s;\n", formatType(f.type, f.name).c_str());
       // C doesn't have assignments in struct definitions
     }
     write(out, "} %s;\n", s.name.c_str());

@@ -1,6 +1,6 @@
 /* auto generated file text */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "text.h"
 #include "asset-font.hpp"

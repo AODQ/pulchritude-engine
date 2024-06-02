@@ -211,8 +211,8 @@ typedef enum {
 } PuleGpuDescriptorType;
 const uint32_t PuleGpuDescriptorTypeSize = 3;
 typedef enum {
-  PuleGpuAttributeDataType_float = 0,
-  PuleGpuAttributeDataType_unsignedByte = 1,
+  PuleGpuAttributeDataType_f32 = 0,
+  PuleGpuAttributeDataType_u8 = 1,
 } PuleGpuAttributeDataType;
 const uint32_t PuleGpuAttributeDataTypeSize = 2;
 typedef enum {
@@ -321,7 +321,7 @@ typedef struct PuleGpuCommandListSubmitInfo {
     will create semaphore if id is 0, otherwise will use existing semaphore
    */
   size_t signalSemaphoreCount;
-  struct PuleGpuSemaphore * signalSemaphores;
+  PuleGpuSemaphore * signalSemaphores;
   /* 
     at end of command list submission, if this is non-zero, fence will be
     triggered
@@ -639,8 +639,8 @@ PULE_exportFn PuleStringView puleGpuCommandListName(PuleGpuCommandList commandLi
 PULE_exportFn PuleGpuCommandListRecorder puleGpuCommandListRecorder(PuleGpuCommandList commandList);
 PULE_exportFn void puleGpuCommandListRecorderFinish(PuleGpuCommandListRecorder commandListRecorder);
 PULE_exportFn void puleGpuCommandListAppendAction(PuleGpuCommandListRecorder commandListRecorder, PuleGpuCommand action);
-PULE_exportFn void puleGpuCommandListSubmit(PuleGpuCommandListSubmitInfo info, struct PuleError * error);
-PULE_exportFn void puleGpuCommandListSubmitAndPresent(PuleGpuCommandListSubmitInfo info, struct PuleError * error);
+PULE_exportFn void puleGpuCommandListSubmit(PuleGpuCommandListSubmitInfo info, PuleError * error);
+PULE_exportFn void puleGpuCommandListSubmitAndPresent(PuleGpuCommandListSubmitInfo info, PuleError * error);
 PULE_exportFn void puleGpuCommandListDump(PuleGpuCommandList commandList);
 PULE_exportFn PuleGpuCommandListChain puleGpuCommandListChainCreate(PuleAllocator allocator, PuleStringView label);
 PULE_exportFn void puleGpuCommandListChainDestroy(PuleGpuCommandListChain commandListChain);
@@ -654,7 +654,7 @@ PULE_exportFn void puleGpuBufferDestroy(PuleGpuBuffer buffer);
 PULE_exportFn void * puleGpuBufferMap(PuleGpuBufferMapRange range);
 PULE_exportFn void puleGpuBufferMappedFlush(PuleGpuBufferMappedFlushRange range);
 PULE_exportFn void puleGpuBufferUnmap(PuleGpuBuffer buffer);
-PULE_exportFn void puleGpuInitialize(PulePlatform platform, struct PuleError * error);
+PULE_exportFn void puleGpuInitialize(PulePlatform platform, PuleError * error);
 PULE_exportFn void puleGpuShutdown();
 /* 
   prints all debug information
@@ -668,12 +668,12 @@ PULE_exportFn PuleStringView puleGpuImageLabel(PuleGpuImage image);
 PULE_exportFn void puleGpuImageDestroy(PuleGpuImage image);
 PULE_exportFn PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo imageCreateInfo);
 PULE_exportFn PuleGpuFramebufferCreateInfo puleGpuFramebufferCreateInfo();
-PULE_exportFn PuleGpuFramebuffer puleGpuFramebufferCreate(PuleGpuFramebufferCreateInfo framebufferCreateInfo, struct PuleError * error);
+PULE_exportFn PuleGpuFramebuffer puleGpuFramebufferCreate(PuleGpuFramebufferCreateInfo framebufferCreateInfo, PuleError * error);
 PULE_exportFn void puleGpuFramebufferDestroy(PuleGpuFramebuffer framebuffer);
 PULE_exportFn PuleGpuFramebufferAttachments puleGpuFramebufferAttachments(PuleGpuFramebuffer framebuffer);
 PULE_exportFn PuleStringView puleGpuImageLayoutLabel(PuleGpuImageLayout layout);
 PULE_exportFn PuleGpuPipelineLayoutDescriptorSet puleGpuPipelineDescriptorSetLayout();
-PULE_exportFn PuleGpuPipeline puleGpuPipelineCreate(PuleGpuPipelineCreateInfo createInfo, struct PuleError * error);
+PULE_exportFn PuleGpuPipeline puleGpuPipelineCreate(PuleGpuPipelineCreateInfo createInfo, PuleError * error);
 PULE_exportFn void puleGpuPipelineDestroy(PuleGpuPipeline pipeline);
 PULE_exportFn PuleGpuImageChain puleGpuImageChain_create(PuleAllocator allocator, PuleStringView label, PuleGpuImageCreateInfo createInfo);
 PULE_exportFn void puleGpuImageChain_destroy(PuleGpuImageChain imageChain);
@@ -686,7 +686,7 @@ PULE_exportFn void puleGpuImageReference_destroy(PuleGpuImageReference reference
 PULE_exportFn PuleGpuImage puleGpuImageReference_image(PuleGpuImageReference reference);
 PULE_exportFn PuleGpuImage puleGpuWindowSwapchainImage();
 PULE_exportFn PuleGpuImageReference puleGpuWindowSwapchainImageReference();
-PULE_exportFn PuleGpuShaderModule puleGpuShaderModuleCreate(PuleBufferView vertexShaderBytecode, PuleBufferView fragmentShaderBytecode, struct PuleError * error);
+PULE_exportFn PuleGpuShaderModule puleGpuShaderModuleCreate(PuleBufferView vertexShaderBytecode, PuleBufferView fragmentShaderBytecode, PuleError * error);
 PULE_exportFn void puleGpuShaderModuleDestroy(PuleGpuShaderModule shaderModule);
 PULE_exportFn PuleGpuSemaphore puleGpuSemaphoreCreate(PuleStringView label);
 PULE_exportFn void puleGpuSemaphoreDestroy(PuleGpuSemaphore semaphore);

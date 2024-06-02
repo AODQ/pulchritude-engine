@@ -43,21 +43,21 @@ PuleGpuPipelineLayoutDescriptorSet createPipelineDescriptorSetLayout() {
     .stridePerElement = sizeof(ImDrawVert),
   };
   descriptorSetLayout.attributeBindings[0] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(ImDrawVert, pos),
   };
   descriptorSetLayout.attributeBindings[1] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(ImDrawVert, uv),
   };
   descriptorSetLayout.attributeBindings[2] = {
-    .dataType = PuleGpuAttributeDataType_unsignedByte,
+    .dataType = PuleGpuAttributeDataType_u8,
     .bufferIndex = 0,
     .numComponents = 4,
     .convertFixedDataTypeToNormalizedFloating = true,

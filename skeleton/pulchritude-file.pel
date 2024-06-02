@@ -47,7 +47,13 @@
   filename : PuleStringView,
   dataMode : PuleFileDataMode,
   error : PuleError ptr
-) PuleString;
+) PuleString #` deprecated `;
+@fn puleFileDumpContents(
+  allocator : PuleAllocator,
+  filename : PuleStringView,
+  dataMode : PuleFileDataMode,
+  error : PuleError ptr
+) PuleBuffer #` dumps contents of file at path to an allocated buffer `;
 @fn puleFileClose(file : PuleFile) void;
 @fn puleFileIsDone(file : PuleFile) bool;
 @fn puleFilePath(file : PuleFile) PuleStringView;

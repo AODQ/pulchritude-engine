@@ -34,15 +34,15 @@ typedef struct PuleAssetFontRenderInfo {
 } PuleAssetFontRenderInfo;
 
 // functions
-PULE_exportFn PuleAssetFont puleAssetFontLoad(PuleBufferView fontSource, struct PuleError * error);
-PULE_exportFn PuleAssetFont puleAssetFontLoadFromPath(PuleStringView path, struct PuleError * error);
+PULE_exportFn PuleAssetFont puleAssetFontLoad(PuleBufferView fontSource, PuleError * error);
+PULE_exportFn PuleAssetFont puleAssetFontLoadFromPath(PuleStringView path, PuleError * error);
 PULE_exportFn void puleAssetFontDestroy(PuleAssetFont font);
 /* 
     the buffer must be packed as {
       color[0].a, color[1].a, .., color[width].a, color[1+width].a, ...
     }
  */
-PULE_exportFn void puleAssetFontRenderToU8Buffer(PuleAssetFontRenderInfo info, struct PuleError * error);
+PULE_exportFn void puleAssetFontRenderToU8Buffer(PuleAssetFontRenderInfo info, PuleError * error);
 
 #ifdef __cplusplus
 } // extern C

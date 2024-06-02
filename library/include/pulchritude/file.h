@@ -61,8 +61,11 @@ PULE_exportFn PuleFileStream puleFileStreamWriteOpen(PuleStringView path, PuleFi
 PULE_exportFn void puleFileStreamClose(PuleFileStream puStream);
 PULE_exportFn PuleStreamRead puleFileStreamReader(PuleFileStream stream);
 PULE_exportFn PuleStreamWrite puleFileStreamWriter(PuleFileStream stream);
-PULE_exportFn PuleFile puleFileOpen(PuleStringView filename, PuleFileDataMode dataMode, PuleFileOpenMode openMode, struct PuleError * error);
-PULE_exportFn PuleString puleFileDump(PuleStringView filename, PuleFileDataMode dataMode, struct PuleError * error);
+PULE_exportFn PuleFile puleFileOpen(PuleStringView filename, PuleFileDataMode dataMode, PuleFileOpenMode openMode, PuleError * error);
+/*  deprecated  */
+PULE_exportFn PuleString puleFileDump(PuleStringView filename, PuleFileDataMode dataMode, PuleError * error);
+/*  dumps contents of file at path to an allocated buffer  */
+PULE_exportFn PuleBuffer puleFileDumpContents(PuleAllocator allocator, PuleStringView filename, PuleFileDataMode dataMode, PuleError * error);
 PULE_exportFn void puleFileClose(PuleFile file);
 PULE_exportFn bool puleFileIsDone(PuleFile file);
 PULE_exportFn PuleStringView puleFilePath(PuleFile file);

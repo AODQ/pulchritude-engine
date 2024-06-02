@@ -1,6 +1,6 @@
 /* auto generated file core */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "core.h"
 #ifndef puleScopeExit

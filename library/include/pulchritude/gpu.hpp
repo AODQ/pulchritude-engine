@@ -1,6 +1,6 @@
 /* auto generated file gpu */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "gpu.h"
 #include "platform.hpp"
@@ -184,7 +184,7 @@ struct GpuPipeline {
   inline void destroy() {
     return puleGpuPipelineDestroy(this->_handle);
   }
-  static inline GpuPipeline create(PuleGpuPipelineCreateInfo createInfo, struct PuleError * error) {
+  static inline GpuPipeline create(PuleGpuPipelineCreateInfo createInfo, PuleError * error) {
     return { ._handle = puleGpuPipelineCreate(createInfo, error),};
   }
 };
@@ -250,7 +250,7 @@ struct GpuShaderModule {
   inline void destroy() {
     return puleGpuShaderModuleDestroy(this->_handle);
   }
-  static inline GpuShaderModule create(PuleBufferView vertexShaderBytecode, PuleBufferView fragmentShaderBytecode, struct PuleError * error) {
+  static inline GpuShaderModule create(PuleBufferView vertexShaderBytecode, PuleBufferView fragmentShaderBytecode, PuleError * error) {
     return { ._handle = puleGpuShaderModuleCreate(vertexShaderBytecode, fragmentShaderBytecode, error),};
   }
 };
@@ -349,7 +349,7 @@ struct GpuFramebuffer {
   inline PuleGpuFramebufferAttachments attachments() {
     return puleGpuFramebufferAttachments(this->_handle);
   }
-  static inline GpuFramebuffer create(PuleGpuFramebufferCreateInfo framebufferCreateInfo, struct PuleError * error) {
+  static inline GpuFramebuffer create(PuleGpuFramebufferCreateInfo framebufferCreateInfo, PuleError * error) {
     return { ._handle = puleGpuFramebufferCreate(framebufferCreateInfo, error),};
   }
 };
@@ -680,16 +680,14 @@ inline char const * toStr(PuleGpuDescriptorType const e) {
 }
 inline char const * toStr(PuleGpuAttributeDataType const e) {
   switch (e) {
-    case PuleGpuAttributeDataType_float: return "float";
-    case PuleGpuAttributeDataType_unsignedByte: return "unsignedByte";
+    case PuleGpuAttributeDataType_f32: return "f32";
+    case PuleGpuAttributeDataType_u8: return "u8";
     default: return "N/A";
   }
 }
 inline char const * toStr(PuleGpuPipelineDescriptorMax const e) {
   switch (e) {
     case PuleGpuPipelineDescriptorMax_uniform: return "uniform";
-    case PuleGpuPipelineDescriptorMax_storage: return "storage";
-    case PuleGpuPipelineDescriptorMax_attribute: return "attribute";
     case PuleGpuPipelineDescriptorMax_texture: return "texture";
     default: return "N/A";
   }

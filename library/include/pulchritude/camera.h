@@ -29,7 +29,7 @@ typedef struct PuleCameraPerspective {
   float fieldOfViewRadians;
 } PuleCameraPerspective;
 typedef struct PuleCameraSetArray {
-  struct PuleCamera * cameras;
+  PuleCamera * cameras;
   size_t cameraCount;
 } PuleCameraSetArray;
 

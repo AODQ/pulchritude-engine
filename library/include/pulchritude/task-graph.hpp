@@ -1,6 +1,6 @@
 /* auto generated file task-graph */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "task-graph.h"
 #include "string.hpp"

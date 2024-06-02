@@ -29,7 +29,7 @@ typedef struct PuleELJitEngineCreateInfo {
 } PuleELJitEngineCreateInfo;
 
 // functions
-PULE_exportFn PuleELModule puleELModuleCreate(PuleStreamRead stream, PuleStringView name, struct PuleError * error);
+PULE_exportFn PuleELModule puleELModuleCreate(PuleStreamRead stream, PuleStringView name, PuleError * error);
 PULE_exportFn void puleELModuleDestroy(PuleELModule module);
 PULE_exportFn PuleELJitEngine puleELJitEngineCreate(PuleELJitEngineCreateInfo ci);
 PULE_exportFn void puleELJitEngineDestroy(PuleELJitEngine jitEngine);

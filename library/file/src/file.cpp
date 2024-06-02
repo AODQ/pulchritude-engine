@@ -181,6 +181,23 @@ PuleString puleFileDump(
   };
 }
 
+PuleBuffer puleFileDumpContents(
+  PuleAllocator const allocator,
+  PuleStringView const filename,
+  PuleFileDataMode const dataMode,
+  PuleError * const error
+) {
+  auto file = puleFileOpen(filename, dataMode, PuleFileOpenMode_read, error);
+  if (puleErrorExists(error)) { return {}; }
+  uint64_t fileSize = puleFileSize(file);
+  PuleBuffer buffer = puleBufferCreate(allocator);
+  puleBufferResize(&buffer, fileSize+1);
+  puleFileReadBytes(file, { .data = buffer.data, .byteLength = fileSize});
+  buffer.data[fileSize] = '\0';
+  puleFileClose(file);
+  return buffer;
+}
+
 void puleFileClose(PuleFile const file) {
   if (file.id == 0) {
     return;

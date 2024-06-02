@@ -1,6 +1,6 @@
 /* auto generated file data-serializer */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "data-serializer.h"
 #include "allocator.hpp"

@@ -1,6 +1,6 @@
 /* auto generated file asset-pds */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "asset-pds.h"
 #include "error.hpp"

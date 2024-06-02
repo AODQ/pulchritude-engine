@@ -1,6 +1,6 @@
 /* auto generated file scene */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "scene.h"
 #include "ecs.hpp"

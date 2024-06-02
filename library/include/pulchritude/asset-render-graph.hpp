@@ -1,6 +1,6 @@
 /* auto generated file asset-render-graph */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "asset-render-graph.h"
 #include "allocator.hpp"

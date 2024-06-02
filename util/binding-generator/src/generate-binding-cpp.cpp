@@ -523,7 +523,7 @@ void generateBindingFileCpp(GenerateBindingInfo const & inforef) {
   auto const & write = puleStreamWriteStrFormat;
   write(out, "/* auto generated file %s */\n", info.path);
   write(out, "#pragma once\n");
-  write(out, "#include \"core.h\"\n\n");
+  write(out, "#include \"core.hpp\"\n\n");
 
   // include self c header
   write(out, "#include \"%s.h\"\n", info.path.contents);
@@ -556,12 +556,19 @@ void generateBindingFileCpp(GenerateBindingInfo const & inforef) {
   for (auto const & e : file.enums) {
     write(out, "inline char const * toStr(%s const e) {\n", e.name.c_str());
     write(out, "  switch (e) {\n");
-    for (auto const & v : e.fields) {
+    for (size_t i = 0; i < e.fields.size(); ++ i) {
+      auto const & v = e.fields[i];
+      // if there are any duplicate values, skip this
+      for (size_t j = 0; j < i; ++ j) {
+        auto const & v2 = e.fields[j];
+        if (v2.value == v.value) { goto SKIP_WRITE; }
+      }
       write(
         out,
         "    case %s_%s: return \"%s\";\n",
         e.name.c_str(), v.name.c_str(), v.name.c_str()
       );
+      SKIP_WRITE:;
     }
     write(out, "    default: return \"N/A\";\n");
     write(out, "  }\n");

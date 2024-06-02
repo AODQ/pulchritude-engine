@@ -1,6 +1,6 @@
 /* auto generated file stream */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "stream.h"
 #include "array.hpp"

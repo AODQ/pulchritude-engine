@@ -1,6 +1,6 @@
 /* auto generated file render-graph */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "render-graph.h"
 #include "data-serializer.hpp"

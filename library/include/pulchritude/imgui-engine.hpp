@@ -1,6 +1,6 @@
 /* auto generated file imgui-engine */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "imgui-engine.h"
 #include "ecs.hpp"

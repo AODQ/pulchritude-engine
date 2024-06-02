@@ -54,7 +54,7 @@ void initialize() {
   #include "autogen-text-bitmap.vert.spv"
   PuleError err = puleError();
   pint::shaderModules[PuleTextType_bitmap] = (
-    puleGpuShaderModuleCreate(
+   puleGpuShaderModuleCreate(
       PuleBufferView {
         .data = textBitmapVert,
         .byteLength = sizeof(textBitmapVert),

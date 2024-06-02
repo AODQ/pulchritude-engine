@@ -1,6 +1,6 @@
 /* auto generated file parser */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "parser.h"
 #include "string.hpp"
@@ -18,10 +18,10 @@ struct Parser {
   inline PuleParserRegexToken regexTokenCreate(PuleStringView regex) {
     return puleParserRegexTokenCreate(this->_handle, regex);
   }
-  inline PuleParserGroup groupCreate(struct PuleParserRuleNode * nodes, size_t nodeCount) {
+  inline PuleParserGroup groupCreate(PuleParserRuleNode * nodes, size_t nodeCount) {
     return puleParserGroupCreate(this->_handle, nodes, nodeCount);
   }
-  inline void ruleSetNodes(PuleParserRule rule, struct PuleParserRuleNode * nodes, size_t nodeCount) {
+  inline void ruleSetNodes(PuleParserRule rule, PuleParserRuleNode * nodes, size_t nodeCount) {
     return puleParserRuleSetNodes(this->_handle, rule, nodes, nodeCount);
   }
   inline PuleParserRule rule(PuleStringView label) {
@@ -30,13 +30,13 @@ struct Parser {
   inline void dump() {
     return puleParserDump(this->_handle);
   }
-  inline PuleParserAst astCreate(PuleStringView string, PuleParserRule headRule, struct PuleError * error) {
+  inline PuleParserAst astCreate(PuleStringView string, PuleParserRule headRule, PuleError * error) {
     return puleParserAstCreate(this->_handle, string, headRule, error);
   }
   static inline Parser create(PuleStringView name, PuleStringView commentStart, PuleStringView commentEnd) {
     return { ._handle = puleParserCreate(name, commentStart, commentEnd),};
   }
-  static inline Parser createFromString(PuleStringView sv, PuleStringView name, PuleStringView commentStart, PuleStringView commentEnd, struct PuleError * error) {
+  static inline Parser createFromString(PuleStringView sv, PuleStringView name, PuleStringView commentStart, PuleStringView commentEnd, PuleError * error) {
     return { ._handle = puleParserCreateFromString(sv, name, commentStart, commentEnd, error),};
   }
   static inline Parser createForDefaultExpressionGrammar() {
@@ -50,10 +50,10 @@ struct Parser {
   inline PuleParserRegexToken regexTokenCreate(pule::Parser self, PuleStringView regex) {
     return puleParserRegexTokenCreate(self._handle, regex);
   }
-  inline PuleParserGroup groupCreate(pule::Parser self, struct PuleParserRuleNode * nodes, size_t nodeCount) {
+  inline PuleParserGroup groupCreate(pule::Parser self, PuleParserRuleNode * nodes, size_t nodeCount) {
     return puleParserGroupCreate(self._handle, nodes, nodeCount);
   }
-  inline void ruleSetNodes(pule::Parser self, PuleParserRule rule, struct PuleParserRuleNode * nodes, size_t nodeCount) {
+  inline void ruleSetNodes(pule::Parser self, PuleParserRule rule, PuleParserRuleNode * nodes, size_t nodeCount) {
     return puleParserRuleSetNodes(self._handle, rule, nodes, nodeCount);
   }
   inline PuleParserRule rule(pule::Parser self, PuleStringView label) {
@@ -62,7 +62,7 @@ struct Parser {
   inline void dump(pule::Parser self) {
     return puleParserDump(self._handle);
   }
-  inline PuleParserAst astCreate(pule::Parser self, PuleStringView string, PuleParserRule headRule, struct PuleError * error) {
+  inline PuleParserAst astCreate(pule::Parser self, PuleStringView string, PuleParserRule headRule, PuleError * error) {
     return puleParserAstCreate(self._handle, string, headRule, error);
   }
 namespace pule {
@@ -82,7 +82,7 @@ struct ParserGroup {
   inline operator PuleParserGroup() const {
     return _handle;
   }
-  static inline ParserGroup create(PuleParser parser, struct PuleParserRuleNode * nodes, size_t nodeCount) {
+  static inline ParserGroup create(PuleParser parser, PuleParserRuleNode * nodes, size_t nodeCount) {
     return { ._handle = puleParserGroupCreate(parser, nodes, nodeCount),};
   }
 };
@@ -110,7 +110,7 @@ struct ParserAst {
   inline PuleParserAstNode root() {
     return puleParserAstRoot(this->_handle);
   }
-  static inline ParserAst create(PuleParser parser, PuleStringView string, PuleParserRule headRule, struct PuleError * error) {
+  static inline ParserAst create(PuleParser parser, PuleStringView string, PuleParserRule headRule, PuleError * error) {
     return { ._handle = puleParserAstCreate(parser, string, headRule, error),};
   }
 };

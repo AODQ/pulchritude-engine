@@ -1,6 +1,6 @@
 /* auto generated file array */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "array.h"
 #include "error.hpp"

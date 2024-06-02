@@ -464,8 +464,8 @@
 };
 
 @enum PuleGpuAttributeDataType {
-  float;
-  unsignedByte;
+  f32;
+  u8;
 };
 
 @struct PuleGpuPipelineAttributeDescriptorBinding {

@@ -689,8 +689,8 @@ enum {
 ### PuleGpuAttributeDataType
 ```c
 enum {
-  float,
-  unsignedByte,
+  f32,
+  u8,
 }
 ```
 ### PuleGpuPipelineDescriptorMax

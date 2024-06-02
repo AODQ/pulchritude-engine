@@ -53,6 +53,13 @@ puleAllocate(
   _ : PuleAllocateInfo
 ) void ptr;
 ```
+### puleMalloc
+```c
+puleMalloc(
+  allocator : PuleAllocator,
+  numBytes : size_t
+) void ptr;
+```
 ### puleReallocate
 ```c
 puleReallocate(

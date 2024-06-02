@@ -1,6 +1,6 @@
 /* auto generated file error */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "error.h"
 #include "string.hpp"

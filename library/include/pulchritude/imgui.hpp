@@ -1,6 +1,6 @@
 /* auto generated file imgui */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "imgui.h"
 #include "error.hpp"

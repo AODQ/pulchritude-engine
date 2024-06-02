@@ -1,6 +1,6 @@
 /* auto generated file math */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "math.h"
 #include <initializer_list>

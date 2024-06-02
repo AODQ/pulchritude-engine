@@ -1,6 +1,6 @@
 /* auto generated file asset-font */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "asset-font.h"
 #include "error.hpp"
@@ -16,10 +16,10 @@ struct AssetFont {
   inline void destroy() {
     return puleAssetFontDestroy(this->_handle);
   }
-  static inline AssetFont load(PuleBufferView fontSource, struct PuleError * error) {
+  static inline AssetFont load(PuleBufferView fontSource, PuleError * error) {
     return { ._handle = puleAssetFontLoad(fontSource, error),};
   }
-  static inline AssetFont loadFromPath(PuleStringView path, struct PuleError * error) {
+  static inline AssetFont loadFromPath(PuleStringView path, PuleError * error) {
     return { ._handle = puleAssetFontLoadFromPath(path, error),};
   }
 };

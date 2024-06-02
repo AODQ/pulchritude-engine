@@ -1,6 +1,6 @@
 /* auto generated file plugin */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "plugin.h"
 #include "string.hpp"

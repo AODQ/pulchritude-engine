@@ -103,14 +103,14 @@ void pint::debugGpuDataInitializeLine() {
 
   auto layoutDescriptorSet = puleGpuPipelineDescriptorSetLayout();
   layoutDescriptorSet.attributeBindings[0] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(pint::LineInfo, origin)
   };
   layoutDescriptorSet.attributeBindings[1] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
@@ -175,21 +175,21 @@ void pint::debugGpuDataInitializeTriangle() {
 
   auto layoutDescriptorSet = puleGpuPipelineDescriptorSetLayout();
   layoutDescriptorSet.attributeBindings[0] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(pint::TriangleAttribute, origin)
   };
   layoutDescriptorSet.attributeBindings[1] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
     .offsetIntoBuffer = offsetof(pint::TriangleAttribute, uv)
   };
   layoutDescriptorSet.attributeBindings[2] = {
-    .dataType = PuleGpuAttributeDataType_float,
+    .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,

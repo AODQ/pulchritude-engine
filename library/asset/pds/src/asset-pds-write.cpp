@@ -101,7 +101,7 @@ void pdsIterateWriteToStream(
       // write label
       PuleStringView const stringView = object.labels[it];
       out += std::string_view(stringView.contents, stringView.len);
-      out += info.prettyPrint ? ":" : ": ";
+      out += info.prettyPrint ? ": " : ":";
 
       // write value
       PuleAssetPdsWriteInfo childInfo = info;
@@ -178,7 +178,7 @@ void puleAssetPdsWriteToFile(
     stream,
     PuleAssetPdsWriteInfo {
       .head = head,
-      .prettyPrint = false, .spacesPerTab = 2, .initialTabLevel = 0,
+      .prettyPrint = true, .spacesPerTab = 2, .initialTabLevel = 0,
     }
   );
 

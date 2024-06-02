@@ -468,7 +468,7 @@ VkFormat util::toVkBufferFormat(
   bool const normalize
 ) {
   switch (dataType) {
-    case PuleGpuAttributeDataType_float:
+    case PuleGpuAttributeDataType_f32:
       switch (numComponents) {
         case 1: return VK_FORMAT_R32_SFLOAT;
         case 2: return VK_FORMAT_R32G32_SFLOAT;
@@ -476,7 +476,7 @@ VkFormat util::toVkBufferFormat(
         case 4: return VK_FORMAT_R32G32B32A32_SFLOAT;
       }
       PULE_assert(false);
-    case PuleGpuAttributeDataType_unsignedByte:
+    case PuleGpuAttributeDataType_u8:
       switch (numComponents) {
         case 1:
           return (normalize ? VK_FORMAT_R8_UNORM : VK_FORMAT_R8_UINT);

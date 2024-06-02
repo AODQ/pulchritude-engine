@@ -43,10 +43,11 @@
 
   @field callback : @fnptr(
     int32_t,
-    PuleBecsSystem system,
-    PuleBecsBundle writeBundle,
-    PuleBecsBundleHistory readBundleHistory,
-    PuleBecsBundle ptr inputSystemReadBundles
+    PuleBecsSystem,
+    PuleBecsBundle,
+    PuleBecsBundleHistory,
+    PuleBecsBundle ptr,
+    float,
   );
 };
 

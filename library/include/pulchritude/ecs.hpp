@@ -1,6 +1,6 @@
 /* auto generated file ecs */
 #pragma once
-#include "core.h"
+#include "core.hpp"
 
 #include "ecs.h"
 #include "data-serializer.hpp"
@@ -84,7 +84,7 @@ struct EcsIterator {
   inline void * queryComponents(size_t componentIndex, size_t componentByteLength) {
     return puleEcsIteratorQueryComponents(this->_handle, componentIndex, componentByteLength);
   }
-  inline struct PuleEcsEntity * queryEntities() {
+  inline PuleEcsEntity * queryEntities() {
     return puleEcsIteratorQueryEntities(this->_handle);
   }
   inline PuleEcsWorld world() {
@@ -107,7 +107,7 @@ struct EcsIterator {
   inline void * queryComponents(pule::EcsIterator self, size_t componentIndex, size_t componentByteLength) {
     return puleEcsIteratorQueryComponents(self._handle, componentIndex, componentByteLength);
   }
-  inline struct PuleEcsEntity * queryEntities(pule::EcsIterator self) {
+  inline PuleEcsEntity * queryEntities(pule::EcsIterator self) {
     return puleEcsIteratorQueryEntities(self._handle);
   }
   inline PuleEcsWorld world(pule::EcsIterator self) {
@@ -149,10 +149,10 @@ struct EcsQuery {
   inline void destroy() {
     return puleEcsQueryDestroy(this->_handle);
   }
-  static inline EcsQuery byComponent(PuleEcsWorld world, struct PuleEcsComponent * componentList, size_t componentListSize, struct PuleError * error) {
+  static inline EcsQuery byComponent(PuleEcsWorld world, PuleEcsComponent * componentList, size_t componentListSize, PuleError * error) {
     return { ._handle = puleEcsQueryByComponent(world, componentList, componentListSize, error),};
   }
-  static inline EcsQuery allEntities(PuleEcsWorld world, struct PuleError * error) {
+  static inline EcsQuery allEntities(PuleEcsWorld world, PuleError * error) {
     return { ._handle = puleEcsQueryAllEntities(world, error),};
   }
 };

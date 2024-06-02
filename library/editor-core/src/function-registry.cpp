@@ -17,7 +17,10 @@ PuleDsValue puldRegisterCommands(
       {label: "redo", apply-label: "editorUndotreeRedo",},
       {label: "undotree-show", apply-label: "editorUndotreeShow",},
       {label: "build", apply-label: "editorBuildInitiate",},
+      {label: "asset-refresh", apply-label: "editorAssetRefresh",},
       {label: "generate", apply-label: "editorGenerateInitiate",},
+      {label: "init-project", apply-label: "editorInitProject",},
+      {label: "json-convert", apply-label: "editorJsonConvert",},
       {label: "run", apply-label: "editorBuildRunApplication",},
       {label: "gui", apply-label: "editorGui",},
       {
@@ -49,6 +52,16 @@ PuleDsValue puldRegisterCLICommands(
     },
     build: [],
     generate: [],
+    json-convert: [
+      { label: "src", type: "string", opt: false, },
+      { label: "dst", type: "string", default-value: "", },
+    ],
+    asset-refresh: [
+    ],
+    init-project: [
+      { label: "name", type: "string", opt: false, },
+      { label: "support-gpu", type: "bool", opt: false, },
+    ],
     gui: [
       { label: "debug", type: "bool", default-value: false, },
       { label: "error-segfaults", type: "bool", default-value: false, },

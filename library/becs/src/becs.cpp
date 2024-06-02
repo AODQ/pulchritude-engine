@@ -3,6 +3,7 @@
 #include <pulchritude/core.hpp>
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace pint {
@@ -35,7 +36,7 @@ struct System {
   std::string label;
   pule::ResourceContainer<Entity, PuleBecsEntity> entities;
   std::vector<std::vector<uint8_t>> componentData;
-  std::unordered_map<PuleBecsComponent, size_t> componentDataIndex;
+  pule::ResourceContainer<size_t, PuleBecsComponent> componentDataIndex;
   pule::ResourceContainer<
     pint::QueryEntity,
     PuleBecsQueryEntityIterator
@@ -106,6 +107,7 @@ PuleBecsSystem puleBecsSystemCreate(
     .world = world,
     .label = std::string(ci.label.contents, ci.label.len),
     .entities = {},
+    .componentData = {},
     .componentDataIndex = {},
     .queryEntityIterators = {},
     .callbackFrequency = ci.callbackFrequency,

@@ -102,7 +102,7 @@ typedef struct PulePhysxCollisionShape {
   PulePhysxCollisionShapeUnion shape;
 } PulePhysxCollisionShape;
 typedef struct PulePhysxCollisionMesh {
-  struct PuleF32v3 * origins;
+  PuleF32v3 * origins;
   uint32_t * indices;
   size_t originCount;
   size_t indexCount;
