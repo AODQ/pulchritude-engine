@@ -103,8 +103,8 @@ struct GpuBuffer {
   inline void unmap() {
     return puleGpuBufferUnmap(this->_handle);
   }
-  static inline GpuBuffer create(PuleStringView name, void const * optionalInitialData, size_t byteLength, PuleGpuBufferUsage usage, PuleGpuBufferVisibilityFlag visibility) {
-    return { ._handle = puleGpuBufferCreate(name, optionalInitialData, byteLength, usage, visibility),};
+  static inline GpuBuffer create(PuleStringView name, size_t byteLength, PuleGpuBufferUsage usage, PuleGpuBufferVisibilityFlag visibility) {
+    return { ._handle = puleGpuBufferCreate(name, byteLength, usage, visibility),};
   }
 };
 }
@@ -450,275 +450,390 @@ using GpuActionCopyImageToImage = PuleGpuActionCopyImageToImage;
 namespace pule {
 using GpuCommand = PuleGpuCommand;
 }
-namespace pule {
-inline char const * toStr(PuleGpuElementType const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleGpuElementType const e) {
   switch (e) {
-    case PuleGpuElementType_u8: return "u8";
-    case PuleGpuElementType_u16: return "u16";
-    case PuleGpuElementType_u32: return "u32";
-    default: return "N/A";
+    case PuleGpuElementType_u8: return puleString("u8");
+    case PuleGpuElementType_u16: return puleString("u16");
+    case PuleGpuElementType_u32: return puleString("u32");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuAction const e) {
+inline pule::str toStr(PuleGpuAction const e) {
   switch (e) {
-    case PuleGpuAction_bindPipeline: return "bindPipeline";
-    case PuleGpuAction_bindBuffer: return "bindBuffer";
-    case PuleGpuAction_bindTexture: return "bindTexture";
-    case PuleGpuAction_resourceBarrier: return "resourceBarrier";
-    case PuleGpuAction_renderPassBegin: return "renderPassBegin";
-    case PuleGpuAction_renderPassEnd: return "renderPassEnd";
-    case PuleGpuAction_bindElementBuffer: return "bindElementBuffer";
-    case PuleGpuAction_bindAttributeBuffer: return "bindAttributeBuffer";
-    case PuleGpuAction_bindFramebuffer: return "bindFramebuffer";
-    case PuleGpuAction_clearImageColor: return "clearImageColor";
-    case PuleGpuAction_clearImageDepth: return "clearImageDepth";
-    case PuleGpuAction_dispatchRender: return "dispatchRender";
-    case PuleGpuAction_dispatchRenderElements: return "dispatchRenderElements";
-    case PuleGpuAction_dispatchRenderIndirect: return "dispatchRenderIndirect";
-    case PuleGpuAction_pushConstants: return "pushConstants";
-    case PuleGpuAction_dispatchCommandList: return "dispatchCommandList";
-    case PuleGpuAction_setScissor: return "setScissor";
-    case PuleGpuAction_copyImageToImage: return "copyImageToImage";
-    default: return "N/A";
+    case PuleGpuAction_bindPipeline: return puleString("bindPipeline");
+    case PuleGpuAction_bindBuffer: return puleString("bindBuffer");
+    case PuleGpuAction_bindTexture: return puleString("bindTexture");
+    case PuleGpuAction_resourceBarrier: return puleString("resourceBarrier");
+    case PuleGpuAction_renderPassBegin: return puleString("renderPassBegin");
+    case PuleGpuAction_renderPassEnd: return puleString("renderPassEnd");
+    case PuleGpuAction_bindElementBuffer: return puleString("bindElementBuffer");
+    case PuleGpuAction_bindAttributeBuffer: return puleString("bindAttributeBuffer");
+    case PuleGpuAction_bindFramebuffer: return puleString("bindFramebuffer");
+    case PuleGpuAction_clearImageColor: return puleString("clearImageColor");
+    case PuleGpuAction_clearImageDepth: return puleString("clearImageDepth");
+    case PuleGpuAction_dispatchRender: return puleString("dispatchRender");
+    case PuleGpuAction_dispatchRenderElements: return puleString("dispatchRenderElements");
+    case PuleGpuAction_dispatchRenderIndirect: return puleString("dispatchRenderIndirect");
+    case PuleGpuAction_pushConstants: return puleString("pushConstants");
+    case PuleGpuAction_dispatchCommandList: return puleString("dispatchCommandList");
+    case PuleGpuAction_setScissor: return puleString("setScissor");
+    case PuleGpuAction_copyImageToImage: return puleString("copyImageToImage");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuResourceBarrierStage const e) {
+inline pule::str toStr(PuleGpuResourceBarrierStage const e) {
+  std::string str = "( ";
+  if (e & PuleGpuResourceBarrierStage_top) {
+    str += "top | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_drawIndirect) {
+    str += "drawIndirect | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_vertexInput) {
+    str += "vertexInput | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_shaderFragment) {
+    str += "shaderFragment | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_shaderVertex) {
+    str += "shaderVertex | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_shaderCompute) {
+    str += "shaderCompute | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_outputAttachmentColor) {
+    str += "outputAttachmentColor | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_outputAttachmentDepth) {
+    str += "outputAttachmentDepth | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_transfer) {
+    str += "transfer | ";
+  }
+  if (e & PuleGpuResourceBarrierStage_bottom) {
+    str += "bottom | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuResourceAccess const e) {
+  std::string str = "( ";
+  if (e & PuleGpuResourceAccess_none) {
+    str += "none | ";
+  }
+  if (e & PuleGpuResourceAccess_indirectCommandRead) {
+    str += "indirectCommandRead | ";
+  }
+  if (e & PuleGpuResourceAccess_indexRead) {
+    str += "indexRead | ";
+  }
+  if (e & PuleGpuResourceAccess_vertexAttributeRead) {
+    str += "vertexAttributeRead | ";
+  }
+  if (e & PuleGpuResourceAccess_uniformRead) {
+    str += "uniformRead | ";
+  }
+  if (e & PuleGpuResourceAccess_inputAttachmentRead) {
+    str += "inputAttachmentRead | ";
+  }
+  if (e & PuleGpuResourceAccess_shaderRead) {
+    str += "shaderRead | ";
+  }
+  if (e & PuleGpuResourceAccess_shaderWrite) {
+    str += "shaderWrite | ";
+  }
+  if (e & PuleGpuResourceAccess_attachmentColorRead) {
+    str += "attachmentColorRead | ";
+  }
+  if (e & PuleGpuResourceAccess_attachmentColorWrite) {
+    str += "attachmentColorWrite | ";
+  }
+  if (e & PuleGpuResourceAccess_attachmentDepthRead) {
+    str += "attachmentDepthRead | ";
+  }
+  if (e & PuleGpuResourceAccess_attachmentDepthWrite) {
+    str += "attachmentDepthWrite | ";
+  }
+  if (e & PuleGpuResourceAccess_transferRead) {
+    str += "transferRead | ";
+  }
+  if (e & PuleGpuResourceAccess_transferWrite) {
+    str += "transferWrite | ";
+  }
+  if (e & PuleGpuResourceAccess_hostRead) {
+    str += "hostRead | ";
+  }
+  if (e & PuleGpuResourceAccess_hostWrite) {
+    str += "hostWrite | ";
+  }
+  if (e & PuleGpuResourceAccess_memoryRead) {
+    str += "memoryRead | ";
+  }
+  if (e & PuleGpuResourceAccess_memoryWrite) {
+    str += "memoryWrite | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuConstantTypeTag const e) {
   switch (e) {
-    case PuleGpuResourceBarrierStage_top: return "top";
-    case PuleGpuResourceBarrierStage_drawIndirect: return "drawIndirect";
-    case PuleGpuResourceBarrierStage_vertexInput: return "vertexInput";
-    case PuleGpuResourceBarrierStage_shaderFragment: return "shaderFragment";
-    case PuleGpuResourceBarrierStage_shaderVertex: return "shaderVertex";
-    case PuleGpuResourceBarrierStage_shaderCompute: return "shaderCompute";
-    case PuleGpuResourceBarrierStage_outputAttachmentColor: return "outputAttachmentColor";
-    case PuleGpuResourceBarrierStage_outputAttachmentDepth: return "outputAttachmentDepth";
-    case PuleGpuResourceBarrierStage_transfer: return "transfer";
-    case PuleGpuResourceBarrierStage_bottom: return "bottom";
-    default: return "N/A";
+    case PuleGpuConstantTypeTag_f32: return puleString("f32");
+    case PuleGpuConstantTypeTag_f32v2: return puleString("f32v2");
+    case PuleGpuConstantTypeTag_f32v3: return puleString("f32v3");
+    case PuleGpuConstantTypeTag_f32v4: return puleString("f32v4");
+    case PuleGpuConstantTypeTag_i32: return puleString("i32");
+    case PuleGpuConstantTypeTag_i32v2: return puleString("i32v2");
+    case PuleGpuConstantTypeTag_i32v3: return puleString("i32v3");
+    case PuleGpuConstantTypeTag_i32v4: return puleString("i32v4");
+    case PuleGpuConstantTypeTag_f32m44: return puleString("f32m44");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuResourceAccess const e) {
+inline pule::str toStr(PuleErrorGfx const e) {
   switch (e) {
-    case PuleGpuResourceAccess_none: return "none";
-    case PuleGpuResourceAccess_indirectCommandRead: return "indirectCommandRead";
-    case PuleGpuResourceAccess_indexRead: return "indexRead";
-    case PuleGpuResourceAccess_vertexAttributeRead: return "vertexAttributeRead";
-    case PuleGpuResourceAccess_uniformRead: return "uniformRead";
-    case PuleGpuResourceAccess_inputAttachmentRead: return "inputAttachmentRead";
-    case PuleGpuResourceAccess_shaderRead: return "shaderRead";
-    case PuleGpuResourceAccess_shaderWrite: return "shaderWrite";
-    case PuleGpuResourceAccess_attachmentColorRead: return "attachmentColorRead";
-    case PuleGpuResourceAccess_attachmentColorWrite: return "attachmentColorWrite";
-    case PuleGpuResourceAccess_attachmentDepthRead: return "attachmentDepthRead";
-    case PuleGpuResourceAccess_attachmentDepthWrite: return "attachmentDepthWrite";
-    case PuleGpuResourceAccess_transferRead: return "transferRead";
-    case PuleGpuResourceAccess_transferWrite: return "transferWrite";
-    case PuleGpuResourceAccess_hostRead: return "hostRead";
-    case PuleGpuResourceAccess_hostWrite: return "hostWrite";
-    case PuleGpuResourceAccess_memoryRead: return "memoryRead";
-    case PuleGpuResourceAccess_memoryWrite: return "memoryWrite";
-    default: return "N/A";
+    case PuleErrorGfx_none: return puleString("none");
+    case PuleErrorGfx_creationFailed: return puleString("creationFailed");
+    case PuleErrorGfx_shaderModuleCompilationFailed: return puleString("shaderModuleCompilationFailed");
+    case PuleErrorGfx_invalidDescriptorSet: return puleString("invalidDescriptorSet");
+    case PuleErrorGfx_invalidCommandList: return puleString("invalidCommandList");
+    case PuleErrorGfx_invalidFramebuffer: return puleString("invalidFramebuffer");
+    case PuleErrorGfx_submissionFenceWaitFailed: return puleString("submissionFenceWaitFailed");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuConstantTypeTag const e) {
+inline pule::str toStr(PuleGpuBufferUsage const e) {
+  std::string str = "( ";
+  if (e & PuleGpuBufferUsage_attribute) {
+    str += "attribute | ";
+  }
+  if (e & PuleGpuBufferUsage_element) {
+    str += "element | ";
+  }
+  if (e & PuleGpuBufferUsage_uniform) {
+    str += "uniform | ";
+  }
+  if (e & PuleGpuBufferUsage_storage) {
+    str += "storage | ";
+  }
+  if (e & PuleGpuBufferUsage_accelerationStructure) {
+    str += "accelerationStructure | ";
+  }
+  if (e & PuleGpuBufferUsage_indirect) {
+    str += "indirect | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuBufferBindingDescriptor const e) {
   switch (e) {
-    case PuleGpuConstantTypeTag_f32: return "f32";
-    case PuleGpuConstantTypeTag_f32v2: return "f32v2";
-    case PuleGpuConstantTypeTag_f32v3: return "f32v3";
-    case PuleGpuConstantTypeTag_f32v4: return "f32v4";
-    case PuleGpuConstantTypeTag_i32: return "i32";
-    case PuleGpuConstantTypeTag_i32v2: return "i32v2";
-    case PuleGpuConstantTypeTag_i32v3: return "i32v3";
-    case PuleGpuConstantTypeTag_i32v4: return "i32v4";
-    case PuleGpuConstantTypeTag_f32m44: return "f32m44";
-    default: return "N/A";
+    case PuleGpuBufferBindingDescriptor_uniform: return puleString("uniform");
+    case PuleGpuBufferBindingDescriptor_storage: return puleString("storage");
+    case PuleGpuBufferBindingDescriptor_accelerationStructure: return puleString("accelerationStructure");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleErrorGfx const e) {
+inline pule::str toStr(PuleGpuBufferVisibilityFlag const e) {
+  std::string str = "( ";
+  if (e & PuleGpuBufferVisibilityFlag_deviceOnly) {
+    str += "deviceOnly | ";
+  }
+  if (e & PuleGpuBufferVisibilityFlag_hostVisible) {
+    str += "hostVisible | ";
+  }
+  if (e & PuleGpuBufferVisibilityFlag_hostWritable) {
+    str += "hostWritable | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuBufferMapAccess const e) {
+  std::string str = "( ";
+  if (e & PuleGpuBufferMapAccess_hostVisible) {
+    str += "hostVisible | ";
+  }
+  if (e & PuleGpuBufferMapAccess_hostWritable) {
+    str += "hostWritable | ";
+  }
+  if (e & PuleGpuBufferMapAccess_invalidate) {
+    str += "invalidate | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuImageMagnification const e) {
   switch (e) {
-    case PuleErrorGfx_none: return "none";
-    case PuleErrorGfx_creationFailed: return "creationFailed";
-    case PuleErrorGfx_shaderModuleCompilationFailed: return "shaderModuleCompilationFailed";
-    case PuleErrorGfx_invalidDescriptorSet: return "invalidDescriptorSet";
-    case PuleErrorGfx_invalidCommandList: return "invalidCommandList";
-    case PuleErrorGfx_invalidFramebuffer: return "invalidFramebuffer";
-    case PuleErrorGfx_submissionFenceWaitFailed: return "submissionFenceWaitFailed";
-    default: return "N/A";
+    case PuleGpuImageMagnification_nearest: return puleString("nearest");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuBufferUsage const e) {
+inline pule::str toStr(PuleGpuImageWrap const e) {
   switch (e) {
-    case PuleGpuBufferUsage_attribute: return "attribute";
-    case PuleGpuBufferUsage_element: return "element";
-    case PuleGpuBufferUsage_uniform: return "uniform";
-    case PuleGpuBufferUsage_storage: return "storage";
-    case PuleGpuBufferUsage_accelerationStructure: return "accelerationStructure";
-    case PuleGpuBufferUsage_indirect: return "indirect";
-    default: return "N/A";
+    case PuleGpuImageWrap_clampToEdge: return puleString("clampToEdge");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuBufferBindingDescriptor const e) {
+inline pule::str toStr(PuleGpuImageByteFormat const e) {
   switch (e) {
-    case PuleGpuBufferBindingDescriptor_uniform: return "uniform";
-    case PuleGpuBufferBindingDescriptor_storage: return "storage";
-    case PuleGpuBufferBindingDescriptor_accelerationStructure: return "accelerationStructure";
-    default: return "N/A";
+    case PuleGpuImageByteFormat_undefined: return puleString("undefined");
+    case PuleGpuImageByteFormat_bgra8U: return puleString("bgra8U");
+    case PuleGpuImageByteFormat_rgba8U: return puleString("rgba8U");
+    case PuleGpuImageByteFormat_rgb8U: return puleString("rgb8U");
+    case PuleGpuImageByteFormat_r8U: return puleString("r8U");
+    case PuleGpuImageByteFormat_depth16: return puleString("depth16");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuBufferVisibilityFlag const e) {
+inline pule::str toStr(PuleGpuImageTarget const e) {
   switch (e) {
-    case PuleGpuBufferVisibilityFlag_deviceOnly: return "deviceOnly";
-    case PuleGpuBufferVisibilityFlag_hostVisible: return "hostVisible";
-    case PuleGpuBufferVisibilityFlag_hostWritable: return "hostWritable";
-    default: return "N/A";
+    case PuleGpuImageTarget_i2D: return puleString("i2D");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuBufferMapAccess const e) {
+inline pule::str toStr(PuleGpuFramebufferAttachment const e) {
   switch (e) {
-    case PuleGpuBufferMapAccess_hostVisible: return "hostVisible";
-    case PuleGpuBufferMapAccess_hostWritable: return "hostWritable";
-    case PuleGpuBufferMapAccess_invalidate: return "invalidate";
-    default: return "N/A";
+    case PuleGpuFramebufferAttachment_color0: return puleString("color0");
+    case PuleGpuFramebufferAttachment_color1: return puleString("color1");
+    case PuleGpuFramebufferAttachment_color3: return puleString("color3");
+    case PuleGpuFramebufferAttachment_color4: return puleString("color4");
+    case PuleGpuFramebufferAttachment_depth: return puleString("depth");
+    case PuleGpuFramebufferAttachment_stencil: return puleString("stencil");
+    case PuleGpuFramebufferAttachment_depthStencil: return puleString("depthStencil");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageMagnification const e) {
+inline pule::str toStr(PuleGpuFramebufferType const e) {
   switch (e) {
-    case PuleGpuImageMagnification_nearest: return "nearest";
-    default: return "N/A";
+    case PuleGpuFramebufferType_renderStorage: return puleString("renderStorage");
+    case PuleGpuFramebufferType_imageStorage: return puleString("imageStorage");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageWrap const e) {
+inline pule::str toStr(PuleGpuImageAttachmentOpLoad const e) {
   switch (e) {
-    case PuleGpuImageWrap_clampToEdge: return "clampToEdge";
-    default: return "N/A";
+    case PuleGpuImageAttachmentOpLoad_load: return puleString("load");
+    case PuleGpuImageAttachmentOpLoad_clear: return puleString("clear");
+    case PuleGpuImageAttachmentOpLoad_dontCare: return puleString("dontCare");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageByteFormat const e) {
+inline pule::str toStr(PuleGpuImageAttachmentOpStore const e) {
   switch (e) {
-    case PuleGpuImageByteFormat_undefined: return "undefined";
-    case PuleGpuImageByteFormat_bgra8U: return "bgra8U";
-    case PuleGpuImageByteFormat_rgba8U: return "rgba8U";
-    case PuleGpuImageByteFormat_rgb8U: return "rgb8U";
-    case PuleGpuImageByteFormat_r8U: return "r8U";
-    case PuleGpuImageByteFormat_depth16: return "depth16";
-    default: return "N/A";
+    case PuleGpuImageAttachmentOpStore_store: return puleString("store");
+    case PuleGpuImageAttachmentOpStore_dontCare: return puleString("dontCare");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageTarget const e) {
+inline pule::str toStr(PuleGpuImageLayout const e) {
   switch (e) {
-    case PuleGpuImageTarget_i2D: return "i2D";
-    default: return "N/A";
+    case PuleGpuImageLayout_uninitialized: return puleString("uninitialized");
+    case PuleGpuImageLayout_storage: return puleString("storage");
+    case PuleGpuImageLayout_attachmentColor: return puleString("attachmentColor");
+    case PuleGpuImageLayout_attachmentDepth: return puleString("attachmentDepth");
+    case PuleGpuImageLayout_transferSrc: return puleString("transferSrc");
+    case PuleGpuImageLayout_transferDst: return puleString("transferDst");
+    case PuleGpuImageLayout_presentSrc: return puleString("presentSrc");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuFramebufferAttachment const e) {
+inline pule::str toStr(PuleGpuPipelineStage const e) {
+  std::string str = "( ";
+  if (e & PuleGpuPipelineStage_top) {
+    str += "top | ";
+  }
+  if (e & PuleGpuPipelineStage_drawIndirect) {
+    str += "drawIndirect | ";
+  }
+  if (e & PuleGpuPipelineStage_vertexInput) {
+    str += "vertexInput | ";
+  }
+  if (e & PuleGpuPipelineStage_vertexShader) {
+    str += "vertexShader | ";
+  }
+  if (e & PuleGpuPipelineStage_fragmentShader) {
+    str += "fragmentShader | ";
+  }
+  if (e & PuleGpuPipelineStage_colorAttachmentOutput) {
+    str += "colorAttachmentOutput | ";
+  }
+  if (e & PuleGpuPipelineStage_computeShader) {
+    str += "computeShader | ";
+  }
+  if (e & PuleGpuPipelineStage_transfer) {
+    str += "transfer | ";
+  }
+  if (e & PuleGpuPipelineStage_bottom) {
+    str += "bottom | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuDescriptorType const e) {
   switch (e) {
-    case PuleGpuFramebufferAttachment_color0: return "color0";
-    case PuleGpuFramebufferAttachment_color1: return "color1";
-    case PuleGpuFramebufferAttachment_color3: return "color3";
-    case PuleGpuFramebufferAttachment_color4: return "color4";
-    case PuleGpuFramebufferAttachment_depth: return "depth";
-    case PuleGpuFramebufferAttachment_stencil: return "stencil";
-    case PuleGpuFramebufferAttachment_depthStencil: return "depthStencil";
-    default: return "N/A";
+    case PuleGpuDescriptorType_sampler: return puleString("sampler");
+    case PuleGpuDescriptorType_uniformBuffer: return puleString("uniformBuffer");
+    case PuleGpuDescriptorType_storageBuffer: return puleString("storageBuffer");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuFramebufferType const e) {
+inline pule::str toStr(PuleGpuAttributeDataType const e) {
   switch (e) {
-    case PuleGpuFramebufferType_renderStorage: return "renderStorage";
-    case PuleGpuFramebufferType_imageStorage: return "imageStorage";
-    default: return "N/A";
+    case PuleGpuAttributeDataType_f32: return puleString("f32");
+    case PuleGpuAttributeDataType_u8: return puleString("u8");
+    case PuleGpuAttributeDataType_u16: return puleString("u16");
+    case PuleGpuAttributeDataType_u32: return puleString("u32");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageAttachmentOpLoad const e) {
+inline pule::str toStr(PuleGpuPipelineDescriptorMax const e) {
   switch (e) {
-    case PuleGpuImageAttachmentOpLoad_load: return "load";
-    case PuleGpuImageAttachmentOpLoad_clear: return "clear";
-    case PuleGpuImageAttachmentOpLoad_dontCare: return "dontCare";
-    default: return "N/A";
+    case PuleGpuPipelineDescriptorMax_uniform: return puleString("uniform");
+    case PuleGpuPipelineDescriptorMax_texture: return puleString("texture");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageAttachmentOpStore const e) {
+inline pule::str toStr(PuleGpuDescriptorStage const e) {
+  std::string str = "( ";
+  if (e & PuleGpuDescriptorStage_unused) {
+    str += "unused | ";
+  }
+  if (e & PuleGpuDescriptorStage_vertex) {
+    str += "vertex | ";
+  }
+  if (e & PuleGpuDescriptorStage_fragment) {
+    str += "fragment | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuDrawPrimitive const e) {
   switch (e) {
-    case PuleGpuImageAttachmentOpStore_store: return "store";
-    case PuleGpuImageAttachmentOpStore_dontCare: return "dontCare";
-    default: return "N/A";
+    case PuleGpuDrawPrimitive_triangle: return puleString("triangle");
+    case PuleGpuDrawPrimitive_triangleStrip: return puleString("triangleStrip");
+    case PuleGpuDrawPrimitive_point: return puleString("point");
+    case PuleGpuDrawPrimitive_line: return puleString("line");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuImageLayout const e) {
+inline pule::str toStr(PuleGpuFenceConditionFlag const e) {
   switch (e) {
-    case PuleGpuImageLayout_uninitialized: return "uninitialized";
-    case PuleGpuImageLayout_storage: return "storage";
-    case PuleGpuImageLayout_attachmentColor: return "attachmentColor";
-    case PuleGpuImageLayout_attachmentDepth: return "attachmentDepth";
-    case PuleGpuImageLayout_transferSrc: return "transferSrc";
-    case PuleGpuImageLayout_transferDst: return "transferDst";
-    case PuleGpuImageLayout_presentSrc: return "presentSrc";
-    default: return "N/A";
+    case PuleGpuFenceConditionFlag_all: return puleString("all");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleGpuPipelineStage const e) {
+inline pule::str toStr(PuleGpuSignalTime const e) {
   switch (e) {
-    case PuleGpuPipelineStage_top: return "top";
-    case PuleGpuPipelineStage_drawIndirect: return "drawIndirect";
-    case PuleGpuPipelineStage_vertexInput: return "vertexInput";
-    case PuleGpuPipelineStage_vertexShader: return "vertexShader";
-    case PuleGpuPipelineStage_fragmentShader: return "fragmentShader";
-    case PuleGpuPipelineStage_colorAttachmentOutput: return "colorAttachmentOutput";
-    case PuleGpuPipelineStage_computeShader: return "computeShader";
-    case PuleGpuPipelineStage_transfer: return "transfer";
-    case PuleGpuPipelineStage_bottom: return "bottom";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuDescriptorType const e) {
-  switch (e) {
-    case PuleGpuDescriptorType_sampler: return "sampler";
-    case PuleGpuDescriptorType_uniformBuffer: return "uniformBuffer";
-    case PuleGpuDescriptorType_storageBuffer: return "storageBuffer";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuAttributeDataType const e) {
-  switch (e) {
-    case PuleGpuAttributeDataType_f32: return "f32";
-    case PuleGpuAttributeDataType_u8: return "u8";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuPipelineDescriptorMax const e) {
-  switch (e) {
-    case PuleGpuPipelineDescriptorMax_uniform: return "uniform";
-    case PuleGpuPipelineDescriptorMax_texture: return "texture";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuDescriptorStage const e) {
-  switch (e) {
-    case PuleGpuDescriptorStage_unused: return "unused";
-    case PuleGpuDescriptorStage_vertex: return "vertex";
-    case PuleGpuDescriptorStage_fragment: return "fragment";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuDrawPrimitive const e) {
-  switch (e) {
-    case PuleGpuDrawPrimitive_triangle: return "triangle";
-    case PuleGpuDrawPrimitive_triangleStrip: return "triangleStrip";
-    case PuleGpuDrawPrimitive_point: return "point";
-    case PuleGpuDrawPrimitive_line: return "line";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuFenceConditionFlag const e) {
-  switch (e) {
-    case PuleGpuFenceConditionFlag_all: return "all";
-    default: return "N/A";
-  }
-}
-inline char const * toStr(PuleGpuSignalTime const e) {
-  switch (e) {
-    case PuleGpuSignalTime_forever: return "forever";
-    default: return "N/A";
+    case PuleGpuSignalTime_forever: return puleString("forever");
+    default: return puleString("N/A");
   }
 }
 }

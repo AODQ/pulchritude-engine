@@ -75,11 +75,18 @@ struct BindingEnum {
   std::string name;
   std::string comment;
   std::vector<BindingEnumField> fields;
+  bool isBitfield;
 };
 
 struct BindingFuncParameter {
   std::string name;
   BindingType type;
+};
+
+struct BindingAlias {
+  std::string name;
+  std::string comment;
+  std::string alias;
 };
 
 struct BindingFunc {
@@ -97,6 +104,7 @@ struct BindingEntity {
 struct BindingFile {
   std::vector<BindingStruct> structs;
   std::vector<BindingEnum> enums;
+  std::vector<BindingAlias> aliases;
   std::vector<BindingFunc> funcs;
   std::vector<BindingEntity> entities;
   std::vector<std::string> includes;

@@ -110,26 +110,28 @@ using BecsSystemInputRelationsCreateInfo = PuleBecsSystemInputRelationsCreateInf
 namespace pule {
 using BecsEntityCreateInfo = PuleBecsEntityCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PuleErrorBecs const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorBecs const e) {
   switch (e) {
-    case PuleErrorBecs_none: return "none";
-    default: return "N/A";
+    case PuleErrorBecs_none: return puleString("none");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleBecsSystemCallbackFrequency const e) {
+inline pule::str toStr(PuleBecsSystemCallbackFrequency const e) {
   switch (e) {
-    case PuleBecsSystemCallbackFrequency_vsync: return "vsync";
-    case PuleBecsSystemCallbackFrequency_unlimited: return "unlimited";
-    case PuleBecsSystemCallbackFrequency_fixed: return "fixed";
-    default: return "N/A";
+    case PuleBecsSystemCallbackFrequency_vsync: return puleString("vsync");
+    case PuleBecsSystemCallbackFrequency_unlimited: return puleString("unlimited");
+    case PuleBecsSystemCallbackFrequency_fixed: return puleString("fixed");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleBecsSystemInputRelation const e) {
+inline pule::str toStr(PuleBecsSystemInputRelation const e) {
   switch (e) {
-    case PuleBecsSystemInputRelation_current: return "current";
-    case PuleBecsSystemInputRelation_previous: return "previous";
-    default: return "N/A";
+    case PuleBecsSystemInputRelation_current: return puleString("current");
+    case PuleBecsSystemInputRelation_previous: return puleString("previous");
+    default: return puleString("N/A");
   }
 }
 }

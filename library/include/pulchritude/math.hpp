@@ -95,34 +95,6 @@ struct F32m33 {
   F32m33 const & operator *=(pule::F32 const & rhs);
 };
 
-struct F32q {
-  pule::F32v4 v4;
-
-  F32q();
-  F32q(float x, float y, float z, float w);
-  F32q(pule::F32v3 const & axis, float angle);
-  F32q(PuleF32q const & a);
-
-  inline operator PuleF32q() const { return {v4.x,v4.y,v4.z,v4.w,}; }
-
-  ~F32q() = default;
-  F32q(F32q && ff) = default;
-  F32q(F32q const & ff) = default;
-  F32q & operator=(F32q && ff) = default;
-  F32q & operator=(F32q const & ff) = default;
-
-  F32q operator *(F32q const & rhs) const;
-  F32q operator *(float const & rhs) const;
-
-  PuleF32m33 asM33() const;
-  pule::F32v3 axis() const;
-
-  static F32q plane(F32v3 const normal, float const theta);
-
-  F32v3 rotate(F32v3 const & a) const;
-  F32m33 rotate(F32m33 const & a) const;
-};
-
 } // namespace pule
 
 // free-form operators
@@ -132,17 +104,7 @@ pule::F32 lengthSqr(pule::F32v3 const & a);
 pule::F32v3 cross(pule::F32v3 const & a, pule::F32v3 const & b);
 pule::F32v3 normalize(pule::F32v3 const & a);
 
-pule::F32q normalize(pule::F32q const a);
-pule::F32q inverse(pule::F32q const a);
-pule::F32 magnitude(pule::F32q const a);
-pule::F32 magnitudeSqr(pule::F32q const a);
 pule::F32 magnitude(pule::F32v3 const a);
-pule::F32v3 rotate(
-  pule::F32q const a, pule::F32v3 const b
-);
-PULE_exportFn PuleF32m33 rotate(
-  pule::F32q const a, PuleF32m33 const b
-);
 
 pule::F32 trace(pule::F32m33 const &);
 pule::F32 determinant(pule::F32m33 const &);

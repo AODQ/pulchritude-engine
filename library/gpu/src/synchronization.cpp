@@ -28,6 +28,7 @@ PuleGpuSemaphore puleGpuSemaphoreCreate(PuleStringView const label) {
       util::ctx().device.logical, &semaphoreCreateInfo, nullptr, &semaphore
     )
   );
+  #if VK_VALIDATION_ENABLED
   { // name the semaphore
     VkDebugUtilsObjectNameInfoEXT nameInfo = {
       .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -38,6 +39,7 @@ PuleGpuSemaphore puleGpuSemaphoreCreate(PuleStringView const label) {
     };
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
+  #endif
   return { .id = reinterpret_cast<uint64_t>(semaphore) };
 }
 
@@ -60,6 +62,7 @@ PuleGpuFence puleGpuFenceCreate(PuleStringView const label) {
     .flags = 0,
   };
   vkCreateFence(util::ctx().device.logical, &fenceCreateInfo, nullptr, &fence);
+  #if VK_VALIDATION_ENABLED
   { // name the semaphore
     VkDebugUtilsObjectNameInfoEXT nameInfo = {
       .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -71,6 +74,7 @@ PuleGpuFence puleGpuFenceCreate(PuleStringView const label) {
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
     fenceDebugNames.emplace(reinterpret_cast<uint64_t>(fence), label.contents);
   }
+  #endif
   return { .id = reinterpret_cast<uint64_t>(fence) };
 }
 void puleGpuFenceDestroy(PuleGpuFence const fence) {

@@ -111,11 +111,13 @@ struct TaskGraphNode {
 namespace pule {
 using TaskGraphExecuteInfo = PuleTaskGraphExecuteInfo;
 }
-namespace pule {
-inline char const * toStr(PuleTaskGraphNodeRelation const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleTaskGraphNodeRelation const e) {
   switch (e) {
-    case PuleTaskGraphNodeRelation_dependsOn: return "dependsOn";
-    default: return "N/A";
+    case PuleTaskGraphNodeRelation_dependsOn: return puleString("dependsOn");
+    default: return puleString("N/A");
   }
 }
 }

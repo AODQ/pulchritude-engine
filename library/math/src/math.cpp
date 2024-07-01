@@ -6,6 +6,10 @@
 
 extern "C" {
 
+float puleF32Mix(float a, float b, float t) {
+  return a + (b-a)*t;
+}
+
 PuleF32v2 puleF32v2(float const identity) {
   return PuleF32v2 {
     .x = identity,
@@ -60,6 +64,29 @@ PuleF32v3 puleF32v3(float const identity) {
     .x = identity, .y = identity, .z = identity,
   };
 }
+PuleF32v3 puleF32v3Mix(
+  PuleF32v3 const a, PuleF32v3 const b, float const t
+) {
+  return PuleF32v3 {
+    .x = a.x + (b.x-a.x)*t,
+    .y = a.y + (b.y-a.y)*t,
+    .z = a.z + (b.z-a.z)*t,
+  };
+}
+PuleF32v3 puleF32v3Min(PuleF32v3 const a, PuleF32v3 const b) {
+  return PuleF32v3 {
+    .x = a.x < b.x ? a.x : b.x,
+    .y = a.y < b.y ? a.y : b.y,
+    .z = a.z < b.z ? a.z : b.z,
+  };
+}
+PuleF32v3 puleF32v3Max(PuleF32v3 const a, PuleF32v3 const b) {
+  return PuleF32v3 {
+    .x = a.x > b.x ? a.x : b.x,
+    .y = a.y > b.y ? a.y : b.y,
+    .z = a.z > b.z ? a.z : b.z,
+  };
+}
 PuleF32v3 puleF32v3Ptr(float const * const value) {
   return PuleF32v3 { .x = *value, .y = *(value+1), .z = *(value+2) };
 }
@@ -67,6 +94,21 @@ PuleF32v4 puleF32v4(float const identity) {
   return PuleF32v4 {
     .x = identity, .y = identity, .z = identity, .w = identity,
   };
+}
+PuleF32v4 puleF32v4Mix(
+  PuleF32v4 const a, PuleF32v4 const b, float const t
+) {
+  return PuleF32v4 {
+    .x = a.x + (b.x-a.x)*t,
+    .y = a.y + (b.y-a.y)*t,
+    .z = a.z + (b.z-a.z)*t,
+    .w = a.w + (b.w-a.w)*t,
+  };
+}
+float puleF32v4Dot(
+  PuleF32v4 const a, PuleF32v4 const b
+) {
+  return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
 }
 PuleF32v4 puleF32v3to4(PuleF32v3 const a, float const w) {
   return PuleF32v4 { .x = a.x, .y = a.y, .z = a.z, .w = w };
@@ -306,9 +348,9 @@ PuleF32q puleF32qPlane(
 }
 
 PuleF32q puleF32qFromEuler(PuleF32v3 const euler) {
-  PuleF32q const qX = puleF32qPlane(PuleF32v3{1.0f, 0.0f, 0.0f}, euler.x);
-  PuleF32q const qY = puleF32qPlane(PuleF32v3{0.0f, 1.0f, 0.0f}, euler.y);
-  PuleF32q const qZ = puleF32qPlane(PuleF32v3{0.0f, 0.0f, 1.0f}, euler.z);
+  PuleF32v4 const qX = puleF32qPlane(PuleF32v3{1.0f, 0.0f, 0.0f}, euler.x);
+  PuleF32v4 const qY = puleF32qPlane(PuleF32v3{0.0f, 1.0f, 0.0f}, euler.y);
+  PuleF32v4 const qZ = puleF32qPlane(PuleF32v3{0.0f, 0.0f, 1.0f}, euler.z);
   return puleF32qMul(puleF32qMul(qX, qY), qZ);
 }
 
@@ -323,6 +365,33 @@ PuleF32q puleF32qMul(PuleF32q const l, PuleF32q const r) {
 
 PuleF32q puleF32qMulF(PuleF32q const a, float const b) {
   return PuleF32q { .x = a.x*b, .y = a.y*b, .z = a.z*b, .w = a.w*b, };
+}
+
+PuleF32q puleF32qSlerp(PuleF32q a, PuleF32q b, float t) {
+  float cosTheta = puleF32v4Dot(a, b);
+  if (cosTheta < 0.0f) {
+    a = puleF32v4Neg(a);
+    cosTheta = -cosTheta;
+  }
+
+  if (cosTheta > 0.9995f) {
+    return puleF32qNormalize(puleF32v4Mix(a, b, t));
+  }
+
+  float const theta = acosf(cosTheta);
+  float const sinTheta = sinf(theta);
+
+  float const weight0 = sinf((1.0f-t)*theta) / sinTheta;
+  float const weight1 = sinf(t*theta) / sinTheta;
+
+  return (
+    puleF32qNormalize(
+      puleF32v4Add(
+        puleF32qMulF(a, weight0),
+        puleF32qMulF(b, weight1)
+      )
+    )
+  );
 }
 
 PuleF32q puleF32qNormalize(PuleF32q const a) {
@@ -385,23 +454,35 @@ bool puleF32qValid(PuleF32q const a) {
 }
 
 PuleF32m33 puleF32qAsM33(PuleF32q const id) {
-  PuleF32v3 const rows[3] = {
-    puleF32qRotateV3(id, PuleF32v3{1.0f, 0.0f, 0.0f}),
-    puleF32qRotateV3(id, PuleF32v3{0.0f, 1.0f, 0.0f}),
-    puleF32qRotateV3(id, PuleF32v3{0.0f, 0.0f, 1.0f}),
+  float const
+    xx = id.x*id.x,
+    xy = id.x*id.y,
+    xz = id.x*id.z,
+    xw = id.x*id.w,
+    yy = id.y*id.y,
+    yz = id.y*id.z,
+    yw = id.y*id.w,
+    zz = id.z*id.z,
+    zw = id.z*id.w;
+
+  return PuleF32m33 {
+    .elem = {
+      1.0f - 2.0f*(yy + zz),        2.0f*(xy - zw),        2.0f*(xz + yw),
+             2.0f*(xy + zw), 1.0f - 2.0f*(xx + zz),        2.0f*(yz - xw),
+             2.0f*(xz - yw),        2.0f*(yz + xw), 1.0f - 2.0f*(xx + yy),
+    },
   };
-  return (
-    PuleF32m33 {
-      .elem = {
-        rows[0].x, rows[0].y, rows[0].z,
-        rows[1].x, rows[1].y, rows[1].z,
-        rows[2].x, rows[2].y, rows[2].z,
-      },
-    }
-  );
 }
-PuleF32v4 puleF32qAsV4(PuleF32q const id) {
-  return PuleF32v4 { .x = id.x, .y = id.y, .z = id.z, .w = id.w };
+
+PuleF32m44 puleF32qAsM44(PuleF32q const id) {
+  PuleF32m33 asm33 = puleF32qAsM33(id);
+  PuleF32m44 asm44 = {{
+    asm33.elem[0], asm33.elem[3], asm33.elem[6], 0.0f,
+    asm33.elem[1], asm33.elem[4], asm33.elem[7], 0.0f,
+    asm33.elem[2], asm33.elem[5], asm33.elem[8], 0.0f,
+    0.0f,          0.0f,          0.0f,          1.0f,
+  }};
+  return asm44;
 }
 
 } // extern C
@@ -524,48 +605,6 @@ pule::F32m33 const & pule::F32m33::operator*=(pule::F32 const & rhs) {
   return *this;
 }
 
-pule::F32q::F32q() { v4.x = 0.0f; v4.y = 0.0f; v4.z = 0.0f; v4.w = 1.0f; }
-pule::F32q::F32q(float x, float y, float z, float w) {
-  v4.x = x; v4.y = y; v4.z = z; v4.w = w;
-}
-pule::F32q::F32q(pule::F32v3 const & axis, float angle) {
-  auto cabi = puleF32qPlane(axis, angle);
-  this->v4 = { cabi.x, cabi.y, cabi.z, cabi.w };
-}
-pule::F32q::F32q(PuleF32q const & a) {
-  v4.x = a.x; v4.y = a.y; v4.z = a.z; v4.w = a.w;
-}
-
-pule::F32q pule::F32q::operator*(F32q const & rhs) const {
-  return F32q {
-    v4.w*rhs.v4.x + v4.x*rhs.v4.w + v4.y*rhs.v4.z - v4.z*rhs.v4.y,
-    v4.w*rhs.v4.y + v4.y*rhs.v4.w + v4.z*rhs.v4.x - v4.x*rhs.v4.z,
-    v4.w*rhs.v4.z + v4.z*rhs.v4.w + v4.x*rhs.v4.y - v4.y*rhs.v4.x,
-    v4.w*rhs.v4.w - v4.x*rhs.v4.x - v4.y*rhs.v4.y - v4.z*rhs.v4.z,
-  };
-}
-pule::F32q pule::F32q::operator*(float const & rhs) const {
-  return F32q { v4.x*rhs, v4.y*rhs, v4.z*rhs, v4.w*rhs };
-}
-
-PuleF32m33 pule::F32q::asM33() const {
-  return puleF32qAsM33(*this);
-}
-pule::F32v3 pule::F32q::axis() const {
-  return puleF32qAxis(*this);
-}
-
-pule::F32q pule::F32q::plane(F32v3 const normal, float const theta) {
-  return puleF32qPlane(normal, theta);
-}
-
-pule::F32v3 pule::F32q::rotate(F32v3 const & a) const {
-  return puleF32qRotateV3(*this, a);
-}
-pule::F32m33 pule::F32q::rotate(F32m33 const & a) const {
-  return puleF32qRotateM33(*this, a);
-}
-
 // free-form operators
 pule::F32 dot(pule::F32v3 const & a, pule::F32v3 const & b) {
   return a.x*b.x + a.y*b.y + a.z*b.z;
@@ -589,31 +628,9 @@ pule::F32v3 normalize(pule::F32v3 const & a) {
   return pule::F32v3 { a.x/length, a.y/length, a.z/length, };
 }
 
-pule::F32q normalize(pule::F32q const a) {
-  return puleF32qNormalize(a);
-}
-pule::F32q inverse(pule::F32q const a) {
-  return puleF32qInvert(a);
-}
-pule::F32 magnitude(pule::F32q const a) {
-  return puleF32qMagnitude(a);
-}
-pule::F32 magnitudeSqr(pule::F32q const a) {
-  return puleF32qMagnitudeSqr(a);
-}
 
 pule::F32 magnitude(pule::F32v3 const a) {
   return puleF32v3Length(a);
-}
-pule::F32v3 rotate(
-  pule::F32q const a, pule::F32v3 const b
-) {
-  return puleF32qRotateV3(a, b);
-}
-PULE_exportFn PuleF32m33 rotate(
-  pule::F32q const a, PuleF32m33 const b
-) {
-  return puleF32qRotateM33(a, b);
 }
 
 pule::F32 trace(pule::F32m33 const & m) {

@@ -13,8 +13,8 @@
     allocation. Unable to modify the contents of the string. The convention
     is to pass immutable data between interfaces with the string-view, and
     make copies if the local system needs to retain the information.`
-  @field contents : char const ptr = null;
-  @field len : size_t = 0;
+  @field contents : char const ptr;
+  @field len : size_t;
 };
 
 @fn puleString(baseContents : char const ptr) PuleString #`

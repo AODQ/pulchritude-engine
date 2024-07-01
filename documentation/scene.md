@@ -24,7 +24,7 @@ struct {
   msDelta : float;
   advanceEcsWorld : bool = false;
   advancePhysxWorld : bool = false;
-  waitSemaphore : PuleGpuSemaphore = 0;
+  waitSemaphore : PuleGpuSemaphore;
 };
 ```
 ### PuleSceneComponentModelData

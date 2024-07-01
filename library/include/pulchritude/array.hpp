@@ -62,6 +62,9 @@ struct Buffer {
   inline void destroy() {
     return puleBufferDestroy(this->_handle);
   }
+  inline PuleBufferView view() {
+    return puleBufferView(this->_handle);
+  }
   static inline Buffer create(PuleAllocator arg0) {
     return { ._handle = puleBufferCreate(arg0),};
   }
@@ -79,12 +82,17 @@ struct Buffer {
   inline void destroy(pule::Buffer self) {
     return puleBufferDestroy(self._handle);
   }
-namespace pule {
-inline char const * toStr(PuleErrorArray const e) {
+  inline PuleBufferView view(pule::Buffer self) {
+    return puleBufferView(self._handle);
+  }
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorArray const e) {
   switch (e) {
-    case PuleErrorArray_none: return "none";
-    case PuleErrorArray_errorAllocation: return "errorAllocation";
-    default: return "N/A";
+    case PuleErrorArray_none: return puleString("none");
+    case PuleErrorArray_errorAllocation: return puleString("errorAllocation");
+    default: return puleString("N/A");
   }
 }
 }

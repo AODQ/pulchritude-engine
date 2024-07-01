@@ -18,8 +18,8 @@ light-weight view into a string, with no knowledge of its underlying
     make copies if the local system needs to retain the information.
 ```c
 struct {
-  contents : char const ptr = null;
-  len : size_t = 0;
+  contents : char const ptr;
+  len : size_t;
 };
 ```
 

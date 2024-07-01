@@ -136,3 +136,9 @@ puleBufferDestroy(
   _ : PuleBuffer
 ) void;
 ```
+### puleBufferView
+```c
+puleBufferView(
+  _ : PuleBuffer
+) PuleBufferView;
+```

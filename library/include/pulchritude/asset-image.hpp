@@ -48,29 +48,31 @@ struct AssetImage {
   inline uint32_t height(pule::AssetImage self) {
     return puleAssetImageHeight(self._handle);
   }
-namespace pule {
-inline char const * toStr(PuleErrorAssetImage const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorAssetImage const e) {
   switch (e) {
-    case PuleErrorAssetImage_none: return "none";
-    case PuleErrorAssetImage_decode: return "decode";
-    default: return "N/A";
+    case PuleErrorAssetImage_none: return puleString("none");
+    case PuleErrorAssetImage_decode: return puleString("decode");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleAssetImageSupportFlag const e) {
+inline pule::str toStr(PuleAssetImageSupportFlag const e) {
   switch (e) {
-    case PuleAssetImageSupportFlag_none: return "none";
-    case PuleAssetImageSupportFlag_read: return "read";
-    case PuleAssetImageSupportFlag_write: return "write";
-    case PuleAssetImageSupportFlag_readWrite: return "readWrite";
-    default: return "N/A";
+    case PuleAssetImageSupportFlag_none: return puleString("none");
+    case PuleAssetImageSupportFlag_read: return puleString("read");
+    case PuleAssetImageSupportFlag_write: return puleString("write");
+    case PuleAssetImageSupportFlag_readWrite: return puleString("readWrite");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleAssetImageFormat const e) {
+inline pule::str toStr(PuleAssetImageFormat const e) {
   switch (e) {
-    case PuleAssetImageFormat_rgbaU8: return "rgbaU8";
-    case PuleAssetImageFormat_rgbaU16: return "rgbaU16";
-    case PuleAssetImageFormat_rgbU8: return "rgbU8";
-    default: return "N/A";
+    case PuleAssetImageFormat_rgbaU8: return puleString("rgbaU8");
+    case PuleAssetImageFormat_rgbaU16: return puleString("rgbaU16");
+    case PuleAssetImageFormat_rgbU8: return puleString("rgbU8");
+    default: return puleString("N/A");
   }
 }
 }

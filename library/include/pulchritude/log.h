@@ -12,7 +12,13 @@ extern "C" {
 // entities
 
 // structs
+struct PuleLogSection;
 
+typedef struct PuleLogSection {
+  char const * label;
+  bool logRaw PULE_defaultField(false);
+  bool tabs PULE_defaultField(false);
+} PuleLogSection;
 
 // functions
 PULE_exportFn bool * puleLogDebugEnabled();
@@ -30,6 +36,8 @@ PULE_exportFn void puleLogDev(char const * formatCStr, ...);
  */
 PULE_exportFn void puleLogLn(char const * formatCStr, ...);
 PULE_exportFn void puleLogRaw(char const * formatCStr, ...);
+PULE_exportFn void puleLogSectionBegin(PuleLogSection section, ...);
+PULE_exportFn void puleLogSectionEnd();
 
 #ifdef __cplusplus
 } // extern C

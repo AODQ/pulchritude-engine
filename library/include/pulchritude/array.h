@@ -81,6 +81,7 @@ PULE_exportFn PuleBuffer puleBufferCopyWithData(PuleAllocator, uint8_t const * d
 PULE_exportFn void puleBufferResize(PuleBuffer *, size_t length);
 PULE_exportFn void puleBufferAppend(PuleBuffer *, uint8_t const * data, size_t length);
 PULE_exportFn void puleBufferDestroy(PuleBuffer);
+PULE_exportFn PuleBufferView puleBufferView(PuleBuffer);
 
 #ifdef __cplusplus
 } // extern C

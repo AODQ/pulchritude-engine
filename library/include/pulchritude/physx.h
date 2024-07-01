@@ -121,33 +121,33 @@ typedef struct PulePhysx2DShape {
   PulePhysx2DShapeUnion shape;
 } PulePhysx2DShape;
 typedef struct PulePhysx2DBodyCreateInfo {
-  PulePhysx2DBodyType type;
+  PulePhysx2DBodyType type PULE_defaultField(PulePhysx2DBodyType_static);
   /*  TODO = {0.0f, 0.0f}  */
   PuleF32v2 origin;
   /*  = {0.0f, 0.0f}  */
   PuleF32v2 originVelocity;
-  float originDamping;
-  float angle;
-  float angleVelocity;
-  float angleDamping;
-  float gravityScale;
-  bool allowSleep;
-  bool startAwake;
-  bool startEnabled;
-  bool fixedRotation;
-  bool bullet;
-  void * userData;
+  float originDamping PULE_defaultField(0.000000);
+  float angle PULE_defaultField(0.000000);
+  float angleVelocity PULE_defaultField(0.000000);
+  float angleDamping PULE_defaultField(0.000000);
+  float gravityScale PULE_defaultField(1.000000);
+  bool allowSleep PULE_defaultField(false);
+  bool startAwake PULE_defaultField(false);
+  bool startEnabled PULE_defaultField(false);
+  bool fixedRotation PULE_defaultField(false);
+  bool bullet PULE_defaultField(false);
+  void * userData PULE_defaultField(nullptr);
 } PulePhysx2DBodyCreateInfo;
 typedef struct PulePhysx2DBodyAttachShapeCreateInfo {
-  float friction;
-  float density;
-  float restitution;
-  float restitutionThreshold;
-  bool isSensor;
-  void * userData;
-  uint16_t collisionCategoryBits;
-  uint16_t collisionMaskBits;
-  uint16_t collisionGroup;
+  float friction PULE_defaultField(0.200000);
+  float density PULE_defaultField(0.000000);
+  float restitution PULE_defaultField(0.000000);
+  float restitutionThreshold PULE_defaultField(1.000000);
+  bool isSensor PULE_defaultField(false);
+  void * userData PULE_defaultField(nullptr);
+  uint16_t collisionCategoryBits PULE_defaultField(1);
+  uint16_t collisionMaskBits PULE_defaultField(65535);
+  uint16_t collisionGroup PULE_defaultField(0);
 } PulePhysx2DBodyAttachShapeCreateInfo;
 
 // functions

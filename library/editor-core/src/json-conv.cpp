@@ -15,7 +15,7 @@ static PuleDsValue jsonConv(cJSON * item) {
     case cJSON_NULL: return puleDsCreateBool(false);
     case cJSON_Number: {
       // determine if this is an integer or a float
-      if ((int32_t)item->valuedouble == item->valueint) {
+      if (item->valuedouble == (double)item->valueint) {
         return puleDsCreateI64((int64_t)item->valueint);
       }
       return puleDsCreateF64(item->valuedouble);

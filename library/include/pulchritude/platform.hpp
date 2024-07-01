@@ -114,151 +114,162 @@ using InputMouseButtonCallbackCreateInfo = PuleInputMouseButtonCallbackCreateInf
 namespace pule {
 using InputRawTextCallbackCreateInfo = PuleInputRawTextCallbackCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PulePlatformVsyncMode const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PulePlatformVsyncMode const e) {
   switch (e) {
-    case PulePlatformVsyncMode_none: return "none";
-    case PulePlatformVsyncMode_double: return "double";
-    case PulePlatformVsyncMode_triple: return "triple";
-    default: return "N/A";
+    case PulePlatformVsyncMode_none: return puleString("none");
+    case PulePlatformVsyncMode_double: return puleString("double");
+    case PulePlatformVsyncMode_triple: return puleString("triple");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleErrorWindow const e) {
+inline pule::str toStr(PuleErrorWindow const e) {
   switch (e) {
-    case PuleErrorWindow_none: return "none";
-    case PuleErrorWindow_windowCreationFailed: return "windowCreationFailed";
-    case PuleErrorWindow_invalidConfiguration: return "invalidConfiguration";
-    default: return "N/A";
+    case PuleErrorWindow_none: return puleString("none");
+    case PuleErrorWindow_windowCreationFailed: return puleString("windowCreationFailed");
+    case PuleErrorWindow_invalidConfiguration: return puleString("invalidConfiguration");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleInputKey const e) {
+inline pule::str toStr(PuleInputKey const e) {
   switch (e) {
-    case PuleInputKey_tab: return "tab";
-    case PuleInputKey_left: return "left";
-    case PuleInputKey_right: return "right";
-    case PuleInputKey_up: return "up";
-    case PuleInputKey_down: return "down";
-    case PuleInputKey_pageUp: return "pageUp";
-    case PuleInputKey_pageDown: return "pageDown";
-    case PuleInputKey_home: return "home";
-    case PuleInputKey_end: return "end";
-    case PuleInputKey_insert: return "insert";
-    case PuleInputKey_delete: return "delete";
-    case PuleInputKey_backspace: return "backspace";
-    case PuleInputKey_space: return "space";
-    case PuleInputKey_enter: return "enter";
-    case PuleInputKey_escape: return "escape";
-    case PuleInputKey_apostrophe: return "apostrophe";
-    case PuleInputKey_comma: return "comma";
-    case PuleInputKey_minus: return "minus";
-    case PuleInputKey_period: return "period";
-    case PuleInputKey_slash: return "slash";
-    case PuleInputKey_semicolon: return "semicolon";
-    case PuleInputKey_equal: return "equal";
-    case PuleInputKey_leftBracket: return "leftBracket";
-    case PuleInputKey_backslash: return "backslash";
-    case PuleInputKey_rightBracket: return "rightBracket";
-    case PuleInputKey_graveAccent: return "graveAccent";
-    case PuleInputKey_capsLock: return "capsLock";
-    case PuleInputKey_scrollLock: return "scrollLock";
-    case PuleInputKey_numLock: return "numLock";
-    case PuleInputKey_printScreen: return "printScreen";
-    case PuleInputKey_pause: return "pause";
-    case PuleInputKey_kp0: return "kp0";
-    case PuleInputKey_kp1: return "kp1";
-    case PuleInputKey_kp2: return "kp2";
-    case PuleInputKey_kp3: return "kp3";
-    case PuleInputKey_kp4: return "kp4";
-    case PuleInputKey_kp5: return "kp5";
-    case PuleInputKey_kp6: return "kp6";
-    case PuleInputKey_kp7: return "kp7";
-    case PuleInputKey_kp8: return "kp8";
-    case PuleInputKey_kp9: return "kp9";
-    case PuleInputKey_kpDecimal: return "kpDecimal";
-    case PuleInputKey_kpDivide: return "kpDivide";
-    case PuleInputKey_kpMultiply: return "kpMultiply";
-    case PuleInputKey_kpSubtract: return "kpSubtract";
-    case PuleInputKey_kpAdd: return "kpAdd";
-    case PuleInputKey_kpEnter: return "kpEnter";
-    case PuleInputKey_kpEqual: return "kpEqual";
-    case PuleInputKey_leftShift: return "leftShift";
-    case PuleInputKey_leftControl: return "leftControl";
-    case PuleInputKey_leftAlt: return "leftAlt";
-    case PuleInputKey_leftSuper: return "leftSuper";
-    case PuleInputKey_rightShift: return "rightShift";
-    case PuleInputKey_rightControl: return "rightControl";
-    case PuleInputKey_rightAlt: return "rightAlt";
-    case PuleInputKey_rightSuper: return "rightSuper";
-    case PuleInputKey_menu: return "menu";
-    case PuleInputKey_i0: return "i0";
-    case PuleInputKey_i1: return "i1";
-    case PuleInputKey_i2: return "i2";
-    case PuleInputKey_i3: return "i3";
-    case PuleInputKey_i4: return "i4";
-    case PuleInputKey_i5: return "i5";
-    case PuleInputKey_i6: return "i6";
-    case PuleInputKey_i7: return "i7";
-    case PuleInputKey_i8: return "i8";
-    case PuleInputKey_i9: return "i9";
-    case PuleInputKey_a: return "a";
-    case PuleInputKey_b: return "b";
-    case PuleInputKey_c: return "c";
-    case PuleInputKey_d: return "d";
-    case PuleInputKey_e: return "e";
-    case PuleInputKey_f: return "f";
-    case PuleInputKey_g: return "g";
-    case PuleInputKey_h: return "h";
-    case PuleInputKey_i: return "i";
-    case PuleInputKey_j: return "j";
-    case PuleInputKey_k: return "k";
-    case PuleInputKey_l: return "l";
-    case PuleInputKey_m: return "m";
-    case PuleInputKey_n: return "n";
-    case PuleInputKey_o: return "o";
-    case PuleInputKey_p: return "p";
-    case PuleInputKey_q: return "q";
-    case PuleInputKey_r: return "r";
-    case PuleInputKey_s: return "s";
-    case PuleInputKey_t: return "t";
-    case PuleInputKey_u: return "u";
-    case PuleInputKey_v: return "v";
-    case PuleInputKey_w: return "w";
-    case PuleInputKey_x: return "x";
-    case PuleInputKey_y: return "y";
-    case PuleInputKey_z: return "z";
-    case PuleInputKey_f1: return "f1";
-    case PuleInputKey_f2: return "f2";
-    case PuleInputKey_f3: return "f3";
-    case PuleInputKey_f4: return "f4";
-    case PuleInputKey_f5: return "f5";
-    case PuleInputKey_f6: return "f6";
-    case PuleInputKey_f7: return "f7";
-    case PuleInputKey_f8: return "f8";
-    case PuleInputKey_f9: return "f9";
-    case PuleInputKey_f10: return "f10";
-    case PuleInputKey_f11: return "f11";
-    case PuleInputKey_f12: return "f12";
-    default: return "N/A";
+    case PuleInputKey_tab: return puleString("tab");
+    case PuleInputKey_left: return puleString("left");
+    case PuleInputKey_right: return puleString("right");
+    case PuleInputKey_up: return puleString("up");
+    case PuleInputKey_down: return puleString("down");
+    case PuleInputKey_pageUp: return puleString("pageUp");
+    case PuleInputKey_pageDown: return puleString("pageDown");
+    case PuleInputKey_home: return puleString("home");
+    case PuleInputKey_end: return puleString("end");
+    case PuleInputKey_insert: return puleString("insert");
+    case PuleInputKey_delete: return puleString("delete");
+    case PuleInputKey_backspace: return puleString("backspace");
+    case PuleInputKey_space: return puleString("space");
+    case PuleInputKey_enter: return puleString("enter");
+    case PuleInputKey_escape: return puleString("escape");
+    case PuleInputKey_apostrophe: return puleString("apostrophe");
+    case PuleInputKey_comma: return puleString("comma");
+    case PuleInputKey_minus: return puleString("minus");
+    case PuleInputKey_period: return puleString("period");
+    case PuleInputKey_slash: return puleString("slash");
+    case PuleInputKey_semicolon: return puleString("semicolon");
+    case PuleInputKey_equal: return puleString("equal");
+    case PuleInputKey_leftBracket: return puleString("leftBracket");
+    case PuleInputKey_backslash: return puleString("backslash");
+    case PuleInputKey_rightBracket: return puleString("rightBracket");
+    case PuleInputKey_graveAccent: return puleString("graveAccent");
+    case PuleInputKey_capsLock: return puleString("capsLock");
+    case PuleInputKey_scrollLock: return puleString("scrollLock");
+    case PuleInputKey_numLock: return puleString("numLock");
+    case PuleInputKey_printScreen: return puleString("printScreen");
+    case PuleInputKey_pause: return puleString("pause");
+    case PuleInputKey_kp0: return puleString("kp0");
+    case PuleInputKey_kp1: return puleString("kp1");
+    case PuleInputKey_kp2: return puleString("kp2");
+    case PuleInputKey_kp3: return puleString("kp3");
+    case PuleInputKey_kp4: return puleString("kp4");
+    case PuleInputKey_kp5: return puleString("kp5");
+    case PuleInputKey_kp6: return puleString("kp6");
+    case PuleInputKey_kp7: return puleString("kp7");
+    case PuleInputKey_kp8: return puleString("kp8");
+    case PuleInputKey_kp9: return puleString("kp9");
+    case PuleInputKey_kpDecimal: return puleString("kpDecimal");
+    case PuleInputKey_kpDivide: return puleString("kpDivide");
+    case PuleInputKey_kpMultiply: return puleString("kpMultiply");
+    case PuleInputKey_kpSubtract: return puleString("kpSubtract");
+    case PuleInputKey_kpAdd: return puleString("kpAdd");
+    case PuleInputKey_kpEnter: return puleString("kpEnter");
+    case PuleInputKey_kpEqual: return puleString("kpEqual");
+    case PuleInputKey_leftShift: return puleString("leftShift");
+    case PuleInputKey_leftControl: return puleString("leftControl");
+    case PuleInputKey_leftAlt: return puleString("leftAlt");
+    case PuleInputKey_leftSuper: return puleString("leftSuper");
+    case PuleInputKey_rightShift: return puleString("rightShift");
+    case PuleInputKey_rightControl: return puleString("rightControl");
+    case PuleInputKey_rightAlt: return puleString("rightAlt");
+    case PuleInputKey_rightSuper: return puleString("rightSuper");
+    case PuleInputKey_menu: return puleString("menu");
+    case PuleInputKey_i0: return puleString("i0");
+    case PuleInputKey_i1: return puleString("i1");
+    case PuleInputKey_i2: return puleString("i2");
+    case PuleInputKey_i3: return puleString("i3");
+    case PuleInputKey_i4: return puleString("i4");
+    case PuleInputKey_i5: return puleString("i5");
+    case PuleInputKey_i6: return puleString("i6");
+    case PuleInputKey_i7: return puleString("i7");
+    case PuleInputKey_i8: return puleString("i8");
+    case PuleInputKey_i9: return puleString("i9");
+    case PuleInputKey_a: return puleString("a");
+    case PuleInputKey_b: return puleString("b");
+    case PuleInputKey_c: return puleString("c");
+    case PuleInputKey_d: return puleString("d");
+    case PuleInputKey_e: return puleString("e");
+    case PuleInputKey_f: return puleString("f");
+    case PuleInputKey_g: return puleString("g");
+    case PuleInputKey_h: return puleString("h");
+    case PuleInputKey_i: return puleString("i");
+    case PuleInputKey_j: return puleString("j");
+    case PuleInputKey_k: return puleString("k");
+    case PuleInputKey_l: return puleString("l");
+    case PuleInputKey_m: return puleString("m");
+    case PuleInputKey_n: return puleString("n");
+    case PuleInputKey_o: return puleString("o");
+    case PuleInputKey_p: return puleString("p");
+    case PuleInputKey_q: return puleString("q");
+    case PuleInputKey_r: return puleString("r");
+    case PuleInputKey_s: return puleString("s");
+    case PuleInputKey_t: return puleString("t");
+    case PuleInputKey_u: return puleString("u");
+    case PuleInputKey_v: return puleString("v");
+    case PuleInputKey_w: return puleString("w");
+    case PuleInputKey_x: return puleString("x");
+    case PuleInputKey_y: return puleString("y");
+    case PuleInputKey_z: return puleString("z");
+    case PuleInputKey_f1: return puleString("f1");
+    case PuleInputKey_f2: return puleString("f2");
+    case PuleInputKey_f3: return puleString("f3");
+    case PuleInputKey_f4: return puleString("f4");
+    case PuleInputKey_f5: return puleString("f5");
+    case PuleInputKey_f6: return puleString("f6");
+    case PuleInputKey_f7: return puleString("f7");
+    case PuleInputKey_f8: return puleString("f8");
+    case PuleInputKey_f9: return puleString("f9");
+    case PuleInputKey_f10: return puleString("f10");
+    case PuleInputKey_f11: return puleString("f11");
+    case PuleInputKey_f12: return puleString("f12");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleInputKeyModifier const e) {
-  switch (e) {
-    case PuleInputKeyModifier_ctrl: return "ctrl";
-    case PuleInputKeyModifier_shift: return "shift";
-    case PuleInputKeyModifier_alt: return "alt";
-    case PuleInputKeyModifier_super: return "super";
-    default: return "N/A";
+inline pule::str toStr(PuleInputKeyModifier const e) {
+  std::string str = "( ";
+  if (e & PuleInputKeyModifier_ctrl) {
+    str += "ctrl | ";
   }
+  if (e & PuleInputKeyModifier_shift) {
+    str += "shift | ";
+  }
+  if (e & PuleInputKeyModifier_alt) {
+    str += "alt | ";
+  }
+  if (e & PuleInputKeyModifier_super) {
+    str += "super | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
 }
-inline char const * toStr(PuleInputMouse const e) {
+inline pule::str toStr(PuleInputMouse const e) {
   switch (e) {
-    case PuleInputMouse_left: return "left";
-    case PuleInputMouse_right: return "right";
-    case PuleInputMouse_middle: return "middle";
-    case PuleInputMouse_side1: return "side1";
-    case PuleInputMouse_side2: return "side2";
-    case PuleInputMouse_End: return "End";
-    default: return "N/A";
+    case PuleInputMouse_left: return puleString("left");
+    case PuleInputMouse_right: return puleString("right");
+    case PuleInputMouse_middle: return puleString("middle");
+    case PuleInputMouse_side1: return puleString("side1");
+    case PuleInputMouse_side2: return puleString("side2");
+    case PuleInputMouse_End: return puleString("End");
+    default: return puleString("N/A");
   }
 }
 }

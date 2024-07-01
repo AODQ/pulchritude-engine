@@ -8,5 +8,3 @@
 namespace pule {
 using Error = PuleError;
 }
-namespace pule {
-}

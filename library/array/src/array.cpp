@@ -130,4 +130,8 @@ void puleBufferDestroy(PuleBuffer const buffer) {
   puleDeallocate(buffer.allocator, buffer.data);
 }
 
+PuleBufferView puleBufferView(PuleBuffer buffer) {
+  return { .data = buffer.data, .byteLength = buffer.byteLength };
+}
+
 } // C

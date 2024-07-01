@@ -5,4 +5,5 @@
 #include "log.h"
 
 namespace pule {
+using LogSection = PuleLogSection;
 }

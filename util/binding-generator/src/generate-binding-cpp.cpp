@@ -97,34 +97,6 @@ static std::string mathCppHeader = (
 "  F32m33 const & operator *=(pule::F32 const & rhs);\n"
 "};\n"
 "\n"
-"struct F32q {\n"
-"  pule::F32v4 v4;\n"
-"\n"
-"  F32q();\n"
-"  F32q(float x, float y, float z, float w);\n"
-"  F32q(pule::F32v3 const & axis, float angle);\n"
-"  F32q(PuleF32q const & a);\n"
-"\n"
-"  inline operator PuleF32q() const { return {v4.x,v4.y,v4.z,v4.w,}; }\n"
-"\n"
-"  ~F32q() = default;\n"
-"  F32q(F32q && ff) = default;\n"
-"  F32q(F32q const & ff) = default;\n"
-"  F32q & operator=(F32q && ff) = default;\n"
-"  F32q & operator=(F32q const & ff) = default;\n"
-"\n"
-"  F32q operator *(F32q const & rhs) const;\n"
-"  F32q operator *(float const & rhs) const;\n"
-"\n"
-"  PuleF32m33 asM33() const;\n"
-"  pule::F32v3 axis() const;\n"
-"\n"
-"  static F32q plane(F32v3 const normal, float const theta);\n"
-"\n"
-"  F32v3 rotate(F32v3 const & a) const;\n"
-"  F32m33 rotate(F32m33 const & a) const;\n"
-"};\n"
-"\n"
 "} // namespace pule\n"
 "\n"
 "// free-form operators\n"
@@ -134,17 +106,7 @@ static std::string mathCppHeader = (
 "pule::F32v3 cross(pule::F32v3 const & a, pule::F32v3 const & b);\n"
 "pule::F32v3 normalize(pule::F32v3 const & a);\n"
 "\n"
-"pule::F32q normalize(pule::F32q const a);\n"
-"pule::F32q inverse(pule::F32q const a);\n"
-"pule::F32 magnitude(pule::F32q const a);\n"
-"pule::F32 magnitudeSqr(pule::F32q const a);\n"
 "pule::F32 magnitude(pule::F32v3 const a);\n"
-"pule::F32v3 rotate(\n"
-"  pule::F32q const a, pule::F32v3 const b\n"
-");\n"
-"PULE_exportFn PuleF32m33 rotate(\n"
-"  pule::F32q const a, PuleF32m33 const b\n"
-");\n"
 "\n"
 "pule::F32 trace(pule::F32m33 const &);\n"
 "pule::F32 determinant(pule::F32m33 const &);\n"
@@ -253,8 +215,24 @@ static std::string coreCppHeader = (
 "}\n"
 );
 
-static std::string coreStringHeader = (
+static std::string stringCppHeader = (
 "PuleStringView operator \"\"_psv(char const * const cstr, size_t const len);\n"
+"#include <string>\n" // TODO remove this w/ custom string
+"namespace pule {\n"
+"  struct str {\n"
+"    PuleString data;\n"
+"    str() : data { nullptr, 0, {}, } {}\n"
+"    str(PuleString const & data) : data(data) {}\n"
+"    str(PuleString && data) : data(data) {}\n"
+"    str(str const & other) : data(puleString(other.data.contents)) {}\n"
+"    str(str && other) : data(other.data) { other.data = { nullptr, 0, {}, }; }\n"
+"    operator PuleString() const { return this->data; }\n"
+"    operator std::string() const { \n"
+"      return std::string(this->data.contents, this->data.len);\n"
+"    }\n"
+"    ~str() { puleStringDestroy(this->data); }\n"
+"  };\n"
+"}\n"
 );
 
 static std::string formatModifier(BindingTypeModifier m) {
@@ -551,35 +529,54 @@ void generateBindingFileCpp(GenerateBindingInfo const & inforef) {
     generateEntityBinding(s.name, file.funcs, out);
   }
 
-  // write out toStr function
-  write(out, "namespace pule {\n");
-  for (auto const & e : file.enums) {
-    write(out, "inline char const * toStr(%s const e) {\n", e.name.c_str());
-    write(out, "  switch (e) {\n");
-    for (size_t i = 0; i < e.fields.size(); ++ i) {
-      auto const & v = e.fields[i];
-      // if there are any duplicate values, skip this
-      for (size_t j = 0; j < i; ++ j) {
-        auto const & v2 = e.fields[j];
-        if (v2.value == v.value) { goto SKIP_WRITE; }
+  // write out toStr function (doesn't work for core since circular dependency)
+  if (file.enums.size() > 0 && !puleStringViewEqCStr(info.path, "core")) {
+    write(out, "#include \"string.hpp\"\n");
+    write(out, "#include <string>\n"); // TODO remove this w/ custom string
+    write(out, "namespace pule { //tostr \n");
+    for (auto const & e : file.enums) {
+      write(out, "inline pule::str toStr(%s const e) {\n", e.name.c_str());
+      if (e.isBitfield) {
+        write(out, "  std::string str = \"( \";\n");
+        for (size_t i = 0; i < e.fields.size(); ++ i) {
+          auto const & v = e.fields[i];
+          write(
+            out,
+            "  if (e & %s_%s) {\n    str += \"%s | \";\n  }\n",
+            e.name.c_str(), v.name.c_str(), v.name.c_str()
+          );
+        }
+        write(out, "  str += \")\";\n");
+        write(out, "  PuleString strCp = puleString(str.c_str());\n");
+        write(out, "  return strCp;\n");
+      } else {
+        write(out, "  switch (e) {\n");
+        for (size_t i = 0; i < e.fields.size(); ++ i) {
+          auto const & v = e.fields[i];
+          // if there are any duplicate values, skip this
+          for (size_t j = 0; j < i; ++ j) {
+            auto const & v2 = e.fields[j];
+            if (v2.value == v.value) { goto SKIP_WRITE; }
+          }
+          write(
+            out,
+            "    case %s_%s: return puleString(\"%s\");\n",
+            e.name.c_str(), v.name.c_str(), v.name.c_str()
+          );
+          SKIP_WRITE:;
+        }
+        write(out, "    default: return puleString(\"N/A\");\n");
+        write(out, "  }\n");
       }
-      write(
-        out,
-        "    case %s_%s: return \"%s\";\n",
-        e.name.c_str(), v.name.c_str(), v.name.c_str()
-      );
-      SKIP_WRITE:;
+      write(out, "}\n");
     }
-    write(out, "    default: return \"N/A\";\n");
-    write(out, "  }\n");
     write(out, "}\n");
   }
-  write(out, "}\n");
 
 
   // write out to
 
   if (puleStringViewEqCStr(info.path, "string")) {
-    write(out, "%s\n", coreStringHeader.c_str());
+    write(out, "%s\n", stringCppHeader.c_str());
   }
 }

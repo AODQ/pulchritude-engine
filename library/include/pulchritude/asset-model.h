@@ -21,28 +21,27 @@ typedef enum {
 } PuleErrorAssetModel;
 const uint32_t PuleErrorAssetModelSize = 2;
 typedef enum {
-  PuleAssetModelAttribute_index = 0,
-  PuleAssetModelAttribute_origin = 1,
-  PuleAssetModelAttribute_normal = 2,
-  PuleAssetModelAttribute_tangent = 3,
-  PuleAssetModelAttribute_uvcoord_0 = 4,
-  PuleAssetModelAttribute_uvcoord_1 = 5,
-  PuleAssetModelAttribute_uvcoord_2 = 6,
-  PuleAssetModelAttribute_uvcoord_3 = 7,
-  PuleAssetModelAttribute_color_0 = 8,
-  PuleAssetModelAttribute_color_1 = 9,
-  PuleAssetModelAttribute_color_2 = 10,
-  PuleAssetModelAttribute_color_3 = 11,
-  PuleAssetModelAttribute_joints_0 = 12,
-  PuleAssetModelAttribute_joints_1 = 13,
-  PuleAssetModelAttribute_joints_2 = 14,
-  PuleAssetModelAttribute_joints_3 = 15,
-  PuleAssetModelAttribute_weights_0 = 16,
-  PuleAssetModelAttribute_weights_1 = 17,
-  PuleAssetModelAttribute_weights_2 = 18,
-  PuleAssetModelAttribute_weights_3 = 19,
+  PuleAssetModelAttribute_origin = 0,
+  PuleAssetModelAttribute_normal = 1,
+  PuleAssetModelAttribute_tangent = 2,
+  PuleAssetModelAttribute_uvcoord_0 = 3,
+  PuleAssetModelAttribute_uvcoord_1 = 4,
+  PuleAssetModelAttribute_uvcoord_2 = 5,
+  PuleAssetModelAttribute_uvcoord_3 = 6,
+  PuleAssetModelAttribute_color_0 = 7,
+  PuleAssetModelAttribute_color_1 = 8,
+  PuleAssetModelAttribute_color_2 = 9,
+  PuleAssetModelAttribute_color_3 = 10,
+  PuleAssetModelAttribute_joints_0 = 11,
+  PuleAssetModelAttribute_joints_1 = 12,
+  PuleAssetModelAttribute_joints_2 = 13,
+  PuleAssetModelAttribute_joints_3 = 14,
+  PuleAssetModelAttribute_weights_0 = 15,
+  PuleAssetModelAttribute_weights_1 = 16,
+  PuleAssetModelAttribute_weights_2 = 17,
+  PuleAssetModelAttribute_weights_3 = 18,
 } PuleAssetModelAttribute;
-const uint32_t PuleAssetModelAttributeSize = 20;
+const uint32_t PuleAssetModelAttributeSize = 19;
 typedef enum {
   PuleAssetModelElementType_scalar = 0,
   PuleAssetModelElementType_vec2 = 1,
@@ -53,6 +52,25 @@ typedef enum {
   PuleAssetModelElementType_mat4 = 6,
 } PuleAssetModelElementType;
 const uint32_t PuleAssetModelElementTypeSize = 7;
+typedef enum {
+  PuleAssetModelBufferViewUsage_none = 0,
+  PuleAssetModelBufferViewUsage_attribute = 1,
+  PuleAssetModelBufferViewUsage_elementIdx = 2,
+} PuleAssetModelBufferViewUsage;
+const uint32_t PuleAssetModelBufferViewUsageSize = 3;
+typedef enum {
+  PuleAssetModelAnimationInterpolation_linear = 0,
+  PuleAssetModelAnimationInterpolation_step = 1,
+  PuleAssetModelAnimationInterpolation_cubicspline = 2,
+} PuleAssetModelAnimationInterpolation;
+const uint32_t PuleAssetModelAnimationInterpolationSize = 3;
+typedef enum {
+  PuleAssetModelAnimationTarget_translation = 0,
+  PuleAssetModelAnimationTarget_rotation = 1,
+  PuleAssetModelAnimationTarget_scale = 2,
+  PuleAssetModelAnimationTarget_weights = 3,
+} PuleAssetModelAnimationTarget;
+const uint32_t PuleAssetModelAnimationTargetSize = 4;
 typedef enum {
   PuleAssetModelFilterMag_nearest = 0,
   PuleAssetModelFilterMag_linear = 1,
@@ -82,6 +100,7 @@ struct PuleAssetModel;
 struct PuleAssetModelScene;
 struct PuleAssetModelNode;
 struct PuleAssetModelMesh;
+struct PuleAssetModelMorphTarget;
 struct PuleAssetModelMeshPrimitive;
 struct PuleAssetModelCamera;
 struct PuleAssetModelAccessor;
@@ -92,6 +111,9 @@ struct PuleAssetModelMaterialPbrMetallicRoughness;
 struct PuleAssetModelMaterial;
 struct PuleAssetModelTexture;
 struct PuleAssetModelImage;
+struct PuleAssetModelAnimationChannel;
+struct PuleAssetModelAnimationSampler;
+struct PuleAssetModelAnimation;
 struct PuleAssetModelSampler;
 
 typedef struct PuleAssetModelLoadInfo {
@@ -127,11 +149,16 @@ typedef struct PuleAssetModel {
   PuleAssetModelImage * images;
   uint32_t textureLen;
   PuleAssetModelTexture * textures;
+  uint32_t animationLen;
+  PuleAssetModelAnimation * animations;
+  uint32_t loadWarningLen;
+  PuleString * loadWarnings;
 } PuleAssetModel;
 typedef struct PuleAssetModelScene {
   uint32_t nodeLen;
   PuleAssetModelNode * * nodes;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelScene;
 typedef struct PuleAssetModelNode {
   PuleAssetModelCamera * camera;
@@ -140,9 +167,16 @@ typedef struct PuleAssetModelNode {
   uint32_t childrenLen;
   struct PuleAssetModelNode * * children;
   PuleF32m44 transform;
+  bool hasTranslate;
+  PuleF32v3 translate;
+  bool hasRotate;
+  PuleF32q rotate;
+  bool hasScale;
+  PuleF32v3 scale;
   uint32_t morphWeightLen;
   float * morphWeights;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelNode;
 typedef struct PuleAssetModelMesh {
   uint32_t primitiveLen;
@@ -151,19 +185,28 @@ typedef struct PuleAssetModelMesh {
   uint32_t weightLen;
   float * weights;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelMesh;
+typedef struct PuleAssetModelMorphTarget {
+  /* 
+    origin, normal, tangent
+   */
+  PuleAssetModelAccessor * attributeAccessor[3] ;
+} PuleAssetModelMorphTarget;
 typedef struct PuleAssetModelMeshPrimitive {
+  PuleAssetModelAccessor * elementIdxAccessor;
   PuleAssetModelAccessor * attributeAccessors[PuleAssetModelAttributeSize] ;
   PuleAssetModelMaterial * material;
   PuleGpuDrawPrimitive topology;
   uint32_t morphTargetLen;
-  /*  TODO  */
-  void * morphTargets;
+  PuleAssetModelMorphTarget * morphTargets;
+  uint32_t drawElementCount;
 } PuleAssetModelMeshPrimitive;
 typedef struct PuleAssetModelCamera {
   bool isPerspective;
   PuleF32m44 transform;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelCamera;
 /*  TODO sparse  */
 typedef struct PuleAssetModelAccessor {
@@ -174,6 +217,11 @@ typedef struct PuleAssetModelAccessor {
   uint32_t elementCount;
   PuleAssetModelElementType elementType;
   PuleString name;
+  /*  only kept for v3 and v4  */
+  PuleF32v3 rangeMax;
+  /*  only kept for v3 and v4  */
+  PuleF32v3 rangeMin;
+  uint32_t index;
 } PuleAssetModelAccessor;
 typedef struct PuleAssetModelSkin {
   PuleAssetModelAccessor * inverseBindMatrixAccessor;
@@ -181,46 +229,72 @@ typedef struct PuleAssetModelSkin {
   uint32_t jointNodeIdxLen;
   PuleAssetModelNode * jointNodeIdxes;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelSkin;
 typedef struct PuleAssetModelBufferView {
   PuleAssetModelBuffer * buffer;
   uint32_t byteOffset;
   uint32_t byteLen;
   uint32_t byteStride;
-  bool isIndexTarget;
+  PuleAssetModelBufferViewUsage usage;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelBufferView;
 typedef struct PuleAssetModelBuffer {
   PuleString resourceUri;
-  PuleBufferView dataView;
+  PuleBuffer data;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelBuffer;
 typedef struct PuleAssetModelMaterialPbrMetallicRoughness {
-  float baseColorFactor[4] ;
-  float metallicFactor;
-  float roughnessFactor;
+  PuleAssetModelTexture * baseColorTexture;
+  PuleF32v4 baseColorFactor;
+  float metallicFactor PULE_defaultField(1.000000);
+  float roughnessFactor PULE_defaultField(1.000000);
 } PuleAssetModelMaterialPbrMetallicRoughness;
 typedef struct PuleAssetModelMaterial {
-  PuleString name;
   PuleAssetModelMaterialPbrMetallicRoughness pbrMetallicRoughness;
+  PuleString name;
+  uint32_t index;
 } PuleAssetModelMaterial;
 typedef struct PuleAssetModelTexture {
   PuleAssetModelSampler * sampler;
   PuleAssetModelImage * srcImg;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelTexture;
 typedef struct PuleAssetModelImage {
   PuleString resourceUri;
-  PuleString name;
   /* .id=0 if image not requested to load */
   PuleAssetImage image;
+  PuleString name;
+  uint32_t index;
 } PuleAssetModelImage;
+typedef struct PuleAssetModelAnimationChannel {
+  PuleAssetModelAnimationSampler * sampler;
+  PuleAssetModelNode * node;
+  PuleAssetModelAnimationTarget target;
+} PuleAssetModelAnimationChannel;
+typedef struct PuleAssetModelAnimationSampler {
+  PuleAssetModelAccessor * timeline;
+  PuleAssetModelAnimationInterpolation interpolation;
+  PuleAssetModelAccessor * output;
+} PuleAssetModelAnimationSampler;
+typedef struct PuleAssetModelAnimation {
+  uint32_t channelLen;
+  PuleAssetModelAnimationChannel channels[16] ;
+  uint32_t samplerLen;
+  PuleAssetModelAnimationSampler samplers[16] ;
+  PuleString name;
+  uint32_t index;
+} PuleAssetModelAnimation;
 typedef struct PuleAssetModelSampler {
   PuleAssetModelFilterMag filterMag;
   PuleAssetModelFilterMin filterMin;
   PuleAssetModelWrap wrapU;
   PuleAssetModelWrap wrapV;
   PuleString name;
+  uint32_t index;
 } PuleAssetModelSampler;
 
 // functions

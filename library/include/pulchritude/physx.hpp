@@ -115,36 +115,38 @@ using Physx2DBodyCreateInfo = PulePhysx2DBodyCreateInfo;
 namespace pule {
 using Physx2DBodyAttachShapeCreateInfo = PulePhysx2DBodyAttachShapeCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PulePhysxCollisionShapeType const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PulePhysxCollisionShapeType const e) {
   switch (e) {
-    case PulePhysxCollisionShapeType_sphere: return "sphere";
-    case PulePhysxCollisionShapeType_box: return "box";
-    case PulePhysxCollisionShapeType_capsule: return "capsule";
-    case PulePhysxCollisionShapeType_plane: return "plane";
-    case PulePhysxCollisionShapeType_triangle: return "triangle";
-    default: return "N/A";
+    case PulePhysxCollisionShapeType_sphere: return puleString("sphere");
+    case PulePhysxCollisionShapeType_box: return puleString("box");
+    case PulePhysxCollisionShapeType_capsule: return puleString("capsule");
+    case PulePhysxCollisionShapeType_plane: return puleString("plane");
+    case PulePhysxCollisionShapeType_triangle: return puleString("triangle");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PulePhysxMode const e) {
+inline pule::str toStr(PulePhysxMode const e) {
   switch (e) {
-    case PulePhysxMode_i2d: return "i2d";
-    case PulePhysxMode_i3d: return "i3d";
-    default: return "N/A";
+    case PulePhysxMode_i2d: return puleString("i2d");
+    case PulePhysxMode_i3d: return puleString("i3d");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PulePhysx2DShapeType const e) {
+inline pule::str toStr(PulePhysx2DShapeType const e) {
   switch (e) {
-    case PulePhysx2DShapeType_convexPolygon: return "convexPolygon";
-    default: return "N/A";
+    case PulePhysx2DShapeType_convexPolygon: return puleString("convexPolygon");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PulePhysx2DBodyType const e) {
+inline pule::str toStr(PulePhysx2DBodyType const e) {
   switch (e) {
-    case PulePhysx2DBodyType_static: return "static";
-    case PulePhysx2DBodyType_kinematic: return "kinematic";
-    case PulePhysx2DBodyType_dynamic: return "dynamic";
-    default: return "N/A";
+    case PulePhysx2DBodyType_static: return puleString("static");
+    case PulePhysx2DBodyType_kinematic: return puleString("kinematic");
+    case PulePhysx2DBodyType_dynamic: return puleString("dynamic");
+    default: return puleString("N/A");
   }
 }
 }

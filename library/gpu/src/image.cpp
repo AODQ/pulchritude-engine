@@ -153,10 +153,17 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     // create temporary staging buffer
     auto const uploadBuffer = puleGpuBufferCreate(
       puleCStr("staging-image-buffer"),
-      createInfo.optionalInitialData,
       imageAllocationInfo.size,
       PuleGpuBufferUsage_storage,
       PuleGpuBufferVisibilityFlag_hostWritable
+    );
+    puleGpuBufferMemcpy(
+      PuleGpuBufferMappedFlushRange {
+        .buffer = uploadBuffer,
+        .byteOffset = 0,
+        .byteLength = imageAllocationInfo.size,
+      },
+      createInfo.optionalInitialData
     );
 
     auto const copyBarrier = VkImageMemoryBarrier {
@@ -277,6 +284,7 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     }
   );
 
+  #if VK_VALIDATION_ENABLED
   { // name image
     VkDebugUtilsObjectNameInfoEXT nameInfo = {
       .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -287,6 +295,7 @@ PuleGpuImage puleGpuImageCreate(PuleGpuImageCreateInfo const createInfo) {
     };
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
+  #endif
 
   puleLog("created image %u, label %s", reinterpret_cast<uint64_t>(image), createInfo.label.contents);
 
@@ -320,7 +329,7 @@ PuleStringView puleGpuImageLabel(PuleGpuImage const image) {
 
 extern "C" {
 PuleGpuFramebufferCreateInfo puleGpuFramebufferCreateInfo() {
-  PuleGpuFramebufferCreateInfo info;
+  PuleGpuFramebufferCreateInfo info = {};
   memset(
     &info.attachment,
     0,

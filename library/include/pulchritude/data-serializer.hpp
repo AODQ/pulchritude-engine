@@ -38,12 +38,14 @@ using DsStructField = PuleDsStructField;
 namespace pule {
 using _DS_TODODOMP = PULE_DS_TODODOMP;
 }
-namespace pule {
-inline char const * toStr(PuleErrorDataSerializer const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorDataSerializer const e) {
   switch (e) {
-    case PuleErrorDataSerializer_none: return "none";
-    case PuleErrorDataSerializer_invalidFormat: return "invalidFormat";
-    default: return "N/A";
+    case PuleErrorDataSerializer_none: return puleString("none");
+    case PuleErrorDataSerializer_invalidFormat: return puleString("invalidFormat");
+    default: return puleString("N/A");
   }
 }
 }

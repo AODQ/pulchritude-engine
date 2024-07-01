@@ -137,29 +137,31 @@ using FileWatcher = PuleFileWatcher;
 namespace pule {
 using FileWatchCreateInfo = PuleFileWatchCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PuleErrorFile const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorFile const e) {
   switch (e) {
-    case PuleErrorFile_none: return "none";
-    case PuleErrorFile_fileOpen: return "fileOpen";
-    default: return "N/A";
+    case PuleErrorFile_none: return puleString("none");
+    case PuleErrorFile_fileOpen: return puleString("fileOpen");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleFileDataMode const e) {
+inline pule::str toStr(PuleFileDataMode const e) {
   switch (e) {
-    case PuleFileDataMode_text: return "text";
-    case PuleFileDataMode_binary: return "binary";
-    default: return "N/A";
+    case PuleFileDataMode_text: return puleString("text");
+    case PuleFileDataMode_binary: return puleString("binary");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleFileOpenMode const e) {
+inline pule::str toStr(PuleFileOpenMode const e) {
   switch (e) {
-    case PuleFileOpenMode_read: return "read";
-    case PuleFileOpenMode_writeOverwrite: return "writeOverwrite";
-    case PuleFileOpenMode_writeAppend: return "writeAppend";
-    case PuleFileOpenMode_readWriteOverwrite: return "readWriteOverwrite";
-    case PuleFileOpenMode_readWrite: return "readWrite";
-    default: return "N/A";
+    case PuleFileOpenMode_read: return puleString("read");
+    case PuleFileOpenMode_writeOverwrite: return puleString("writeOverwrite");
+    case PuleFileOpenMode_writeAppend: return puleString("writeAppend");
+    case PuleFileOpenMode_readWriteOverwrite: return puleString("readWriteOverwrite");
+    case PuleFileOpenMode_readWrite: return puleString("readWrite");
+    default: return puleString("N/A");
   }
 }
 }

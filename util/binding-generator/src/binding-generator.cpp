@@ -12,12 +12,14 @@
 
 std::string const expressionGrammar = R"(
 %globals := %global+;
-%global := (%struct_decl | %entity_decl | %enum_decl | %func_decl | %include |);
+%global := (%struct_decl | %entity_decl | %enum_decl | %func_decl | %include | %alias |);
+%alias := '@alias' %identifier ':' %identifier %comment? ';';
 %func_decl := '@fn' %identifier '\(' %parameter* '\)' %type? %comment? ';';
 %struct_decl := %struct_union %identifier '\{' %comment? %field* '\}' ';';
 %struct_union := ('@struct' | '@union' |);
 %entity_decl := '@entity' %identifier %comment? ';';
-%enum_decl := '@enum' %identifier '\{' %comment? %enum_field* '\}' ';';
+%enum_decl := %enum_bitfield %identifier '\{' %comment? %enum_field* '\}' ';';
+%enum_bitfield := ('@enum' | '@bitfield' |);
 %include := '@include' '\`[^\`]*\`' ';';
 
 %parameter := %identifier ':' %type ','?;
@@ -103,6 +105,7 @@ BindingType parseType(PuleParserAstNode const node) {
       );
       PULE_assert(arrSize.type == PuleParserNodeType_rule);
       auto sizeStr = puleParserAstNodeMatch(arrSize);
+      puleScopeExit { puleStringDestroy(sizeStr); };
       outMods.push_back({
         .type = BindingTypeModifierType::tArray,
         .size = std::string(sizeStr.contents, sizeStr.len),
@@ -202,6 +205,30 @@ std::string formatComment(std::string const & comment) {
   return comment.substr(2, comment.size() - 3);
 }
 
+// %alias := '@alias' %identifier ':' %identifier %comment? ';';
+BindingAlias parseAlias(PuleParserAstNode const node) {
+  PULE_assert(node.type == PuleParserNodeType_rule);
+  PULE_assert(puleStringViewEqCStr(node.match, "alias"));
+  auto aliasIdentifier = (
+    puleParserAstNodeChild(puleParserAstNodeChild(node, 1), 0).match
+  );
+  auto aliasType = (
+    puleParserAstNodeChild(puleParserAstNodeChild(node, 3), 0).match
+  );
+  auto aliasCommentChild = puleParserAstNodeChild(node, 4);
+  std::string aliasComment = "";
+  if (aliasCommentChild.childCount > 0) {
+    aliasComment = (
+      std::string(puleParserAstNodeChild(aliasCommentChild, 0).match.contents)
+    );
+  }
+  return {
+    .name = std::string(aliasIdentifier.contents, aliasIdentifier.len),
+    .comment = formatComment(aliasComment),
+    .alias = std::string(aliasType.contents, aliasType.len),
+  };
+}
+
 // %func_decl := '@fn' %identifier '\(' %parameter* '\)' %type? %comment? ';';
 BindingFunc parseFunc(PuleParserAstNode const node) {
   PULE_assert(node.type == PuleParserNodeType_rule);
@@ -254,10 +281,17 @@ BindingFunc parseFunc(PuleParserAstNode const node) {
   };
 }
 
-// enum_decl := '@enum' %identifier '{' %comment? %enum_field* '}';
+// enum_decl := %enum_bitfield %identifier '{' %comment? %enum_field* '}';
+// %enum_bitfield := ('@enum' | '@bitfield' |);
 BindingEnum parseEnum(PuleParserAstNode const node) {
   PULE_assert(node.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(node.match, "enum_decl"));
+  bool isBitfield = (
+    puleStringViewEq(
+      puleParserAstNodeChild(puleParserAstNodeChild(node, 0), 0).match,
+      "@bitfield"_psv
+    )
+  );
   auto enumIdentifier = (
     puleParserAstNodeChild(puleParserAstNodeChild(node, 1), 0).match
   );
@@ -279,6 +313,7 @@ BindingEnum parseEnum(PuleParserAstNode const node) {
     auto fieldIdentifier = (
       puleParserAstNodeMatch(puleParserAstNodeChild(field, 0))
     );
+    puleScopeExit { puleStringDestroy(fieldIdentifier); };
     auto fieldAssignment = puleParserAstNodeChild(field, 1);
     auto fieldCommentChild = puleParserAstNodeChild(field, 2);
     std::string fieldComment = "";
@@ -307,6 +342,7 @@ BindingEnum parseEnum(PuleParserAstNode const node) {
     .name = std::string(enumIdentifier.contents, enumIdentifier.len),
     .comment = formatComment(enumComment),
     .fields = fields,
+    .isBitfield = isBitfield,
   };
 }
 
@@ -400,6 +436,7 @@ std::string parseInclude(PuleParserAstNode const node) {
   auto includePath = (
     puleParserAstNodeMatch(puleParserAstNodeChild(node, 1))
   );
+  puleScopeExit { puleStringDestroy(includePath); };
   return std::string(includePath.contents+1, includePath.len-2);
 }
 
@@ -440,6 +477,8 @@ void applyPelParser(void *, PuleStringView path, bool isFile) {
     global = puleParserAstNodeChild(global, 0);
     if (puleStringViewEq("func_decl"_psv, global.match)) {
       file.funcs.push_back(parseFunc(global));
+    } else if (puleStringViewEq("alias"_psv, global.match)) {
+      file.aliases.push_back(parseAlias(global));
     } else if (puleStringViewEq("struct_decl"_psv, global.match)) {
       file.structs.push_back(parseStruct(global));
     } else if (puleStringViewEq("enum_decl"_psv, global.match)) {

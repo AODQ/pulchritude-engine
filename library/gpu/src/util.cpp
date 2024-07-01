@@ -236,6 +236,7 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
       )
     );
 
+    #if VK_VALIDATION_ENABLED
     std::string label = (
       std::string("image-available-semaphore-")
       + std::to_string(util::ctx().frameIdx)
@@ -249,6 +250,7 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
       .pObjectName = label.c_str(),
     };
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
+    #endif
   }
   uint32_t imageIdx;
   // TODO I need to handle cases where no image is available (this is
@@ -350,7 +352,7 @@ VkShaderStageFlags util::toVkShaderStageFlags(
 VkIndexType util::toVkIndexType(PuleGpuElementType const elementType) {
   switch (elementType) {
     default: PULE_assert(false);
-    case PuleGpuElementType_u8: return VK_INDEX_TYPE_UINT8_EXT;
+    case PuleGpuElementType_u8: return VK_INDEX_TYPE_UINT8_KHR;
     case PuleGpuElementType_u16: return VK_INDEX_TYPE_UINT16;
     case PuleGpuElementType_u32: return VK_INDEX_TYPE_UINT32;
   }
@@ -522,6 +524,7 @@ VkAttachmentStoreOp util::toVkAttachmentOpStore(
 
 VkImageView createImageView(PuleGpuImageView const puImageView) {
   // create vulkan image view
+  bool const isDepth = puImageView.byteFormat == PuleGpuImageByteFormat_depth16;
   auto const imageViewCreateInfo = VkImageViewCreateInfo {
     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
     .pNext = nullptr,
@@ -537,7 +540,7 @@ VkImageView createImageView(PuleGpuImageView const puImageView) {
     },
     .subresourceRange = VkImageSubresourceRange {
       .aspectMask = (
-        puImageView.byteFormat == PuleGpuImageByteFormat_depth16
+          isDepth
         ? VK_IMAGE_ASPECT_DEPTH_BIT
         : VK_IMAGE_ASPECT_COLOR_BIT
       ),

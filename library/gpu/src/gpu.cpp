@@ -21,6 +21,7 @@ namespace {
   std::unordered_set<std::string> loggedErrorMessages;
 }
 
+#if VK_VALIDATION_ENABLED
 extern "C" {
 VkBool32 debugCallbackVk(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT const severity,
@@ -37,9 +38,11 @@ VkBool32 debugCallbackVk(
   return VK_FALSE;
 }
 } // extern C
+#endif
 
 namespace {
 
+#if VK_VALIDATION_ENABLED
 VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCi() {
   return VkDebugUtilsMessengerCreateInfoEXT {
     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -58,7 +61,9 @@ VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCi() {
     .pUserData = nullptr,
   };
 }
+#endif
 
+#if VK_VALIDATION_ENABLED
 VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance const instance) {
   auto ci = createDebugMessengerCi();
   VkDebugUtilsMessengerEXT debugMessenger = nullptr;
@@ -72,6 +77,7 @@ VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance const instance) {
   );
   return debugMessenger;
 }
+#endif
 
 VkInstance createInstance(PuleError * const error) {
   puleLogDebug("[Pule|Vk] creating instance");
@@ -97,17 +103,25 @@ VkInstance createInstance(PuleError * const error) {
         instanceExtensions.emplace_back(glfwExtensions[it]);
       }
     }
+    #if VK_VALIDATION_ENABLED
     instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    #endif
   }
 
-  std::vector<char const *> instanceLayers = { "VK_LAYER_KHRONOS_validation", };
+  std::vector<char const *> instanceLayers = {
+    #if VK_VALIDATION_ENABLED
+    "VK_LAYER_KHRONOS_validation",
+    #endif
+  };
 
   std::vector<VkValidationFeatureEnableEXT> validationFeaturesEnabled = {
+    #if VK_VALIDATION_ENABLED
     VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
     VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT,
     VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
     //VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT,
     VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
+    #endif
   };
   auto validationFeatures = VkValidationFeaturesEXT {
     .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
@@ -118,8 +132,10 @@ VkInstance createInstance(PuleError * const error) {
     .pDisabledValidationFeatures = 0,
   };
 
+  #if VK_VALIDATION_ENABLED
   auto debugMessengerCi = createDebugMessengerCi();
   validationFeatures.pNext = &debugMessengerCi;
+  #endif
 
   auto instanceCi = VkInstanceCreateInfo {
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -270,20 +286,44 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
         .shaderSharedInt64Atomics = VK_TRUE,
       }
     );
+    auto featuresDeviceIndexU8 = (
+      VkPhysicalDeviceIndexTypeUint8FeaturesEXT {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT,
+        .pNext = nullptr,
+        .indexTypeUint8 = VK_TRUE,
+      }
+    );
+    puleLogSectionBegin({"[Gfx|Vk] device extensions", false, true});
+    puleLogDev("features device index u8 %p", &featuresDeviceIndexU8);
     util::chainPNextList(
       {
         &featuresRequest, &features8Bit,
         &featuresSync2,
         &featuresDynamicRendering,
         &featuresImageAtomicInt64, &featuresAtomicInt64,
+        &featuresDeviceIndexU8,
       }
     );
+  puleLogDev("following the chain again:");
+  {
+typedef struct {
+  VkStructureType sType;
+  void * pNext;
+} chainPNextz;
+    chainPNextz * pnext = (chainPNextz *)(&featuresRequest);
+    while (pnext != nullptr) {
+      puleLogDev("  %p", pnext);
+      pnext = static_cast<chainPNextz *>(pnext->pNext);
+    }
+  }
+    puleLogSectionEnd();
     std::vector<char const *> deviceExtensions = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
       VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME,
       VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
       VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
+      VK_KHR_INDEX_TYPE_UINT8_EXTENSION_NAME,
     };
     auto deviceCi = VkDeviceCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -332,35 +372,6 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
 
 extern "C" {
 
-#if 0
-static void GLAPIENTRY errorMessageCallback(
-  [[maybe_unused]] GLenum source,
-  GLenum type,
-  [[maybe_unused]] GLenum id,
-  GLenum severity,
-  [[maybe_unused]] GLsizei length,
-  GLchar const * message,
-  [[maybe_unused]] void const * userdata
-) {
-  auto const messageStr = std::string(message);
-  if (loggedErrorMessages.find(messageStr) != loggedErrorMessages.end()) {
-    return;
-  }
-  switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-      puleLogError("OpenGL error [0x%x]: %s", type, message);
-    break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-    case GL_DEBUG_SEVERITY_LOW:
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-    default:
-      puleLogDebug("OpenGL message [0x%x]: %s", type, message);
-    break;
-  }
-  loggedErrorMessages.emplace(messageStr);
-}
-#endif
-
 void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   puleLog("Initializing vulkan loader");
   PULE_vkAssert(volkInitialize(), PuleErrorGfx_creationFailed,);
@@ -370,8 +381,10 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   puleLog("Instance created: %u", instance);
   puleLog("Initializing vulkan loader for instance");
   volkLoadInstance(instance);
+  #if VK_VALIDATION_ENABLED
   puleLog("Creating debug messenger");
   auto debugMessenger = createDebugMessenger(instance);
+  #endif
   puleLog("Creating device");
   util::Device device = createDevice(instance, error);
   if (puleErrorExists(error)) { return; }
@@ -441,35 +454,11 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   VmaAllocator allocator;
   vmaCreateAllocator(&allocatorCreateInfo, &allocator);
 
-  #if 0
-  // TODO check platform even exists;
-  //  i should pass in platform here as insurance of this
-  PULE_errorAssert(
-    gladLoadGLLoader(
-      reinterpret_cast<GLADloadproc>(pulePlatformGetProcessAddress())
-    ),
-    PuleErrorGfx_creationFailed,
-  );
-
-  glEnable(GL_SCISSOR_TEST);
-  glDebugMessageCallback(errorMessageCallback, nullptr);
-  glEnable(GL_DEBUG_OUTPUT); // fast asynchronous errors
-
-  glDisable(GL_PRIMITIVE_RESTART);
-  glDisable(GL_BLEND);
-  glDisable(GL_CULL_FACE); // TODO configure
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_MULTISAMPLE);
-  glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-  glDisable(GL_SAMPLE_ALPHA_TO_ONE);
-  glDisable(GL_SAMPLE_COVERAGE);
-  glDisable(GL_STENCIL_TEST);
-
-  glFrontFace(GL_CW);
-  #endif
   auto & ctx = util::ctx();
   ctx.instance = instance;
+  #if VK_VALIDATION_ENABLED
   ctx.debugMessenger = debugMessenger;
+  #endif
   ctx.device = device;
   ctx.surface = surface;
   ctx.vmaAllocator = allocator;
@@ -544,7 +533,7 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
       .pNext = nullptr,
       .flags = 0,
-      .size = 65'536,
+      .size = 4096*4096,
       .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
       .queueFamilyIndexCount = 0,
@@ -563,7 +552,6 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
       .pUserData = nullptr,
       .priority = 1.0f,
     };
-    puleLog("Creating staging buffer with size: %zu", 65'536);
     PULE_vkError(
       vmaCreateBuffer(
         util::ctx().vmaAllocator,
@@ -607,63 +595,10 @@ void puleGpuShutdown() {
 //-- GPU BUFFER ----------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-#if 0
-namespace {
-  [[maybe_unused]]
-  GLenum bufferUsageToGl(PuleGpuBufferUsage const usage) {
-    switch (usage) {
-      default:
-        puleLogError("usage is invalid with renderer: %d", usage);
-        return 0;
-      case PuleGpuBufferUsage_bufferAttribute: return GL_ARRAY_BUFFER;
-      case PuleGpuBufferUsage_bufferElement: return GL_ELEMENT_ARRAY_BUFFER;
-      case PuleGpuBufferUsage_bufferUniform: return GL_UNIFORM_BUFFER;
-      case PuleGpuBufferUsage_bufferIndirect: return GL_DRAW_INDIRECT_BUFFER;
-    }
-  }
-
-  GLbitfield bufferVisibilityToGl(PuleGpuBufferVisibilityFlag const usage) {
-    if (usage & PuleGpuBufferVisibilityFlag_deviceOnly) {
-      if (usage != PuleGpuBufferVisibilityFlag_deviceOnly) {
-        puleLogError("incompatible buffer visibility: %d", usage);
-      }
-      return 0;
-    }
-    GLbitfield field = 0;
-    if (usage & PuleGpuBufferVisibilityFlag_hostVisible) {
-      field |= GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT;
-    }
-    if (usage & PuleGpuBufferVisibilityFlag_hostWritable) {
-      field |= GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
-    }
-    return field;
-  }
-
-  GLbitfield bufferMapAccessToGl(PuleGpuBufferMapAccess const access) {
-    GLbitfield field = 0;
-    if (access & PuleGpuBufferMapAccess_hostVisible) {
-      field |= (
-        GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
-      );
-    }
-    if (access & PuleGpuBufferMapAccess_hostWritable) {
-      field |= (
-        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
-      );
-    }
-    if (access & PuleGpuBufferMapAccess_invalidate) {
-      field |= GL_MAP_INVALIDATE_RANGE_BIT;
-    }
-    return field;
-  }
-}
-#endif
-
 extern "C" {
 
 PuleGpuBuffer puleGpuBufferCreate(
   PuleStringView const name,
-  void const * const optionalInitialData,
   size_t const byteLength,
   [[maybe_unused]] PuleGpuBufferUsage const usage,
   PuleGpuBufferVisibilityFlag const visibility
@@ -733,26 +668,62 @@ PuleGpuBuffer puleGpuBufferCreate(
     }
   );
 
-  // upload initial memory into buffer if requested
-  if (optionalInitialData) {
-    VkMemoryPropertyFlags memoryPropertyFlags;
-    vmaGetAllocationMemoryProperties(
-      util::ctx().vmaAllocator,
-      allocation,
-      &memoryPropertyFlags
+  #if VK_VALIDATION_ENABLED
+  { // name the buffer object
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {
+      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+      .pNext = nullptr,
+      .objectType = VK_OBJECT_TYPE_BUFFER,
+      .objectHandle = reinterpret_cast<uint64_t>(buffer),
+      .pObjectName = name.contents,
+    };
+    vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
+  }
+  #endif
+
+  return { .id = reinterpret_cast<uint64_t>(buffer), };
+}
+
+void puleGpuBufferMemcpy(
+  PuleGpuBufferMappedFlushRange range,
+  void const * data
+) {
+  auto buffer = util::ctx().buffers.at(range.buffer.id);
+  VkMemoryPropertyFlags memoryPropertyFlags;
+  vmaGetAllocationMemoryProperties(
+    util::ctx().vmaAllocator,
+    buffer.allocation,
+    &memoryPropertyFlags
+  );
+  // check if we can upload directly to buffer, or if it needs to be staged
+  if (
+    buffer.allocationInfo.pMappedData
+    && memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+  ) {
+    memcpy(
+      ((uint8_t *)buffer.allocationInfo.pMappedData) + range.byteOffset,
+      data,
+      range.byteLength
     );
-    // check if we can upload directly to buffer, or if it needs to be staged
-    if (
-      allocationInfo.pMappedData
-      && memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-    ) {
-      memcpy(allocationInfo.pMappedData, optionalInitialData, byteLength);
-    } else {
-      // TODO::CRIT stage up the 64Kb blocks until complete
+  } else {
+    size_t const utilSize = util::ctx().utilStagingBufferAllocationInfo.size;
+    size_t const blockCopies = range.byteLength / utilSize + 1;
+    puleLogDev("block copies: %zu", blockCopies);
+    for (size_t blockIt = 0; blockIt < blockCopies; ++ blockIt) {
+      if (blockIt*utilSize >= range.byteLength) { break; }
+      size_t bytesToCopy = (
+          (blockIt+1)*utilSize > range.byteLength
+        ? range.byteLength - blockIt*utilSize
+        : utilSize
+      );
+      puleLogDev(
+        "copying block %zu/%zu, at %zu with %zu bytes",
+        blockIt, blockCopies, blockIt*utilSize, bytesToCopy
+      );
       memcpy(
         util::ctx().utilStagingBufferAllocationInfo.pMappedData,
-        optionalInitialData,
-        byteLength
+        ((uint8_t *)data) + blockIt * utilSize,
+        bytesToCopy
       );
       auto beginInfo = VkCommandBufferBeginInfo {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -772,11 +743,15 @@ PuleGpuBuffer puleGpuBufferCreate(
         0, VK_WHOLE_SIZE
       );
       // might need vkCmdPipelineBarrier
-      auto const stagingBufferCopy = VkBufferCopy { 0, 0, byteLength, };
+      auto const stagingBufferCopy = VkBufferCopy {
+        .srcOffset = 0,
+        .dstOffset = range.byteOffset + blockIt*utilSize,
+        .size = bytesToCopy,
+      };
       vkCmdCopyBuffer(
         util::ctx().utilCommandBuffer,
         util::ctx().utilStagingBuffer,
-        buffer,
+        buffer.vkHandle,
         1, &stagingBufferCopy
       );
       vkEndCommandBuffer(util::ctx().utilCommandBuffer);
@@ -798,20 +773,8 @@ PuleGpuBuffer puleGpuBufferCreate(
       // TODO replace with cmd pipeline barrier
       vkDeviceWaitIdle(util::ctx().device.logical);
     }
+    puleLogDev("done copying");
   }
-
-  { // name the buffer object
-    VkDebugUtilsObjectNameInfoEXT nameInfo = {
-      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
-      .pNext = nullptr,
-      .objectType = VK_OBJECT_TYPE_BUFFER,
-      .objectHandle = reinterpret_cast<uint64_t>(buffer),
-      .pObjectName = name.contents,
-    };
-    vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
-  }
-
-  return { .id = reinterpret_cast<uint64_t>(buffer), };
 }
 
 void puleGpuBufferDestroy(PuleGpuBuffer const pBuffer) {

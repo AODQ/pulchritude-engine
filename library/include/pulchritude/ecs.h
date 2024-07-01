@@ -47,8 +47,8 @@ typedef struct PuleEcsComponentCreateInfo {
   size_t byteAlignment;
   void(* serializeComponentCallback)(PuleEcsEntity, void const *, PuleDsValue, PuleAllocator);
   void(* deserializeComponentCallback)(PuleEcsWorld, PuleEcsEntity, PuleEcsComponent, PuleDsValue, PuleAllocator);
-  void(* imguiOverviewCallbackOptional)();
-  void(* imguiEntityCallbackOptional)(PuleEcsWorld, PuleEcsEntity, PuleEcsComponent);
+  void(* imguiOverviewCallbackOptional)() PULE_defaultField(nullptr);
+  void(* imguiEntityCallbackOptional)(PuleEcsWorld, PuleEcsEntity, PuleEcsComponent) PULE_defaultField(nullptr);
 } PuleEcsComponentCreateInfo;
 /* 
     this is a relatively expensive operation that should only be done during

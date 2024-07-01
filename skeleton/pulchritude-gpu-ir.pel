@@ -1,0 +1,541 @@
+@include `allocator`;
+@include `array`;
+@include `error`;
+@include `gpu`;
+@include `math`;
+
+@entity PuleGpuIr_Pipeline #`
+
+API for shader+pipeline construction
+
+Most graphics APIs decouple shaders and pipelines to allow flexibility in the
+  generated SPIR-V during compilation.
+
+This API generates the pipeline alongside the SPIR-V as a single interface.
+  The flexibility a pipeline descriptor gives isn't enough to specialize
+  the spir-v in a lot of cases, such as dead-code removal if a
+  vertex-attribute is unused.
+
+Effectively this is another IR (PGPU-IR) but maps pretty closely to SPIR-V
+  and will have a human-readable format at some point.
+`;
+
+@enum PuleGpuIr_PipelineType {
+  renderVertexFragment;
+  renderMeshFragment;
+  raytrace;
+  compute;
+};
+
+@fn puleGpuIr_pipeline(
+  label : PuleStringView,
+  type : PuleGpuIr_PipelineType
+) PuleGpuIr_Pipeline;
+
+@fn puleGpuIr_pipelineDestroy(
+  pipeline : PuleGpuIr_Pipeline,
+);
+
+@fn puleGpuIr_pipelineCompile(
+  pipeline : PuleGpuIr_Pipeline
+) PuleGpuPipeline;
+
+@entity PuleGpuIr_Type;
+
+@enum PuleGpuIr_ParameterType {
+  uniformBuffer;
+  storageBuffer;
+  image;
+  texture;
+  sampler;
+  inputAttachment;
+  pushConstant;
+  inputAttribute;
+  stageInput;
+  stageOutput;
+};
+
+@struct PuleGpuIr_UniformBuffer {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field structType : PuleGpuIr_Type;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_StorageBuffer {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field structType : PuleGpuIr_Type;
+  @field label : PuleStringView;
+};
+
+@enum PuleGpuIr_ImageFormat {
+  r8unorm;
+  r16unorm;
+  rgba8ui;
+};
+
+@struct PulGpuIr_Image {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field format : PuleGpuIr_ImageFormat;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_Texture {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_Sampler {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_InputAttachment {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_PushConstant {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field structType : PuleGpuIr_Type;
+  @field label : PuleStringView;
+};
+
+@enum PuleGpuIr_VertexInputRate {
+  vertex;
+  instance;
+};
+
+@struct PuleGpuIr_InputAttribute {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field bufferBinding : uint32_t;
+  @field byteOffset : uint32_t;
+  @field byteStride : uint32_t #`
+    must match with other attributes at bufferBinding
+  `;
+  @field inputRate : PuleGpuIr_VertexInputRate #`
+    must match with other attributes at bufferBinding
+  `;
+  @field format : PuleGpuIr_Type;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_StageInput {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field format : PuleGpuIr_Type;
+  @field label : PuleStringView;
+};
+
+@struct PuleGpuIr_StageOutput {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field location : uint32_t;
+  @field format : PuleGpuIr_Type;
+  @field label : PuleStringView;
+};
+
+@union PuleGpuIr_Parameter {
+  @field paramType : PuleGpuIr_ParameterType;
+  @field uniformBuffer : PuleGpuIr_UniformBuffer;
+  @field storageBuffer : PuleGpuIr_StorageBuffer;
+  @field texture : PuleGpuIr_Texture;
+  @field sampler : PuleGpuIr_Sampler;
+  @field inputAttachment : PuleGpuIr_InputAttachment;
+  @field pushConstant : PuleGpuIr_PushConstant;
+  @field inputAttribute : PuleGpuIr_InputAttribute;
+  @field stageInput : PuleGpuIr_StageInput;
+  @field stageOutput : PuleGpuIr_StageOutput;
+  @field generic : PuleGpuIr_Type;
+};
+
+@enum PuleGpuIr_ShaderStageType {
+  vertex;
+  fragment;
+  mesh;
+  rayGen;
+  rayClosestHit;
+  rayAnyHit;
+  rayMiss;
+  compute;
+};
+
+@enum PuleGpuIr_VertexTopology {
+  points;
+  lines;
+  triangles;
+  triangleStrip;
+  lineStrip;
+};
+
+@struct PuleGpuIr_ShaderStageVertex {
+  @field stageType : PuleGpuIr_ShaderStageType;
+  @field topology : PuleGpuIr_VertexTopology;
+};
+
+@struct PuleGpuIr_ShaderStageFragment {
+  @field stageType : PuleGpuIr_ShaderStageType;
+};
+
+@union PuleGpuIr_ShaderStage {
+  @field stageType : PuleGpuIr_ShaderStageType;
+  @field vertex : PuleGpuIr_ShaderStageVertex;
+  @field fragment : PuleGpuIr_ShaderStageFragment;
+};
+
+@struct PuleGpuIr_ShaderDescriptor {
+  @field label : PuleStringView;
+  @field stage : PuleGpuIr_ShaderStage;
+  @field params : PuleGpuIr_Parameter ptr;
+  @field paramLen : size_t;
+};
+
+@entity PuleGpuIr_Shader;
+
+@fn puleGpuIr_pipelineAddShader(
+  pipeline : PuleGpuIr_Pipeline,
+  shaderDescriptor : PuleGpuIr_ShaderDescriptor
+) PuleGpuIr_Shader;
+
+@enum PuleGpuIr_StorageClass {
+  uniformConstant;
+  input;
+  uniform;
+  output;
+  workgroup;
+  crossWorkgroup;
+  private;
+  function;
+  generic;
+  pushConstant;
+  atomicCounter;
+  image;
+  storageBuffer;
+};
+
+@fn puleGpuIr_opLabel(
+  shader : PuleGpuIr_Shader,
+  label : PuleStringView
+) PuleGpuIr_Value;
+
+@entity PuleGpuIr_Value;
+
+@fn puleGpuIr_opTypeFloat(s : PuleGpuIr_Shader, bits : size_t) PuleGpuIr_Type;
+@fn puleGpuIr_opTypeVector(
+  s : PuleGpuIr_Shader,
+  elementType : PuleGpuIr_Type, elementSize : size_t
+) PuleGpuIr_Type;
+@fn puleGpuIr_opTypePointer(
+  s : PuleGpuIr_Shader,
+  underlyingType : PuleGpuIr_Type,
+  storageClass : PuleGpuIr_StorageClass
+) PuleGpuIr_Type;
+
+@fn puleGpuIr_opVariable(
+  shader : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  storageClass : PuleGpuIr_StorageClass,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opLoad(
+  shader : PuleGpuIr_Shader,
+  resultType : PuleGpuIr_Type,
+  pointer : PuleGpuIr_Value,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opStore(
+  shader : PuleGpuIr_Shader,
+  pointer : PuleGpuIr_Value,
+  value : PuleGpuIr_Value,
+);
+
+@enum PuleGpuIr_ConstantType {
+  bool;
+  int;
+  float;
+  f32v2;
+  f32v3;
+  f32v4;
+  f32m44;
+};
+
+@union PuleGpuIr_Constant {
+  @field boolean : bool;
+  @field integer : int64_t;
+  @field floating : float;
+  @field f32v2 : PuleF32v2;
+  @field f32v3 : PuleF32v3;
+  @field f32v4 : PuleF32v4;
+  @field f32m44 : PuleF32m44;
+};
+
+@fn puleGpuIr_opConstant(
+  shader : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  constantType : PuleGpuIr_ConstantType,
+  constant : PuleGpuIr_Constant
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opLogicalNot(
+  shader : PuleGpuIr_Shader,
+  value : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opLogicalAnd(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opLogicalOr(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opLogicalEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opLogicalNotEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opSelect(
+  shader : PuleGpuIr_Shader,
+  condition : PuleGpuIr_Value,
+  valueTrue : PuleGpuIr_Value,
+  valueFalse : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntNotEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntGreaterThan(
+  shader : PuleGpuIr_Shader,
+  isSigned : bool,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntGreaterThanEq(
+  shader : PuleGpuIr_Shader,
+  isSigned : bool,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntLessThan(
+  shader : PuleGpuIr_Shader,
+  isSigned : bool,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntLessThanEq(
+  shader : PuleGpuIr_Shader,
+  isSigned : bool,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatNotEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatGreaterThan(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatGreaterThanEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatLessThan(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatLessThanEq(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opTranspose(
+  shader : PuleGpuIr_Shader,
+  value : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntNegate(
+  shader : PuleGpuIr_Shader,
+  value : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatNegate(
+  shader : PuleGpuIr_Shader,
+  value : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntAdd(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntSubtract(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntMultiply(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntDivide(
+  shader : PuleGpuIr_Shader,
+  isSigned : bool,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opIntModulo(
+  shader : PuleGpuIr_Shader,
+  isSigned : bool,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatAdd(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatSubtract(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatMultiply(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatDivide(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFloatRem(
+  shader : PuleGpuIr_Shader,
+  value1 : PuleGpuIr_Value,
+  value2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opVectorMulScalar(
+  shader : PuleGpuIr_Shader,
+  vector : PuleGpuIr_Value,
+  scalar : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opMatrixMulScalar(
+  shader : PuleGpuIr_Shader,
+  matrix : PuleGpuIr_Value,
+  scalar : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opVectorMulMatrix(
+  shader : PuleGpuIr_Shader,
+  vector : PuleGpuIr_Value,
+  matrix : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opMatrixMulVector(
+  shader : PuleGpuIr_Shader,
+  matrix : PuleGpuIr_Value,
+  vector : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opMatrixMulMatrix(
+  shader : PuleGpuIr_Shader,
+  matrix1 : PuleGpuIr_Value,
+  matrix2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opVectorOuterProduct(
+  shader : PuleGpuIr_Shader,
+  vector1 : PuleGpuIr_Value,
+  vector2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opVectorDotProduct(
+  shader : PuleGpuIr_Shader,
+  vector1 : PuleGpuIr_Value,
+  vector2 : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opBranchJmp(
+  shader : PuleGpuIr_Shader,
+  target : PuleGpuIr_Value
+);
+
+@fn puleGpuIr_opBranchCond(
+  shader : PuleGpuIr_Shader,
+  condition : PuleGpuIr_Value,
+  targetTrue : PuleGpuIr_Value,
+  targetFalse : PuleGpuIr_Value
+);
+
+@fn puleGpuIr_opReturn(
+  shader : PuleGpuIr_Shader,
+);
+
+@fn puleGpuIr_opReturnValue(
+  shader : PuleGpuIr_Shader,
+  value : PuleGpuIr_Value
+);
+
+@fn puleGpuIr_opAccessChain(
+  shader : PuleGpuIr_Shader,
+  base : PuleGpuIr_Value,
+  indices : PuleGpuIr_Value ptr,
+  indexLen : size_t
+) PuleGpuIr_Value;

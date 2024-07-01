@@ -20,5 +20,3 @@ struct TuiWindow {
   inline PuleI32v2 dim(pule::TuiWindow self) {
     return puleTuiWindowDim(self._handle);
   }
-namespace pule {
-}

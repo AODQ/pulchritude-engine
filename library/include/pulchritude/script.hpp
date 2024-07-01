@@ -98,22 +98,24 @@ using ScriptModuleFromSourceCreateInfo = PuleScriptModuleFromSourceCreateInfo;
 namespace pule {
 using ScriptModuleFileWatchReturn = PuleScriptModuleFileWatchReturn;
 }
-namespace pule {
-inline char const * toStr(PuleErrorScript const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorScript const e) {
   switch (e) {
-    case PuleErrorScript_none: return "none";
-    case PuleErrorScript_executeRuntimeError: return "executeRuntimeError";
-    case PuleErrorScript_internalError: return "internalError";
-    case PuleErrorScript_memoryError: return "memoryError";
-    case PuleErrorScript_syntaxError: return "syntaxError";
-    default: return "N/A";
+    case PuleErrorScript_none: return puleString("none");
+    case PuleErrorScript_executeRuntimeError: return puleString("executeRuntimeError");
+    case PuleErrorScript_internalError: return puleString("internalError");
+    case PuleErrorScript_memoryError: return puleString("memoryError");
+    case PuleErrorScript_syntaxError: return puleString("syntaxError");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleScriptDebugSymbols const e) {
+inline pule::str toStr(PuleScriptDebugSymbols const e) {
   switch (e) {
-    case PuleScriptDebugSymbols_enable: return "enable";
-    case PuleScriptDebugSymbols_disable: return "disable";
-    default: return "N/A";
+    case PuleScriptDebugSymbols_enable: return puleString("enable");
+    case PuleScriptDebugSymbols_disable: return puleString("disable");
+    default: return puleString("N/A");
   }
 }
 }

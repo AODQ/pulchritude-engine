@@ -55,12 +55,14 @@ struct ELJitEngine {
 namespace pule {
 using ELJitEngineCreateInfo = PuleELJitEngineCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PuleErrorEL const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorEL const e) {
   switch (e) {
-    case PuleErrorEL_none: return "none";
-    case PuleErrorEL_compileError: return "compileError";
-    default: return "N/A";
+    case PuleErrorEL_none: return puleString("none");
+    case PuleErrorEL_compileError: return puleString("compileError");
+    default: return puleString("N/A");
   }
 }
 }

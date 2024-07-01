@@ -213,8 +213,10 @@ const uint32_t PuleGpuDescriptorTypeSize = 3;
 typedef enum {
   PuleGpuAttributeDataType_f32 = 0,
   PuleGpuAttributeDataType_u8 = 1,
+  PuleGpuAttributeDataType_u16 = 2,
+  PuleGpuAttributeDataType_u32 = 3,
 } PuleGpuAttributeDataType;
-const uint32_t PuleGpuAttributeDataTypeSize = 2;
+const uint32_t PuleGpuAttributeDataTypeSize = 4;
 typedef enum {
   PuleGpuPipelineDescriptorMax_uniform = 16,
   PuleGpuPipelineDescriptorMax_storage = 16,
@@ -408,7 +410,7 @@ typedef struct PuleGpuFramebuffer {
 } PuleGpuFramebuffer;
 typedef struct PuleGpuFramebufferImageAttachment {
   PuleGpuImage image;
-  uint32_t mipmapLevel;
+  uint32_t mipmapLevel PULE_defaultField(0);
 } PuleGpuFramebufferImageAttachment;
 typedef union PuleGpuFramebufferAttachments {
   PuleGpuFramebufferImageAttachment images[8] ;
@@ -420,7 +422,7 @@ typedef struct PuleGpuFramebufferCreateInfo {
 } PuleGpuFramebufferCreateInfo;
 typedef union PuleGpuImageAttachmentClear {
   PuleF32v4 color;
-  float clearDepth;
+  float depth;
 } PuleGpuImageAttachmentClear;
 typedef struct PuleGpuImageAttachment {
   PuleGpuImageAttachmentOpLoad opLoad;
@@ -434,7 +436,14 @@ typedef struct PuleGpuPipelineAttributeDescriptorBinding {
   size_t bufferIndex;
   size_t numComponents;
   bool convertFixedDataTypeToNormalizedFloating;
-  size_t offsetIntoBuffer;
+  /* 
+    Note that this must the offset relative to other attributes (
+      e.g. interleaved attributes
+    )
+    If the attributes are otherwise offseted into a buffer,
+      that must be done during binding in a command recorder
+   */
+  size_t relativeOffset;
 } PuleGpuPipelineAttributeDescriptorBinding;
 /*  TODO input rate  */
 typedef struct PuleGpuPipelineAttributeBufferDescriptorBinding {
@@ -490,12 +499,14 @@ typedef struct PuleGpuPipelineConfig {
 typedef struct PuleGpuPipelineCreateInfo {
   PuleGpuShaderModule shaderModule;
   PuleGpuPipelineLayoutDescriptorSet layoutDescriptorSet;
-  PuleGpuPipelineLayoutPushConstant const * layoutPushConstants;
-  size_t layoutPushConstantsCount;
+  /* 
+    optional, can set stage to unused to skip.
+   */
+  PuleGpuPipelineLayoutPushConstant layoutPushConstants;
   PuleGpuPipelineConfig config;
 } PuleGpuPipelineCreateInfo;
 typedef struct PuleGpuActionResourceBarrier {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_resourceBarrier);
   PuleGpuResourceBarrierStage stageSrc;
   PuleGpuResourceBarrierStage stageDst;
   size_t resourceImageCount;
@@ -504,7 +515,7 @@ typedef struct PuleGpuActionResourceBarrier {
   PuleGpuResourceBarrierBuffer const * resourceBuffers;
 } PuleGpuActionResourceBarrier;
 typedef struct PuleGpuActionRenderPassBegin {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_renderPassBegin);
   PuleI32v2 viewportMin;
   PuleI32v2 viewportMax;
   PuleGpuImageAttachment attachmentColor[8] ;
@@ -512,16 +523,16 @@ typedef struct PuleGpuActionRenderPassBegin {
   PuleGpuImageAttachment attachmentDepth;
 } PuleGpuActionRenderPassBegin;
 typedef struct PuleGpuActionRenderPassEnd {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_renderPassEnd);
 } PuleGpuActionRenderPassEnd;
 typedef struct PuleGpuActionBindElementBuffer {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_bindElementBuffer);
   PuleGpuBuffer buffer;
   size_t offset;
   PuleGpuElementType elementType;
 } PuleGpuActionBindElementBuffer;
 typedef struct PuleGpuActionBindAttributeBuffer {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_bindAttributeBuffer);
   size_t bindingIndex;
   PuleGpuBuffer buffer;
   size_t offset;
@@ -531,21 +542,21 @@ typedef struct PuleGpuActionBindAttributeBuffer {
   size_t stride;
 } PuleGpuActionBindAttributeBuffer;
 typedef struct PuleGpuActionBindFramebuffer {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_bindFramebuffer);
   PuleGpuFramebuffer framebuffer;
 } PuleGpuActionBindFramebuffer;
 typedef struct PuleGpuActionDispatchRender {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_dispatchRender);
   size_t vertexOffset;
   size_t numVertices;
 } PuleGpuActionDispatchRender;
 typedef struct PuleGpuActionDispatchRenderIndirect {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_dispatchRenderIndirect);
   PuleGpuBuffer bufferIndirect;
   size_t byteOffset;
 } PuleGpuActionDispatchRenderIndirect;
 typedef struct PuleGpuActionDispatchRenderElements {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_dispatchRenderElements);
   size_t numElements;
   /*  can be 0  */
   size_t elementOffset;
@@ -553,16 +564,16 @@ typedef struct PuleGpuActionDispatchRenderElements {
   size_t baseVertexOffset;
 } PuleGpuActionDispatchRenderElements;
 typedef struct PuleGpuActionClearImageColor {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_clearImageColor);
   PuleGpuImage image;
   PuleF32v4 color;
 } PuleGpuActionClearImageColor;
 typedef struct PuleGpuActionBindPipeline {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_bindPipeline);
   PuleGpuPipeline pipeline;
 } PuleGpuActionBindPipeline;
 typedef struct PuleGpuActionBindBuffer {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_bindBuffer);
   PuleGpuBufferBindingDescriptor bindingDescriptor;
   size_t bindingIndex;
   PuleGpuBuffer buffer;
@@ -570,35 +581,35 @@ typedef struct PuleGpuActionBindBuffer {
   size_t byteLen;
 } PuleGpuActionBindBuffer;
 typedef struct PuleGpuActionBindTexture {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_bindTexture);
   size_t bindingIndex;
   PuleGpuImageView imageView;
   PuleGpuImageLayout imageLayout;
 } PuleGpuActionBindTexture;
 typedef struct PuleGpuActionClearImageDepth {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_clearImageDepth);
   PuleGpuImage image;
   float depth;
 } PuleGpuActionClearImageDepth;
 typedef struct PuleGpuActionPushConstants {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_pushConstants);
   PuleGpuDescriptorStage stage;
   size_t byteLength;
   size_t byteOffset;
   void const * data;
 } PuleGpuActionPushConstants;
 typedef struct PuleGpuActionDispatchCommandList {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_dispatchCommandList);
   /*  TODO remove this  */
   PuleGpuCommandListSubmitInfo submitInfo;
 } PuleGpuActionDispatchCommandList;
 typedef struct PuleGpuActionSetScissor {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_setScissor);
   PuleI32v2 scissorMin;
   PuleI32v2 scissorMax;
 } PuleGpuActionSetScissor;
 typedef struct PuleGpuActionCopyImageToImage {
-  PuleGpuAction action;
+  PuleGpuAction action PULE_defaultField(PuleGpuAction_copyImageToImage);
   PuleGpuImage srcImage;
   PuleGpuImage dstImage;
   /*  TODO = PuleU32v3{0, 0, 0}  */
@@ -649,11 +660,13 @@ PULE_exportFn PuleGpuCommandList puleGpuCommandListChainCurrent(PuleGpuCommandLi
   when submitting command list, be sure to set 'fenceTargetFinish' to this
  */
 PULE_exportFn PuleGpuFence puleGpuCommandListChainCurrentFence(PuleGpuCommandListChain commandListChain);
-PULE_exportFn PuleGpuBuffer puleGpuBufferCreate(PuleStringView name, void const * optionalInitialData, size_t byteLength, PuleGpuBufferUsage usage, PuleGpuBufferVisibilityFlag visibility);
+PULE_exportFn PuleGpuBuffer puleGpuBufferCreate(PuleStringView name, size_t byteLength, PuleGpuBufferUsage usage, PuleGpuBufferVisibilityFlag visibility);
 PULE_exportFn void puleGpuBufferDestroy(PuleGpuBuffer buffer);
 PULE_exportFn void * puleGpuBufferMap(PuleGpuBufferMapRange range);
 PULE_exportFn void puleGpuBufferMappedFlush(PuleGpuBufferMappedFlushRange range);
 PULE_exportFn void puleGpuBufferUnmap(PuleGpuBuffer buffer);
+/*  memcpy into a buffer, can be device-only memory  */
+PULE_exportFn void puleGpuBufferMemcpy(PuleGpuBufferMappedFlushRange range, void const * data);
 PULE_exportFn void puleGpuInitialize(PulePlatform platform, PuleError * error);
 PULE_exportFn void puleGpuShutdown();
 /* 

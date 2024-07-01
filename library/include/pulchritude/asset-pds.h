@@ -28,10 +28,10 @@ struct PuleAssetPdsDeserializeInfo;
 
 typedef struct PuleAssetPdsWriteInfo {
   PuleDsValue head;
-  bool prettyPrint;
+  bool prettyPrint PULE_defaultField(false);
   /*  pretty-print only  */
-  uint32_t spacesPerTab;
-  uint32_t initialTabLevel;
+  uint32_t spacesPerTab PULE_defaultField(2);
+  uint32_t initialTabLevel PULE_defaultField(0);
 } PuleAssetPdsWriteInfo;
 /* 
   can parse command line arguments from the given PDS "help" will be inserted

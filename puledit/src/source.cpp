@@ -221,8 +221,7 @@ bool parseArguments(
     puleDsDestroy(commandsFileValue);
     if (puleErrorConsume(&err)) { return false; }
   }
-  else
-  if (command->second.apply) {
+  else if (command->second.apply) {
     PuleDsValue const mainValue = puleDsCreateObject(allocator);
     bool result = command->second.apply(
       allocator,
@@ -268,6 +267,7 @@ bool parseArguments(
     }
     puleDsDestroy(mainValue);
   }
+  return true;
 }
 
 } // namespace argument parsing

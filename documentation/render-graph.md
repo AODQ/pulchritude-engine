@@ -115,6 +115,22 @@ struct {
   resource : PuleRenderGraph_Node_ResourceUnion;
 };
 ```
+### PuleRenderGraphNode_RenderPassAttachment
+```c
+struct {
+  label : PuleStringView;
+  opLoad : PuleGpuImageAttachmentOpLoad;
+  opStore : PuleGpuImageAttachmentOpStore;
+  clear : PuleGpuImageAttachmentClear;
+};
+```
+### PuleRenderGraphNode_RenderPass
+```c
+struct {
+  attachmentColor : PuleRenderGraphNode_RenderPassAttachment;
+  attachmentDepth : PuleRenderGraphNode_RenderPassAttachment;
+};
+```
 ### PuleRenderGraphExecuteInfo
 ```c
 struct {
@@ -238,6 +254,27 @@ puleRenderGraph_commandList(
 puleRenderGraph_commandListRecorder(
   node : PuleRenderGraphNode
 ) PuleGpuCommandListRecorder;
+```
+### puleRenderGraphNode_renderPassSet
+```c
+puleRenderGraphNode_renderPassSet(
+  node : PuleRenderGraphNode,
+  renderPass : PuleRenderGraphNode_RenderPass
+) void;
+```
+### puleRenderGraphNode_renderPassBegin
+```c
+puleRenderGraphNode_renderPassBegin(
+  node : PuleRenderGraphNode,
+  recorder : PuleGpuCommandListRecorder
+) void;
+```
+### puleRenderGraphNode_renderPassEnd
+```c
+puleRenderGraphNode_renderPassEnd(
+  node : PuleRenderGraphNode,
+  recorder : PuleGpuCommandListRecorder
+) void;
 ```
 ### puleRenderGraphNodeRelationSet
 ```c

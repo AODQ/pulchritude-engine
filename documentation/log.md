@@ -1,5 +1,15 @@
 # log
 
+## structs
+### PuleLogSection
+```c
+struct {
+  label : char const ptr;
+  logRaw : bool = false;
+  tabs : bool = false;
+};
+```
+
 ## functions
 ### puleLogDebugEnabled
 ```c
@@ -63,4 +73,15 @@ puleLogRaw(
   formatCStr : char const ptr,
   args : __VA_ARGS__
 ) void;
+```
+### puleLogSectionBegin
+```c
+puleLogSectionBegin(
+  section : PuleLogSection,
+  args : __VA_ARGS__
+) void;
+```
+### puleLogSectionEnd
+```c
+puleLogSectionEnd() void;
 ```

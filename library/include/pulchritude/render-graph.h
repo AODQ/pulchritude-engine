@@ -49,6 +49,8 @@ struct PuleRenderGraph_Node_Image;
 struct PuleRenderGraph_Node_Buffer;
 union PuleRenderGraph_Node_ResourceUnion;
 struct PuleRenderGraph_Node_Resource;
+struct PuleRenderGraphNode_RenderPassAttachment;
+struct PuleRenderGraphNode_RenderPass;
 struct PuleRenderGraphExecuteInfo;
 
 typedef struct PuleRenderGraph_Resource_DimensionsScaleRelative {
@@ -123,6 +125,16 @@ typedef struct PuleRenderGraph_Node_Resource {
   PuleGpuResourceAccess accessEntrance;
   PuleRenderGraph_Node_ResourceUnion resource;
 } PuleRenderGraph_Node_Resource;
+typedef struct PuleRenderGraphNode_RenderPassAttachment {
+  PuleStringView label;
+  PuleGpuImageAttachmentOpLoad opLoad;
+  PuleGpuImageAttachmentOpStore opStore;
+  PuleGpuImageAttachmentClear clear;
+} PuleRenderGraphNode_RenderPassAttachment;
+typedef struct PuleRenderGraphNode_RenderPass {
+  PuleRenderGraphNode_RenderPassAttachment attachmentColor;
+  PuleRenderGraphNode_RenderPassAttachment attachmentDepth;
+} PuleRenderGraphNode_RenderPass;
 typedef struct PuleRenderGraphExecuteInfo {
   PuleRenderGraph graph;
   void(* callback)(PuleRenderGraphNode, void *);
@@ -144,6 +156,9 @@ PULE_exportFn void puleRenderGraph_resourceRemove(PuleRenderGraph graph, PuleStr
 PULE_exportFn void puleRenderGraph_node_resourceAssign(PuleRenderGraphNode node, PuleRenderGraph_Node_Resource resourceUsage);
 PULE_exportFn PuleGpuCommandList puleRenderGraph_commandList(PuleRenderGraphNode node);
 PULE_exportFn PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(PuleRenderGraphNode node);
+PULE_exportFn void puleRenderGraphNode_renderPassSet(PuleRenderGraphNode node, PuleRenderGraphNode_RenderPass renderPass);
+PULE_exportFn void puleRenderGraphNode_renderPassBegin(PuleRenderGraphNode node, PuleGpuCommandListRecorder recorder);
+PULE_exportFn void puleRenderGraphNode_renderPassEnd(PuleRenderGraphNode node, PuleGpuCommandListRecorder recorder);
 PULE_exportFn void puleRenderGraphNodeRelationSet(PuleRenderGraphNode nodePri, PuleRenderGraphNodeRelation relation, PuleRenderGraphNode nodeSec);
 /* 
   prepares for rendering, needs to fetch resources to bake resource barriers

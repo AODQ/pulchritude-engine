@@ -39,6 +39,10 @@ struct {
   images : PuleAssetModelImage ptr;
   textureLen : uint32_t;
   textures : PuleAssetModelTexture ptr;
+  animationLen : uint32_t;
+  animations : PuleAssetModelAnimation ptr;
+  loadWarningLen : uint32_t;
+  loadWarnings : PuleString ptr;
 };
 ```
 ### PuleAssetModelScene
@@ -47,6 +51,7 @@ struct {
   nodeLen : uint32_t;
   nodes : PuleAssetModelNode ptr ptr;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelNode
@@ -58,9 +63,16 @@ struct {
   childrenLen : uint32_t;
   children : PuleAssetModelNode ptr ptr;
   transform : PuleF32m44;
+  hasTranslate : bool;
+  translate : PuleF32v3;
+  hasRotate : bool;
+  rotate : PuleF32q;
+  hasScale : bool;
+  scale : PuleF32v3;
   morphWeightLen : uint32_t;
   morphWeights : float ptr;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelMesh
@@ -72,17 +84,28 @@ struct {
   weightLen : uint32_t;
   weights : float ptr;
   name : PuleString;
+  index : uint32_t;
+};
+```
+### PuleAssetModelMorphTarget
+```c
+struct {
+  /* 
+    origin, normal, tangent
+   */
+  attributeAccessor : PuleAssetModelAccessor ptr [3];
 };
 ```
 ### PuleAssetModelMeshPrimitive
 ```c
 struct {
+  elementIdxAccessor : PuleAssetModelAccessor ptr;
   attributeAccessors : PuleAssetModelAccessor ptr [PuleAssetModelAttributeSize];
   material : PuleAssetModelMaterial ptr;
   topology : PuleGpuDrawPrimitive;
   morphTargetLen : uint32_t;
-  /*  TODO  */
-  morphTargets : void ptr;
+  morphTargets : PuleAssetModelMorphTarget ptr;
+  drawElementCount : uint32_t;
 };
 ```
 ### PuleAssetModelCamera
@@ -91,6 +114,7 @@ struct {
   isPerspective : bool;
   transform : PuleF32m44;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelAccessor
@@ -104,6 +128,11 @@ struct {
   elementCount : uint32_t;
   elementType : PuleAssetModelElementType;
   name : PuleString;
+  /*  only kept for v3 and v4  */
+  rangeMax : PuleF32v3;
+  /*  only kept for v3 and v4  */
+  rangeMin : PuleF32v3;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelSkin
@@ -114,6 +143,7 @@ struct {
   jointNodeIdxLen : uint32_t;
   jointNodeIdxes : PuleAssetModelNode ptr;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelBufferView
@@ -123,22 +153,25 @@ struct {
   byteOffset : uint32_t;
   byteLen : uint32_t;
   byteStride : uint32_t;
-  isIndexTarget : bool;
+  usage : PuleAssetModelBufferViewUsage;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelBuffer
 ```c
 struct {
   resourceUri : PuleString;
-  dataView : PuleBufferView;
+  data : PuleBuffer;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelMaterialPbrMetallicRoughness
 ```c
 struct {
-  baseColorFactor : float [4];
+  baseColorTexture : PuleAssetModelTexture ptr;
+  baseColorFactor : PuleF32v4;
   metallicFactor : float = 1.000000;
   roughnessFactor : float = 1.000000;
 };
@@ -146,8 +179,9 @@ struct {
 ### PuleAssetModelMaterial
 ```c
 struct {
-  name : PuleString;
   pbrMetallicRoughness : PuleAssetModelMaterialPbrMetallicRoughness;
+  name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelTexture
@@ -156,15 +190,44 @@ struct {
   sampler : PuleAssetModelSampler ptr;
   srcImg : PuleAssetModelImage ptr;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelImage
 ```c
 struct {
   resourceUri : PuleString;
-  name : PuleString;
   /* .id=0 if image not requested to load */
   image : PuleAssetImage;
+  name : PuleString;
+  index : uint32_t;
+};
+```
+### PuleAssetModelAnimationChannel
+```c
+struct {
+  sampler : PuleAssetModelAnimationSampler ptr;
+  node : PuleAssetModelNode ptr;
+  target : PuleAssetModelAnimationTarget;
+};
+```
+### PuleAssetModelAnimationSampler
+```c
+struct {
+  timeline : PuleAssetModelAccessor ptr;
+  interpolation : PuleAssetModelAnimationInterpolation;
+  output : PuleAssetModelAccessor ptr;
+};
+```
+### PuleAssetModelAnimation
+```c
+struct {
+  channelLen : uint32_t;
+  channels : PuleAssetModelAnimationChannel [16];
+  samplerLen : uint32_t;
+  samplers : PuleAssetModelAnimationSampler [16];
+  name : PuleString;
+  index : uint32_t;
 };
 ```
 ### PuleAssetModelSampler
@@ -175,6 +238,7 @@ struct {
   wrapU : PuleAssetModelWrap;
   wrapV : PuleAssetModelWrap;
   name : PuleString;
+  index : uint32_t;
 };
 ```
 
@@ -189,7 +253,6 @@ enum {
 ### PuleAssetModelAttribute
 ```c
 enum {
-  index,
   origin,
   normal,
   tangent,
@@ -221,6 +284,31 @@ enum {
   mat2,
   mat3,
   mat4,
+}
+```
+### PuleAssetModelBufferViewUsage
+```c
+enum {
+  none,
+  attribute,
+  elementIdx,
+}
+```
+### PuleAssetModelAnimationInterpolation
+```c
+enum {
+  linear,
+  step,
+  cubicspline,
+}
+```
+### PuleAssetModelAnimationTarget
+```c
+enum {
+  translation,
+  rotation,
+  scale,
+  weights,
 }
 ```
 ### PuleAssetModelFilterMag

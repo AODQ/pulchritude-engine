@@ -30,12 +30,14 @@ struct AssetFont {
 namespace pule {
 using AssetFontRenderInfo = PuleAssetFontRenderInfo;
 }
-namespace pule {
-inline char const * toStr(PuleErrorAssetFont const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorAssetFont const e) {
   switch (e) {
-    case PuleErrorAssetFont_none: return "none";
-    case PuleErrorAssetFont_decode: return "decode";
-    default: return "N/A";
+    case PuleErrorAssetFont_none: return puleString("none");
+    case PuleErrorAssetFont_decode: return puleString("decode");
+    default: return puleString("N/A");
   }
 }
 }

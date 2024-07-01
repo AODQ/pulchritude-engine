@@ -61,3 +61,7 @@ option(PMP_INSTALL        "" ON)
 option(PMP_STRICT_COMPILATION "" OFF)
 add_subdirectory(pmp-library)
 set_target_properties(pmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+option(SKIP_SPIRV_TOOLS_INSTALL "" ON)
+option(SPIRV_SKIP_EXECUTABLES "" ON)
+add_subdirectory(SPIRV-Tools)

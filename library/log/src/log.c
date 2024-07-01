@@ -6,6 +6,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+// TODO section should be done per-thread
+
+#define logSectionMax 8
+PuleLogSection logSections[logSectionMax];
+int32_t logSectionIndex = 0;
+int32_t logSectionTabs = 0;
+
 #ifdef __unix__
 #include <execinfo.h>
 #endif
@@ -17,6 +24,7 @@ typedef enum {
   LogType_error,
   LogType_warn,
   LogType_raw,
+  LogType_section,
 } LogType;
 
 static bool debugEnabled = false;
@@ -51,7 +59,16 @@ static void logger(
     return;
   }
 
-  if (standardFormatting) {
+  bool const sectioned = logSectionIndex > 0;
+  bool const sectionedRaw = (
+    sectioned && logSections[logSectionIndex-1].logRaw
+  );
+
+  for (int32_t it = 0; it < logSectionTabs && standardFormatting; ++ it) {
+    printf("\t");
+  }
+
+  if (standardFormatting && !sectionedRaw) {
     switch (logType) {
       case LogType_dev:
         printf("["COLOR_CODE_BLU"DEV"COLOR_CODE_WHT"] ");
@@ -67,6 +84,9 @@ static void logger(
       break;
       case LogType_warn:
         printf("["COLOR_CODE_YEL "WRN"COLOR_CODE_WHT"] ");
+      break;
+      case LogType_section:
+        printf("["COLOR_CODE_MAG"SEC"COLOR_CODE_WHT"] ");
       break;
       case LogType_error:
         printf("["COLOR_CODE_RED"ERR"COLOR_CODE_WHT"] ");
@@ -158,4 +178,33 @@ void puleLogRaw(char const * const formatCStr, ...) {
   va_start(args, formatCStr);
   logger(LogType_raw, false, formatCStr, args);
   va_end(args);
+}
+
+void puleLogSectionBegin(PuleLogSection const section, ...) {
+
+  va_list args;
+  va_start(args, section);
+
+  logger(LogType_section, true, section.label, args);
+
+  va_end(args);
+
+  PULE_assert(
+    logSectionIndex < logSectionMax && "hit implementation log section limit"
+  );
+  logSections[logSectionIndex] = section;
+  ++ logSectionIndex;
+
+  if (section.tabs) {
+    ++ logSectionTabs;
+  }
+}
+
+void puleLogSectionEnd() {
+  PULE_assert(logSectionIndex > 0 && "log section end without begin");
+  -- logSectionIndex;
+  if (logSections[logSectionIndex].tabs) {
+    -- logSectionTabs;
+  }
+  memset(&logSections[logSectionIndex], 0, sizeof(PuleLogSection));
 }

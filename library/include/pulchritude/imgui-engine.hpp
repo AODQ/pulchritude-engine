@@ -9,5 +9,3 @@
 namespace pule {
 using ImguiEngineDisplayInfo = PuleImguiEngineDisplayInfo;
 }
-namespace pule {
-}

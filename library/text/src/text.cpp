@@ -79,24 +79,24 @@ void initialize() {
       PuleGpuDescriptorStage_fragment,
     },
   };
-  PuleGpuPipelineLayoutPushConstant  bitmapPushConstants[] = {
-    PuleGpuPipelineLayoutPushConstant {
-      .stage = PuleGpuDescriptorStage_vertex,
-      .byteLength = sizeof(PuleF32m44) + sizeof(PuleF32v2),
-      .byteOffset = 0u,
-    },
-    PuleGpuPipelineLayoutPushConstant {
-      .stage = PuleGpuDescriptorStage_fragment,
-      .byteLength = sizeof(PuleF32v4),
-      .byteOffset = 80,
-    },
+  PuleGpuPipelineLayoutPushConstant bitmapPushConstants[] = {
   };
   auto const bitmapPipeline = (
     PuleGpuPipelineCreateInfo {
       .shaderModule = pint::shaderModules[PuleTextType_bitmap],
       .layoutDescriptorSet = bitmapLayoutDescriptorSet,
-      .layoutPushConstants = &bitmapPushConstants[0],
-      .layoutPushConstantsCount = PULE_arraySize(bitmapPushConstants),
+      .layoutPushConstants = {
+        .stage = (PuleGpuDescriptorStage)(
+          PuleGpuDescriptorStage_vertex
+          | PuleGpuDescriptorStage_fragment
+        ),
+        .byteLength = (
+            sizeof(PuleF32v4)
+          + sizeof(PuleF32m44)
+          + sizeof(PuleF32v2)
+        ),
+        .byteOffset = 0u,
+      },
       .config = {
         .depthTestEnabled = true,
         .blendEnabled = true,

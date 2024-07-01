@@ -13,5 +13,3 @@ using ReallocateInfo = PuleReallocateInfo;
 namespace pule {
 using Allocator = PuleAllocator;
 }
-namespace pule {
-}

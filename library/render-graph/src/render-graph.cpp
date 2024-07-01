@@ -3,7 +3,7 @@
 #include <pulchritude/core.hpp>
 #include <pulchritude/error.h>
 #include <pulchritude/file.h>
-#include <pulchritude/gpu.h>
+#include <pulchritude/gpu.hpp>
 #include <pulchritude/log.h>
 #include <pulchritude/string.h>
 
@@ -63,6 +63,16 @@ PuleGpuResourceBarrierStage toResourceBarrierStage(
   }
 }
 
+struct RenderPassAttachment {
+  uint64_t resource;
+  PuleRenderGraphNode_RenderPassAttachment info;
+};
+
+struct RenderPass {
+  RenderPassAttachment attachmentColor;
+  RenderPassAttachment attachmentDepth;
+};
+
 struct RenderGraphNode {
   std::string label;
   std::unordered_map<
@@ -75,6 +85,8 @@ struct RenderGraphNode {
   std::vector<uint64_t> relationDependsOn;
   bool usesSwapchain;
   bool isLastSwapchainUsage;
+  bool hasRenderPass;
+  RenderPass renderPass;
 };
 
 struct RenderGraph {
@@ -460,23 +472,44 @@ void sortGraphNodes(RenderGraph & graph) {
       d2Graph += "    \"" + std::string(res.resourceLabel.contents) + "\" : {";
       d2Graph += "      shape: class\n";
 
-      //d2Graph += (
-      //    std::string("  access-entrance: \"")
-      //  + pule::toStr(res.accessEntrance).cstr() + "\"\n"
-      //);
-      //d2Graph += (
-      //    std::string("  access: \"")
-      //  + pule::toStr(res.access).cstr() + "\"\n"
-      //);
-      //d2Graph += (
-      //    std::string("  layout-entrance: \"")
-      //  + pule::toStr(res.image.layoutEntrance) + "\"\n"
-      //);
-      //d2Graph += (
-      //    std::string("  layout: \"")
-      //  + pule::toStr(res.image.layout) + "\"\n"
-      //);
-      //d2Graph += "      }\n";
+      d2Graph += (
+          std::string("  access-entrance: \"")
+        + (std::string)pule::toStr(res.accessEntrance) + "\"\n"
+      );
+      d2Graph += (
+          std::string("  access: \"")
+        + (std::string)pule::toStr(res.access) + "\"\n"
+      );
+      d2Graph += (
+          std::string("  layout-entrance: \"")
+        + (std::string)pule::toStr(res.resource.image.layoutEntrance) + "\"\n"
+      );
+      d2Graph += (
+          std::string("  layout: \"")
+        + (std::string)pule::toStr(res.resource.image.layout) + "\"\n"
+      );
+      d2Graph += "      }\n";
+    }
+    // fill in render pass --
+    if (node.hasRenderPass) {
+      d2Graph += "  render-pass: {\n";
+      auto & attachColor = node.renderPass.attachmentColor;
+      if (attachColor.resource != 0) {
+        d2Graph += "  attachment-color: {\n";
+        d2Graph += "    shape: class\n";
+        auto & label = graph.resourceLabels.at(attachColor.resource);
+        d2Graph += "    label: \"[color] " + std::string(label) + "\"\n";
+        d2Graph += (
+          "    op-load: \""
+          + (std::string)pule::toStr(attachColor.info.opLoad) + "\"\n"
+        );
+        d2Graph += (
+          "    op-store: \""
+          + (std::string)pule::toStr(attachColor.info.opStore) + "\"\n"
+        );
+        d2Graph += "    }\n";
+      }
+      d2Graph += "  }\n";
     }
     d2Graph += "    }\n";
     d2Graph += "  }\n";
@@ -875,6 +908,149 @@ PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
   return (
     puleGpuCommandListRecorder(puleRenderGraph_commandList(node))
   );
+}
+
+void puleRenderGraphNode_renderPassSet(
+  PuleRenderGraphNode puNode,
+  PuleRenderGraphNode_RenderPass const renderPass
+) {
+  // set the render pass information, the only thing to note is the hashes
+  //   need to be stored -- from now on node.renderPass.attachment*.info.label
+  //   is *invalid* since there's no gauruntted memory allocation
+  RenderGraph & graph = (
+    *::renderGraphs.at(renderGraphNodeToGraph.at(puNode.id))
+  );
+  auto & node = graph.nodes.at(puNode.id);
+  node.hasRenderPass = true;
+  node.renderPass.attachmentColor.info = renderPass.attachmentColor;
+  if (renderPass.attachmentColor.label.len != 0) {
+    node.renderPass.attachmentColor.resource = (
+      puleStringViewHash(renderPass.attachmentColor.label)
+    );
+  }
+  node.renderPass.attachmentDepth.info = renderPass.attachmentDepth;
+  if (renderPass.attachmentDepth.label.len != 0) {
+    node.renderPass.attachmentDepth.resource = (
+      puleStringViewHash(renderPass.attachmentDepth.label)
+    );
+  }
+}
+
+void puleRenderGraphNode_renderPassBegin(
+  PuleRenderGraphNode puNode,
+  PuleGpuCommandListRecorder recorder
+) {
+  RenderGraph & graph = (
+    *::renderGraphs.at(renderGraphNodeToGraph.at(puNode.id))
+  );
+  auto & node = graph.nodes.at(puNode.id);
+  PULE_assert(node.hasRenderPass);
+
+  PuleGpuImageAttachment attachmentColor;
+  memset(&attachmentColor, 0, sizeof(attachmentColor));
+  auto & attachmentColorResource = node.renderPass.attachmentColor.resource;
+  bool hasColorAttachment = attachmentColorResource != 0;
+  if (hasColorAttachment) {
+    PuleRenderGraph_Resource imgColorRes = (
+      graph.resources.at(attachmentColorResource)
+    );
+    PULE_assert(
+      imgColorRes.resourceType == PuleRenderGraph_ResourceType_image
+    );
+    auto & imgColorRef = imgColorRes.resource.image;
+    // TODO for now everything is automatic, need manual in the future
+    PULE_assert(imgColorRef.isAutomatic);
+    auto & imgColorDm = imgColorRef.dataManagement.automatic;
+
+    PuleGpuImage const imgColor = (
+      puleGpuImageReference_image(
+        imgColorRes.resource.image.imageReference
+      )
+    );
+
+    attachmentColor = {
+      .opLoad = node.renderPass.attachmentColor.info.opLoad,
+      .opStore = node.renderPass.attachmentColor.info.opStore,
+      .layout = PuleGpuImageLayout_attachmentColor,
+      .clear = node.renderPass.attachmentColor.info.clear,
+      .imageView = {
+        .image = imgColor,
+        .mipmapLevelStart = 0, .mipmapLevelCount = 1,
+        .arrayLayerStart = 0, .arrayLayerCount = 1,
+        .byteFormat = imgColorDm.byteFormat,
+      },
+    };
+  }
+
+  // TODO can probably use function here
+  PuleGpuImageAttachment attachmentDepth = {};
+  memset(&attachmentDepth, 0, sizeof(attachmentDepth));
+  auto & attachmentDepthResource = node.renderPass.attachmentDepth.resource;
+  if (attachmentDepthResource != 0) {
+    PuleRenderGraph_Resource imgDepthRes = (
+      graph.resources.at(attachmentDepthResource)
+    );
+    PULE_assert(
+      imgDepthRes.resourceType == PuleRenderGraph_ResourceType_image
+    );
+    auto & imgDepthRef = imgDepthRes.resource.image;
+    // TODO for now everything is automatic, need manual in the future
+    PULE_assert(imgDepthRef.isAutomatic);
+    auto & imgDepthDm = imgDepthRef.dataManagement.automatic;
+
+    PuleGpuImage const imgDepth = (
+      puleGpuImageReference_image(
+        imgDepthRes.resource.image.imageReference
+      )
+    );
+
+    attachmentDepth = {
+      .opLoad = node.renderPass.attachmentDepth.info.opLoad,
+      .opStore = node.renderPass.attachmentDepth.info.opStore,
+      .layout = PuleGpuImageLayout_attachmentDepth,
+      .clear = node.renderPass.attachmentDepth.info.clear,
+      .imageView = {
+        .image = imgDepth,
+        .mipmapLevelStart = 0, .mipmapLevelCount = 1,
+        .arrayLayerStart = 0, .arrayLayerCount = 1,
+        .byteFormat = imgDepthDm.byteFormat,
+      },
+    };
+  }
+
+  puleGpuCommandListAppendAction(recorder, {
+    .setScissor = {
+      .scissorMin = { .x = 0, .y = 0, },
+      .scissorMax = { .x = 800, .y = 600, }, // TODO :/
+    },
+  });
+
+  puleLogDev("rendering with color? %d", hasColorAttachment);
+  puleLogDev("rendering with dpeth? %d", attachmentDepth.imageView.image.id != 0);
+
+  puleGpuCommandListAppendAction(recorder, {
+    .renderPassBegin = PuleGpuActionRenderPassBegin {
+      .viewportMin = {0, 0},
+      .viewportMax = { 800, 600, }, // TODO
+      .attachmentColor = { attachmentColor, },
+      .attachmentColorCount = (hasColorAttachment ? 1u : 0u),
+      .attachmentDepth = { attachmentDepth, },
+    },
+  });
+}
+
+void puleRenderGraphNode_renderPassEnd(
+  PuleRenderGraphNode puNode,
+  PuleGpuCommandListRecorder recorder
+) {
+  RenderGraph & graph = (
+    *::renderGraphs.at(renderGraphNodeToGraph.at(puNode.id))
+  );
+  auto & node = graph.nodes.at(puNode.id);
+  PULE_assert(node.hasRenderPass);
+  puleGpuCommandListAppendAction(recorder, {
+    .renderPassEnd = { },
+  });
 }
 
 void puleRenderGraphNodeRelationSet(

@@ -17,13 +17,17 @@ void createPipelineVertexInputState(
   std::vector<VkVertexInputBindingDescription> & vtxBuffers,
   std::vector<VkVertexInputAttributeDescription> & vtxAttributes
 ) {
+  puleLogSectionBegin({.label="createPipelineVertexInputState", .tabs=true,});
   // attribute bindings
   for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_attribute; ++ it) {
     auto const binding = info.layoutDescriptorSet.attributeBindings[it];
     if (binding.numComponents == 0) {
       continue;
     }
-    puleLog("Attribute binding %zu location %zu binding %zu", it, it, binding.bufferIndex);
+    puleLogDev(
+      "Attribute binding %zu location %zu binding %zu",
+      it, it, binding.bufferIndex
+    );
     vtxAttributes.emplace_back( VkVertexInputAttributeDescription {
       .location = (uint32_t)it,
       .binding = (uint32_t)binding.bufferIndex,
@@ -34,7 +38,7 @@ void createPipelineVertexInputState(
           binding.convertFixedDataTypeToNormalizedFloating
         )
       ),
-      .offset = (uint32_t)binding.offsetIntoBuffer,
+      .offset = (uint32_t)binding.relativeOffset,
     });
   }
   // attribute buffer bindings
@@ -43,6 +47,10 @@ void createPipelineVertexInputState(
     if (binding.stridePerElement == 0) {
       continue;
     }
+    puleLogDev(
+      "Attribute buffer binding %zu location stride %zu",
+      it, binding.stridePerElement
+    );
     vtxBuffers.emplace_back( VkVertexInputBindingDescription {
       .binding = (uint32_t)it,
       .stride = (
@@ -51,6 +59,7 @@ void createPipelineVertexInputState(
       .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
     });
   }
+  puleLogSectionEnd();
 }
 
 VkPipelineLayout createPipelineLayout(
@@ -116,12 +125,13 @@ VkPipelineLayout createPipelineLayout(
     )
   );
   std::vector<VkPushConstantRange> pushConstantRanges;
-  for (size_t pcIt = 0; pcIt < info.layoutPushConstantsCount; ++ pcIt) {
-    auto const & pushConstant = info.layoutPushConstants[pcIt];
+  // each push constant range must have a unique stage
+  if (info.layoutPushConstants.byteLength > 0) {
+    auto & lpc = info.layoutPushConstants;
     pushConstantRanges.emplace_back( VkPushConstantRange {
-      .stageFlags = util::toVkShaderStageFlags(pushConstant.stage),
-      .offset = (uint32_t)pushConstant.byteOffset,
-      .size = (uint32_t)pushConstant.byteLength,
+      .stageFlags = util::toVkShaderStageFlags(lpc.stage),
+      .offset = (uint32_t)lpc.byteOffset,
+      .size = (uint32_t)lpc.byteLength,
     });
   }
   auto pipelineLayoutCi = VkPipelineLayoutCreateInfo {
@@ -140,6 +150,7 @@ VkPipelineLayout createPipelineLayout(
       &pipelineLayoutCi, nullptr, &pipelineLayout
     )
   );
+  puleLogDev("created pipeline layout %p", pipelineLayout);
   return pipelineLayout;
 }
 
@@ -273,7 +284,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .depthClampEnable = VK_FALSE, // TODO do I want this?
     .rasterizerDiscardEnable = VK_FALSE,
     .polygonMode = VK_POLYGON_MODE_FILL,
-    .cullMode = VK_CULL_MODE_BACK_BIT, // TODO cull proper
+    .cullMode = VK_CULL_MODE_BACK_BIT,
     .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
     .depthBiasEnable = VK_FALSE,
     .depthBiasConstantFactor = 0.0f,
@@ -308,7 +319,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
   };
   auto attachments = std::vector<VkPipelineColorBlendAttachmentState> {
     VkPipelineColorBlendAttachmentState {
-      .blendEnable = VK_TRUE,
+      .blendEnable = info.config.blendEnabled,
       // TODO expose this
       .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
       .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,

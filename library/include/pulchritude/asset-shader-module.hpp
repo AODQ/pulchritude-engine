@@ -37,5 +37,3 @@ struct AssetShaderModule {
   inline PuleGpuShaderModule handle(pule::AssetShaderModule self) {
     return puleAssetShaderModuleHandle(self._handle);
   }
-namespace pule {
-}

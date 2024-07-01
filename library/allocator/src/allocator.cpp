@@ -77,7 +77,7 @@ void * puleMalloc(PuleAllocator const allocator, size_t const numBytes) {
   return (
     puleAllocate(
       allocator,
-      { .numBytes = numBytes, .alignment = 0, .zeroOut = false }
+      { .numBytes = numBytes, .alignment = 0, .zeroOut = true }
     )
   );
 }

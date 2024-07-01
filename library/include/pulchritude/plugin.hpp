@@ -55,12 +55,14 @@ struct PluginPayload {
 namespace pule {
 using PluginInfo = PulePluginInfo;
 }
-namespace pule {
-inline char const * toStr(PulePluginType const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PulePluginType const e) {
   switch (e) {
-    case PulePluginType_library: return "library";
-    case PulePluginType_component: return "component";
-    default: return "N/A";
+    case PulePluginType_library: return puleString("library");
+    case PulePluginType_component: return puleString("component");
+    default: return puleString("N/A");
   }
 }
 }

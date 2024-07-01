@@ -8,5 +8,3 @@
 #include "script.hpp"
 #include "task-graph.hpp"
 
-namespace pule {
-}

@@ -104,21 +104,23 @@ using SceneComponentPhysicsData = PuleSceneComponentPhysicsData;
 namespace pule {
 using SceneNodeCreateInfo = PuleSceneNodeCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PuleSceneDimension const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleSceneDimension const e) {
   switch (e) {
-    case PuleSceneDimension_i2d: return "i2d";
-    case PuleSceneDimension_i3d: return "i3d";
-    default: return "N/A";
+    case PuleSceneDimension_i2d: return puleString("i2d");
+    case PuleSceneDimension_i3d: return puleString("i3d");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleSceneComponentModelType const e) {
+inline pule::str toStr(PuleSceneComponentModelType const e) {
   switch (e) {
-    case PuleSceneComponentModelType_none: return "none";
-    case PuleSceneComponentModelType_cube: return "cube";
-    case PuleSceneComponentModelType_sphere: return "sphere";
-    case PuleSceneComponentModelType_plane: return "plane";
-    default: return "N/A";
+    case PuleSceneComponentModelType_none: return puleString("none");
+    case PuleSceneComponentModelType_cube: return puleString("cube");
+    case PuleSceneComponentModelType_sphere: return puleString("sphere");
+    case PuleSceneComponentModelType_plane: return puleString("plane");
+    default: return puleString("N/A");
   }
 }
 }

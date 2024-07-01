@@ -19,7 +19,7 @@ VkRenderingAttachmentInfo imageAttachmentToVk(
   VkClearValue clearValue;
   if (isDepth) {
     clearValue.depthStencil = VkClearDepthStencilValue {
-      .depth = attachment.clear.clearDepth,
+      .depth = attachment.clear.depth,
       .stencil = 0,
     };
   } else {
@@ -107,6 +107,7 @@ PuleGpuCommandList puleGpuCommandListCreate(
       &cmdBuffer
     ) == VK_SUCCESS
   );
+  #if VK_VALIDATION_ENABLED
   { // name the command list object
     VkDebugUtilsObjectNameInfoEXT nameInfo = {
       .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -117,6 +118,7 @@ PuleGpuCommandList puleGpuCommandListCreate(
     };
     vkSetDebugUtilsObjectNameEXT(util::ctx().device.logical, &nameInfo);
   }
+  #endif
   util::ctx().commandLists.emplace(
     reinterpret_cast<uint64_t>(cmdBuffer),
     util::CommandList { .label = std::string(label.contents), }
@@ -378,6 +380,13 @@ void puleGpuCommandListAppendAction(
         .pBufferInfo = &bufferInfo,
         .pTexelBufferView = nullptr,
       };
+      puleLogDev("Pushing descriptor set, buffer binding %d, buffer %d, offset %zu, range %zu",
+        action.bindingIndex, action.buffer.id, action.offset, action.byteLen
+      );
+      auto & pipeline = (
+        util::ctx().pipelines.at(recorderInfo.currentBoundPipeline.id)
+      );
+      puleLogDev("Pipeline layout %p", pipeline.pipelineLayout);
       vkCmdPushDescriptorSetKHR(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS, // TODO support compute bindpoint

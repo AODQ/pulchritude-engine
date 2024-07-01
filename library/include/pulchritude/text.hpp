@@ -30,12 +30,14 @@ using TextRenderInfo = PuleTextRenderInfo;
 namespace pule {
 using TextRender2DInfo = PuleTextRender2DInfo;
 }
-namespace pule {
-inline char const * toStr(PuleTextType const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleTextType const e) {
   switch (e) {
-    case PuleTextType_bitmap: return "bitmap";
-    case PuleTextType_sdf: return "sdf";
-    default: return "N/A";
+    case PuleTextType_bitmap: return puleString("bitmap");
+    case PuleTextType_sdf: return puleString("sdf");
+    default: return puleString("N/A");
   }
 }
 }

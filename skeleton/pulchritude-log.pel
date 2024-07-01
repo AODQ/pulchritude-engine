@@ -15,3 +15,12 @@
 `;
 
 @fn puleLogRaw(formatCStr : char const ptr, args : __VA_ARGS__) void;
+
+@struct PuleLogSection {
+  @field label : char const ptr;
+  @field logRaw : bool = false;
+  @field tabs : bool = true;
+};
+
+@fn puleLogSectionBegin(section : PuleLogSection, args : __VA_ARGS__) void;
+@fn puleLogSectionEnd();

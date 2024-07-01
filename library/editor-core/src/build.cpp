@@ -642,6 +642,9 @@ static bool generateBuildHusk() {
     }
   }
 
+  // generate assets
+  generateAssets(projectValue);
+
   puleLogDebug("Finished preparing for build");
   return true;
 }

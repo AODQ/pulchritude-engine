@@ -12,6 +12,8 @@
 
 #include "vulkan-memory-allocator.hpp"
 
+#define VK_VALIDATION_ENABLED 1
+
 #define PULE_vkAssert(X, ErrorId, RetValue) \
   if (X != VK_SUCCESS) { \
     *error = { \

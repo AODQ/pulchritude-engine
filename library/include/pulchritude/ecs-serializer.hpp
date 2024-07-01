@@ -12,5 +12,3 @@ using EcsSerializeWorldInfo = PuleEcsSerializeWorldInfo;
 namespace pule {
 using EcsDeserializeWorldInfo = PuleEcsDeserializeWorldInfo;
 }
-namespace pule {
-}

@@ -78,7 +78,7 @@
   @field msDelta : float;
   @field advanceEcsWorld : bool = true;
   @field advancePhysxWorld : bool = true;
-  @field waitSemaphore : PuleGpuSemaphore = 0;
+  @field waitSemaphore : PuleGpuSemaphore;
 };
 @fn puleSceneAdvance(info : PuleSceneAdvanceInfo) void;
 

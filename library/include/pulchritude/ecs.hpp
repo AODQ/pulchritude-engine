@@ -180,20 +180,22 @@ struct EcsQueryIterator {
   inline void destroy(pule::EcsQueryIterator self) {
     return puleEcsQueryIteratorDestroy(self._handle);
   }
-namespace pule {
-inline char const * toStr(PuleErrorEcs const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorEcs const e) {
   switch (e) {
-    case PuleErrorEcs_none: return "none";
-    case PuleErrorEcs_queryFailed: return "queryFailed";
-    default: return "N/A";
+    case PuleErrorEcs_none: return puleString("none");
+    case PuleErrorEcs_queryFailed: return puleString("queryFailed");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleEcsSystemCallbackFrequency const e) {
+inline pule::str toStr(PuleEcsSystemCallbackFrequency const e) {
   switch (e) {
-    case PuleEcsSystemCallbackFrequency_preUpdate: return "preUpdate";
-    case PuleEcsSystemCallbackFrequency_onUpdate: return "onUpdate";
-    case PuleEcsSystemCallbackFrequency_postUpdate: return "postUpdate";
-    default: return "N/A";
+    case PuleEcsSystemCallbackFrequency_preUpdate: return puleString("preUpdate");
+    case PuleEcsSystemCallbackFrequency_onUpdate: return puleString("onUpdate");
+    case PuleEcsSystemCallbackFrequency_postUpdate: return puleString("postUpdate");
+    default: return puleString("N/A");
   }
 }
 }

@@ -50,8 +50,8 @@ typedef union PuleScenePhysxWorld {
 typedef struct PuleSceneAdvanceInfo {
   PuleScene scene;
   float msDelta;
-  bool advanceEcsWorld;
-  bool advancePhysxWorld;
+  bool advanceEcsWorld PULE_defaultField(false);
+  bool advancePhysxWorld PULE_defaultField(false);
   PuleGpuSemaphore waitSemaphore;
 } PuleSceneAdvanceInfo;
 typedef struct PuleSceneComponentModelData {

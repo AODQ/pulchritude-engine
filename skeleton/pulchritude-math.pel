@@ -46,6 +46,7 @@
   @field w : uint32_t;
 };
 
+@fn puleF32Mix(a : float, b : float, t : float) float;
 @fn puleF32v2(identity : float) PuleF32v2;
 @fn puleF32v2Ptr(values : float const ptr) PuleF32v2;
 @fn puleF32v2Add(a : PuleF32v2, b : PuleF32v2) PuleF32v2;
@@ -68,6 +69,9 @@
 @fn puleF32v3Mul(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
 @fn puleF32v3MulScalar(a : PuleF32v3, b : float) PuleF32v3;
 @fn puleF32v3Div(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+@fn puleF32v3Mix(a : PuleF32v3, b : PuleF32v3, t : float) PuleF32v3;
+@fn puleF32v3Min(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
+@fn puleF32v3Max(a : PuleF32v3, b : PuleF32v3) PuleF32v3;
 @fn puleF32v3Dot(a : PuleF32v3, b : PuleF32v3) float;
 @fn puleF32v3Length(a : PuleF32v3) float;
 @fn puleF32v3Normalize(b : PuleF32v3) PuleF32v3;
@@ -79,7 +83,8 @@
 @fn puleF32v4Sub(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
 @fn puleF32v4Mul(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
 @fn puleF32v4Div(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
-@fn puleF32v4Dot(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+@fn puleF32v4Mix(a : PuleF32v4, b : PuleF32v4, t : float) PuleF32v4;
+@fn puleF32v4Dot(a : PuleF32v4, b : PuleF32v4) float;
 
 
 @struct PuleF32m33 {
@@ -140,13 +145,7 @@ for example, the 'translation' part of a view matrix would be stored at
   axis : PuleF32v3
 ) PuleF32m44;
 
-@struct PuleF32q {
-  #` quaternion `
-  @field x : float;
-  @field y : float;
-  @field z : float;
-  @field w : float;
-};
+@alias PuleF32q : PuleF32v4;
 
 @fn puleF32qIdentity() PuleF32q;
 @fn puleF32qPlane(
@@ -164,7 +163,9 @@ for example, the 'translation' part of a view matrix would be stored at
 @fn puleF32qValid(a : PuleF32q) bool;
 
 @fn puleF32qAsM33(identity : PuleF32q) PuleF32m33;
-@fn puleF32qAsV4(identity : PuleF32q) PuleF32v4;
+@fn puleF32qAsM44(identity : PuleF32q) PuleF32m44;
 
 @fn puleF32qMul(a : PuleF32q, b : PuleF32q) PuleF32q;
 @fn puleF32qMulF(a : PuleF32q, b : float) PuleF32q;
+
+@fn puleF32qSlerp(a : PuleF32q, b : PuleF32q, t : float) PuleF32q;

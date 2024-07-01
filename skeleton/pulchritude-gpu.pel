@@ -68,7 +68,7 @@
 };
 
 
-@enum PuleGpuResourceBarrierStage {
+@bitfield PuleGpuResourceBarrierStage {
   top                   = 0x0001;
   drawIndirect          = 0x0002;
   vertexInput           = 0x0004;
@@ -81,7 +81,7 @@
   bottom                = 0x0200;
 };
 
-@enum PuleGpuResourceAccess {
+@bitfield PuleGpuResourceAccess {
   none                 = 0x00000000;
   indirectCommandRead  = 0x00000001;
   indexRead            = 0x00000002;
@@ -230,7 +230,7 @@
   @field instanceOffset : uint32_t;
 };
 
-@enum PuleGpuBufferUsage {
+@bitfield PuleGpuBufferUsage {
   attribute = 0x1;
   element = 0x2;
   uniform = 0x4;
@@ -245,7 +245,7 @@
   accelerationStructure;
 };
 
-@enum PuleGpuBufferVisibilityFlag {
+@bitfield PuleGpuBufferVisibilityFlag {
   deviceOnly = 0x1 #` incompatible with rest `;
   hostVisible = 0x2;
   hostWritable = 0x4;
@@ -253,14 +253,13 @@
 
 @fn puleGpuBufferCreate(
   name : PuleStringView,
-  optionalInitialData : void const ptr,
   byteLength : size_t,
   usage : PuleGpuBufferUsage,
   visibility : PuleGpuBufferVisibilityFlag
 ) PuleGpuBuffer;
 @fn puleGpuBufferDestroy(buffer : PuleGpuBuffer);
 
-@enum PuleGpuBufferMapAccess {
+@bitfield PuleGpuBufferMapAccess {
   hostVisible = 0x1;
   hostWritable = 0x2;
   invalidate = 0x4;
@@ -284,6 +283,11 @@
   range : PuleGpuBufferMappedFlushRange
 );
 @fn puleGpuBufferUnmap(buffer : PuleGpuBuffer);
+
+@fn puleGpuBufferMemcpy(
+  range : PuleGpuBufferMappedFlushRange,
+  data : void const ptr
+) #` memcpy into a buffer, can be device-only memory `;
 
 @fn puleGpuInitialize(
   platform : PulePlatform,
@@ -430,7 +434,7 @@
 
 @union PuleGpuImageAttachmentClear {
   @field color : PuleF32v4;
-  @field clearDepth : float;
+  @field depth : float;
 };
 
 @struct PuleGpuImageAttachment {
@@ -445,7 +449,7 @@
   layout : PuleGpuImageLayout
 ) PuleStringView;
 
-@enum PuleGpuPipelineStage {
+@bitfield PuleGpuPipelineStage {
   top = 0x01;
   drawIndirect = 0x02;
   vertexInput = 0x04;
@@ -466,6 +470,8 @@
 @enum PuleGpuAttributeDataType {
   f32;
   u8;
+  u16;
+  u32;
 };
 
 @struct PuleGpuPipelineAttributeDescriptorBinding {
@@ -473,7 +479,13 @@
   @field bufferIndex : size_t;
   @field numComponents : size_t;
   @field convertFixedDataTypeToNormalizedFloating : bool;
-  @field offsetIntoBuffer : size_t;
+  @field relativeOffset : size_t #`
+    Note that this must the offset relative to other attributes (
+      e.g. interleaved attributes
+    )
+    If the attributes are otherwise offseted into a buffer,
+      that must be done during binding in a command recorder
+  `;
 };
 
 @struct PuleGpuPipelineAttributeBufferDescriptorBinding {
@@ -489,7 +501,7 @@
   texture = 8;
 };
 
-@enum PuleGpuDescriptorStage {
+@bitfield PuleGpuDescriptorStage {
   unused = 0x0;
   vertex = 0x1;
   fragment = 0x2;
@@ -562,8 +574,9 @@
 @struct PuleGpuPipelineCreateInfo {
   @field shaderModule : PuleGpuShaderModule;
   @field layoutDescriptorSet : PuleGpuPipelineLayoutDescriptorSet;
-  @field layoutPushConstants : PuleGpuPipelineLayoutPushConstant const ptr;
-  @field layoutPushConstantsCount : size_t;
+  @field layoutPushConstants : PuleGpuPipelineLayoutPushConstant #`
+    optional, can set stage to unused to skip.
+  `;
   @field config : PuleGpuPipelineConfig;
 };
 

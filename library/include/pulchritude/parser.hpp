@@ -159,30 +159,32 @@ struct ParserAstNode {
   inline void dumpShallow(pule::ParserAstNode self) {
     return puleParserAstNodeDumpShallow(self._handle);
   }
-namespace pule {
-inline char const * toStr(PuleErrorParser const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorParser const e) {
   switch (e) {
-    case PuleErrorParser_none: return "none";
-    case PuleErrorParser_astPoisoned: return "astPoisoned";
-    default: return "N/A";
+    case PuleErrorParser_none: return puleString("none");
+    case PuleErrorParser_astPoisoned: return puleString("astPoisoned");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleParserNodeType const e) {
+inline pule::str toStr(PuleParserNodeType const e) {
   switch (e) {
-    case PuleParserNodeType_regex: return "regex";
-    case PuleParserNodeType_rule: return "rule";
-    case PuleParserNodeType_group: return "group";
-    case PuleParserNodeType_sequence: return "sequence";
-    default: return "N/A";
+    case PuleParserNodeType_regex: return puleString("regex");
+    case PuleParserNodeType_rule: return puleString("rule");
+    case PuleParserNodeType_group: return puleString("group");
+    case PuleParserNodeType_sequence: return puleString("sequence");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleParserNodeRepeat const e) {
+inline pule::str toStr(PuleParserNodeRepeat const e) {
   switch (e) {
-    case PuleParserNodeRepeat_zeroOrMore: return "zeroOrMore";
-    case PuleParserNodeRepeat_oneOrMore: return "oneOrMore";
-    case PuleParserNodeRepeat_optional: return "optional";
-    case PuleParserNodeRepeat_once: return "once";
-    default: return "N/A";
+    case PuleParserNodeRepeat_zeroOrMore: return puleString("zeroOrMore");
+    case PuleParserNodeRepeat_oneOrMore: return puleString("oneOrMore");
+    case PuleParserNodeRepeat_optional: return puleString("optional");
+    case PuleParserNodeRepeat_once: return puleString("once");
+    default: return puleString("N/A");
   }
 }
 }

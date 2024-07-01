@@ -811,7 +811,7 @@ int32_t main(
     }
     if (isEarlyExit) { // debug early exit
       static size_t frameCount = 0;
-      if (++frameCount > 2) { break; }
+      if (++frameCount > 0) { break; }
     }
   }
 
@@ -850,6 +850,8 @@ int32_t main(
 
   pulePluginsFree();
   puleLog("[PuleApplication] clean exit");
+  puleLog("TODO PROPER SHUT DOWN IM JUST FORCE QUITTING");
+  exit(0);
   return 0;
 }
 

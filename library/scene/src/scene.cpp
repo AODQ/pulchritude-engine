@@ -552,7 +552,7 @@ void systemModelRenderCallback(PuleEcsIterator const iter) {
           .opLoad = PuleGpuImageAttachmentOpLoad_clear,
           .opStore = PuleGpuImageAttachmentOpStore_store,
           .layout = PuleGpuImageLayout_attachmentDepth,
-          .clear = { .clearDepth = 1.0f, },
+          .clear = { .depth = 1.0f, },
           .imageView = {
             PuleGpuImageView {
               .image = framebufferDepth,

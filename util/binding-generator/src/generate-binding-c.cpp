@@ -271,6 +271,14 @@ void generateBindingFileC(GenerateBindingInfo const & inforef) {
   }
   write(out, "\n");
 
+  // write out aliases
+  for (auto const & a : file.aliases) {
+    if (a.comment.size() > 0) {
+      write(out, "/* %s */\n", a.comment.c_str());
+    }
+    write(out, "typedef %s %s;\n", a.alias.c_str(), a.name.c_str());
+  }
+
   // write out structs
   for (auto const & s : file.structs) {
     if (s.comment.size() > 0) {
@@ -292,8 +300,38 @@ void generateBindingFileC(GenerateBindingInfo const & inforef) {
       } else {
         write(out, "  ");
       }
-      write(out, "%s;\n", formatType(f.type, f.name).c_str());
-      // C doesn't have assignments in struct definitions
+      write(out, "%s", formatType(f.type, f.name).c_str());
+      if (f.assignmentType != BindingAssignmentType::none) {
+        write(out, " PULE_defaultField(");
+        // tInt tFloat tChar tBool identifer
+        switch (f.assignmentType) {
+          default: PULE_assert(false);
+          case BindingAssignmentType::tInt:
+            write(out, "%d", f.assignment.valInt);
+          break;
+          case BindingAssignmentType::tFloat:
+            write(out, "%f", (double)f.assignment.valFloat);
+          break;
+          case BindingAssignmentType::tChar:
+            write(out, "'%c'", f.assignment.valChar);
+          break;
+          case BindingAssignmentType::tBool:
+            write(out, "%s", f.assignment.valBool ? "true" : "false");
+          break;
+          case BindingAssignmentType::identifier:
+            if (
+              puleStringViewEq(puleStringView(f.assignment.valIdentifier),
+              "null"_psv)
+            ) {
+              write(out, "nullptr");
+              break;
+            }
+            write(out, "%s", f.assignment.valIdentifier.contents);
+          break;
+        }
+        write(out, ")");
+      }
+      write(out, ";\n");
     }
     write(out, "} %s;\n", s.name.c_str());
   }

@@ -554,7 +554,9 @@ PuleDsValue pdsParseValue(
       value = value.substr(0, value.size()-1);
     }
     // check all characters are digits, and no repeating '.'
-    for (auto ch : value) {
+    for (size_t chIt = 0; chIt < value.size(); ++ chIt) {
+      auto ch = value[chIt];
+      if (chIt == 0 && ch == '-') { continue; }
       if (hasDot && ch == '.') {
         PULE_error(
           PuleErrorAssetPds_decode,
@@ -565,7 +567,9 @@ PuleDsValue pdsParseValue(
       if (!(ch >= '0' && ch <= '9') && ch != '.') {
         PULE_error(
           PuleErrorAssetPds_decode,
-          "could not parse float value from: '%s', multiple '.'", value.c_str()
+          "could not parse float value from: '%s', invalid char %c",
+          value.c_str(),
+          ch
         );
         return {0};
       }

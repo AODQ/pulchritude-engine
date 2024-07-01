@@ -24,8 +24,8 @@ typedef struct PuleELJitEngine { uint64_t id; } PuleELJitEngine;
 struct PuleELJitEngineCreateInfo;
 
 typedef struct PuleELJitEngineCreateInfo {
-  bool optimize;
-  bool insertEngineSymbols;
+  bool optimize PULE_defaultField(false);
+  bool insertEngineSymbols PULE_defaultField(false);
 } PuleELJitEngineCreateInfo;
 
 // functions

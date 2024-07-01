@@ -8,7 +8,6 @@
 namespace pule {
   using Fv3 = pule::F32v3;
   using Float = pule::F32;
-  using Fquat = pule::F32q;
 }
 //
 //namespace pint {

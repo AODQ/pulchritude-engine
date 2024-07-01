@@ -134,27 +134,29 @@ using NetHostCreateInfo = PuleNetHostCreateInfo;
 namespace pule {
 using NetClientCreateInfo = PuleNetClientCreateInfo;
 }
-namespace pule {
-inline char const * toStr(PuleErrorNet const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorNet const e) {
   switch (e) {
-    case PuleErrorNet_none: return "none";
-    case PuleErrorNet_initialize: return "initialize";
-    case PuleErrorNet_hostCreate: return "hostCreate";
-    case PuleErrorNet_poll: return "poll";
-    case PuleErrorNet_clientCreate: return "clientCreate";
-    case PuleErrorNet_clientConnect: return "clientConnect";
-    case PuleErrorNet_clientDisconnect: return "clientDisconnect";
-    case PuleErrorNet_clientSend: return "clientSend";
-    case PuleErrorNet_packetSend: return "packetSend";
-    default: return "N/A";
+    case PuleErrorNet_none: return puleString("none");
+    case PuleErrorNet_initialize: return puleString("initialize");
+    case PuleErrorNet_hostCreate: return puleString("hostCreate");
+    case PuleErrorNet_poll: return puleString("poll");
+    case PuleErrorNet_clientCreate: return puleString("clientCreate");
+    case PuleErrorNet_clientConnect: return puleString("clientConnect");
+    case PuleErrorNet_clientDisconnect: return puleString("clientDisconnect");
+    case PuleErrorNet_clientSend: return puleString("clientSend");
+    case PuleErrorNet_packetSend: return puleString("packetSend");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleNetChannelType const e) {
+inline pule::str toStr(PuleNetChannelType const e) {
   switch (e) {
-    case PuleNetChannelType_reliable: return "reliable";
-    case PuleNetChannelType_unreliable: return "unreliable";
-    case PuleNetChannelType_unsequenced: return "unsequenced";
-    default: return "N/A";
+    case PuleNetChannelType_reliable: return puleString("reliable");
+    case PuleNetChannelType_unreliable: return puleString("unreliable");
+    case PuleNetChannelType_unsequenced: return puleString("unsequenced");
+    default: return puleString("N/A");
   }
 }
 }

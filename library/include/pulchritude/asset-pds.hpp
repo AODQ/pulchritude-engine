@@ -20,12 +20,14 @@ using AssetPdsDescription = PuleAssetPdsDescription;
 namespace pule {
 using AssetPdsDeserializeInfo = PuleAssetPdsDeserializeInfo;
 }
-namespace pule {
-inline char const * toStr(PuleErrorAssetPds const e) {
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleErrorAssetPds const e) {
   switch (e) {
-    case PuleErrorAssetPds_none: return "none";
-    case PuleErrorAssetPds_decode: return "decode";
-    default: return "N/A";
+    case PuleErrorAssetPds_none: return puleString("none");
+    case PuleErrorAssetPds_decode: return puleString("decode");
+    default: return puleString("N/A");
   }
 }
 }

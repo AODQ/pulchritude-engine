@@ -21,9 +21,9 @@ typedef struct PuleAllocateInfo {
   /* minimum number of bytes to be allocated */
   size_t numBytes;
   /* alignment of pointer, 0 is allowed */
-  size_t alignment;
+  size_t alignment PULE_defaultField(0);
   /* if memory should be zeroed out */
-  bool zeroOut;
+  bool zeroOut PULE_defaultField(false);
 } PuleAllocateInfo;
 /* a request for reallocation of existing memory */
 typedef struct PuleReallocateInfo {
@@ -32,7 +32,7 @@ typedef struct PuleReallocateInfo {
   /* minimum number of bytes to reallocate */
   size_t numBytes;
   /* alignment of pointer, 0 is allowed */
-  size_t alignment;
+  size_t alignment PULE_defaultField(0);
 } PuleReallocateInfo;
 /* interface to allocate memory */
 typedef struct PuleAllocator {

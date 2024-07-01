@@ -81,6 +81,15 @@ struct RenderGraphNode {
   inline PuleStringView label() {
     return puleRenderGraphNodeLabel(this->_handle);
   }
+  inline void _renderPassSet(PuleRenderGraphNode_RenderPass renderPass) {
+    return puleRenderGraphNode_renderPassSet(this->_handle, renderPass);
+  }
+  inline void _renderPassBegin(PuleGpuCommandListRecorder recorder) {
+    return puleRenderGraphNode_renderPassBegin(this->_handle, recorder);
+  }
+  inline void _renderPassEnd(PuleGpuCommandListRecorder recorder) {
+    return puleRenderGraphNode_renderPassEnd(this->_handle, recorder);
+  }
   inline void relationSet(PuleRenderGraphNodeRelation relation, PuleRenderGraphNode nodeSec) {
     return puleRenderGraphNodeRelationSet(this->_handle, relation, nodeSec);
   }
@@ -100,6 +109,15 @@ struct RenderGraphNode {
   }
   inline PuleStringView label(pule::RenderGraphNode self) {
     return puleRenderGraphNodeLabel(self._handle);
+  }
+  inline void _renderPassSet(pule::RenderGraphNode self, PuleRenderGraphNode_RenderPass renderPass) {
+    return puleRenderGraphNode_renderPassSet(self._handle, renderPass);
+  }
+  inline void _renderPassBegin(pule::RenderGraphNode self, PuleGpuCommandListRecorder recorder) {
+    return puleRenderGraphNode_renderPassBegin(self._handle, recorder);
+  }
+  inline void _renderPassEnd(pule::RenderGraphNode self, PuleGpuCommandListRecorder recorder) {
+    return puleRenderGraphNode_renderPassEnd(self._handle, recorder);
   }
   inline void relationSet(pule::RenderGraphNode self, PuleRenderGraphNodeRelation relation, PuleRenderGraphNode nodeSec) {
     return puleRenderGraphNodeRelationSet(self._handle, relation, nodeSec);
@@ -150,28 +168,36 @@ namespace pule {
 using RenderGraph_Node_Resource = PuleRenderGraph_Node_Resource;
 }
 namespace pule {
-using RenderGraphExecuteInfo = PuleRenderGraphExecuteInfo;
+using RenderGraphNode_RenderPassAttachment = PuleRenderGraphNode_RenderPassAttachment;
 }
 namespace pule {
-inline char const * toStr(PuleRenderGraph_ResourceType const e) {
+using RenderGraphNode_RenderPass = PuleRenderGraphNode_RenderPass;
+}
+namespace pule {
+using RenderGraphExecuteInfo = PuleRenderGraphExecuteInfo;
+}
+#include "string.hpp"
+#include <string>
+namespace pule { //tostr 
+inline pule::str toStr(PuleRenderGraph_ResourceType const e) {
   switch (e) {
-    case PuleRenderGraph_ResourceType_image: return "image";
-    case PuleRenderGraph_ResourceType_buffer: return "buffer";
-    default: return "N/A";
+    case PuleRenderGraph_ResourceType_image: return puleString("image");
+    case PuleRenderGraph_ResourceType_buffer: return puleString("buffer");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleRenderGraph_ResourceUsage const e) {
+inline pule::str toStr(PuleRenderGraph_ResourceUsage const e) {
   switch (e) {
-    case PuleRenderGraph_ResourceUsage_read: return "read";
-    case PuleRenderGraph_ResourceUsage_write: return "write";
-    case PuleRenderGraph_ResourceUsage_readWrite: return "readWrite";
-    default: return "N/A";
+    case PuleRenderGraph_ResourceUsage_read: return puleString("read");
+    case PuleRenderGraph_ResourceUsage_write: return puleString("write");
+    case PuleRenderGraph_ResourceUsage_readWrite: return puleString("readWrite");
+    default: return puleString("N/A");
   }
 }
-inline char const * toStr(PuleRenderGraphNodeRelation const e) {
+inline pule::str toStr(PuleRenderGraphNodeRelation const e) {
   switch (e) {
-    case PuleRenderGraphNodeRelation_dependsOn: return "dependsOn";
-    default: return "N/A";
+    case PuleRenderGraphNodeRelation_dependsOn: return puleString("dependsOn");
+    default: return puleString("N/A");
   }
 }
 }

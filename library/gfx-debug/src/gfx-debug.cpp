@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-// Premise for how this works is for user to start drawing debug shapes,
+// Premise for how this works is for user to start  debug shapes,
 //   they have us create a decord recorder, fill in the shapes,
 //   then fill in a command list that they can use to dispatch
 // Preferably there is one debug-recorder throughout the lifetime of a frame,
@@ -17,12 +17,10 @@
 // -- recording data --
 namespace pint {
 
-constexpr PuleGpuPipelineLayoutPushConstant pipelineLayoutPushConstants[] = {
-  {
-    .stage = PuleGpuDescriptorStage_vertex,
-    .byteLength = sizeof(float)*4*4*2, // 4x4 transform + viewProj
-    .byteOffset = 0,
-  },
+constexpr PuleGpuPipelineLayoutPushConstant pipelineLayoutPushConstants = {
+  .stage = PuleGpuDescriptorStage_vertex,
+  .byteLength = sizeof(float)*4*4*2, // 4x4 transform + viewProj
+  .byteOffset = 0,
 };
 
 constexpr size_t attributeScratchBufferSize = 1024*1024; // 1MB
@@ -107,14 +105,14 @@ void pint::debugGpuDataInitializeLine() {
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(pint::LineInfo, origin)
+    .relativeOffset = offsetof(pint::LineInfo, origin)
   };
   layoutDescriptorSet.attributeBindings[1] = {
     .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(pint::LineInfo, color)
+    .relativeOffset = offsetof(pint::LineInfo, color)
   };
   layoutDescriptorSet.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(pint::LineInfo),
@@ -124,8 +122,7 @@ void pint::debugGpuDataInitializeLine() {
     PuleGpuPipelineCreateInfo {
       .shaderModule = pint::debugGpuData.lineShaderModule,
       .layoutDescriptorSet = layoutDescriptorSet,
-      .layoutPushConstants = &pipelineLayoutPushConstants[0],
-      .layoutPushConstantsCount = PULE_arraySize(pipelineLayoutPushConstants),
+      .layoutPushConstants = pipelineLayoutPushConstants,
       .config = {
         .depthTestEnabled = false,
         .blendEnabled = false,
@@ -179,21 +176,21 @@ void pint::debugGpuDataInitializeTriangle() {
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(pint::TriangleAttribute, origin)
+    .relativeOffset = offsetof(pint::TriangleAttribute, origin)
   };
   layoutDescriptorSet.attributeBindings[1] = {
     .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(pint::TriangleAttribute, uv)
+    .relativeOffset = offsetof(pint::TriangleAttribute, uv)
   };
   layoutDescriptorSet.attributeBindings[2] = {
     .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 3,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(pint::TriangleAttribute, color)
+    .relativeOffset = offsetof(pint::TriangleAttribute, color)
   };
   layoutDescriptorSet.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(pint::TriangleAttribute),
@@ -203,8 +200,7 @@ void pint::debugGpuDataInitializeTriangle() {
     PuleGpuPipelineCreateInfo {
       .shaderModule = pint::debugGpuData.triShaderModule,
       .layoutDescriptorSet = layoutDescriptorSet,
-      .layoutPushConstants = &pipelineLayoutPushConstants[0],
-      .layoutPushConstantsCount = PULE_arraySize(pipelineLayoutPushConstants),
+      .layoutPushConstants = pipelineLayoutPushConstants,
       .config = {
         .depthTestEnabled = true,
         .blendEnabled = false,
@@ -241,7 +237,6 @@ void pint::debugGpuDataInitialize() {
   pint::debugGpuData.attributeScratchBuffer = (
     puleGpuBufferCreate(
       puleCStr("debug-line-attributes"),
-      nullptr,
       pint::maxLinesPerCommandList*sizeof(pint::LineInfo),
       PuleGpuBufferUsage_attribute,
       PuleGpuBufferVisibilityFlag_hostWritable

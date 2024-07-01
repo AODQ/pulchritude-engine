@@ -64,5 +64,3 @@ struct StreamWrite {
   inline void destroy(pule::StreamWrite self) {
     return puleStreamWriteDestroy(self._handle);
   }
-namespace pule {
-}

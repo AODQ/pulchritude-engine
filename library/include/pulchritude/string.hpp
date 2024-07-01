@@ -76,7 +76,21 @@ struct StringView {
   inline size_t hash(pule::StringView self) {
     return puleStringViewHash(self._handle);
   }
-namespace pule {
-}
 PuleStringView operator ""_psv(char const * const cstr, size_t const len);
+#include <string>
+namespace pule {
+  struct str {
+    PuleString data;
+    str() : data { nullptr, 0, {}, } {}
+    str(PuleString const & data) : data(data) {}
+    str(PuleString && data) : data(data) {}
+    str(str const & other) : data(puleString(other.data.contents)) {}
+    str(str && other) : data(other.data) { other.data = { nullptr, 0, {}, }; }
+    operator PuleString() const { return this->data; }
+    operator std::string() const { 
+      return std::string(this->data.contents, this->data.len);
+    }
+    ~str() { puleStringDestroy(this->data); }
+  };
+}
 

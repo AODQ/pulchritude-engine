@@ -23,8 +23,8 @@ struct PuleU32v3;
 struct PuleU32v4;
 struct PuleF32m33;
 struct PuleF32m44;
-struct PuleF32q;
 
+typedef PuleF32v4 PuleF32q;
 typedef struct PuleF32v2 {
   float x;
   float y;
@@ -90,15 +90,9 @@ typedef struct PuleF32m33 {
 typedef struct PuleF32m44 {
   float elem[16] ;
 } PuleF32m44;
-/*  quaternion  */
-typedef struct PuleF32q {
-  float x;
-  float y;
-  float z;
-  float w;
-} PuleF32q;
 
 // functions
+PULE_exportFn float puleF32Mix(float a, float b, float t);
 PULE_exportFn PuleF32v2 puleF32v2(float identity);
 PULE_exportFn PuleF32v2 puleF32v2Ptr(float const * values);
 PULE_exportFn PuleF32v2 puleF32v2Add(PuleF32v2 a, PuleF32v2 b);
@@ -119,6 +113,9 @@ PULE_exportFn PuleF32v3 puleF32v3Neg(PuleF32v3 a);
 PULE_exportFn PuleF32v3 puleF32v3Mul(PuleF32v3 a, PuleF32v3 b);
 PULE_exportFn PuleF32v3 puleF32v3MulScalar(PuleF32v3 a, float b);
 PULE_exportFn PuleF32v3 puleF32v3Div(PuleF32v3 a, PuleF32v3 b);
+PULE_exportFn PuleF32v3 puleF32v3Mix(PuleF32v3 a, PuleF32v3 b, float t);
+PULE_exportFn PuleF32v3 puleF32v3Min(PuleF32v3 a, PuleF32v3 b);
+PULE_exportFn PuleF32v3 puleF32v3Max(PuleF32v3 a, PuleF32v3 b);
 PULE_exportFn float puleF32v3Dot(PuleF32v3 a, PuleF32v3 b);
 PULE_exportFn float puleF32v3Length(PuleF32v3 a);
 PULE_exportFn PuleF32v3 puleF32v3Normalize(PuleF32v3 b);
@@ -129,7 +126,8 @@ PULE_exportFn PuleF32v4 puleF32v4Add(PuleF32v4 a, PuleF32v4 b);
 PULE_exportFn PuleF32v4 puleF32v4Sub(PuleF32v4 a, PuleF32v4 b);
 PULE_exportFn PuleF32v4 puleF32v4Mul(PuleF32v4 a, PuleF32v4 b);
 PULE_exportFn PuleF32v4 puleF32v4Div(PuleF32v4 a, PuleF32v4 b);
-PULE_exportFn PuleF32v4 puleF32v4Dot(PuleF32v4 a, PuleF32v4 b);
+PULE_exportFn PuleF32v4 puleF32v4Mix(PuleF32v4 a, PuleF32v4 b, float t);
+PULE_exportFn float puleF32v4Dot(PuleF32v4 a, PuleF32v4 b);
 PULE_exportFn PuleF32m33 puleF32m33(float identity);
 PULE_exportFn PuleF32m33 puleF32m33Ptr(float const * data);
 PULE_exportFn PuleF32m33 puleF32m33PtrTranspose(float const * data);
@@ -158,9 +156,10 @@ PULE_exportFn PuleF32m33 puleF32qRotateM33(PuleF32q a, PuleF32m33 b);
 PULE_exportFn PuleF32v3 puleF32qAxis(PuleF32q a);
 PULE_exportFn bool puleF32qValid(PuleF32q a);
 PULE_exportFn PuleF32m33 puleF32qAsM33(PuleF32q identity);
-PULE_exportFn PuleF32v4 puleF32qAsV4(PuleF32q identity);
+PULE_exportFn PuleF32m44 puleF32qAsM44(PuleF32q identity);
 PULE_exportFn PuleF32q puleF32qMul(PuleF32q a, PuleF32q b);
 PULE_exportFn PuleF32q puleF32qMulF(PuleF32q a, float b);
+PULE_exportFn PuleF32q puleF32qSlerp(PuleF32q a, PuleF32q b, float t);
 
 #ifdef __cplusplus
 } // extern C

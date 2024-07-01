@@ -189,7 +189,7 @@
   f12;
 };
 
-@enum PuleInputKeyModifier {
+@bitfield PuleInputKeyModifier {
   ctrl = 0x1;
   shift = 0x2;
   alt = 0x4;

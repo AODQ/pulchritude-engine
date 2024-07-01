@@ -24,5 +24,3 @@ using Microsecond = PuleMicrosecond;
 namespace pule {
 using Millisecond = PuleMillisecond;
 }
-namespace pule {
-}

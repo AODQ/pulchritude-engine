@@ -101,6 +101,106 @@ PuleGpuImageLayout toPayloadLayout(PuleStringView const view) {
   PULE_assert(false);
 }
 
+
+/* 
+    image-depth: "framebuffer-depth",
+    op-load: "clear",
+    op-store: "store",
+    clear: { depth: 0.0, },
+*/
+void processRenderPassDepthAttachment(
+  PuleRenderGraphNode_RenderPassAttachment & attachment,
+  PuleDsValue attachmentValue
+) {
+  PuleStringView label = (
+    puleDsMemberAsString(attachmentValue, "image-depth")
+  );
+  puleLog("processing depth attachment %s", label.contents);
+  if (label.len == 0) { return; } // check if this is depth attachment
+  if (attachment.label.len != 0) {
+    puleLogError(
+      "depth attachment already set");
+    return;
+  }
+  attachment.label = label;
+  // -- op load
+  PuleStringView const opLoad = (
+    puleDsMemberAsString(attachmentValue, "op-load")
+  );
+  if (puleStringViewEqCStr(opLoad, "clear")) {
+    attachment.opLoad = PuleGpuImageAttachmentOpLoad_clear;
+  } else if (puleStringViewEqCStr(opLoad, "load")) {
+    attachment.opLoad = PuleGpuImageAttachmentOpLoad_load;
+  } else {
+    PULE_assert(false && "unknown op-load");
+  }
+  // -- op store
+  PuleStringView const opStore = (
+    puleDsMemberAsString(attachmentValue, "op-store")
+  );
+  if (puleStringViewEqCStr(opStore, "store")) {
+    attachment.opStore = PuleGpuImageAttachmentOpStore_store;
+  } else if (puleStringViewEqCStr(opStore, "dont-care")) {
+    attachment.opStore = PuleGpuImageAttachmentOpStore_dontCare;
+  } else {
+    PULE_assert(false && "unknown op-store");
+  }
+  // -- clear
+  PuleDsValue const dsClear = (
+    puleDsObjectMember(attachmentValue, "clear")
+  );
+  if (dsClear.id != 0) {
+    attachment.clear.depth = puleDsAsF32(dsClear);
+  }
+}
+
+/*
+  image-color: "framebuffer-image",
+  op-load: "clear",
+  op-store: "store",
+  clear: [0.0, 0.0, 0.0, 1.0],
+*/
+void processRenderPassColorAttachment(
+  PuleRenderGraphNode_RenderPassAttachment & attachment,
+  PuleDsValue attachmentValue
+) {
+  PuleStringView label = (
+    puleDsMemberAsString(attachmentValue, "image-color")
+  );
+  puleLog("processing color attachment %s", label.contents);
+  if (label.len == 0) { return; } // check if this is color attachment
+  attachment.label = label;
+  // -- op load
+  PuleStringView const opLoad = (
+    puleDsMemberAsString(attachmentValue, "op-load")
+  );
+  if (puleStringViewEqCStr(opLoad, "clear")) {
+    attachment.opLoad = PuleGpuImageAttachmentOpLoad_clear;
+  } else if (puleStringViewEqCStr(opLoad, "load")) {
+    attachment.opLoad = PuleGpuImageAttachmentOpLoad_load;
+  } else {
+    PULE_assert(false && "unknown op-load");
+  }
+  // -- op store
+  PuleStringView const opStore = (
+    puleDsMemberAsString(attachmentValue, "op-store")
+  );
+  if (puleStringViewEqCStr(opStore, "store")) {
+    attachment.opStore = PuleGpuImageAttachmentOpStore_store;
+  } else if (puleStringViewEqCStr(opStore, "dont-care")) {
+    attachment.opStore = PuleGpuImageAttachmentOpStore_dontCare;
+  } else {
+    PULE_assert(false && "unknown op-store");
+  }
+  // -- clear
+  PuleDsValue const dsClear = (
+    puleDsObjectMember(attachmentValue, "clear")
+  );
+  if (dsClear.id != 0) {
+    attachment.clear.color = puleDsAsF32v4(dsClear);
+  }
+}
+
 } // namespace
 
 extern "C" {
@@ -164,9 +264,10 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
       PuleStringView const dataManagementType = (
         puleDsMemberAsString(dsDataManagement, "type")
       );
-      PuleRenderGraph_Resource resource;
+      PuleRenderGraph_Resource resource = {};
       if (puleStringViewEqCStr(dataManagementType, "automatic")) {
-        PuleRenderGraph_Resource_Image_DataManagement_Automatic dataManagement;
+        PuleRenderGraph_Resource_Image_DataManagement_Automatic
+          dataManagement = {};
         // clear fields that might not be initialized by pds
         memset(
           &dataManagement,
@@ -320,6 +421,57 @@ PuleRenderGraph puleAssetRenderGraphFromPds(
         );
       }
     }
+  }
+
+  // -- create render-pass info
+  /*
+    render-pass: [
+      attachments: [
+        {
+          image-color: "framebuffer-image",
+          op-load: "clear",
+          op-store: "store",
+          clear: [0.0, 0.0, 0.0, 1.0],
+        },
+      ],
+    ],
+  */
+  for (size_t it = 0; it < dsGraphNodes.length; ++ it) {
+    PuleDsValue const dsGraphNode = dsGraphNodes.values[it];
+    PuleRenderGraphNode const graphNode = (
+      puleRenderGraphNodeFetch(
+        graph,
+        puleDsMemberAsString(dsGraphNode, "label")
+      )
+    );
+    auto const renderPassValue = puleDsObjectMember(dsGraphNode, "render-pass");
+    if (renderPassValue.id == 0) {
+      continue;
+    }
+    PuleRenderGraphNode_RenderPass renderPass = {};
+    memset(&renderPass, 0, sizeof(PuleRenderGraphNode_RenderPass));
+    PuleDsValueArray const dsAttachments = (
+      puleDsMemberAsArray(renderPassValue, "attachments")
+    );
+    puleLogSectionBegin({.label="render-pass %s", .tabs=true,},
+      puleDsMemberAsString(dsGraphNode, "label").contents
+    );
+    for (size_t attachIt = 0; attachIt < dsAttachments.length; ++ attachIt) {
+      PuleDsValue const dsAttachment = dsAttachments.values[attachIt];
+      puleAssetPdsWriteToStdout(dsAttachment);
+      processRenderPassColorAttachment(
+        renderPass.attachmentColor,
+        dsAttachment
+      );
+      processRenderPassDepthAttachment(
+        renderPass.attachmentDepth, dsAttachment
+      );
+
+      puleLog("color attachment: %s", renderPass.attachmentColor.label.contents);
+      puleLog("depth attachment: %s", renderPass.attachmentDepth.label.contents);
+      puleRenderGraphNode_renderPassSet(graphNode, renderPass);
+    }
+    puleLogSectionEnd();
   }
 
   return graph;

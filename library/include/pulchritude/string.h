@@ -21,7 +21,7 @@ struct PuleStringView;
 typedef struct PuleString {
   char * contents;
   /* number of bytes excluding null-terminator */
-  size_t len;
+  size_t len PULE_defaultField(0);
   PuleAllocator allocator;
 } PuleString;
 /* light-weight view into a string, with no knowledge of its underlying

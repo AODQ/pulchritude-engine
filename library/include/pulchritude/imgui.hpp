@@ -26,5 +26,3 @@ struct ImguiCallback {
   inline PuleImguiCallbackRegistry register(pule::ImguiCallback self) {
     return puleImguiCallbackRegister(self._handle);
   }
-namespace pule {
-}

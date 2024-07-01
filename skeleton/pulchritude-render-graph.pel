@@ -157,6 +157,33 @@
   node : PuleRenderGraphNode
 ) PuleGpuCommandListRecorder;
 
+@struct PuleRenderGraphNode_RenderPassAttachment {
+  @field label : PuleStringView;
+  @field opLoad : PuleGpuImageAttachmentOpLoad;
+  @field opStore : PuleGpuImageAttachmentOpStore;
+  @field clear : PuleGpuImageAttachmentClear;
+};
+
+@struct PuleRenderGraphNode_RenderPass {
+  @field attachmentColor : PuleRenderGraphNode_RenderPassAttachment;
+  @field attachmentDepth : PuleRenderGraphNode_RenderPassAttachment;
+};
+
+@fn puleRenderGraphNode_renderPassSet(
+  node : PuleRenderGraphNode,
+  renderPass : PuleRenderGraphNode_RenderPass
+);
+
+@fn puleRenderGraphNode_renderPassBegin(
+  node : PuleRenderGraphNode,
+  recorder : PuleGpuCommandListRecorder
+);
+
+@fn puleRenderGraphNode_renderPassEnd(
+  node : PuleRenderGraphNode,
+  recorder : PuleGpuCommandListRecorder
+);
+
 @enum PuleRenderGraphNodeRelation {
   dependsOn;
 };

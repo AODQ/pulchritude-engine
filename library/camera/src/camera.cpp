@@ -130,7 +130,6 @@ void puleCameraSetRefreshUniformBuffer(CameraSet & set) {
     set.uniformBuffer = (
       puleGpuBufferCreate(
         puleCStr(label.c_str()),
-        nullptr,
         sizeof(CameraGpuData)*4,
         PuleGpuBufferUsage_uniform,
         PuleGpuBufferVisibilityFlag_hostWritable
@@ -274,8 +273,8 @@ void cameraControllerFpsUpdate(void * const userdata) {
   PuleI32v2 const mouse = pulePlatformMouseOrigin(controller.platform);
   auto const mouseDelta = (
     PuleF32v2 {
-      .x = static_cast<float>(controller.prevMouseOrigin.x - mouse.x),
-      .y = static_cast<float>(controller.prevMouseOrigin.y - mouse.y),
+      .x =  static_cast<float>(controller.prevMouseOrigin.x - mouse.x),
+      .y = -static_cast<float>(controller.prevMouseOrigin.y - mouse.y),
     }
   );
   controller.prevMouseOrigin = mouse;
@@ -390,11 +389,13 @@ void cameraControllerOrbitUpdate(void * const userdata) {
 
   // translate, use the mouse and move directrion to modify phi/theta
   controller.dirTheta -= mouseDelta.x * 0.005f + moveDirection.x * 0.005f;
-  controller.dirPhi += mouseDelta.y * 0.005f + moveDirection.y * 0.005f;
+  controller.dirPhi -= mouseDelta.y * 0.005f + moveDirection.y * 0.005f;
   if (controller.dirPhi > 1.3f)
     controller.dirPhi = 1.3f;
   if (controller.dirPhi < -1.3f)
     controller.dirPhi = -1.3f;
+  controller.targetOrigin.y += moveDirection.y * 0.1f;
+  controller.targetOrigin.x += moveDirection.x * 0.1f;
 
   // calculate view direction
 
@@ -432,10 +433,10 @@ void cameraControllerOrbitUpdate(void * const userdata) {
   puleCameraPerspectiveSet(
     controller.camera,
     PuleCameraPerspective {
-      .nearCutoff = 0.01f,
-      .farCutoff = 10'000.0f,
+      .nearCutoff = 0.1f,
+      .farCutoff = 100.0f,
       .aspectRatio = 800.0f/600.0f,
-      .fieldOfViewRadians = 70.0f,
+      .fieldOfViewRadians = 95.0f,
     }
   );
 }
@@ -482,7 +483,7 @@ PuleCameraController puleCameraControllerOrbit(
   );
   controller.targetOrigin = origin;
   controller.radius = controller.radiusOriginal = radius;
-  controller.up = PuleF32v3{0.0f, 1.0f, 0.0f,};
+  controller.up = PuleF32v3{0.0f, -1.0f, 0.0f,};
   controller.dirPhi = 0.0f;
   controller.dirTheta = 0.0f;
   controller.prevMouseOrigin = pulePlatformMouseOrigin(platform);

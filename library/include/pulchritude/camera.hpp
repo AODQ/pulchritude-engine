@@ -128,5 +128,3 @@ using CameraPerspective = PuleCameraPerspective;
 namespace pule {
 using CameraSetArray = PuleCameraSetArray;
 }
-namespace pule {
-}

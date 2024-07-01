@@ -156,7 +156,7 @@ struct {
 ```c
 union {
   color : PuleF32v4;
-  clearDepth : float;
+  depth : float;
 };
 ```
 ### PuleGpuImageAttachment
@@ -176,7 +176,14 @@ struct {
   bufferIndex : size_t;
   numComponents : size_t;
   convertFixedDataTypeToNormalizedFloating : bool;
-  offsetIntoBuffer : size_t;
+  /* 
+    Note that this must the offset relative to other attributes (
+      e.g. interleaved attributes
+    )
+    If the attributes are otherwise offseted into a buffer,
+      that must be done during binding in a command recorder
+   */
+  relativeOffset : size_t;
 };
 ```
 ### PuleGpuPipelineAttributeBufferDescriptorBinding
@@ -247,8 +254,10 @@ struct {
 struct {
   shaderModule : PuleGpuShaderModule;
   layoutDescriptorSet : PuleGpuPipelineLayoutDescriptorSet;
-  layoutPushConstants : PuleGpuPipelineLayoutPushConstant const ptr;
-  layoutPushConstantsCount : size_t;
+  /* 
+    optional, can set stage to unused to skip.
+   */
+  layoutPushConstants : PuleGpuPipelineLayoutPushConstant;
   config : PuleGpuPipelineConfig;
 };
 ```
@@ -691,6 +700,8 @@ enum {
 enum {
   f32,
   u8,
+  u16,
+  u32,
 }
 ```
 ### PuleGpuPipelineDescriptorMax
@@ -847,7 +858,6 @@ puleGpuCommandListChainCurrentFence(
 ```c
 puleGpuBufferCreate(
   name : PuleStringView,
-  optionalInitialData : void const ptr,
   byteLength : size_t,
   usage : PuleGpuBufferUsage,
   visibility : PuleGpuBufferVisibilityFlag
@@ -875,6 +885,14 @@ puleGpuBufferMappedFlush(
 ```c
 puleGpuBufferUnmap(
   buffer : PuleGpuBuffer
+) void;
+```
+### puleGpuBufferMemcpy
+ memcpy into a buffer, can be device-only memory 
+```c
+puleGpuBufferMemcpy(
+  range : PuleGpuBufferMappedFlushRange,
+  data : void const ptr
 ) void;
 ```
 ### puleGpuInitialize

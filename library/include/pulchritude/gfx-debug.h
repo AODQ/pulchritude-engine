@@ -47,33 +47,33 @@ typedef struct PuleGfxDebugSubmitInfo {
   PuleGpuActionRenderPassBegin renderPassBegin;
 } PuleGfxDebugSubmitInfo;
 typedef struct PuleGfxDebugRenderLine {
-  PuleGfxDebugRenderType type;
+  PuleGfxDebugRenderType type PULE_defaultField(PuleGfxDebugRenderType_line);
   PuleF32v2 a;
   PuleF32v2 b;
   PuleF32v3 color;
 } PuleGfxDebugRenderLine;
 typedef struct PuleGfxDebugRenderQuad {
-  PuleGfxDebugRenderType type;
+  PuleGfxDebugRenderType type PULE_defaultField(PuleGfxDebugRenderType_quad);
   PuleF32v2 originCenter;
   float angle;
   PuleF32v2 dimensionsHalf;
   PuleF32v3 color;
 } PuleGfxDebugRenderQuad;
 typedef struct PuleGfxDebugRenderCube {
-  PuleGfxDebugRenderType type;
+  PuleGfxDebugRenderType type PULE_defaultField(PuleGfxDebugRenderType_cube);
   PuleF32v3 originCenter;
   PuleF32m33 rotationMatrix;
   PuleF32v3 dimensionsHalf;
   PuleF32v3 color;
 } PuleGfxDebugRenderCube;
 typedef struct PuleGfxDebugRenderSphere {
-  PuleGfxDebugRenderType type;
+  PuleGfxDebugRenderType type PULE_defaultField(PuleGfxDebugRenderType_sphere);
   PuleF32v3 originCenter;
   float radius;
   PuleF32v3 color;
 } PuleGfxDebugRenderSphere;
 typedef struct PuleGfxDebugRenderPlane {
-  PuleGfxDebugRenderType type;
+  PuleGfxDebugRenderType type PULE_defaultField(PuleGfxDebugRenderType_plane);
   PuleF32v3 originCenter;
   PuleF32m33 rotationMatrix;
   PuleF32v3 color;

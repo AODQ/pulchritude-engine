@@ -7,5 +7,3 @@
 #include "data-serializer.hpp"
 #include "render-graph.hpp"
 
-namespace pule {
-}

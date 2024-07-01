@@ -99,18 +99,16 @@ struct {
   elem : float [16];
 };
 ```
-### PuleF32q
- quaternion 
-```c
-struct {
-  x : float;
-  y : float;
-  z : float;
-  w : float;
-};
-```
 
 ## functions
+### puleF32Mix
+```c
+puleF32Mix(
+  a : float,
+  b : float,
+  t : float
+) float;
+```
 ### puleF32v2
 ```c
 puleF32v2(
@@ -242,6 +240,28 @@ puleF32v3Div(
   b : PuleF32v3
 ) PuleF32v3;
 ```
+### puleF32v3Mix
+```c
+puleF32v3Mix(
+  a : PuleF32v3,
+  b : PuleF32v3,
+  t : float
+) PuleF32v3;
+```
+### puleF32v3Min
+```c
+puleF32v3Min(
+  a : PuleF32v3,
+  b : PuleF32v3
+) PuleF32v3;
+```
+### puleF32v3Max
+```c
+puleF32v3Max(
+  a : PuleF32v3,
+  b : PuleF32v3
+) PuleF32v3;
+```
 ### puleF32v3Dot
 ```c
 puleF32v3Dot(
@@ -309,12 +329,20 @@ puleF32v4Div(
   b : PuleF32v4
 ) PuleF32v4;
 ```
+### puleF32v4Mix
+```c
+puleF32v4Mix(
+  a : PuleF32v4,
+  b : PuleF32v4,
+  t : float
+) PuleF32v4;
+```
 ### puleF32v4Dot
 ```c
 puleF32v4Dot(
   a : PuleF32v4,
   b : PuleF32v4
-) PuleF32v4;
+) float;
 ```
 ### puleF32m33
 ```c
@@ -494,11 +522,11 @@ puleF32qAsM33(
   identity : PuleF32q
 ) PuleF32m33;
 ```
-### puleF32qAsV4
+### puleF32qAsM44
 ```c
-puleF32qAsV4(
+puleF32qAsM44(
   identity : PuleF32q
-) PuleF32v4;
+) PuleF32m44;
 ```
 ### puleF32qMul
 ```c
@@ -512,5 +540,13 @@ puleF32qMul(
 puleF32qMulF(
   a : PuleF32q,
   b : float
+) PuleF32q;
+```
+### puleF32qSlerp
+```c
+puleF32qSlerp(
+  a : PuleF32q,
+  b : PuleF32q,
+  t : float
 ) PuleF32q;
 ```

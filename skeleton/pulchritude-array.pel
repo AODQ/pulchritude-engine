@@ -68,3 +68,5 @@
   _ : PuleBuffer ref, data : uint8_t const ptr, length : size_t
 );
 @fn puleBufferDestroy(_ : PuleBuffer);
+
+@fn puleBufferView(_ : PuleBuffer) PuleBufferView;

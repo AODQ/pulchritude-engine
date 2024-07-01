@@ -47,21 +47,21 @@ PuleGpuPipelineLayoutDescriptorSet createPipelineDescriptorSetLayout() {
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(ImDrawVert, pos),
+    .relativeOffset = offsetof(ImDrawVert, pos),
   };
   descriptorSetLayout.attributeBindings[1] = {
     .dataType = PuleGpuAttributeDataType_f32,
     .bufferIndex = 0,
     .numComponents = 2,
     .convertFixedDataTypeToNormalizedFloating = false,
-    .offsetIntoBuffer = offsetof(ImDrawVert, uv),
+    .relativeOffset = offsetof(ImDrawVert, uv),
   };
   descriptorSetLayout.attributeBindings[2] = {
     .dataType = PuleGpuAttributeDataType_u8,
     .bufferIndex = 0,
     .numComponents = 4,
     .convertFixedDataTypeToNormalizedFloating = true,
-    .offsetIntoBuffer = offsetof(ImDrawVert, col),
+    .relativeOffset = offsetof(ImDrawVert, col),
   };
   descriptorSetLayout.textureBindings[0] = PuleGpuDescriptorStage_fragment;
   return descriptorSetLayout;
@@ -127,16 +127,14 @@ void initializeRenderData([[maybe_unused]]PulePlatform const platform) {
   createFontsTexture();
 
   auto const descriptorSetLayout = createPipelineDescriptorSetLayout();
-  auto const pushConstants = PuleGpuPipelineLayoutPushConstant {
-    .stage = PuleGpuDescriptorStage_vertex,
-    .byteLength = sizeof(float)*4,
-    .byteOffset = 0,
-  };
   auto const pipelineCI = PuleGpuPipelineCreateInfo {
     .shaderModule = bd.shaderModule,
     .layoutDescriptorSet = descriptorSetLayout,
-    .layoutPushConstants = &pushConstants,
-    .layoutPushConstantsCount = 1,
+    .layoutPushConstants = {
+      .stage = PuleGpuDescriptorStage_vertex,
+      .byteLength = sizeof(float)*4,
+      .byteOffset = 0,
+    },
     .config = { // TODO
       .depthTestEnabled = false,
       .blendEnabled = true,
@@ -191,7 +189,6 @@ void renderDrawData(
     puleGpuBufferDestroy(bd.vertexBuffer);
     bd.vertexBuffer = puleGpuBufferCreate(
       puleCStr("imgui-vertex-buffer"),
-      nullptr,
       bd.vertexBufferLength * sizeof(ImDrawVert),
       PuleGpuBufferUsage_attribute,
       PuleGpuBufferVisibilityFlag_hostWritable
@@ -203,7 +200,6 @@ void renderDrawData(
     puleGpuBufferDestroy(bd.elementsBuffer);
     bd.elementsBuffer = puleGpuBufferCreate(
       puleCStr("imgui-elements-buffer"),
-      nullptr,
       bd.elementsBufferLength * sizeof(ImDrawIdx),
       PuleGpuBufferUsage_element,
       PuleGpuBufferVisibilityFlag_hostWritable

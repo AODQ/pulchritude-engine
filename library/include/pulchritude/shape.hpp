@@ -6,5 +6,3 @@
 #include "array.hpp"
 #include "math.hpp"
 
-namespace pule {
-}
