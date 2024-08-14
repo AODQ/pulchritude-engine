@@ -82,6 +82,7 @@
 @fn puleF32v4Add(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
 @fn puleF32v4Sub(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
 @fn puleF32v4Mul(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
+@fn puleF32v4MulScalar(a : PuleF32v4, b : float) PuleF32v4;
 @fn puleF32v4Div(a : PuleF32v4, b : PuleF32v4) PuleF32v4;
 @fn puleF32v4Mix(a : PuleF32v4, b : PuleF32v4, t : float) PuleF32v4;
 @fn puleF32v4Dot(a : PuleF32v4, b : PuleF32v4) float;
@@ -108,6 +109,7 @@ for example, the 'translation' part of a view matrix would be stored at
 @fn puleF32m33(identity : float) PuleF32m33;
 @fn puleF32m33Ptr(data : float const ptr) PuleF32m33;
 @fn puleF32m33PtrTranspose(data : float const ptr) PuleF32m33;
+@fn puleF32m33MulV3(m : PuleF32m33, v : PuleF32v3) PuleF32v3;
 
 @struct PuleF32m44 {
   @field elem : float @arr[16];
@@ -126,7 +128,7 @@ for example, the 'translation' part of a view matrix would be stored at
 @fn puleF32m44DumpToStdout(a : PuleF32m44) void;
 
 @fn puleProjectionPerspective(
-  fieldOfViewRadians : float,
+  fieldOfViewDegrees : float,
   aspectRatio : float,
   nearCutoff : float,
   farCutoff : float

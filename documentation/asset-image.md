@@ -6,6 +6,7 @@
 enum {
   none,
   decode,
+  encode,
 }
 ```
 ### PuleAssetImageSupportFlag
@@ -41,15 +42,39 @@ puleAssetImageExtensionSupported(
 puleAssetImageLoadFromStream(
   allocator : PuleAllocator,
   imageSource : PuleStreamRead,
+  imageExtension : PuleStringView,
   requestedFormat : PuleAssetImageFormat,
   error : PuleError ptr
 ) PuleAssetImage;
+```
+### puleAssetImage
+```c
+puleAssetImage(
+  width : uint32_t,
+  height : uint32_t,
+  format : PuleAssetImageFormat
+) PuleAssetImage;
+```
+### puleAssetImageWriteToStream
+```c
+puleAssetImageWriteToStream(
+  image : PuleAssetImage,
+  imageDst : PuleStreamWrite,
+  imageExtension : PuleStringView,
+  error : PuleError ptr
+) void;
 ```
 ### puleAssetImageDestroy
 ```c
 puleAssetImageDestroy(
   image : PuleAssetImage
 ) void;
+```
+### puleAssetImageData
+```c
+puleAssetImageData(
+  image : PuleAssetImage
+) PuleBufferView;
 ```
 ### puleAssetImageDecodedData
 ```c
@@ -74,4 +99,21 @@ puleAssetImageWidth(
 puleAssetImageHeight(
   image : PuleAssetImage
 ) uint32_t;
+```
+### puleAssetImageTexel
+```c
+puleAssetImageTexel(
+  image : PuleAssetImage,
+  x : uint32_t,
+  y : uint32_t
+) PuleF32v4;
+```
+### puleAssetImageTexelSet
+```c
+puleAssetImageTexelSet(
+  image : PuleAssetImage,
+  x : uint32_t,
+  y : uint32_t,
+  rgba : PuleF32v4
+) void;
 ```

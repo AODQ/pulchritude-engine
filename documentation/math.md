@@ -322,6 +322,13 @@ puleF32v4Mul(
   b : PuleF32v4
 ) PuleF32v4;
 ```
+### puleF32v4MulScalar
+```c
+puleF32v4MulScalar(
+  a : PuleF32v4,
+  b : float
+) PuleF32v4;
+```
 ### puleF32v4Div
 ```c
 puleF32v4Div(
@@ -361,6 +368,13 @@ puleF32m33Ptr(
 puleF32m33PtrTranspose(
   data : float const ptr
 ) PuleF32m33;
+```
+### puleF32m33MulV3
+```c
+puleF32m33MulV3(
+  m : PuleF32m33,
+  v : PuleF32v3
+) PuleF32v3;
 ```
 ### puleF32m44
 ```c
@@ -421,7 +435,7 @@ puleF32m44DumpToStdout(
 ### puleProjectionPerspective
 ```c
 puleProjectionPerspective(
-  fieldOfViewRadians : float,
+  fieldOfViewDegrees : float,
   aspectRatio : float,
   nearCutoff : float,
   farCutoff : float

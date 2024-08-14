@@ -126,6 +126,9 @@ PuleF32v4 puleF32v4Neg(PuleF32v4 const a) {
 PuleF32v4 puleF32v4Mul(PuleF32v4 const a, PuleF32v4 const b) {
   return PuleF32v4 { .x = a.x*b.x, .y = a.y*b.y, .z = a.z*b.z, .w = a.w*b.w };
 }
+PuleF32v4 puleF32v4MulScalar(PuleF32v4 const a, float const b) {
+  return PuleF32v4 { .x = a.x*b, .y = a.y*b, .z = a.z*b, .w = a.w*b };
+}
 PuleF32v4 puleF32v4Div(PuleF32v4 const a, PuleF32v4 const b) {
   return PuleF32v4 { .x = a.x/b.x, .y = a.y/b.y, .z = a.z/b.z, .w = a.w/b.w };
 }
@@ -171,6 +174,39 @@ PuleF32v3 puleF32v3Normalize(PuleF32v3 a) {
   return PuleF32v3 { .x = a.x/length, .y = a.y/length, .z = a.z/length, };
 }
 
+PuleF32m33 puleF32m33(float identity) {
+  return PuleF32m33 {
+    identity, 0.0f, 0.0f,
+    0.0f, identity, 0.0f,
+    0.0f, 0.0f, identity,
+  };
+}
+
+PuleF32m33 puleF32m33Ptr(float const * const data) {
+  return PuleF32m33 {
+    data[0], data[1], data[2],
+    data[3], data[4], data[5],
+    data[6], data[7], data[8],
+  };
+}
+
+PuleF32m33 puleF32m33PtrTranspose(float const * const data) {
+  return PuleF32m33 {
+    data[0], data[3], data[6],
+    data[1], data[4], data[7],
+    data[2], data[5], data[8],
+  };
+}
+
+PuleF32v3 puleF32m33MulV3(PuleF32m33 const a, PuleF32v3 const b) {
+  auto & m = a.elem;
+  return PuleF32v3 {
+    m[0]*b.x + m[1]*b.y + m[2]*b.z,
+    m[3]*b.x + m[4]*b.y + m[5]*b.z,
+    m[6]*b.x + m[7]*b.y + m[8]*b.z,
+  };
+}
+
 PuleF32m44 puleF32m44(float const idn) {
   return PuleF32m44 {
     idn,  0.0f, 0.0f, 0.0f,
@@ -181,21 +217,72 @@ PuleF32m44 puleF32m44(float const idn) {
 }
 PuleF32m44 puleF32m44Ptr(float const * const data) {
   return PuleF32m44 {
+    data[0], data[1], data[2],  data[3],
+    data[4], data[5], data[6],  data[7],
+    data[8], data[9], data[10], data[11],
+    data[12], data[13], data[14], data[15],
+  };
+}
+PuleF32m44 puleF32m44PtrTranspose(float const * const data) {
+  return PuleF32m44 {
     data[0], data[4], data[8],  data[12],
     data[1], data[5], data[9],  data[13],
     data[2], data[6], data[10], data[14],
     data[3], data[7], data[11], data[15],
   };
 }
-PuleF32m44 puleF32m44PtrTranspose(float const * const data) {
-  return PuleF32m44 {
-    data[0],  data[1],  data[2],  data[3],
-    data[4],  data[5],  data[6],  data[7],
-    data[8],  data[9],  data[10], data[11],
-    data[12], data[13], data[14], data[15],
+
+PuleF32m44 puleF32m44Inverse(PuleF32m44 a) {
+  // inverse of a 4x4 matrix
+
+  auto & m = a.elem;
+
+  float
+      a00 = m[0*4 + 0], a01 = m[0*4 + 1], a02 = m[0*4 + 2], a03 = m[0*4 + 3],
+      a10 = m[1*4 + 0], a11 = m[1*4 + 1], a12 = m[1*4 + 2], a13 = m[1*4 + 3],
+      a20 = m[2*4 + 0], a21 = m[2*4 + 1], a22 = m[2*4 + 2], a23 = m[2*4 + 3],
+      a30 = m[3*4 + 0], a31 = m[3*4 + 1], a32 = m[3*4 + 2], a33 = m[3*4 + 3];
+
+  float
+      b00 = a00 * a11 - a01 * a10,
+      b01 = a00 * a12 - a02 * a10,
+      b02 = a00 * a13 - a03 * a10,
+      b03 = a01 * a12 - a02 * a11,
+      b04 = a01 * a13 - a03 * a11,
+      b05 = a02 * a13 - a03 * a12,
+      b06 = a20 * a31 - a21 * a30,
+      b07 = a20 * a32 - a22 * a30,
+      b08 = a20 * a33 - a23 * a30,
+      b09 = a21 * a32 - a22 * a31,
+      b10 = a21 * a33 - a23 * a31,
+      b11 = a22 * a33 - a23 * a32;
+
+  float det = (
+    b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06
+  );
+
+  PuleF32m44 inv = {
+    (a11 * b11 - a12 * b10 + a13 * b09)/det,
+    (a02 * b10 - a01 * b11 - a03 * b09)/det,
+    (a31 * b05 - a32 * b04 + a33 * b03)/det,
+    (a22 * b04 - a21 * b05 - a23 * b03)/det,
+    (a12 * b08 - a10 * b11 - a13 * b07)/det,
+    (a00 * b11 - a02 * b08 + a03 * b07)/det,
+    (a32 * b02 - a30 * b05 - a33 * b01)/det,
+    (a20 * b05 - a22 * b02 + a23 * b01)/det,
+    (a10 * b10 - a11 * b08 + a13 * b06)/det,
+    (a01 * b08 - a00 * b10 - a03 * b06)/det,
+    (a30 * b04 - a31 * b02 + a33 * b00)/det,
+    (a21 * b02 - a20 * b04 - a23 * b00)/det,
+    (a11 * b07 - a10 * b09 - a12 * b06)/det,
+    (a00 * b09 - a01 * b07 + a02 * b06)/det,
+    (a31 * b01 - a30 * b03 - a32 * b00)/det,
+    (a20 * b03 - a21 * b01 + a22 * b00)/det
   };
+  return inv;
 }
-PULE_exportFn PuleF32m44 puleF32m33AsM44(PuleF32m33 const a) {
+
+PuleF32m44 puleF32m33AsM44(PuleF32m33 const a) {
   return PuleF32m44 {
     a.elem[0], a.elem[3], a.elem[6], 0.0f,
     a.elem[1], a.elem[4], a.elem[7], 0.0f,
@@ -209,39 +296,35 @@ PuleF32m44 puleViewLookAt(
   PuleF32v3 const center,
   PuleF32v3 const up
 ) {
-  PuleF32v3 const f = puleF32v3Normalize(puleF32v3Sub(center, origin));
+  PuleF32v3 const f = puleF32v3Normalize(puleF32v3Sub(origin, center));
   PuleF32v3 const s = puleF32v3Normalize(puleF32v3Cross(up, f));
   PuleF32v3 const u = puleF32v3Normalize(puleF32v3Cross(f, s));
 
-  PuleF32m44 result = puleF32m44(1.0f);
-  result.elem[0  + 0] = s.x;
-  result.elem[4  + 0] = s.y;
-  result.elem[8  + 0] = s.z;
-  result.elem[0  + 1] = u.x;
-  result.elem[4  + 1] = u.y;
-  result.elem[8  + 1] = u.z;
-  result.elem[0  + 2] = f.x;
-  result.elem[4  + 2] = f.y;
-  result.elem[8  + 2] = f.z;
-  result.elem[12 + 0] = -puleF32v3Dot(s, origin);
-  result.elem[12 + 1] = -puleF32v3Dot(u, origin);
-  result.elem[12 + 2] = -puleF32v3Dot(f, origin);
+  PuleF32m44 result = {
+    s.x, u.x, f.x, 0.0f,
+    s.y, u.y, f.y, 0.0f,
+    s.z, u.z, f.z, 0.0f,
+    -puleF32v3Dot(s, origin),
+    -puleF32v3Dot(u, origin),
+    -puleF32v3Dot(f, origin),
+    1.0f,
+  };
   return result;
 }
 
 PuleF32m44 puleProjectionPerspective(
-  float const fieldOfViewRadians,
+  float const fieldOfViewDegrees,
   float const aspectRatio,
   float const near,
   float const far
 ) {
-  float const halfTanFov = tanf(fieldOfViewRadians*0.5f);
+  float const halfTanFov = tanf(fieldOfViewDegrees*0.5f);
   return PuleF32m44 {
     .elem = {
       1.0f / (aspectRatio * halfTanFov), 0.0f, 0.0f, 0.0f,
       0.0f, 1.0f / halfTanFov, 0.0f, 0.0f,
-      0.0f, 0.0f, far/(far-near), 1.0f,
-      0.0f, 0.0f, -(far*near)/(far-near), 0.0f,
+      0.0f, 0.0f, -(far+near)/(far-near), -1.0f,
+      0.0f, 0.0f, -(2.0f*far*near)/(far-near), 0.0f,
     },
   };
 }

@@ -48,10 +48,12 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-asset-image
+    pulchritude-array
+    pulchritude-asset-image-spng
     pulchritude-error
+    pulchritude-file
     pulchritude-log
     pulchritude-stream
-    pulchritude-asset-image-spng
 )
 
 install(

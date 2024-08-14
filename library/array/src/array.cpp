@@ -55,6 +55,7 @@ void * puleArrayElementAt(PuleArray const array, size_t const idx) {
 }
 
 void puleArrayDestroy(PuleArray const array) {
+  if (array.content == nullptr) { return; }
   puleDeallocate(array.allocator, array.content);
 }
 

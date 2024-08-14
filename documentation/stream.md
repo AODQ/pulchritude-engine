@@ -28,6 +28,14 @@ puleStreamReadByte(
   stream : PuleStreamRead
 ) uint8_t;
 ```
+### puleStreamReadLine
+ TODO this can be done with ptr to PuleString maybe?
+```c
+puleStreamReadLine(
+  stream : PuleStreamRead,
+  alloc : PuleAllocator
+) PuleString;
+```
 ### puleStreamPeekByte
 ```c
 puleStreamPeekByte(

@@ -6,6 +6,26 @@
 uint8_t puleStreamReadByte(PuleStreamRead const stream) {
   return stream.readByte(stream.userdata);
 }
+PuleString puleStreamReadLine(
+  PuleStreamRead const stream, PuleAllocator const allocator
+) {
+  PuleBuffer buffer = puleBufferCreate(allocator);
+  while (!puleStreamReadIsDone(stream)) {
+    uint8_t const byte = puleStreamReadByte(stream);
+    if (byte == '\n') {
+      break;
+    }
+    puleBufferAppend(&buffer, &byte, 1);
+  }
+  uint8_t const nullByte = 0;
+  puleBufferAppend(&buffer, &nullByte, 1);
+  PuleString string = {
+    .allocator = allocator,
+    .len = buffer.byteLength - 1,
+    .contents = (char *)(buffer.data),
+  };
+  return string;
+}
 
 uint8_t puleStreamPeekByte(PuleStreamRead const stream) {
   return stream.peekByte(stream.userdata);

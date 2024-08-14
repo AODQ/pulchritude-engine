@@ -723,7 +723,7 @@ bool runBuild(
     systemExecute(
       "cd build-husk/build-install;"
       " cmake -G \"Ninja\""
-      " -DCMAKE_BUILD_TYPE=Debug"
+      " -DCMAKE_BUILD_TYPE=Debug" // TODO make this configurable
       " -DCMAKE_INSTALL_PREFIX=../install"
       " -DCMAKE_c++_COMPILER=/usr/bin/clang++"
       " -DCMAKE_c_COMPILER=/usr/bin/clang"

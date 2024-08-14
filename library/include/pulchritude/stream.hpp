@@ -5,6 +5,7 @@
 #include "stream.h"
 #include "array.hpp"
 #include "string.hpp"
+#include "allocator.hpp"
 
 namespace pule {
 struct StreamRead {
@@ -14,6 +15,9 @@ struct StreamRead {
   }
   inline uint8_t byte() {
     return puleStreamReadByte(this->_handle);
+  }
+  inline PuleString line(PuleAllocator alloc) {
+    return puleStreamReadLine(this->_handle, alloc);
   }
   inline bool isDone() {
     return puleStreamReadIsDone(this->_handle);
@@ -31,6 +35,9 @@ struct StreamRead {
 }
   inline uint8_t byte(pule::StreamRead self) {
     return puleStreamReadByte(self._handle);
+  }
+  inline PuleString line(pule::StreamRead self, PuleAllocator alloc) {
+    return puleStreamReadLine(self._handle, alloc);
   }
   inline bool isDone(pule::StreamRead self) {
     return puleStreamReadIsDone(self._handle);

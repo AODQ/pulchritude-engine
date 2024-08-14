@@ -130,21 +130,6 @@ if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not compile shaders")
 endif()
 
-find_program(PULEDIT_FOUND puledit)
-if (PULEDIT_FOUND)
-  execute_process(
-    COMMAND
-      python3
-      "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate-bindings.py"
-      "--dir"
-      "${CMAKE_CURRENT_SOURCE_DIR}"
-    RESULT_VARIABLE processFinished
-  )
-endif()
-if (NOT processFinished STREQUAL "0")
-  message(FATAL_ERROR "could not generate bindings")
-endif()
-
 watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.frag)
 watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.vert)
 watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.frag)

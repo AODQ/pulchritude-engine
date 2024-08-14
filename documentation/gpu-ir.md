@@ -237,6 +237,26 @@ enum {
   storageBuffer,
 }
 ```
+### PuleGpuIr_ImageDim
+```c
+enum {
+  i1d,
+  i2d,
+  i3d,
+  cube,
+  rect,
+  buffer,
+  subpassData,
+}
+```
+### PuleGpuIr_ImageDepth
+```c
+enum {
+  noDepth,
+  depth,
+  unknown,
+}
+```
 ### PuleGpuIr_ConstantType
 ```c
 enum {
@@ -247,6 +267,52 @@ enum {
   f32v3,
   f32v4,
   f32m44,
+}
+```
+### PuleGpuIr_FunctionControl
+```c
+enum {
+  none,
+  inline,
+  noinline,
+  pure,
+  const,
+}
+```
+### PuleGpuIr_Builtin
+```c
+enum {
+  origin,
+  pointSize,
+  clipDistance,
+  cullDistance,
+  vertexId,
+  instanceId,
+  primitiveId,
+  fragCoord,
+  pointCoord,
+  frontFacing,
+  fragDepth,
+  workDim,
+  globalSize,
+  globalOffset,
+  globalLinearId,
+  subgroupSize,
+  subgroupMaxSize,
+  numSubgroups,
+  vertexIndex,
+  instanceIndex,
+  baseVertex,
+  baseInstance,
+  drawIndex,
+}
+```
+### PuleGpuIr_Decoration
+```c
+enum {
+  block,
+  builtin,
+  location,
 }
 ```
 
@@ -291,6 +357,13 @@ puleGpuIr_pipelineCompile(
   pipeline : PuleGpuIr_Pipeline
 ) PuleGpuPipeline;
 ```
+### puleGpuIr_compileSpirv
+ TODO this is for debug purpose & need remove 
+```c
+puleGpuIr_compileSpirv(
+  str : PuleStringView
+) void;
+```
 ### puleGpuIr_pipelineAddShader
 ```c
 puleGpuIr_pipelineAddShader(
@@ -301,9 +374,14 @@ puleGpuIr_pipelineAddShader(
 ### puleGpuIr_opLabel
 ```c
 puleGpuIr_opLabel(
-  shader : PuleGpuIr_Shader,
-  label : PuleStringView
+  shader : PuleGpuIr_Shader
 ) PuleGpuIr_Value;
+```
+### puleGpuIr_opTypeVoid
+```c
+puleGpuIr_opTypeVoid(
+  s : PuleGpuIr_Shader
+) PuleGpuIr_Type;
 ```
 ### puleGpuIr_opTypeFloat
 ```c
@@ -328,12 +406,74 @@ puleGpuIr_opTypePointer(
   storageClass : PuleGpuIr_StorageClass
 ) PuleGpuIr_Type;
 ```
+### puleGpuIr_opTypeFunction
+```c
+puleGpuIr_opTypeFunction(
+  s : PuleGpuIr_Shader,
+  returnType : PuleGpuIr_Type,
+  paramTypes : PuleGpuIr_Type const ptr,
+  paramTypeLen : size_t
+) PuleGpuIr_Type;
+```
+### puleGpuIr_opTypeStruct
+```c
+puleGpuIr_opTypeStruct(
+  s : PuleGpuIr_Shader,
+  memberTypes : PuleGpuIr_Type const ptr,
+  memberTypeLen : size_t
+) PuleGpuIr_Type;
+```
+### puleGpuIr_opTypeImage
+```c
+puleGpuIr_opTypeImage(
+  s : PuleGpuIr_Shader,
+  sampledType : PuleGpuIr_Type,
+  dim : PuleGpuIr_ImageDim,
+  depth : PuleGpuIr_ImageDepth,
+  arrayed : bool,
+  multisampled : bool
+) PuleGpuIr_Type;
+```
+### puleGpuIr_opTypeSampledImage
+```c
+puleGpuIr_opTypeSampledImage(
+  s : PuleGpuIr_Shader,
+  imageType : PuleGpuIr_Type
+) PuleGpuIr_Type;
+```
+### puleGpuIr_opImageSampleImplicitLod
+```c
+puleGpuIr_opImageSampleImplicitLod(
+  s : PuleGpuIr_Shader,
+  resultType : PuleGpuIr_Type,
+  sampledImage : PuleGpuIr_Value,
+  coordinate : PuleGpuIr_Value
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opImageSampleExplicitLod
+```c
+puleGpuIr_opImageSampleExplicitLod(
+  s : PuleGpuIr_Shader,
+  resultType : PuleGpuIr_Type,
+  sampledImage : PuleGpuIr_Value,
+  coordinate : PuleGpuIr_Value,
+  lod : PuleGpuIr_Value
+) PuleGpuIr_Value;
+```
 ### puleGpuIr_opVariable
 ```c
 puleGpuIr_opVariable(
   shader : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opVariableStorage
+```c
+puleGpuIr_opVariableStorage(
+  shader : PuleGpuIr_Shader,
   type : PuleGpuIr_Type,
-  storageClass : PuleGpuIr_StorageClass
+  storageClass : PuleGpuIr_StorageClass,
+  layoutIndex : size_t
 ) PuleGpuIr_Value;
 ```
 ### puleGpuIr_opLoad
@@ -704,5 +844,106 @@ puleGpuIr_opAccessChain(
   base : PuleGpuIr_Value,
   indices : PuleGpuIr_Value ptr,
   indexLen : size_t
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opFunction
+```c
+puleGpuIr_opFunction(
+  s : PuleGpuIr_Shader,
+  returnType : PuleGpuIr_Type,
+  functionControl : PuleGpuIr_FunctionControl,
+  fnType : PuleGpuIr_Type,
+  functionLabel : PuleStringView
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opFunctionEnd
+```c
+puleGpuIr_opFunctionEnd(
+  s : PuleGpuIr_Shader
+) void;
+```
+### puleGpuIr_opEntryPoint
+```c
+puleGpuIr_opEntryPoint(
+  s : PuleGpuIr_Shader,
+  functionEntry : PuleGpuIr_Value,
+  globals : PuleGpuIr_Value const ptr,
+  globalLen : size_t
+) void;
+```
+### puleGpuIr_opDecorate
+```c
+puleGpuIr_opDecorate(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  values : uint32_t const ptr,
+  valueLen : size_t
+) void;
+```
+### puleGpuIr_opDecorateMember
+```c
+puleGpuIr_opDecorateMember(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  memberIndex : int64_t,
+  values : uint32_t const ptr,
+  valueLen : size_t
+) void;
+```
+### puleGpuIr_opCompositeExtract
+```c
+puleGpuIr_opCompositeExtract(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  value : PuleGpuIr_Value,
+  index : size_t
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opCompositeConstruct
+```c
+puleGpuIr_opCompositeConstruct(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  constituents : PuleGpuIr_Value const ptr,
+  constituentLen : size_t
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opVectorShuffle
+```c
+puleGpuIr_opVectorShuffle(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  vec0 : PuleGpuIr_Value,
+  vec1 : PuleGpuIr_Value,
+  components : uint32_t const ptr,
+  componentLen : size_t
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opExtInst
+```c
+puleGpuIr_opExtInst(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  instruction : PuleStringView,
+  operands : PuleGpuIr_Value const ptr,
+  operandLen : size_t
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opFunctionCall
+```c
+puleGpuIr_opFunctionCall(
+  s : PuleGpuIr_Shader,
+  returnType : PuleGpuIr_Type,
+  function : PuleGpuIr_Value,
+  arguments : PuleGpuIr_Value const ptr,
+  argumentLen : size_t
+) PuleGpuIr_Value;
+```
+### puleGpuIr_opConvertSignedToFloat
+```c
+puleGpuIr_opConvertSignedToFloat(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  value : PuleGpuIr_Value
 ) PuleGpuIr_Value;
 ```

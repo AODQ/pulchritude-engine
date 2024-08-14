@@ -152,6 +152,26 @@ inline pule::str toStr(PuleGpuIr_StorageClass const e) {
     default: return puleString("N/A");
   }
 }
+inline pule::str toStr(PuleGpuIr_ImageDim const e) {
+  switch (e) {
+    case PuleGpuIr_ImageDim_i1d: return puleString("i1d");
+    case PuleGpuIr_ImageDim_i2d: return puleString("i2d");
+    case PuleGpuIr_ImageDim_i3d: return puleString("i3d");
+    case PuleGpuIr_ImageDim_cube: return puleString("cube");
+    case PuleGpuIr_ImageDim_rect: return puleString("rect");
+    case PuleGpuIr_ImageDim_buffer: return puleString("buffer");
+    case PuleGpuIr_ImageDim_subpassData: return puleString("subpassData");
+    default: return puleString("N/A");
+  }
+}
+inline pule::str toStr(PuleGpuIr_ImageDepth const e) {
+  switch (e) {
+    case PuleGpuIr_ImageDepth_noDepth: return puleString("noDepth");
+    case PuleGpuIr_ImageDepth_depth: return puleString("depth");
+    case PuleGpuIr_ImageDepth_unknown: return puleString("unknown");
+    default: return puleString("N/A");
+  }
+}
 inline pule::str toStr(PuleGpuIr_ConstantType const e) {
   switch (e) {
     case PuleGpuIr_ConstantType_bool: return puleString("bool");
@@ -161,6 +181,63 @@ inline pule::str toStr(PuleGpuIr_ConstantType const e) {
     case PuleGpuIr_ConstantType_f32v3: return puleString("f32v3");
     case PuleGpuIr_ConstantType_f32v4: return puleString("f32v4");
     case PuleGpuIr_ConstantType_f32m44: return puleString("f32m44");
+    default: return puleString("N/A");
+  }
+}
+inline pule::str toStr(PuleGpuIr_FunctionControl const e) {
+  std::string str = "( ";
+  if (e & PuleGpuIr_FunctionControl_none) {
+    str += "none | ";
+  }
+  if (e & PuleGpuIr_FunctionControl_inline) {
+    str += "inline | ";
+  }
+  if (e & PuleGpuIr_FunctionControl_noinline) {
+    str += "noinline | ";
+  }
+  if (e & PuleGpuIr_FunctionControl_pure) {
+    str += "pure | ";
+  }
+  if (e & PuleGpuIr_FunctionControl_const) {
+    str += "const | ";
+  }
+  str += ")";
+  PuleString strCp = puleString(str.c_str());
+  return strCp;
+}
+inline pule::str toStr(PuleGpuIr_Builtin const e) {
+  switch (e) {
+    case PuleGpuIr_Builtin_origin: return puleString("origin");
+    case PuleGpuIr_Builtin_pointSize: return puleString("pointSize");
+    case PuleGpuIr_Builtin_clipDistance: return puleString("clipDistance");
+    case PuleGpuIr_Builtin_cullDistance: return puleString("cullDistance");
+    case PuleGpuIr_Builtin_vertexId: return puleString("vertexId");
+    case PuleGpuIr_Builtin_instanceId: return puleString("instanceId");
+    case PuleGpuIr_Builtin_primitiveId: return puleString("primitiveId");
+    case PuleGpuIr_Builtin_fragCoord: return puleString("fragCoord");
+    case PuleGpuIr_Builtin_pointCoord: return puleString("pointCoord");
+    case PuleGpuIr_Builtin_frontFacing: return puleString("frontFacing");
+    case PuleGpuIr_Builtin_fragDepth: return puleString("fragDepth");
+    case PuleGpuIr_Builtin_workDim: return puleString("workDim");
+    case PuleGpuIr_Builtin_globalSize: return puleString("globalSize");
+    case PuleGpuIr_Builtin_globalOffset: return puleString("globalOffset");
+    case PuleGpuIr_Builtin_globalLinearId: return puleString("globalLinearId");
+    case PuleGpuIr_Builtin_subgroupSize: return puleString("subgroupSize");
+    case PuleGpuIr_Builtin_subgroupMaxSize: return puleString("subgroupMaxSize");
+    case PuleGpuIr_Builtin_numSubgroups: return puleString("numSubgroups");
+    case PuleGpuIr_Builtin_vertexIndex: return puleString("vertexIndex");
+    case PuleGpuIr_Builtin_instanceIndex: return puleString("instanceIndex");
+    case PuleGpuIr_Builtin_baseVertex: return puleString("baseVertex");
+    case PuleGpuIr_Builtin_baseInstance: return puleString("baseInstance");
+    case PuleGpuIr_Builtin_drawIndex: return puleString("drawIndex");
+    default: return puleString("N/A");
+  }
+}
+inline pule::str toStr(PuleGpuIr_Decoration const e) {
+  switch (e) {
+    case PuleGpuIr_Decoration_block: return puleString("block");
+    case PuleGpuIr_Decoration_builtin: return puleString("builtin");
+    case PuleGpuIr_Decoration_location: return puleString("location");
     default: return puleString("N/A");
   }
 }

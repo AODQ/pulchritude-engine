@@ -40,6 +40,10 @@ Effectively this is another IR (PGPU-IR) but maps pretty closely to SPIR-V
   pipeline : PuleGpuIr_Pipeline
 ) PuleGpuPipeline;
 
+@fn puleGpuIr_compileSpirv(
+  str : PuleStringView,
+) void #` TODO this is for debug purpose & need remove `;
+
 @entity PuleGpuIr_Type;
 
 @enum PuleGpuIr_ParameterType {
@@ -219,12 +223,12 @@ Effectively this is another IR (PGPU-IR) but maps pretty closely to SPIR-V
 };
 
 @fn puleGpuIr_opLabel(
-  shader : PuleGpuIr_Shader,
-  label : PuleStringView
+  shader : PuleGpuIr_Shader
 ) PuleGpuIr_Value;
 
 @entity PuleGpuIr_Value;
 
+@fn puleGpuIr_opTypeVoid(s : PuleGpuIr_Shader) PuleGpuIr_Type;
 @fn puleGpuIr_opTypeFloat(s : PuleGpuIr_Shader, bits : size_t) PuleGpuIr_Type;
 @fn puleGpuIr_opTypeVector(
   s : PuleGpuIr_Shader,
@@ -235,12 +239,76 @@ Effectively this is another IR (PGPU-IR) but maps pretty closely to SPIR-V
   underlyingType : PuleGpuIr_Type,
   storageClass : PuleGpuIr_StorageClass
 ) PuleGpuIr_Type;
+@fn puleGpuIr_opTypeFunction(
+  s : PuleGpuIr_Shader,
+  returnType : PuleGpuIr_Type,
+  paramTypes : PuleGpuIr_Type const ptr,
+  paramTypeLen : size_t,
+) PuleGpuIr_Type;
+
+@fn puleGpuIr_opTypeStruct(
+  s : PuleGpuIr_Shader,
+  memberTypes : PuleGpuIr_Type const ptr,
+  memberTypeLen : size_t,
+) PuleGpuIr_Type;
+
+@enum PuleGpuIr_ImageDim {
+  i1d;
+  i2d;
+  i3d;
+  cube;
+  rect;
+  buffer;
+  subpassData;
+};
+
+@enum PuleGpuIr_ImageDepth {
+  noDepth;
+  depth;
+  unknown;
+};
+
+@fn puleGpuIr_opTypeImage(
+  s : PuleGpuIr_Shader,
+  sampledType : PuleGpuIr_Type,
+  dim : PuleGpuIr_ImageDim,
+  depth : PuleGpuIr_ImageDepth,
+  arrayed : bool,
+  multisampled : bool,
+) PuleGpuIr_Type;
+
+@fn puleGpuIr_opTypeSampledImage(
+  s : PuleGpuIr_Shader,
+  imageType : PuleGpuIr_Type
+) PuleGpuIr_Type;
+
+@fn puleGpuIr_opImageSampleImplicitLod(
+  s : PuleGpuIr_Shader,
+  resultType : PuleGpuIr_Type,
+  sampledImage : PuleGpuIr_Value,
+  coordinate : PuleGpuIr_Value
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opImageSampleExplicitLod(
+  s : PuleGpuIr_Shader,
+  resultType : PuleGpuIr_Type,
+  sampledImage : PuleGpuIr_Value,
+  coordinate : PuleGpuIr_Value,
+  lod : PuleGpuIr_Value
+) PuleGpuIr_Value;
 
 @fn puleGpuIr_opVariable(
   shader : PuleGpuIr_Shader,
   type : PuleGpuIr_Type,
-  storageClass : PuleGpuIr_StorageClass,
 ) PuleGpuIr_Value;
+
+@fn puleGpuIr_opVariableStorage(
+  shader : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  storageClass : PuleGpuIr_StorageClass,
+  layoutIndex : size_t,
+) PuleGpuIr_Value;
+
 
 @fn puleGpuIr_opLoad(
   shader : PuleGpuIr_Shader,
@@ -538,4 +606,120 @@ Effectively this is another IR (PGPU-IR) but maps pretty closely to SPIR-V
   base : PuleGpuIr_Value,
   indices : PuleGpuIr_Value ptr,
   indexLen : size_t
+) PuleGpuIr_Value;
+
+@bitfield PuleGpuIr_FunctionControl {
+  none;
+  inline;
+  noinline;
+  pure;
+  const;
+};
+
+@fn puleGpuIr_opFunction(
+  s : PuleGpuIr_Shader,
+  returnType : PuleGpuIr_Type,
+  functionControl : PuleGpuIr_FunctionControl,
+  fnType : PuleGpuIr_Type,
+  functionLabel : PuleStringView,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFunctionEnd(s : PuleGpuIr_Shader);
+
+@fn puleGpuIr_opEntryPoint(
+  s : PuleGpuIr_Shader,
+  functionEntry : PuleGpuIr_Value,
+  globals : PuleGpuIr_Value const ptr,
+  globalLen : size_t,
+);
+
+@enum PuleGpuIr_Builtin {
+  origin;
+  pointSize;
+  clipDistance;
+  cullDistance;
+  vertexId;
+  instanceId;
+  primitiveId;
+  fragCoord;
+  pointCoord;
+  frontFacing;
+  fragDepth;
+  workDim;
+  globalSize;
+  globalOffset;
+  globalLinearId;
+  subgroupSize;
+  subgroupMaxSize;
+  numSubgroups;
+  vertexIndex;
+  instanceIndex;
+  baseVertex;
+  baseInstance;
+  drawIndex;
+};
+
+@enum PuleGpuIr_Decoration {
+  block;
+  builtin;
+  location;
+};
+
+@fn puleGpuIr_opDecorate(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  values : uint32_t const ptr,
+  valueLen : size_t
+);
+@fn puleGpuIr_opDecorateMember(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  memberIndex : int64_t,
+  values : uint32_t const ptr,
+  valueLen : size_t
+);
+
+@fn puleGpuIr_opCompositeExtract(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  value : PuleGpuIr_Value,
+  index : size_t,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opCompositeConstruct(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  constituents : PuleGpuIr_Value const ptr,
+  constituentLen : size_t,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opVectorShuffle(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  vec0 : PuleGpuIr_Value,
+  vec1 : PuleGpuIr_Value,
+  components : uint32_t const ptr,
+  componentLen : size_t,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opExtInst(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  instruction : PuleStringView,
+  operands : PuleGpuIr_Value const ptr,
+  operandLen : size_t,
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opFunctionCall(
+  s : PuleGpuIr_Shader,
+  returnType : PuleGpuIr_Type,
+  function : PuleGpuIr_Value,
+  arguments : PuleGpuIr_Value const ptr,
+  argumentLen : size_t
+) PuleGpuIr_Value;
+
+@fn puleGpuIr_opConvertSignedToFloat(
+  s : PuleGpuIr_Shader,
+  type : PuleGpuIr_Type,
+  value : PuleGpuIr_Value
 ) PuleGpuIr_Value;

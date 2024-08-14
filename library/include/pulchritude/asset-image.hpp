@@ -3,9 +3,12 @@
 #include "core.hpp"
 
 #include "asset-image.h"
-#include "stream.hpp"
 #include "allocator.hpp"
+#include "array.hpp"
 #include "error.hpp"
+#include "math.hpp"
+#include "stream.hpp"
+#include "string.hpp"
 
 namespace pule {
 struct AssetImage {
@@ -13,8 +16,14 @@ struct AssetImage {
   inline operator PuleAssetImage() const {
     return _handle;
   }
+  inline void writeToStream(PuleStreamWrite imageDst, PuleStringView imageExtension, PuleError * error) {
+    return puleAssetImageWriteToStream(this->_handle, imageDst, imageExtension, error);
+  }
   inline void destroy() {
     return puleAssetImageDestroy(this->_handle);
+  }
+  inline PuleBufferView data() {
+    return puleAssetImageData(this->_handle);
   }
   inline void * decodedData() {
     return puleAssetImageDecodedData(this->_handle);
@@ -28,13 +37,25 @@ struct AssetImage {
   inline uint32_t height() {
     return puleAssetImageHeight(this->_handle);
   }
-  static inline AssetImage loadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleAssetImageFormat requestedFormat, PuleError * error) {
-    return { ._handle = puleAssetImageLoadFromStream(allocator, imageSource, requestedFormat, error),};
+  inline PuleF32v4 texel(uint32_t x, uint32_t y) {
+    return puleAssetImageTexel(this->_handle, x, y);
+  }
+  inline void texelSet(uint32_t x, uint32_t y, PuleF32v4 rgba) {
+    return puleAssetImageTexelSet(this->_handle, x, y, rgba);
+  }
+  static inline AssetImage loadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleStringView imageExtension, PuleAssetImageFormat requestedFormat, PuleError * error) {
+    return { ._handle = puleAssetImageLoadFromStream(allocator, imageSource, imageExtension, requestedFormat, error),};
   }
 };
 }
+  inline void writeToStream(pule::AssetImage self, PuleStreamWrite imageDst, PuleStringView imageExtension, PuleError * error) {
+    return puleAssetImageWriteToStream(self._handle, imageDst, imageExtension, error);
+  }
   inline void destroy(pule::AssetImage self) {
     return puleAssetImageDestroy(self._handle);
+  }
+  inline PuleBufferView data(pule::AssetImage self) {
+    return puleAssetImageData(self._handle);
   }
   inline void * decodedData(pule::AssetImage self) {
     return puleAssetImageDecodedData(self._handle);
@@ -48,6 +69,12 @@ struct AssetImage {
   inline uint32_t height(pule::AssetImage self) {
     return puleAssetImageHeight(self._handle);
   }
+  inline PuleF32v4 texel(pule::AssetImage self, uint32_t x, uint32_t y) {
+    return puleAssetImageTexel(self._handle, x, y);
+  }
+  inline void texelSet(pule::AssetImage self, uint32_t x, uint32_t y, PuleF32v4 rgba) {
+    return puleAssetImageTexelSet(self._handle, x, y, rgba);
+  }
 #include "string.hpp"
 #include <string>
 namespace pule { //tostr 
@@ -55,6 +82,7 @@ inline pule::str toStr(PuleErrorAssetImage const e) {
   switch (e) {
     case PuleErrorAssetImage_none: return puleString("none");
     case PuleErrorAssetImage_decode: return puleString("decode");
+    case PuleErrorAssetImage_encode: return puleString("encode");
     default: return puleString("N/A");
   }
 }

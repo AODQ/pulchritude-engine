@@ -1,5 +1,6 @@
 @include `array`;
 @include `string`;
+@include `allocator`;
 
 @struct PuleStreamRead {
   @field userdata : void ptr;
@@ -10,6 +11,9 @@
 };
 
 @fn puleStreamReadByte(stream : PuleStreamRead) uint8_t;
+@fn puleStreamReadLine(
+  stream : PuleStreamRead, alloc : PuleAllocator
+) PuleString #` TODO this can be done with ptr to PuleString maybe?`;
 @fn puleStreamPeekByte(stream : PuleStreamRead) uint8_t;
 @fn puleStreamReadIsDone(stream : PuleStreamRead) bool;
 @fn puleStreamReadDestroy(stream : PuleStreamRead) void;

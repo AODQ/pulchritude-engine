@@ -1,10 +1,14 @@
-@include `stream`;
 @include `allocator`;
+@include `array`;
 @include `error`;
+@include `math`;
+@include `stream`;
+@include `string`;
 
 @enum PuleErrorAssetImage {
   none;
   decode;
+  encode;
 };
 
 @entity PuleAssetImage;
@@ -16,26 +20,55 @@
   readWrite = 0x3;
 };
 
-@fn puleAssetImageExtensionSupported(
-  extension : char const ptr
-) PuleAssetImageSupportFlag;
-
 @enum PuleAssetImageFormat {
   rgbaU8;
   rgbaU16;
   rgbU8;
 };
 
+@fn puleAssetImageExtensionSupported(
+  extension : char const ptr
+) PuleAssetImageSupportFlag;
+
 @fn puleAssetImageLoadFromStream(
   allocator : PuleAllocator,
   imageSource : PuleStreamRead,
+  imageExtension : PuleStringView,
   requestedFormat : PuleAssetImageFormat,
   error : PuleError ptr
 ) PuleAssetImage;
 
+@fn puleAssetImage(
+  width : uint32_t,
+  height : uint32_t,
+  format : PuleAssetImageFormat,
+) PuleAssetImage;
+
+@fn puleAssetImageWriteToStream(
+  image : PuleAssetImage,
+  imageDst : PuleStreamWrite,
+  imageExtension : PuleStringView,
+  error : PuleError ptr,
+);
+
 @fn puleAssetImageDestroy(image : PuleAssetImage) void;
 
+@fn puleAssetImageData(image : PuleAssetImage) PuleBufferView;
 @fn puleAssetImageDecodedData(image : PuleAssetImage) void ptr;
 @fn puleAssetImageDecodedDataLength( image : PuleAssetImage) size_t;
 @fn puleAssetImageWidth(image : PuleAssetImage) uint32_t;
 @fn puleAssetImageHeight(image : PuleAssetImage) uint32_t;
+
+
+@fn puleAssetImageTexel(
+  image : PuleAssetImage,
+  x : uint32_t,
+  y : uint32_t
+) PuleF32v4;
+
+@fn puleAssetImageTexelSet(
+  image : PuleAssetImage,
+  x : uint32_t,
+  y : uint32_t,
+  rgba : PuleF32v4
+);

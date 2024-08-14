@@ -2,9 +2,12 @@
 #pragma once
 #include "core.h"
 
-#include "stream.h"
 #include "allocator.h"
+#include "array.h"
 #include "error.h"
+#include "math.h"
+#include "stream.h"
+#include "string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,8 +17,9 @@ extern "C" {
 typedef enum {
   PuleErrorAssetImage_none = 0,
   PuleErrorAssetImage_decode = 1,
+  PuleErrorAssetImage_encode = 2,
 } PuleErrorAssetImage;
-const uint32_t PuleErrorAssetImageSize = 2;
+const uint32_t PuleErrorAssetImageSize = 3;
 typedef enum {
   PuleAssetImageSupportFlag_none = 0,
   PuleAssetImageSupportFlag_read = 1,
@@ -38,12 +42,17 @@ typedef struct PuleAssetImage { uint64_t id; } PuleAssetImage;
 
 // functions
 PULE_exportFn PuleAssetImageSupportFlag puleAssetImageExtensionSupported(char const * extension);
-PULE_exportFn PuleAssetImage puleAssetImageLoadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleAssetImageFormat requestedFormat, PuleError * error);
+PULE_exportFn PuleAssetImage puleAssetImageLoadFromStream(PuleAllocator allocator, PuleStreamRead imageSource, PuleStringView imageExtension, PuleAssetImageFormat requestedFormat, PuleError * error);
+PULE_exportFn PuleAssetImage puleAssetImage(uint32_t width, uint32_t height, PuleAssetImageFormat format);
+PULE_exportFn void puleAssetImageWriteToStream(PuleAssetImage image, PuleStreamWrite imageDst, PuleStringView imageExtension, PuleError * error);
 PULE_exportFn void puleAssetImageDestroy(PuleAssetImage image);
+PULE_exportFn PuleBufferView puleAssetImageData(PuleAssetImage image);
 PULE_exportFn void * puleAssetImageDecodedData(PuleAssetImage image);
 PULE_exportFn size_t puleAssetImageDecodedDataLength(PuleAssetImage image);
 PULE_exportFn uint32_t puleAssetImageWidth(PuleAssetImage image);
 PULE_exportFn uint32_t puleAssetImageHeight(PuleAssetImage image);
+PULE_exportFn PuleF32v4 puleAssetImageTexel(PuleAssetImage image, uint32_t x, uint32_t y);
+PULE_exportFn void puleAssetImageTexelSet(PuleAssetImage image, uint32_t x, uint32_t y, PuleF32v4 rgba);
 
 #ifdef __cplusplus
 } // extern C

@@ -1,0 +1,26 @@
+@include `error`;
+@include `allocator`;
+
+@entity PuleMtThread;
+
+@struct PuleMtThreadCreateInfo {
+  @field detached : bool;
+  @field fn : @fnptr(void ptr, void ptr);
+  @field userData : void ptr;
+};
+
+@fn puleMtThreadCreate(ci : PuleMtThreadCreateInfo) PuleMtThread;
+
+@fn puleMtThreadJoin(t : PuleMtThread) void ptr;
+@fn puleMtThreadDetach(t : PuleMtThread);
+@fn puleMtThreadDestroy(t : PuleMtThread);
+
+@fn puleMtThreadExit(ret : void ptr);
+@fn puleMtThreadYield();
+
+@entity PuleMtMutex;
+
+@fn puleMtMutexCreate() PuleMtMutex;
+@fn puleMtMutexLock(m : PuleMtMutex);
+@fn puleMtMutexUnlock(m : PuleMtMutex);
+@fn puleMtMutexTryLock(m : PuleMtMutex) bool;

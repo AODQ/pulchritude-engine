@@ -4,6 +4,7 @@
 
 #include "array.h"
 #include "string.h"
+#include "allocator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,6 +34,8 @@ typedef struct PuleStreamWrite {
 
 // functions
 PULE_exportFn uint8_t puleStreamReadByte(PuleStreamRead stream);
+/*  TODO this can be done with ptr to PuleString maybe? */
+PULE_exportFn PuleString puleStreamReadLine(PuleStreamRead stream, PuleAllocator alloc);
 PULE_exportFn uint8_t puleStreamPeekByte(PuleStreamRead stream);
 PULE_exportFn bool puleStreamReadIsDone(PuleStreamRead stream);
 PULE_exportFn void puleStreamReadDestroy(PuleStreamRead stream);
