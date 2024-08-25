@@ -238,8 +238,8 @@ void renderDrawData(
   ) {
     ImDrawList const * drawList = drawData->CmdLists[drawListIt];
 
-    flattenedVtxOffsets.emplace_back(flattenedVtxCount);
-    flattenedIdxOffsets.emplace_back(flattenedIdxCount);
+    flattenedVtxOffsets.push_back(flattenedVtxCount);
+    flattenedIdxOffsets.push_back(flattenedIdxCount);
 
     // copy memory into mapped buffers at flattened location
     memcpy(

@@ -112,7 +112,7 @@ namespace { int32_t luaBinaryExtract(
 ) {
   LuaBinaryExtractor & extractor = *(LuaBinaryExtractor *)(userdata);
   for (size_t it = 0; it < bufferLen; ++ it) {
-    extractor.buffer.emplace_back(
+    extractor.buffer.push_back(
       reinterpret_cast<uint8_t const *>(bufferIn)[it]
     );
   }

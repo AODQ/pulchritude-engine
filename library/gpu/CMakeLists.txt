@@ -1,6 +1,9 @@
 # -- third party
 # TODO... dont do this
-find_package(Vulkan REQUIRED FATAL_ERROR)
+find_package(
+  Vulkan REQUIRED
+  COMPONENTS SPIRV-Tools
+)
 # vulkan memory allocator
 #set(VMA_STATIC_VULKAN_FUNCTIONS ON CACHE INTERNAL "")
 set(VMA_STATIC_VULKAN_FUNCTIONS OFF CACHE INTERNAL "")
@@ -53,9 +56,11 @@ target_link_libraries(
   pulchritude-gpu
     pulchritude-error
     pulchritude-log
+    VulkanMemoryAllocator
+    pulchritude-platform
+
     volk
     glfw # this is needed for glfwCreateWindowSurface
-    VulkanMemoryAllocator
 )
 
 install(

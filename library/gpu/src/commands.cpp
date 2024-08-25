@@ -418,7 +418,7 @@ void puleGpuCommandListAppendAction(
           .baseMipLevel = 0, .levelCount = 1,
           .baseArrayLayer = 0, .layerCount = 1,
         };
-        imageBarriers.emplace_back(
+        imageBarriers.push_back(
           VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -437,7 +437,7 @@ void puleGpuCommandListAppendAction(
       // iterate through buffer barriers
       for (size_t it = 0; it < action.resourceBufferCount; ++ it) {
         auto const & bufferBarrier = action.resourceBuffers[it];
-        bufferBarriers.emplace_back(
+        bufferBarriers.push_back(
           VkBufferMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -822,7 +822,7 @@ PuleGpuCommandListChain puleGpuCommandListChainCreate(
     std::string const fenceLabel = (
       std::string(label.contents, label.len) + "-frame-" + std::to_string(it)
     );
-    commandListChain.emplace_back(ImplCommandListChainCommand{
+    commandListChain.push_back(ImplCommandListChainCommand{
       .commandList = PuleGpuCommandList{.id = 0,},
       .fence = puleGpuFenceCreate(puleCStr(fenceLabel.c_str())),
       .label = std::string(label.contents, label.len),

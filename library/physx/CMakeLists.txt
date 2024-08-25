@@ -25,7 +25,9 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-physx
+
   pulchritude-log
+  pulchritude-math
 )
 
 if (PULCHRITUDE_PHYSX_2D_SUPPORT)

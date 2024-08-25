@@ -283,9 +283,9 @@ PuleDsValue parseBuffer(
       ++ it;
     }
 
-    buffer.emplace_back((value >> 16) & 0xFF);
-    buffer.emplace_back((value >>  8) & 0xFF);
-    buffer.emplace_back((value >>  0) & 0xFF);
+    buffer.push_back((value >> 16) & 0xFF);
+    buffer.push_back((value >>  8) & 0xFF);
+    buffer.push_back((value >>  0) & 0xFF);
   }
 
   return (

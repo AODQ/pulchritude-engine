@@ -185,7 +185,7 @@
 //       }
 //     }
 
-//     tilemap.tilesets.emplace_back( PuleAssetTiledTileset {
+//     tilemap.tilesets.push_back( PuleAssetTiledTileset {
 //       .spritesheet = image,
 //       .tileLength = puleDsAsUSize(puleDsObjectMember(tilesetHead, "tilecount")),
 //       .tileDim = {
@@ -240,7 +240,7 @@
 //         );
 //         size_t const relativeOffset = tilemap.tileIds.size();
 //         for (size_t idIt = 0; idIt < ids.length; ++ idIt) {
-//           tilemap.tileIds.emplace_back(puleDsAsI64(ids.values[idIt]));
+//           tilemap.tileIds.push_back(puleDsAsI64(ids.values[idIt]));
 //         }
 
 //         layerUnion.tiles = {
@@ -259,10 +259,10 @@
 //         size_t const relativeOffset = tilemap.objects.size();
 //         for (size_t objectIt = 0; objectIt < objects.length; ++ objectIt) {
 //           auto const object = objects.values[objectIt];
-//           tilemap.objectNames.emplace_back(
+//           tilemap.objectNames.push_back(
 //             puleDsAsString(puleDsObjectMember(object, "name")).contents
 //           );
-//           tilemap.objects.emplace_back( PuleAssetTiledObject {
+//           tilemap.objects.push_back( PuleAssetTiledObject {
 //             .globalId = puleDsAsUSize(puleDsObjectMember(object, "gid")),
 //             .originInPixels = {
 //               .x = puleDsAsU32(puleDsObjectMember(object, "x")),
@@ -282,7 +282,7 @@
 //       } break;
 //     }
 
-//     tilemap.layers.emplace_back( PuleAssetTiledLayer {
+//     tilemap.layers.push_back( PuleAssetTiledLayer {
 //       .dataType = layerType,
 //       .data = layerUnion,
 //     });

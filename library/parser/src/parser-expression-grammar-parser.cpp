@@ -264,7 +264,7 @@ PuleParserRuleNode traverseAstGroup(PuleParserAstNode const node, PegCtx & ctx) 
   std::vector<PuleParserRuleNode> groupTokens;
   for (size_t it = 0; it < seqNode.childCount; ++ it) {
     PuleParserAstNode const tokenNode = puleParserAstNodeChild(seqNode, it);
-    groupTokens.emplace_back(traverseAstGroupToken(tokenNode, ctx));
+    groupTokens.push_back(traverseAstGroupToken(tokenNode, ctx));
   }
   return {
     .type = PuleParserNodeType_group,
@@ -351,7 +351,7 @@ std::vector<PuleParserRuleNode> traverseAstRuleSet(
   PULE_assert(seqNode.type == PuleParserNodeType_sequence);
   std::vector<PuleParserRuleNode> nodes;
   for (size_t it = 0; it < seqNode.childCount; ++ it) {
-    nodes.emplace_back(
+    nodes.push_back(
       traverseAstRuleToken(puleParserAstNodeChild(seqNode, it), ctx)
     );
   }

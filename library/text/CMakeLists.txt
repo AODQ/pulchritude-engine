@@ -16,7 +16,15 @@ set_target_properties(
     ENABLE_EXPORTS ON
 )
 
-target_link_libraries(pulchritude-text pulchritude-allocator)
+target_link_libraries(
+  pulchritude-text
+
+  pulchritude-allocator
+  pulchritude-asset-font
+  pulchritude-error
+  pulchritude-gpu
+  pulchritude-log
+)
 
 install(
   TARGETS pulchritude-text

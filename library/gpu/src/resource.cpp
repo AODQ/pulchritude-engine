@@ -33,7 +33,7 @@ PuleGpuImageChain puleGpuImageChain_create(
     );
     PuleGpuImageCreateInfo mutCreateInfo = createInfo;
     mutCreateInfo.label = puleCStr(imageLabel.c_str());
-    imageChain.chain.emplace_back(util::ImageChainImage{
+    imageChain.chain.push_back(util::ImageChainImage{
       .image = puleGpuImageCreate(mutCreateInfo),
       .label = imageLabel,
       .frameIdx = it,

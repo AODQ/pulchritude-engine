@@ -21,6 +21,7 @@ target_link_libraries(
   pulchritude-parser
   pulchritude-allocator
   pulchritude-string
+  pulchritude-error
 )
 
 install(

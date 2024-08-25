@@ -340,25 +340,25 @@
 //
 //  std::vector<PuleBufferView> intermediateBufferViews;
 //  for (size_t it = 0; it < modelIntermediate.meshes.size(); ++ it) {
-//    intermediateBufferViews.emplace_back(
+//    intermediateBufferViews.push_back(
 //      PuleBufferView {
 //        .data = (uint8_t *)modelIntermediate.meshes[it].elements.data(),
 //        .byteLength = modelIntermediate.meshes[it].elements.size(),
 //      }
 //    );
-//    intermediateBufferViews.emplace_back(
+//    intermediateBufferViews.push_back(
 //      PuleBufferView {
 //        .data = (uint8_t *)modelIntermediate.meshes[it].origins.data(),
 //        .byteLength = modelIntermediate.meshes[it].origins.size(),
 //      }
 //    );
-//    intermediateBufferViews.emplace_back(
+//    intermediateBufferViews.push_back(
 //      PuleBufferView {
 //        .data = (uint8_t *)modelIntermediate.meshes[it].uvs.data(),
 //        .byteLength = modelIntermediate.meshes[it].uvs.size(),
 //      }
 //    );
-//    intermediateBufferViews.emplace_back(
+//    intermediateBufferViews.push_back(
 //      PuleBufferView {
 //        .data = (uint8_t *)modelIntermediate.meshes[it].normals.data(),
 //        .byteLength = modelIntermediate.meshes[it].normals.size(),
@@ -368,7 +368,7 @@
 //
 //  std::vector<PuleAssetMesh> intermediateAssetMeshes;
 //  for (size_t it = 0; it < modelIntermediate.meshes.size(); ++ it) {
-//    intermediateAssetMeshes.emplace_back(
+//    intermediateAssetMeshes.push_back(
 //      PuleAssetMesh {
 //        .attributes = {
 //          {

@@ -385,7 +385,7 @@ void puleTextRender2D(
     //    })
     //  )
     //);
-    textRenderInfos.emplace_back(PuleTextRenderInfo {
+    textRenderInfos.push_back(PuleTextRenderInfo {
       .fontScale = info.fontScale,
       .transform = transform,
       .color = info.color,

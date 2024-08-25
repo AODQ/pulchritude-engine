@@ -85,7 +85,7 @@ void connectionStatusChangedHostCallback(
     break;
     case k_ESteamNetworkingConnectionState_Connected:
       puleLog("client connected: %d", info->m_hConn);
-      host.receiveClientUuids.emplace_back(info->m_hConn);
+      host.receiveClientUuids.push_back(info->m_hConn);
       // create connection lanes
       host.interface->ConfigureConnectionLanes(
         info->m_hConn,

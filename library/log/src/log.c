@@ -105,6 +105,7 @@ static void logger(
   }
   if (logType == LogType_warn || logType == LogType_error) {
     // print stack trace
+#if defined(__unix__) // TODO apple
     void * callstack[128];
     int32_t const numFrames = backtrace(callstack, 128);
     char ** const symbols = backtrace_symbols(callstack, numFrames);
@@ -125,6 +126,7 @@ static void logger(
       free(symbols);
     }
     printf("\n\n");
+#endif
   }
 }
 

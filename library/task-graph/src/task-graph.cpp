@@ -79,7 +79,7 @@ void sortGraphNodes(TaskGraph & graph) {
       }
       // see if we can insert at end
       if (satisfiedRelations.size() == 0) {
-        graph.nodesInRelationOrder.emplace_back(nodeId);
+        graph.nodesInRelationOrder.push_back(nodeId);
       }
       NODE_EXISTS:;
     }
@@ -269,7 +269,7 @@ void puleTaskGraphNodeRelationSet(
   PULE_assert(relation == PuleTaskGraphNodeRelation_dependsOn);
   TaskGraph & graph = ::taskGraphs.at(taskGraphNodeToGraph.at(pNodePri.id));
   TaskGraphNode & nodePri = graph.nodes.at(pNodePri.id);
-  nodePri.relationDependsOn.emplace_back(pNodeSec.id);
+  nodePri.relationDependsOn.push_back(pNodeSec.id);
 }
 
 void puleTaskGraphExecuteInOrder(PuleTaskGraphExecuteInfo const execute) {

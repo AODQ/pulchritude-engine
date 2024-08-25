@@ -16,7 +16,11 @@ set_target_properties(
     ENABLE_EXPORTS ON
 )
 
-target_link_libraries(pulchritude-task-graph pulchritude-allocator)
+target_link_libraries(
+  pulchritude-task-graph
+    pulchritude-allocator
+    pulchritude-string
+)
 
 install(
   TARGETS pulchritude-task-graph

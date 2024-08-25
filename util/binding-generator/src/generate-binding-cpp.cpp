@@ -116,6 +116,7 @@ static std::string mathCppHeader = (
 );
 
 static std::string coreCppHeader = (
+"#include <utility>\n"
 "#ifndef puleScopeExit\n"
 "#define _puleScopeExitConcatImpl(x, y) x##y\n"
 "#define _puleScopeExitConcat(x, y) _puleScopeExitConcatImpl(x, y)\n"

@@ -90,12 +90,12 @@ void iteratePlugins(PulePluginInfo const puPlugin, void * const userdata) {
       puleDsAsArray(pluginSourceFilesValue)
     );
     for (size_t it = 0; it < pluginSourceFiles.length; ++ it) {
-      plugin.sourceFiles.emplace_back(
+      plugin.sourceFiles.push_back(
         puleDsAsString(pluginSourceFiles.values[it]).contents
       );
     }
   }
-  iteratePluginInfo.plugins.emplace_back(plugin);
+  iteratePluginInfo.plugins.push_back(plugin);
 }
 
 struct PluginReloadInfo {
@@ -195,7 +195,7 @@ void guiPluginLoad(PulePluginInfo const plugin, void * const userdata) {
     )
   );
   if (guiEditorFn) {
-    plugins.emplace_back(guiEditorFn);
+    plugins.push_back(guiEditorFn);
   }
 }
 } // namespace editor
@@ -257,7 +257,7 @@ int32_t main(
     auto const label = std::string(arguments[argumentIt]);
     std::string content = "";
     if (parseVarargs) {
-      userVarargs.emplace_back(label);
+      userVarargs.push_back(label);
       continue;
     }
     // this breaks into application parameters
@@ -281,12 +281,12 @@ int32_t main(
       content = std::string(arguments[argumentIt+1]);
       argumentIt += 1;
     }
-    programParameters.emplace_back(ParameterInfo {
+    programParameters.push_back(ParameterInfo {
       .label = label,
       .content = content,
     });
   }
-  userVarargs.emplace_back(""); // null terminator for array
+  userVarargs.push_back(""); // null terminator for array
 
   bool isGuiEditor = false;
   bool isEarlyExit = false;
@@ -296,7 +296,7 @@ int32_t main(
   PuleString assetPath;
   for (auto const & param : programParameters) {
     if (param.label == "--plugin-path") {
-      pluginPaths.emplace_back(puleCStr(param.content.c_str()));
+      pluginPaths.push_back(puleCStr(param.content.c_str()));
     } else if (param.label == "--asset-path") {
       assetPath = (
         puleStringCopy(puleAllocateDefault(), puleCStr(param.content.c_str()))
@@ -375,7 +375,7 @@ int32_t main(
   std::vector<PluginInfo> componentUpdateablePlugins;
   for (size_t it = 0; it < componentPlugins.size(); ++ it) {
     if (componentPlugins[it].updateFn) {
-      componentUpdateablePlugins.emplace_back(componentPlugins[it]);
+      componentUpdateablePlugins.push_back(componentPlugins[it]);
     }
   }
 
@@ -513,7 +513,7 @@ int32_t main(
         );
         for (size_t it = 0; it < dsShaderModules.length; ++ it) {
           PuleDsValue const dsShaderModule = dsShaderModules.values[it];
-          shaderModules.emplace_back(
+          shaderModules.push_back(
             loadShaderModule(dsShaderModule, puleStringView(assetPath))
           );
         }

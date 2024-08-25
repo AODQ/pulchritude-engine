@@ -668,7 +668,7 @@ void puleInputKeyCallback(PuleInputKeyCallbackCreateInfo const info) {
     puleLogError("attempting to add null key callback");
     return;
   }
-  ::userInputKeyCallbacks.emplace_back(info.callback);
+  ::userInputKeyCallbacks.push_back(info.callback);
 }
 
 void puleInputMouseButtonCallback(
@@ -678,7 +678,7 @@ void puleInputMouseButtonCallback(
     puleLogError("attempting to add null mouse button callback");
     return;
   }
-  ::userInputMouseButtonCallbacks.emplace_back(info.callback);
+  ::userInputMouseButtonCallbacks.push_back(info.callback);
 }
 
 void puleInputRawTextCallback(PuleInputRawTextCallbackCreateInfo const info) {
@@ -686,7 +686,7 @@ void puleInputRawTextCallback(PuleInputRawTextCallbackCreateInfo const info) {
     puleLogError("attempting to add null raw text callback");
     return;
   }
-  ::userInputRawTextCallbacks.emplace_back(info.callback);
+  ::userInputRawTextCallbacks.push_back(info.callback);
 }
 
 void pulePlatformFramebufferResizeCallback(
@@ -696,7 +696,7 @@ void pulePlatformFramebufferResizeCallback(
     puleLogError("attempting to add null framebuffer resize callback");
     return;
   }
-  ::userFramebufferResizeCallbacks.emplace_back(info.callback);
+  ::userFramebufferResizeCallbacks.push_back(info.callback);
 }
 
 void pulePlatformWindowResizeCallback(
@@ -706,7 +706,7 @@ void pulePlatformWindowResizeCallback(
     puleLogError("attempting to add null framebuffer resize callback");
     return;
   }
-  ::userWindowResizeCallbacks.emplace_back(info.callback);
+  ::userWindowResizeCallbacks.push_back(info.callback);
 }
 
 } // extern C

@@ -61,11 +61,11 @@ void pdsObjectAdd(
   }
 
   object.values.emplace(hash, value);
-  object.linearValues.emplace_back(value);
+  object.linearValues.push_back(value);
 
   // copy string to local storage
   std::string const labelStr = std::string(label.contents, label.len);
-  object.linearLabels.emplace_back(labelStr);
+  object.linearLabels.push_back(labelStr);
   object.labels.emplace(hash, labelStr);
 }
 
@@ -334,7 +334,7 @@ PuleDsValue puleDsCreateBuffer(
   (void)allocator;
   std::vector<uint8_t> contents;
   for (size_t it = 0; it < data.elementCount; ++ it) {
-    contents.emplace_back(data.data[data.elementStride*it]);
+    contents.push_back(data.data[data.elementStride*it]);
   }
   return {::pdsValueAdd(PdsBuffer{.value = std::move(contents)})};
 }
@@ -350,7 +350,7 @@ PuleDsValue puleDsArrayAppend(
   }
   PdsArray * asArray = getArrayElement(arrayValue);
   if (!asArray) { return { 0 }; }
-  asArray->emplace_back(value);
+  asArray->push_back(value);
   return value;
 }
 

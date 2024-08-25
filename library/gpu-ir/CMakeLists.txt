@@ -1,6 +1,12 @@
 # -- library
 add_library(pulchritude-gpu-ir SHARED)
 
+# TODO remove this
+find_package(
+  Vulkan REQUIRED
+  COMPONENTS SPIRV-Tools
+)
+
 target_include_directories(pulchritude-gpu-ir PRIVATE "../include/")
 target_sources(
   pulchritude-gpu-ir
@@ -24,7 +30,7 @@ target_link_libraries(
     pulchritude-gpu
     pulchritude-array
     pulchritude-math
-    SPIRV-Tools-opt
+    SPIRV-Tools
 )
 
 install(

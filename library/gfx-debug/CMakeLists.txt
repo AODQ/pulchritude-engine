@@ -22,7 +22,10 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-gfx-debug
+    pulchritude-allocator
+    pulchritude-array
     pulchritude-error
+    pulchritude-gpu
     pulchritude-log
     pulchritude-platform
     pulchritude-shape

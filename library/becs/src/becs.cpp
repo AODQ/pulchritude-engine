@@ -3,7 +3,6 @@
 #include <pulchritude/core.hpp>
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace pint {
@@ -176,7 +175,7 @@ void puleBecsQueryEntitiesUpdate(
       }
     }
     if (match) {
-      queryEntity.cachedEntities.emplace_back(entity.first);
+      queryEntity.cachedEntities.push_back({entity.first});
     }
   }
 }

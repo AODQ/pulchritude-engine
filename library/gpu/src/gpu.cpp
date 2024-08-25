@@ -100,11 +100,11 @@ VkInstance createInstance(PuleError * const error) {
     );
     {
       for (size_t it = 0; it < glfwExtensionLength; ++ it) {
-        instanceExtensions.emplace_back(glfwExtensions[it]);
+        instanceExtensions.push_back(glfwExtensions[it]);
       }
     }
     #if VK_VALIDATION_ENABLED
-    instanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     #endif
   }
 

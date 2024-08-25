@@ -28,7 +28,7 @@ void createPipelineVertexInputState(
       "Attribute binding %zu location %zu binding %zu",
       it, it, binding.bufferIndex
     );
-    vtxAttributes.emplace_back( VkVertexInputAttributeDescription {
+    vtxAttributes.push_back( VkVertexInputAttributeDescription {
       .location = (uint32_t)it,
       .binding = (uint32_t)binding.bufferIndex,
       .format = (
@@ -51,7 +51,7 @@ void createPipelineVertexInputState(
       "Attribute buffer binding %zu location stride %zu",
       it, binding.stridePerElement
     );
-    vtxBuffers.emplace_back( VkVertexInputBindingDescription {
+    vtxBuffers.push_back( VkVertexInputBindingDescription {
       .binding = (uint32_t)it,
       .stride = (
         (uint32_t)binding.stridePerElement
@@ -74,7 +74,7 @@ VkPipelineLayout createPipelineLayout(
   for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_uniform; ++ it) {
     auto bufferStage = info.layoutDescriptorSet.bufferUniformBindings[it];
     if (bufferStage == 0) { continue; }
-    descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
+    descriptorSetLayoutBindings.push_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)it,
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = 1,
@@ -86,7 +86,7 @@ VkPipelineLayout createPipelineLayout(
   for (size_t it = 0; it < PuleGpuPipelineDescriptorMax_storage; ++ it) {
     auto bufferStage = info.layoutDescriptorSet.bufferStorageBindings[it];
     if (bufferStage == 0) { continue; }
-    descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
+    descriptorSetLayoutBindings.push_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)it,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       .descriptorCount = 1,
@@ -102,7 +102,7 @@ VkPipelineLayout createPipelineLayout(
   ) {
     auto imageStage = info.layoutDescriptorSet.textureBindings[imageIt];
     if (imageStage == 0) { continue; }
-    descriptorSetLayoutBindings.emplace_back(VkDescriptorSetLayoutBinding {
+    descriptorSetLayoutBindings.push_back(VkDescriptorSetLayoutBinding {
       .binding = (uint32_t)imageIt,
       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
       .descriptorCount = 1,
@@ -128,7 +128,7 @@ VkPipelineLayout createPipelineLayout(
   // each push constant range must have a unique stage
   if (info.layoutPushConstants.byteLength > 0) {
     auto & lpc = info.layoutPushConstants;
-    pushConstantRanges.emplace_back( VkPushConstantRange {
+    pushConstantRanges.push_back( VkPushConstantRange {
       .stageFlags = util::toVkShaderStageFlags(lpc.stage),
       .offset = (uint32_t)lpc.byteOffset,
       .size = (uint32_t)lpc.byteLength,
@@ -359,7 +359,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
       break;
     }
     if (hasAnyAttributeBindings) {
-      dynamicStates.emplace_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE);
+      dynamicStates.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE);
     }
   }
   auto dynamicStateCi = VkPipelineDynamicStateCreateInfo {

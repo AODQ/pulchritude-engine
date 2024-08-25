@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-cmake_policy(VERSION 3.0)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR) # 3.24 for vk components
+cmake_policy(VERSION 3.24)
 
 #### DEVELOPMENT FEATURES ######################################################
 # unless turned off here, features should only be here (and enabled) under
@@ -27,11 +27,11 @@ if (PULCHRITUDE_PLATFORM STREQUAL "Win64")
   include(CMakeModules/win64.cmake)
 elseif (PULCHRITUDE_PLATFORM STREQUAL "Linux")
   message("*-- compiling for Linux 64-bit platform")
-elseif (PULCHRITUDE_PLATFORM STREQUAL "macOS")
+elseif (PULCHRITUDE_PLATFORM STREQUAL "osx")
   message("*-- compiling for macOS 64-bit platform")
 else()
-  message(WARNING "defaulting to compile for Linux 64-bit platform")
-  set(PULCHRITUDE_PLATFORM "Linux")
+  # error out if platform not found
+  message(FATAL_ERROR "platform not found")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -43,8 +43,13 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 if(PULCHRITUDE_PLATFORM STREQUAL "Linux")
   set(CMAKE_INSTALL_RPATH "$ORIGIN/plugins/:$ORIGIN/")
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,--disable-new-dtags,-z,origin")
-elseif(PULCHRITUDE_PLATFORM STREQUAL "macOS")
+elseif(PULCHRITUDE_PLATFORM STREQUAL "osx")
   set(CMAKE_INSTALL_RPATH "@loader_path/plugins/;@loader_path")
+  set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+  set(CMAKE_HAVE_THREADS_LIBRARY 1)
+  set(CMAKE_USE_WIN32_THREADS_INIT 0)
+  set(CMAKE_USE_PTHREADS_INIT 1)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
 endif()
 
 # silence OpenGL legacy warning
@@ -86,11 +91,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (
      PULCHRITUDE_PLATFORM STREQUAL "Linux"
-  OR PULCHRITUDE_PLATFORM STREQUAL "macOS"
 )
   set(CMAKE_CXX_FLAGS "-march=x86-64 -rdynamic")
+elseif (PULCHRITUDE_PLATFORM STREQUAL "osx")
 elseif (PULCHRITUDE_PLATFORM STREQUAL "Win64" OR PULCHRITUDE_PLATFORM STREQUAL "Win32")
   set(CMAKE_CXX_FLAGS "-march=x86-64 -gstabs")
+else()
+  message(FATAL_ERROR "platform not found")
 endif()
 
 # requires out of source builds

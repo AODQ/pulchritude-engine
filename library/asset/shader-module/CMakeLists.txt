@@ -26,6 +26,7 @@ target_link_libraries(
     pulchritude-string
     pulchritude-file
     pulchritude-time
+    pulchritude-gpu
 
     schrift
 )

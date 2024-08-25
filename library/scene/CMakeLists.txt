@@ -18,10 +18,16 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-scene
-  pulchritude-log
-  pulchritude-error pulchritude-math pulchritude-platform
-  pulchritude-gpu
+
   pulchritude-camera
+  pulchritude-ecs
+  pulchritude-error
+  pulchritude-gpu
+  pulchritude-log
+  pulchritude-math
+  pulchritude-physx
+  pulchritude-platform
+  pulchritude-render-graph
 )
 
 install(

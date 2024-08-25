@@ -175,7 +175,7 @@ void puleCameraSetDestroy(PuleCameraSet const pSet) {
 
 void puleCameraSetAdd(PuleCameraSet const pSet, PuleCamera const pCamera) {
   auto & set = ::internalCameraSets.at(pSet.id);
-  set.cameras.emplace_back(pCamera);
+  set.cameras.push_back(pCamera);
 }
 
 void puleCameraSetRemove(PuleCameraSet const pSet, PuleCamera const pCamera) {

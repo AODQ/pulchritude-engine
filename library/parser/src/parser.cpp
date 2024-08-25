@@ -107,7 +107,7 @@ PuleParserRegexToken puleParserRegexTokenCreate(
   );
   regexToken.label = std::string(regex.contents, regex.len);
   regexToken.id = parser.regexTokens.size();
-  parser.regexTokens.emplace_back(regexToken);
+  parser.regexTokens.push_back(regexToken);
   return { regexToken.id, };
 }
 
@@ -120,9 +120,9 @@ PuleParserGroup puleParserGroupCreate(
   pint::Group group;
   group.id = parser.groups.size();
   for (size_t i = 0; i < nodeCount; ++i) {
-    group.nodes.emplace_back(nodes[i]);
+    group.nodes.push_back(nodes[i]);
   }
-  parser.groups.emplace_back(group);
+  parser.groups.push_back(group);
   return { group.id, };
 }
 
@@ -135,9 +135,9 @@ PuleParserRule puleParserRuleCreate(PuleParserRuleCreateInfo const ci) {
   rule.id = parser.rules.size();
   rule.ignoreWhitespace = ci.ignoreWhitespace;
   for (size_t i = 0; i < ci.nodeCount; ++i) {
-    rule.nodes.emplace_back(ci.nodes[i]);
+    rule.nodes.push_back(ci.nodes[i]);
   }
-  parser.rules.emplace_back(rule);
+  parser.rules.push_back(rule);
   parser.ruleLabelToId[rule.label] = rule.id;
   return { rule.id, };
 }
@@ -152,7 +152,7 @@ void puleParserRuleSetNodes(
   auto & ruleRef = parser.rules[rule.id];
   ruleRef.nodes.clear();
   for (size_t i = 0; i < nodeCount; ++i) {
-    ruleRef.nodes.emplace_back(nodes[i]);
+    ruleRef.nodes.push_back(nodes[i]);
   }
 }
 
@@ -210,7 +210,7 @@ struct ItTracker {
   char const * operator*() const { return its.back().it; }
 
   void push(PuleParserRuleNode node, char const * const it) {
-    its.emplace_back(node, it);
+    its.push_back({node, it});
   }
 
   ItTrackerSave save(PuleParserRuleNode const node) {
@@ -291,7 +291,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
           line += *lineEnd++;
         }
         if (!optional) {
-          errors.emplace_back(
+          errors.push_back(
               std::string{"expected \""} + regexToken.label + "\""
             + " at expression: " + line
             + "\n  [" + it.dump(parser) + "]"
@@ -308,7 +308,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
       astNode.type = PuleParserNodeType_rule;
       astNode.parserNodeId = node.id;
       if (rule.nodes.size() == 0) {
-        errors.emplace_back(
+        errors.push_back(
           std::string{"rule "} + rule.label + " is not defined"
         );
         astNode.poison = true;
@@ -321,7 +321,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
           while (std::isspace(*zit)) { ++zit; }
           it.push(node, zit);
         }
-        astNode.children.emplace_back(
+        astNode.children.push_back(
           pint::parseAstNodeRuleNode(parser, rulenode, it, optional, errors)
         );
         astNode.poison |= astNode.children.back().poison;
@@ -359,7 +359,7 @@ pint::AstNode parseAstNodeRuleNodeEntry(
           err += *lineStart++;
         }
         err += "`";
-        errors.emplace_back(err + "\n  [" + it.dump(parser) + "]");
+        errors.push_back(err + "\n  [" + it.dump(parser) + "]");
       }
 
       return astNode;
@@ -384,7 +384,7 @@ pint::AstNode parseAstNodeRuleNode(
         );
         it.pop(save, nodeCheck.poison);
         if (nodeCheck.poison) { break; }
-        astNode.children.emplace_back(nodeCheck);
+        astNode.children.push_back(nodeCheck);
       }
       astNode.type = PuleParserNodeType_sequence;
       astNode.parserNodeId = node.id;
@@ -398,10 +398,10 @@ pint::AstNode parseAstNodeRuleNode(
       );
       it.pop(save, nodeCheck.poison);
       if (nodeCheck.poison) {
-        errors.emplace_back("  (1+) expected at least one match");
+        errors.push_back("  (1+) expected at least one match");
         return nodeCheck;
       }
-      astNode.children.emplace_back(nodeCheck);
+      astNode.children.push_back(nodeCheck);
       while (true) {
         save = it.save(node);
         nodeCheck = (
@@ -409,7 +409,7 @@ pint::AstNode parseAstNodeRuleNode(
         );
         it.pop(save, nodeCheck.poison);
         if (nodeCheck.poison) { break; }
-        astNode.children.emplace_back(nodeCheck);
+        astNode.children.push_back(nodeCheck);
       }
       astNode.type = PuleParserNodeType_sequence;
       astNode.parserNodeId = node.id;
@@ -520,7 +520,7 @@ PuleParserAst puleParserAstCreate(
       ++ lineStart;
     }
     err += "'";
-    errors.emplace_back(err);
+    errors.push_back(err);
     ast.root.poison = true;
   }
   // print out all parsing errors

@@ -17,7 +17,11 @@ set_target_properties(
     ENABLE_EXPORTS ON
 )
 
-target_link_libraries(pulchritude-plugin pulchritude-log)
+target_link_libraries(
+  pulchritude-plugin
+    pulchritude-log
+    pulchritude-string
+)
 
 install(
   TARGETS pulchritude-plugin

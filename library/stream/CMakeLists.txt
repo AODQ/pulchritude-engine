@@ -16,7 +16,7 @@ set_target_properties(
     ENABLE_EXPORTS ON
 )
 
-target_link_libraries(pulchritude-stream pulchritude-string)
+target_link_libraries(pulchritude-stream pulchritude-string pulchritude-array)
 
 install(
   TARGETS pulchritude-stream

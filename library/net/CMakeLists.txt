@@ -22,9 +22,11 @@ set_target_properties(
 
 target_link_libraries(
   pulchritude-net
+
   pulchritude-log
   pulchritude-error
   pulchritude-string
+  pulchritude-stream
   GameNetworkingSockets::static
 )
 

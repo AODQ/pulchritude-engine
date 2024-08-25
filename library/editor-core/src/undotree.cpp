@@ -45,7 +45,7 @@ LocalCommandInfo getLocalCommands(PuleDsValue const commandsFileValue) {
     }
 
     // iterate parent
-    localCommand.ids.emplace_back(itHeadIdx);
+    localCommand.ids.push_back(itHeadIdx);
     int64_t const parentHeadIdx = (
       puleDsAsI64(puleDsObjectMember(commandValue, "parent"))
     );
@@ -329,7 +329,7 @@ bool editorUndotreeShow(
     }
 
     // iterate parent
-    localCommands.emplace_back(localCommand);
+    localCommands.push_back(localCommand);
     int64_t const parentHeadIdx = (
       puleDsAsI64(puleDsObjectMember(commandValue, "parent"))
     );

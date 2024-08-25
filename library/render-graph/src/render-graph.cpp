@@ -262,7 +262,7 @@ void sortGraphNodes(RenderGraph & graph) {
       }
       // see if we can insert at end
       if (satisfiedRelations.size() == 0) {
-        graph.nodesInRelationOrder.emplace_back(nodeId);
+        graph.nodesInRelationOrder.push_back(nodeId);
       }
       NODE_EXISTS:;
     }
@@ -1063,7 +1063,7 @@ void puleRenderGraphNodeRelationSet(
     *::renderGraphs.at(renderGraphNodeToGraph.at(pNodePri.id))
   );
   RenderGraphNode & nodePri = graph.nodes.at(pNodePri.id);
-  nodePri.relationDependsOn.emplace_back(pNodeSec.id);
+  nodePri.relationDependsOn.push_back(pNodeSec.id);
 }
 
 void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
@@ -1114,7 +1114,7 @@ void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
           bool isDepthStencil = (
             resource.resource.image.layout == PuleGpuImageLayout_attachmentDepth
           );
-          barrierImages.emplace_back(
+          barrierImages.push_back(
             PuleGpuResourceBarrierImage {
               .image = image,
               .accessSrc = resource.accessEntrance,
@@ -1208,8 +1208,8 @@ void puleRenderGraphFrameSubmit(
       std::vector<PuleGpuSemaphore> waitSemaphores;
       std::vector<PuleGpuPipelineStage> waitSemaphoreStages;
       if (node.usesSwapchain && !swapchainSemaphoreWaited) {
-        waitSemaphores.emplace_back(swapchainImageSemaphore.id);
-        waitSemaphoreStages.emplace_back(
+        waitSemaphores.push_back({.id=swapchainImageSemaphore.id});
+        waitSemaphoreStages.push_back(
           PuleGpuPipelineStage_colorAttachmentOutput
         );
         swapchainSemaphoreWaited = true;
@@ -1245,11 +1245,11 @@ void puleRenderGraphFrameSubmit(
         std::string const semaphoreLabel = (
           "render-graph-signal-semaphore-" + std::to_string(commandListIter)
         );
-        commandListSignalSemaphores.emplace_back(
+        commandListSignalSemaphores.push_back(
           puleGpuSemaphoreCreate(puleCStr(semaphoreLabel.c_str()))
         );
         commandListWaitSemaphore = &commandListSignalSemaphores.back();
-        commandListSignalSemaphoreStages.emplace_back( // TODO use correct stage
+        commandListSignalSemaphoreStages.push_back( // TODO use correct stage
           PuleGpuPipelineStage_colorAttachmentOutput
         );
       }

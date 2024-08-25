@@ -17,6 +17,10 @@
 #include <unistd.h>
 #endif
 
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
+
 // TODO:
 //   - add buffering (configurable, like 256 bytes)
 
@@ -84,7 +88,7 @@ PuleFileStream puleFileStreamWriteOpen(
 ) {
   return fileStreamOpen(path, dataMode, true);
 }
-void puleFileStreamClose(PuleFileStream const puStream) {
+void puleFileStreamClose(PuleFileStream puStream) {
   auto & stream = *fileStreams.at(puStream.id);
   if (stream.isRead) {
     puleStreamReadDestroy(stream.streamRead);
@@ -586,11 +590,23 @@ PuleString puleFilesystemPathCurrent() {
 
 PuleStringView puleFilesystemExecutablePath() {
   // TODO this needs windows port
+#if defined(__unix__)
   if (::filesystemExecutablePath == "") {
     ::filesystemExecutablePath = (
       std::filesystem::canonical("/proc/self/exe").remove_filename()
     );
   }
+#elif defined(__APPLE__)
+  if (::filesystemExecutablePath == "") {
+    char path[1024];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) == 0) {
+      ::filesystemExecutablePath = (
+        std::filesystem::canonical(path).remove_filename()
+      );
+    }
+  }
+#endif
   return puleCStr(::filesystemExecutablePath.c_str());
 }
 
@@ -688,11 +704,11 @@ std::vector<std::string> splitBySemicolon(std::string const & str) {
   size_t last = 0;
   for (size_t it = 0; it < str.size(); ++ it) {
     if (str[it] == ';') {
-      result.emplace_back(str.substr(last, it-last));
+      result.push_back(str.substr(last, it-last));
       last = it+1;
     }
   }
-  result.emplace_back(str.substr(last, str.size()-last));
+  result.push_back(str.substr(last, str.size()-last));
   return result;
 }
 
@@ -719,7 +735,7 @@ PuleFileWatcher puleFileWatch(
       );
       continue;
     }
-    filewatches.emplace_back(::FileWatch {
+    filewatches.push_back(::FileWatch {
       .filename = std::string(filenameAbs.contents, filenameAbs.len),
       .lastUpdated = puleFilesystemTimestamp(puleStringView(filenameAbs)),
       .lastUpdatedNow = puleTimestampNow(),

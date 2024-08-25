@@ -172,7 +172,7 @@ void Plugin::open() {
 
 void loadPluginFromFile(std::filesystem::path path) {
   puleLogDebug("Loading plugin %s", path.c_str());
-  ::plugins.emplace_back(std::make_unique<::Plugin>(path));
+  ::plugins.push_back(std::make_unique<::Plugin>(path));
   auto & pluginEnd = ::plugins.back();
 
   // check plugin loaded
