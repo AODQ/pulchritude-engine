@@ -1,10 +1,19 @@
 # engine-language
 
 ## structs
-### PuleELJitEngineCreateInfo
+### PuleELModuleCreateInfo
 ```c
 struct {
+  moduleIR : PuleStringView;
+  name : PuleStringView;
   optimize : bool = false;
+  debug : bool = false;
+  error : PuleError ptr;
+};
+```
+### PuleELEngineCreateInfo
+```c
+struct {
   insertEngineSymbols : bool = false;
 };
 ```
@@ -20,15 +29,15 @@ enum {
 
 ## entities
 ### PuleELModule
-### PuleELJitEngine
+### PuleELEngine
+### PuleELFence
+### PuleELQueue
 
 ## functions
 ### puleELModuleCreate
 ```c
 puleELModuleCreate(
-  stream : PuleStreamRead,
-  name : PuleStringView,
-  error : PuleError ptr
+  ci : PuleELModuleCreateInfo
 ) PuleELModule;
 ```
 ### puleELModuleDestroy
@@ -37,29 +46,73 @@ puleELModuleDestroy(
   module : PuleELModule
 ) void;
 ```
-### puleELJitEngineCreate
+### puleELEngineCreate
 ```c
-puleELJitEngineCreate(
-  ci : PuleELJitEngineCreateInfo
-) PuleELJitEngine;
+puleELEngineCreate(
+  ci : PuleELEngineCreateInfo
+) PuleELEngine;
 ```
-### puleELJitEngineDestroy
+### puleELEngineDestroy
 ```c
-puleELJitEngineDestroy(
-  jitEngine : PuleELJitEngine
+puleELEngineDestroy(
+  engine : PuleELEngine
 ) void;
 ```
-### puleELJitEngineAddModule
+### puleELEngineAddModule
 ```c
-puleELJitEngineAddModule(
-  jitEngine : PuleELJitEngine,
+puleELEngineAddModule(
+  engine : PuleELEngine,
   module : PuleELModule
 ) void;
 ```
-### puleELJitEngineFunctionAddress
+### puleELFenceWait
 ```c
-puleELJitEngineFunctionAddress(
-  jitEngine : PuleELJitEngine,
+puleELFenceWait(
+  fence : PuleELFence,
+  timeout : PuleMicrosecond
+) bool;
+```
+### puleELFenceDestroy
+```c
+puleELFenceDestroy(
+  fence : PuleELFence
+) void;
+```
+### puleELQueueCreate
+```c
+puleELQueueCreate(
+  engine : PuleELEngine
+) PuleELQueue;
+```
+### puleELQueueDestroy
+```c
+puleELQueueDestroy(
+  queue : PuleELQueue
+) void;
+```
+### puleELQueueStackLength
+```c
+puleELQueueStackLength(
+  queue : PuleELQueue
+) size_t;
+```
+### puleELQueueStackPush
+```c
+puleELQueueStackPush(
+  queue : PuleELQueue,
+  value : uint64_t
+) void;
+```
+### puleELQueueStackPop
+```c
+puleELQueueStackPop(
+  queue : PuleELQueue
+) uint64_t;
+```
+### puleELQueueSubmit
+```c
+puleELQueueSubmit(
+  queue : PuleELQueue,
   functionName : PuleStringView
-) void ptr;
+) void;
 ```

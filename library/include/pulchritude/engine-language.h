@@ -3,7 +3,8 @@
 #include "core.h"
 
 #include "error.h"
-#include "stream.h"
+#include "string.h"
+#include "time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,23 +19,39 @@ const uint32_t PuleErrorELSize = 2;
 
 // entities
 typedef struct PuleELModule { uint64_t id; } PuleELModule;
-typedef struct PuleELJitEngine { uint64_t id; } PuleELJitEngine;
+typedef struct PuleELEngine { uint64_t id; } PuleELEngine;
+typedef struct PuleELFence { uint64_t id; } PuleELFence;
+typedef struct PuleELQueue { uint64_t id; } PuleELQueue;
 
 // structs
-struct PuleELJitEngineCreateInfo;
+struct PuleELModuleCreateInfo;
+struct PuleELEngineCreateInfo;
 
-typedef struct PuleELJitEngineCreateInfo {
+typedef struct PuleELModuleCreateInfo {
+  PuleStringView moduleIR;
+  PuleStringView name;
   bool optimize PULE_defaultField(false);
+  bool debug PULE_defaultField(false);
+  PuleError * error;
+} PuleELModuleCreateInfo;
+typedef struct PuleELEngineCreateInfo {
   bool insertEngineSymbols PULE_defaultField(false);
-} PuleELJitEngineCreateInfo;
+} PuleELEngineCreateInfo;
 
 // functions
-PULE_exportFn PuleELModule puleELModuleCreate(PuleStreamRead stream, PuleStringView name, PuleError * error);
+PULE_exportFn PuleELModule puleELModuleCreate(PuleELModuleCreateInfo ci);
 PULE_exportFn void puleELModuleDestroy(PuleELModule module);
-PULE_exportFn PuleELJitEngine puleELJitEngineCreate(PuleELJitEngineCreateInfo ci);
-PULE_exportFn void puleELJitEngineDestroy(PuleELJitEngine jitEngine);
-PULE_exportFn void puleELJitEngineAddModule(PuleELJitEngine jitEngine, PuleELModule module);
-PULE_exportFn void * puleELJitEngineFunctionAddress(PuleELJitEngine jitEngine, PuleStringView functionName);
+PULE_exportFn PuleELEngine puleELEngineCreate(PuleELEngineCreateInfo ci);
+PULE_exportFn void puleELEngineDestroy(PuleELEngine engine);
+PULE_exportFn void puleELEngineAddModule(PuleELEngine engine, PuleELModule module);
+PULE_exportFn bool puleELFenceWait(PuleELFence fence, PuleMicrosecond timeout);
+PULE_exportFn void puleELFenceDestroy(PuleELFence fence);
+PULE_exportFn PuleELQueue puleELQueueCreate(PuleELEngine engine);
+PULE_exportFn void puleELQueueDestroy(PuleELQueue queue);
+PULE_exportFn size_t puleELQueueStackLength(PuleELQueue queue);
+PULE_exportFn void puleELQueueStackPush(PuleELQueue queue, uint64_t value);
+PULE_exportFn uint64_t puleELQueueStackPop(PuleELQueue queue);
+PULE_exportFn void puleELQueueSubmit(PuleELQueue queue, PuleStringView functionName);
 
 #ifdef __cplusplus
 } // extern C

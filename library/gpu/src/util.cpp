@@ -256,7 +256,7 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
   // TODO I need to handle cases where no image is available (this is
   //        going to happen when the window-manager believes the window
   //        is not visible)
-  PULE_vkError(
+  auto result = (
     vkAcquireNextImageKHR(
       util::ctx().device.logical,
       util::ctx().swapchain,
@@ -264,6 +264,11 @@ uint32_t util::swapchainAcquireNextImage(VkFence const fence) {
       imageAvailableSemaphore, fence, &imageIdx
     )
   );
+  if (result == VK_SUBOPTIMAL_KHR) {
+    puleLogWarn("swapchain suboptimal");
+  } else if (result != VK_SUCCESS) {
+    PULE_vkError(result);
+  }
   util::ctx().swapchainCurrentImageIdx = imageIdx;
 
   // replace existing semaphore with new one

@@ -1,4 +1,4 @@
-#include <pulchritude/gpu.h>
+#include <pulchritude/gpu.hpp>
 
 #include <util.hpp>
 
@@ -48,40 +48,6 @@ VkRenderingAttachmentInfo imageAttachmentToVk(
   };
 }
 
-PuleStringView puleGpuActionToString(PuleGpuAction const action) {
-  switch (action) {
-    default: return puleCStr("unknown");
-    case PuleGpuAction_bindPipeline:
-      return puleCStr("bind-pipeline");
-    case PuleGpuAction_bindBuffer:
-      return puleCStr("bind-buffer");
-    case PuleGpuAction_bindTexture:
-      return puleCStr("bind-texture");
-    case PuleGpuAction_bindElementBuffer:
-      return puleCStr("bind-element-buffer");
-    case PuleGpuAction_bindAttributeBuffer:
-      return puleCStr("bind-attribute-buffer");
-    case PuleGpuAction_clearImageColor:
-      return puleCStr("clear-image-color");
-    case PuleGpuAction_clearImageDepth:
-      return puleCStr("clear-image-depth");
-    case PuleGpuAction_dispatchRender:
-      return puleCStr("dispatch-render");
-    case PuleGpuAction_dispatchRenderIndirect:
-      return puleCStr("dispatch-render-indirect");
-    case PuleGpuAction_dispatchRenderElements:
-      return puleCStr("dispatch-render-elements");
-    case PuleGpuAction_pushConstants:
-      return puleCStr("push-constants");
-    case PuleGpuAction_dispatchCommandList:
-      return puleCStr("dispatch-command-list");
-    case PuleGpuAction_setScissor:
-      return puleCStr("set-scissor");
-    case PuleGpuAction_copyImageToImage:
-      return puleCStr("copy-image-to-image");
-  }
-}
-
 //------------------------------------------------------------------------------
 //-- COMMAND LIST --------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -123,6 +89,7 @@ PuleGpuCommandList puleGpuCommandListCreate(
     reinterpret_cast<uint64_t>(cmdBuffer),
     util::CommandList { .label = std::string(label.contents), }
   );
+  puleLogDev("Creating command buffer: %p", cmdBuffer);
   return { .id = reinterpret_cast<uint64_t>(cmdBuffer), };
 }
 
@@ -188,10 +155,14 @@ void puleGpuCommandListAppendAction(
     reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
   );
 
+  puleLogDev("recorder info in: %d", 
+    util::ctx().commandBufferRecorders.count(commandListRecorder.id)
+  );
   auto & recorderInfo = (
     util::ctx().commandBufferRecorders.at(commandListRecorder.id)
   );
 
+  puleLogDev("Action %s", pule::toStr(command.action).data.contents);
   switch (command.action) {
     default:
       puleLogError("Unknown command PuleGpuAction %d", command.action);
@@ -470,6 +441,7 @@ void puleGpuCommandListAppendAction(
         if (action.attachmentColor[it].imageView.image.id == 0) {
           continue;
         }
+        puleLogDev("color attachment %zu: %d", it, action.attachmentColor[it].imageView.image.id);
         colorAttachments[it] = (
           imageAttachmentToVk(action.attachmentColor[it], false)
         );
@@ -477,9 +449,11 @@ void puleGpuCommandListAppendAction(
       VkRenderingAttachmentInfo depthAttachment = {};
       bool hasDepthAttachment = false;
       if (action.attachmentDepth.imageView.image.id != 0) {
+        puleLogDev("depth attachment: %d", action.attachmentDepth.imageView.image.id);
         depthAttachment = imageAttachmentToVk(action.attachmentDepth, true);
         hasDepthAttachment = true;
       }
+      puleLogDev("attachment color count: %zu", action.attachmentColorCount);
       auto const renderingInfo = VkRenderingInfo {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
         .pNext = nullptr,
@@ -496,12 +470,14 @@ void puleGpuCommandListAppendAction(
         },
         .layerCount = 1,
         .viewMask = 0,
-        .colorAttachmentCount = (uint32_t)action.attachmentColorCount,
+        .colorAttachmentCount = 0,
         .pColorAttachments = colorAttachments,
         .pDepthAttachment = hasDepthAttachment ? &depthAttachment : nullptr,
         .pStencilAttachment = nullptr,
       };
+      puleLogDev("beginning render pass cb: %p", commandBuffer);
       vkCmdBeginRendering(commandBuffer, &renderingInfo);
+      puleLogDev("fin");
     }
     break;
     case PuleGpuAction_renderPassEnd: {

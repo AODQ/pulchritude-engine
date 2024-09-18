@@ -1026,7 +1026,7 @@ void puleRenderGraphNode_renderPassBegin(
   });
 
   puleLogDev("rendering with color? %d", hasColorAttachment);
-  puleLogDev("rendering with dpeth? %d", attachmentDepth.imageView.image.id != 0);
+  puleLogDev("rendering with depth? %d", attachmentDepth.imageView.image.id != 0);
 
   puleGpuCommandListAppendAction(recorder, {
     .renderPassBegin = PuleGpuActionRenderPassBegin {

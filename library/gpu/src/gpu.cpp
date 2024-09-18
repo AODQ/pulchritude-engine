@@ -12,6 +12,10 @@
 #include <unordered_set>
 #include <vector>
 
+#if defined(__APPLE__)
+#define VK_USE_PLATFORM_MACOS_MVK
+#endif
+
 #include <volk.h>
 #include <GLFW/glfw3.h>
 
@@ -88,7 +92,11 @@ VkInstance createInstance(PuleError * const error) {
     .applicationVersion = 0x0001,
     .pEngineName = "Pulchritude",
     .engineVersion = 1,
+    #if !defined(__APPLE__)
     .apiVersion = VK_API_VERSION_1_3,
+    #else
+    .apiVersion = VK_API_VERSION_1_2,
+    #endif
   };
 
   // get GLFW extensions & add our own
@@ -105,6 +113,9 @@ VkInstance createInstance(PuleError * const error) {
     }
     #if VK_VALIDATION_ENABLED
     instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    #endif
+    #if defined(__APPLE__)
+    instanceExtensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
     #endif
   }
 
@@ -140,7 +151,12 @@ VkInstance createInstance(PuleError * const error) {
   auto instanceCi = VkInstanceCreateInfo {
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pNext = &validationFeatures,
-    .flags = 0x0,
+    .flags = (
+      0
+      #if defined(__APPLE__)
+      | VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR
+      #endif
+    ),
     .pApplicationInfo = &applicationInfo,
     .enabledLayerCount = (uint32_t)instanceLayers.size(),
     .ppEnabledLayerNames = instanceLayers.data(),
@@ -221,29 +237,71 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
   }
 
   puleLogDebug("[Gfx|Vk] logical device");
+  puleLogDev("GTC: %d", device.queues.idxGTC);
+  puleLogDev("Gfx: %d", device.queues.idxGraphics);
+  puleLogDev("Trn: %d", device.queues.idxTransfer);
+  puleLogDev("Cmp: %d", device.queues.idxCompute);
+  puleLogDev("Prs: %d", device.queues.idxPresent);
   { // logical device
     auto queuePriorityDefault = 1.0f;
-    auto deviceQueueCi = std::vector<VkDeviceQueueCreateInfo> {
-      {
+    auto deviceQueueCi = std::vector<VkDeviceQueueCreateInfo> {};
+    auto & queues = device.queues;
+    if (queues.idxGTC != -1u) {
+      deviceQueueCi.push_back({
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .queueFamilyIndex = device.queues.idxGTC,
+        .queueFamilyIndex = queues.idxGTC,
         .queueCount = 1,
         .pQueuePriorities = &queuePriorityDefault,
-      }, {
+      });
+    }
+    if (queues.idxGraphics != -1u && queues.idxGraphics != queues.idxGTC) {
+      deviceQueueCi.push_back({
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .queueFamilyIndex = device.queues.idxCompute,
+        .queueFamilyIndex = queues.idxGraphics,
         .queueCount = 1,
         .pQueuePriorities = &queuePriorityDefault,
-      },
-    };
+      });
+    }
+    if (queues.idxCompute != -1u && queues.idxCompute != queues.idxGTC) {
+      deviceQueueCi.push_back({
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = queues.idxCompute,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriorityDefault,
+      });
+    }
+    if (queues.idxTransfer != -1u && queues.idxTransfer != queues.idxGTC) {
+      deviceQueueCi.push_back({
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = queues.idxTransfer,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriorityDefault,
+      });
+    }
+    if (queues.idxPresent != -1u && queues.idxPresent != queues.idxGTC) {
+      deviceQueueCi.push_back({
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = queues.idxPresent,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriorityDefault,
+      });
+    }
 
     VkPhysicalDeviceFeatures features;
     memset(&features, VK_FALSE, sizeof(VkPhysicalDeviceFeatures));
+    #if !defined(__APPLE__)
     features.shaderFloat64 = VK_TRUE;
+    #endif
     features.shaderInt64 = VK_TRUE;
     features.shaderInt16 = VK_TRUE;
     auto featuresRequest = VkPhysicalDeviceFeatures2 {
@@ -268,6 +326,7 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
       .uniformAndStorageBuffer8BitAccess = VK_TRUE,
       .storagePushConstant8 = VK_TRUE,
     };
+#if !defined(__APPLE__)
     auto featuresImageAtomicInt64 = (
       VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT {
         .sType = (
@@ -286,44 +345,31 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
         .shaderSharedInt64Atomics = VK_TRUE,
       }
     );
-    auto featuresDeviceIndexU8 = (
-      VkPhysicalDeviceIndexTypeUint8FeaturesEXT {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT,
-        .pNext = nullptr,
-        .indexTypeUint8 = VK_TRUE,
-      }
-    );
+#endif
     puleLogSectionBegin({"[Gfx|Vk] device extensions", false, true});
-    puleLogDev("features device index u8 %p", &featuresDeviceIndexU8);
     util::chainPNextList(
       {
         &featuresRequest, &features8Bit,
         &featuresSync2,
         &featuresDynamicRendering,
+#if !defined(__APPLE__)
         &featuresImageAtomicInt64, &featuresAtomicInt64,
-        &featuresDeviceIndexU8,
+#endif
       }
     );
-  puleLogDev("following the chain again:");
-  {
-typedef struct {
-  VkStructureType sType;
-  void * pNext;
-} chainPNextz;
-    chainPNextz * pnext = (chainPNextz *)(&featuresRequest);
-    while (pnext != nullptr) {
-      puleLogDev("  %p", pnext);
-      pnext = static_cast<chainPNextz *>(pnext->pNext);
-    }
-  }
     puleLogSectionEnd();
     std::vector<char const *> deviceExtensions = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+#if defined(__APPLE__)
+      VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+      "VK_KHR_portability_subset",
+#endif
+#if !defined(__APPLE__)
       VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME,
+#endif
       VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
       VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
-      VK_KHR_INDEX_TYPE_UINT8_EXTENSION_NAME,
     };
     auto deviceCi = VkDeviceCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -462,6 +508,11 @@ void puleGpuInitialize(PulePlatform const platform, PuleError * const error) {
   ctx.device = device;
   ctx.surface = surface;
   ctx.vmaAllocator = allocator;
+
+  if (ctx.device.queues.idxGTC == -1u) {
+    PULE_assert(false && "No GTC queue found");
+    return;
+  }
 
   vkGetDeviceQueue(
     ctx.device.logical,

@@ -2,9 +2,8 @@
 #pragma once
 #include "core.hpp"
 
-#include <type_traits>
-#include <utility>
 #include "core.h"
+#include <utility>
 #ifndef puleScopeExit
 #define _puleScopeExitConcatImpl(x, y) x##y
 #define _puleScopeExitConcat(x, y) _puleScopeExitConcatImpl(x, y)

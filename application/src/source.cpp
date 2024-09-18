@@ -391,7 +391,11 @@ int32_t main(
     for (auto & plugin : componentPlugins) {
       if (!plugin.allowLiveReload) { continue; }
       semicolonSeparatedPluginPaths += (
+      #if defined(__UNIX__)
         "plugins/lib" + plugin.name + ".so;"
+      #else
+        "plugins/lib" + plugin.name + "lib;"
+      #endif
       );
     }
     puleFileWatch({

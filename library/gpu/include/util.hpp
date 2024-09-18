@@ -45,11 +45,11 @@ namespace util {
   char const * vkErrorToString(VkResult const result);
 
   struct DeviceQueues {
-    uint32_t idxCompute = 0;
-    uint32_t idxGraphics = 0;
-    uint32_t idxPresent = 0;
-    uint32_t idxTransfer = 0;
-    uint32_t idxGTC = 0;
+    uint32_t idxCompute = -1u;
+    uint32_t idxGraphics = -1u;
+    uint32_t idxPresent = -1u;
+    uint32_t idxTransfer = -1u;
+    uint32_t idxGTC = -1u;
   };
 
   struct Device {

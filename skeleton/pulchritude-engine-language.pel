@@ -1,5 +1,6 @@
 @include `error`;
-@include `stream`;
+@include `string`;
+@include `time`;
 
 @enum PuleErrorEL {
   none;
@@ -8,30 +9,40 @@
 
 @entity PuleELModule;
 
-@fn puleELModuleCreate(
-  stream : PuleStreamRead,
-  name : PuleStringView,
-  error : PuleError ptr
-) PuleELModule;
-@fn puleELModuleDestroy(module : PuleELModule) void;
-
-@entity PuleELJitEngine;
-
-@struct PuleELJitEngineCreateInfo {
+@struct PuleELModuleCreateInfo {
+  @field moduleIR : PuleStringView;
+  @field name : PuleStringView;
   @field optimize : bool = true;
+  @field debug : bool = false;
+  @field error : PuleError ptr;
+};
+
+@fn puleELModuleCreate(ci : PuleELModuleCreateInfo) PuleELModule;
+@fn puleELModuleDestroy(module : PuleELModule);
+
+@entity PuleELEngine;
+
+@struct PuleELEngineCreateInfo {
   @field insertEngineSymbols : bool = true;
 };
-@fn puleELJitEngineCreate(
-  ci : PuleELJitEngineCreateInfo
-) PuleELJitEngine;
-@fn puleELJitEngineDestroy(jitEngine : PuleELJitEngine) void;
+@fn puleELEngineCreate(ci : PuleELEngineCreateInfo) PuleELEngine;
+@fn puleELEngineDestroy(engine : PuleELEngine);
+@fn puleELEngineAddModule(engine : PuleELEngine, module : PuleELModule);
 
-@fn puleELJitEngineAddModule(
-  jitEngine : PuleELJitEngine,
-  module : PuleELModule
-) void;
+@entity PuleELFence;
+@fn puleELFenceWait(fence : PuleELFence, timeout : PuleMicrosecond) bool;
+@fn puleELFenceDestroy(fence : PuleELFence);
 
-@fn puleELJitEngineFunctionAddress(
-  jitEngine : PuleELJitEngine,
+@entity PuleELQueue;
+
+@fn puleELQueueCreate(engine : PuleELEngine) PuleELQueue;
+@fn puleELQueueDestroy(queue : PuleELQueue);
+
+@fn puleELQueueStackLength(queue : PuleELQueue) size_t;
+@fn puleELQueueStackPush(queue : PuleELQueue, value : uint64_t);
+@fn puleELQueueStackPop(queue : PuleELQueue) uint64_t;
+
+@fn puleELQueueSubmit(
+  queue : PuleELQueue,
   functionName : PuleStringView
-) void ptr;
+);

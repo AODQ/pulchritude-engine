@@ -49,6 +49,7 @@ bool editorBuildRunApplication(
     bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
     bool const isEarlyExit = puleDsMemberAsBool(input, "early-exit");
     bool const runWithGdb = puleDsMemberAsBool(input, "gdb");
+    bool const runWithLldb = puleDsMemberAsBool(input, "lldb");
     bool const runWithGdbGui = puleDsMemberAsBool(input, "gdbgui");
     bool const runWithValgrind = puleDsMemberAsBool(input, "valgrind");
     bool const runWithStrace = puleDsMemberAsBool(input, "strace");
@@ -79,6 +80,9 @@ bool editorBuildRunApplication(
     }
     if (runWithGdb) {
       execute += "gdb --args ";
+    }
+    if (runWithLldb) {
+      execute += "lldb -- ";
     }
     if (runWithGdbGui) {
       execute += "gdbgui --args ";
