@@ -23,8 +23,17 @@ struct Camera {
   inline PuleF32m44 proj() {
     return puleCameraProj(this->_handle);
   }
+  inline void viewport(float width, float height) {
+    return puleCameraViewport(this->_handle, width, height);
+  }
   inline void lookAt(PuleF32v3 origin, PuleF32v3 normalizedTarget, PuleF32v3 up) {
     return puleCameraLookAt(this->_handle, origin, normalizedTarget, up);
+  }
+  inline PuleCameraOrthographic orthographic() {
+    return puleCameraOrthographic(this->_handle);
+  }
+  inline void orthographicSet(PuleCameraOrthographic orthographic) {
+    return puleCameraOrthographicSet(this->_handle, orthographic);
   }
   inline PuleCameraPerspective perspective() {
     return puleCameraPerspective(this->_handle);
@@ -46,8 +55,17 @@ struct Camera {
   inline PuleF32m44 proj(pule::Camera self) {
     return puleCameraProj(self._handle);
   }
+  inline void viewport(pule::Camera self, float width, float height) {
+    return puleCameraViewport(self._handle, width, height);
+  }
   inline void lookAt(pule::Camera self, PuleF32v3 origin, PuleF32v3 normalizedTarget, PuleF32v3 up) {
     return puleCameraLookAt(self._handle, origin, normalizedTarget, up);
+  }
+  inline PuleCameraOrthographic orthographic(pule::Camera self) {
+    return puleCameraOrthographic(self._handle);
+  }
+  inline void orthographicSet(pule::Camera self, PuleCameraOrthographic orthographic) {
+    return puleCameraOrthographicSet(self._handle, orthographic);
   }
   inline PuleCameraPerspective perspective(pule::Camera self) {
     return puleCameraPerspective(self._handle);
@@ -122,6 +140,9 @@ struct CameraController {
   inline void destroy(pule::CameraController self) {
     return puleCameraControllerDestroy(self._handle);
   }
+namespace pule {
+using CameraOrthographic = PuleCameraOrthographic;
+}
 namespace pule {
 using CameraPerspective = PuleCameraPerspective;
 }

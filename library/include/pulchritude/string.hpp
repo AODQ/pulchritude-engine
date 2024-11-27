@@ -76,7 +76,7 @@ struct StringView {
   inline size_t hash(pule::StringView self) {
     return puleStringViewHash(self._handle);
   }
-PuleStringView operator ""_psv(char const * const cstr, size_t const len);
+PuleStringView operator"" _psv(char const * const cstr, size_t const len);
 #include <string>
 namespace pule {
   struct str {

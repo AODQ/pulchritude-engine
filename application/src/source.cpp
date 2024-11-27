@@ -1,16 +1,16 @@
 /* pulchritude engine | github.com/aodq/pulchritude-engine | aodq.net */
 
-// pybfr lbhe rlrf naq erzrzore jung'f ybpxrq njnl
-
 #include <pulchritude/asset-pds.h>
 #include <pulchritude/asset-render-graph.h>
 #include <pulchritude/asset-script-task-graph.h>
 #include <pulchritude/asset-shader-module.h>
 #include <pulchritude/camera.h>
+#include <pulchritude/gfx-debug.h>
 #include <pulchritude/gpu.h>
 #include <pulchritude/imgui-engine.h>
 #include <pulchritude/imgui.h>
 #include <pulchritude/log.h>
+#include <pulchritude/pecs.h>
 #include <pulchritude/platform.h>
 #include <pulchritude/plugin.h>
 #include <pulchritude/script.h>
@@ -198,11 +198,13 @@ void guiPluginLoad(PulePluginInfo const plugin, void * const userdata) {
     plugins.push_back(guiEditorFn);
   }
 }
+
 } // namespace editor
 
 std::unordered_map<std::string, KnownParameterInfo> knownProgramParameters = {
   { "--asset-path",          {.hasParameter = true,  } },
   { "--gui-editor",          {.hasParameter = false, } },
+  { "--unit-test",           {.hasParameter = false, } },
   { "--debug",               {.hasParameter = false, } },
   { "--error-segfaults",     {.hasParameter = false, } },
   { "--plugin-layer",        {.hasParameter = true,  } },
@@ -288,9 +290,10 @@ int32_t main(
   }
   userVarargs.push_back(""); // null terminator for array
 
-  bool isGuiEditor = false;
+  bool isGuiEditor = false; // gui overlay during gameplay
   bool isEarlyExit = false;
   bool allowPluginReload = false;
+  bool isUnitTest = false;
 
   std::vector<PuleStringView> pluginPaths;
   PuleString assetPath;
@@ -309,6 +312,8 @@ int32_t main(
       puleLogDebug("[PuleApplication] Segfault on error enabled");
     } else if (param.label == "--gui-editor") {
       isGuiEditor = true;
+    } else if (param.label == "--unit-test") {
+      isUnitTest = true;
     } else if (param.label == "--early-exit") {
       isEarlyExit = true;
     } else if (param.label == "--allow-plugin-reload") {
@@ -391,7 +396,7 @@ int32_t main(
     for (auto & plugin : componentPlugins) {
       if (!plugin.allowLiveReload) { continue; }
       semicolonSeparatedPluginPaths += (
-      #if defined(__UNIX__)
+      #if defined(__unix__)
         "plugins/lib" + plugin.name + ".so;"
       #else
         "plugins/lib" + plugin.name + "lib;"
@@ -410,7 +415,6 @@ int32_t main(
   PulePlatform platform = { .id = 0, };
   PuleScriptContext scriptContext = { .id = 0, };
   bool fileWatcherCheckAll = false;
-  PuleEcsWorld ecsWorld = { .id = 0, };
   PuleRenderGraph renderGraph = { .id = 0, };
   PuleTaskGraph scriptTaskGraph = { .id = 0, };
   PuleCameraSet cameraSet = { .id = 0, };
@@ -522,49 +526,8 @@ int32_t main(
           );
         }
       }
-      // -- ecs create
-      PuleDsValue const payloadEcs = (
-        puleDsObjectMember(entryPayload, "ecs")
-      );
-      if (
-        !puleDsIsNull(payloadEcs)
-        && puleDsMemberAsBool(payloadEcs, "create-world")
-      ) {
-        puleLogDebug("[PuleApplication] creating ECS");
-        ecsWorld = puleEcsWorldCreate();
-        ecsWorldAdvance = puleDsMemberAsBool(payloadEcs, "world-advance");
-        // -- load in ECS components & systems from plugins
-        bool const loadComponent = (
-          puleDsMemberAsBool(payloadEcs, "register-components")
-        );
-        bool const loadSystem = (
-          puleDsMemberAsBool(payloadEcs, "register-systems")
-        );
-        for (auto const & componentPlugin : componentPlugins) {
-          void (*registerComponentsFn)(PuleEcsWorld const) = nullptr;
-          void (*registerSystemsFn)(PuleEcsWorld const) = nullptr;
-          if (loadComponent) {
-            ::tryLoadFn(
-              registerComponentsFn,
-              componentPlugin.id,
-              "pulcRegisterComponents"
-            );
-            if (registerComponentsFn) {
-              registerComponentsFn(ecsWorld);
-            }
-          }
-          if (loadSystem) {
-            ::tryLoadFn(
-              registerSystemsFn,
-              componentPlugin.id,
-              "pulcRegisterSystems"
-            );
-            if (registerComponentsFn) {
-              registerSystemsFn(ecsWorld);
-            }
-          }
-        }
-      }
+      // -- gfx debug
+      puleGfxDebugInitialize(platform);
       // -- file watcher
       PuleDsValue const payloadFile = (
         puleDsObjectMember(entryPayload, "file")
@@ -639,13 +602,6 @@ int32_t main(
       platform.id
     );
   }
-  if (ecsWorld.id != 0) {
-    pulePluginPayloadStoreU64(
-      payload,
-      "pule-ecs-world"_psv,
-      ecsWorld.id
-    );
-  }
   if (renderGraph.id != 0) {
     pulePluginPayloadStoreU64(
       payload,
@@ -715,7 +671,7 @@ int32_t main(
   //}
 
   // load gui editor if requested
-  PULE_assert(isGuiEditor ? platform.id : true);
+  PULE_assert((isGuiEditor) ? platform.id : true);
   std::vector<GuiEditorFn> guiEditorFns;
   if (isGuiEditor) {
     pulePluginIterate(
@@ -730,6 +686,22 @@ int32_t main(
     puleImguiInitialize(platform);
   }
 
+  // if unit-test then run them
+  if (isUnitTest) {
+    for (auto const & componentPlugin : componentPlugins) {
+      bool (*componentUnitTestFn)(PulePluginPayload const) = nullptr;
+      ::tryLoadFn(componentUnitTestFn, componentPlugin.id, "pulcUnitTest");
+      if (componentUnitTestFn) {
+        puleLog(
+          "Running unit test for plugin '%s'",
+          componentPlugin.name.c_str()
+        );
+        bool const success = componentUnitTestFn(payload);
+        puleLog("  %s", success ? "success" : "failure");
+      }
+    }
+  }
+
   // get the render task graphs from plugins
 
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
@@ -741,7 +713,10 @@ int32_t main(
   //                        \_____/ \___/  \___/ \_|                           *
   //                                                                           *
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  bool hasUpdate = componentUpdateablePlugins.size() > 0 || isGuiEditor;
+  bool hasUpdate = (
+    componentUpdateablePlugins.size() > 0 || isGuiEditor
+  );
+  hasUpdate = (hasUpdate && !isUnitTest);
   PuleGpuSemaphore swapchainAvailableSemaphore = { .id = 0, };
   while (hasUpdate) {
     if (isEarlyExit) {
@@ -772,21 +747,18 @@ int32_t main(
         .multithreaded = false,
       });
     }
-    if (!isGuiEditor && ecsWorldAdvance) {
-      puleEcsWorldAdvance(ecsWorld, 16.0f);
-    }
     if (isGuiEditor) {
-      // pulchritude engine display
-      puleImguiEngineDisplay(PuleImguiEngineDisplayInfo {
-        .world = ecsWorld,
-        .platform = platform,
-      });
-      // plugin provided functions
-      for (auto const guiFn : guiEditorFns) {
-        guiFn(puleAllocateDefault(), platform);
-      }
-      // render out
-      puleImguiRender(renderGraph);
+      // // pulchritude engine display
+      // puleImguiEngineDisplay(PuleImguiEngineDisplayInfo {
+      //   .world = ecsWorld,
+      //   .platform = platform,
+      // });
+      // // plugin provided functions
+      // for (auto const guiFn : guiEditorFns) {
+      //   guiFn(puleAllocateDefault(), platform);
+      // }
+      // // render out
+      // puleImguiRender(renderGraph);
     } else {
       // update components
       for (size_t it = 0; it < componentUpdateablePlugins.size(); ++ it) {
@@ -798,6 +770,7 @@ int32_t main(
       // to one per scene? And only one scene is active at a time?
       // You can still have recursive render graphs since they can
       // be merged together.
+      puleLogDev("[PuleApplication] submitting render graph: %p", renderGraph.id);
       puleRenderGraphFrameSubmit(
         swapchainAvailableSemaphore,
         renderGraph
@@ -849,7 +822,7 @@ int32_t main(
 
   if (platform.id == 0) {
     pulePlatformDestroy(platform);
-    puleEcsWorldDestroy(ecsWorld);
+    puleGfxDebugShutdown();
   }
 
   pulePluginsFree();
@@ -858,5 +831,3 @@ int32_t main(
   exit(0);
   return 0;
 }
-
-// jryy znlor guvf pbhyq or gur raqvat jvgu abguvat yrsg bs lbh

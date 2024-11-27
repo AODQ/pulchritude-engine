@@ -7,9 +7,12 @@
   compileError;
 };
 
+@entity PuleELEngine;
+
 @entity PuleELModule;
 
 @struct PuleELModuleCreateInfo {
+  @field engine : PuleELEngine;
   @field moduleIR : PuleStringView;
   @field name : PuleStringView;
   @field optimize : bool = true;
@@ -17,17 +20,17 @@
   @field error : PuleError ptr;
 };
 
-@fn puleELModuleCreate(ci : PuleELModuleCreateInfo) PuleELModule;
+@fn puleELModuleCreate(
+  ci : PuleELModuleCreateInfo,
+) PuleELModule;
 @fn puleELModuleDestroy(module : PuleELModule);
 
-@entity PuleELEngine;
 
 @struct PuleELEngineCreateInfo {
   @field insertEngineSymbols : bool = true;
 };
 @fn puleELEngineCreate(ci : PuleELEngineCreateInfo) PuleELEngine;
 @fn puleELEngineDestroy(engine : PuleELEngine);
-@fn puleELEngineAddModule(engine : PuleELEngine, module : PuleELModule);
 
 @entity PuleELFence;
 @fn puleELFenceWait(fence : PuleELFence, timeout : PuleMicrosecond) bool;

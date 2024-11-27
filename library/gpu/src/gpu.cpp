@@ -26,6 +26,72 @@ namespace {
 }
 
 #if VK_VALIDATION_ENABLED
+
+void prettyPrintMessage(
+  char const * const message
+) {
+  // e.g.
+  /*
+    [ERR] Validation Error: [ VUID-vkCmdDraw-None-08600 ] Object 0: handle =
+   0x7cd292000000004f, type = VK_OBJECT_TYPE_PIPELINE; | MessageID = 0x4768cf39
+   | vkCmdDraw():  ... .
+  */
+  // becomes
+  /*
+    [ERR] vkCmdDraw():
+      The VkPipeline ... .
+  */
+  std::string prettyMessageHeader;
+  std::string prettyMessage = message;
+  // find the second pipe
+  auto pipePos = prettyMessage.find('|');
+  if (pipePos != std::string::npos) {
+    pipePos = prettyMessage.find('|', pipePos + 1);
+    if (pipePos != std::string::npos) {
+      prettyMessage = prettyMessage.substr(pipePos + 1);
+    }
+  }
+  // now the header is up to the :
+  auto colonPos = prettyMessage.find(':');
+  if (colonPos != std::string::npos) {
+    prettyMessageHeader = prettyMessage.substr(0, colonPos);
+    prettyMessage = prettyMessage.substr(colonPos + 1);
+  }
+  // delete the first space
+  while (prettyMessage.front() == ' ') {
+    prettyMessage.erase(0, 1);
+  }
+  // wrap the message to be 140 columns
+  size_t lastSpace = 0;
+  size_t columnCount = 0;
+  for (size_t it = 0; it < prettyMessage.size(); ++ it) {
+    if (columnCount >= 140 && lastSpace != 0) {
+      prettyMessage.replace(lastSpace, 1, "\n\t  ");
+      columnCount = 0;
+      lastSpace = 0;
+    }
+    if (prettyMessage[it] == ' ') {
+      lastSpace = it;
+    }
+    ++ columnCount;
+  }
+  // now split '.' into double newlines
+  for (size_t it = 0; it < prettyMessage.size(); ++ it) {
+    if (prettyMessage[it] == '.') {
+      if (prettyMessage.size() > it+1 && prettyMessage[it+1] == ' ') {
+        prettyMessage.erase(it+1, 1);
+        prettyMessage.replace(it, 1, ".\n\t");
+        ++ it;
+      }
+    }
+  }
+  // remove trailing newline
+  while (prettyMessage.back() == '\n') {
+    prettyMessage.pop_back();
+  }
+  puleLogError("%s\n\t%s", prettyMessageHeader.c_str(), prettyMessage.c_str());
+}
+
 extern "C" {
 VkBool32 debugCallbackVk(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT const severity,
@@ -34,10 +100,10 @@ VkBool32 debugCallbackVk(
   [[maybe_unused]] void * const userData
 ) {
   if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    puleLogWarn("%s", callbackData->pMessage);
+    prettyPrintMessage(callbackData->pMessage);
   }
   else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-    puleLogError("%s", callbackData->pMessage);
+    prettyPrintMessage(callbackData->pMessage);
   }
   return VK_FALSE;
 }
@@ -309,11 +375,6 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
       .pNext = nullptr,
       .features = features,
     };
-    auto featuresSync2 = VkPhysicalDeviceSynchronization2FeaturesKHR {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR,
-      .pNext = nullptr,
-      .synchronization2 = true,
-    };
     auto featuresDynamicRendering = VkPhysicalDeviceDynamicRenderingFeatures {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
       .pNext = nullptr,
@@ -350,7 +411,6 @@ util::Device createDevice(VkInstance const instance, PuleError * const error) {
     util::chainPNextList(
       {
         &featuresRequest, &features8Bit,
-        &featuresSync2,
         &featuresDynamicRendering,
 #if !defined(__APPLE__)
         &featuresImageAtomicInt64, &featuresAtomicInt64,

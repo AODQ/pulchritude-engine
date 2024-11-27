@@ -116,6 +116,7 @@ void pint::debugGpuDataInitializeLine() {
   };
   layoutDescriptorSet.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(pint::LineInfo),
+    .inputRate = PuleGpuPipelineAttributeInputRate_perVertex,
   };
 
   auto pipelineInfo = (
@@ -194,6 +195,7 @@ void pint::debugGpuDataInitializeTriangle() {
   };
   layoutDescriptorSet.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(pint::TriangleAttribute),
+    .inputRate = PuleGpuPipelineAttributeInputRate_perVertex,
   };
 
   auto pipelineInfo = (
@@ -371,6 +373,8 @@ void pint::renderTriangles(
       .dispatchRender = {
         .vertexOffset = 0,
         .numVertices = countAttribute,
+        .instanceOffset = 0u,
+        .numInstances = 1,
       }
     }
   );

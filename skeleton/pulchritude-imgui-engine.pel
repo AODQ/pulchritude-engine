@@ -1,4 +1,4 @@
-@include `ecs`;
+@include `pecs`;
 @include `platform`;
 
 @struct PuleImguiEngineDisplayInfo {
@@ -6,7 +6,7 @@
   presents engine internal/debug information through the gui this can be used
   in conjunction with an editor and the real application
 `
-  @field world : PuleEcsWorld;
+  @field world : PulePecsScene;
   @field platform : PulePlatform;
 };
 

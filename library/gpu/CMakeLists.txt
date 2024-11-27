@@ -18,7 +18,6 @@ add_subdirectory(
 # -- library
 add_library(pulchritude-gpu SHARED)
 
-
 target_include_directories(
   pulchritude-gpu
   PUBLIC "../include/"

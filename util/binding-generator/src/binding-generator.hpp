@@ -46,6 +46,7 @@ enum struct BindingTypeType {
 struct BindingType {
   std::string name;
   std::vector<BindingType> fnptrParams; // first param is return type
+  std::vector<BindingType> templateParams;
   std::vector<BindingTypeModifier> modifiers;
   BindingTypeType type;
 };
@@ -103,6 +104,7 @@ struct BindingEntity {
 
 struct BindingFile {
   std::vector<BindingStruct> structs;
+  std::vector<BindingStruct> serializedEntities;
   std::vector<BindingEnum> enums;
   std::vector<BindingAlias> aliases;
   std::vector<BindingFunc> funcs;
@@ -127,6 +129,7 @@ void generateBindingFileLua(GenerateBindingInfo const &);
 void generateBindingFileZig(GenerateBindingInfo const &);
 void generateBindingFilePy (GenerateBindingInfo const &);
 void generateBindingFilePds(GenerateBindingInfo const &);
+void generateBindingFileSerializer(GenerateBindingInfo const &);
 
 // used btwn c-based generators
 std::string formatTypeC(

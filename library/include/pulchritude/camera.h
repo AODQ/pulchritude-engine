@@ -19,9 +19,16 @@ typedef struct PuleCameraSet { uint64_t id; } PuleCameraSet;
 typedef struct PuleCameraController { uint64_t id; } PuleCameraController;
 
 // structs
+struct PuleCameraOrthographic;
 struct PuleCameraPerspective;
 struct PuleCameraSetArray;
 
+typedef struct PuleCameraOrthographic {
+  float nearCutoff;
+  float farCutoff;
+  PuleF32v2 topleft;
+  PuleF32v2 widthheight;
+} PuleCameraOrthographic;
 typedef struct PuleCameraPerspective {
   float nearCutoff;
   float farCutoff;
@@ -38,7 +45,10 @@ PULE_exportFn PuleCamera puleCameraCreate();
 PULE_exportFn void puleCameraDestroy(PuleCamera camera);
 PULE_exportFn PuleF32m44 puleCameraView(PuleCamera camera);
 PULE_exportFn PuleF32m44 puleCameraProj(PuleCamera camera);
+PULE_exportFn void puleCameraViewport(PuleCamera camera, float width, float height);
 PULE_exportFn void puleCameraLookAt(PuleCamera camera, PuleF32v3 origin, PuleF32v3 normalizedTarget, PuleF32v3 up);
+PULE_exportFn PuleCameraOrthographic puleCameraOrthographic(PuleCamera camera);
+PULE_exportFn void puleCameraOrthographicSet(PuleCamera camera, PuleCameraOrthographic orthographic);
 PULE_exportFn PuleCameraPerspective puleCameraPerspective(PuleCamera camera);
 PULE_exportFn void puleCameraPerspectiveSet(PuleCamera camera, PuleCameraPerspective perspective);
 PULE_exportFn PuleCameraSet puleCameraSetCreate(PuleStringView label);

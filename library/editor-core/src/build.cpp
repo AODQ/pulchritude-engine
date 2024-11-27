@@ -315,6 +315,47 @@ static void generatePluginCmakefile(PuleDsValue const pluginValue) {
     )
   );
 
+  // replace third-party include directories
+  std::string thirdPartyIncludeDirs = "";
+  PuleDsValueArray const thirdPartyInclSubdirs = (
+    puleDsMemberAsArray(pluginValue, "third-party-include")
+  );
+  for (size_t subdirIt = 0; subdirIt<thirdPartyInclSubdirs.length; ++ subdirIt){
+    thirdPartyIncludeDirs += (
+        std::string("${CMAKE_SOURCE_DIR}/src/")
+      + puleDsAsString(thirdPartyInclSubdirs.values[subdirIt]).contents
+      + std::string("\n")
+    );
+  }
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents,
+      std::regex("%third-party-include-dirs"),
+      thirdPartyIncludeDirs
+    )
+  );
+
+  // replace third-party subdirectories
+  std::string thirdPartySubdirectories = "# third party subdirs\n";
+  PuleDsValueArray const thirdPartySubdirs = (
+    puleDsMemberAsArray(pluginValue, "third-party")
+  );
+  for (size_t subdirIt = 0; subdirIt < thirdPartySubdirs.length; ++ subdirIt) {
+    thirdPartySubdirectories += (
+        std::string("add_subdirectory(")
+      + "${CMAKE_SOURCE_DIR}/src/"
+      + puleDsAsString(thirdPartySubdirs.values[subdirIt]).contents
+      + std::string(")\n")
+    );
+  }
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents,
+      std::regex("%add-third-party-subdirs"),
+      thirdPartySubdirectories
+    )
+  );
+
   // replace linked libraries
   std::string linkedLibs = "";
   PuleDsValueArray const linkedLibsArray = (
@@ -387,6 +428,26 @@ static void generateLibraryCmakefile(
     )
   );
 
+  // replace third-party subdirectories
+  std::string thirdPartySubdirectories = "# third party subdirs\n";
+  PuleDsValueArray const thirdPartySubdirs = (
+    puleDsMemberAsArray(libValue, "third-party")
+  );
+  for (size_t subdirIt = 0; subdirIt < thirdPartySubdirs.length; ++ subdirIt) {
+    thirdPartySubdirectories += (
+        std::string("add_subdirectory(")
+      + puleDsAsString(thirdPartySubdirs.values[subdirIt]).contents
+      + std::string(")\n")
+    );
+  }
+  cmakeContents = (
+    std::regex_replace(
+      cmakeContents,
+      std::regex("%add-third-party-subdirs"),
+      thirdPartySubdirectories
+    )
+  );
+
   // replace linked-libraries
   std::string linkedLibs = "";
   PuleDsValueArray const linkedLibsArray = (
@@ -400,13 +461,13 @@ static void generateLibraryCmakefile(
       linkedLibs += "\n    ";
     }
   }
-  cmakeContents = (
-    std::regex_replace(
-      cmakeContents,
-      std::regex("%linked-libraries"),
-      linkedLibs
-    )
-  );
+  // cmakeContents = (
+  //   std::regex_replace(
+  //     cmakeContents,
+  //     std::regex("%linked-libraries"),
+  //     linkedLibs
+  //   )
+  // );
   dumpToFile(
     (
       std::string("build-husk/")
@@ -522,6 +583,15 @@ static bool generateBuildHusk() {
       "build-husk/imported-libs"_psv
     );
   }
+
+  if (!puleFilesystemPathExists("build-husk/src"_psv)) {
+    puleFileDirectoryCreate("build-husk/src"_psv);
+  }
+
+  puleFilesystemSymlinkCreate(
+    "../../third-party"_psv,
+    "build-husk/src/third-party"_psv
+  );
 
   PuleDsValue const buildInfoValue = (
     puleDsObjectMember(projectValue, "build-info")
@@ -653,11 +723,12 @@ static bool generateBuildHusk() {
 // a first party plugin, at least for now. However to issue CMake + build
 // commands from just C there aren't many other options
 std::string systemExecute(char const * const command, bool printout=false) {
-  puleLogDebug("Executing command: %s\n", command);
+  puleLog("Executing command: %s\n", command);
   std::array<char, 2> buffer;
   std::string result = "";
   FILE * pipe = popen(command, "r");
   if (!pipe) {
+    puleLog("failed to run command");
     return "fail";
   }
   while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
@@ -702,7 +773,6 @@ bool runPuleDataProcessing(
   PuleError * const error
 ) {
   // refresh all data before building
-  puleLog("--- Refreshing all pule data");
   if (!refreshEcsMainComponentList(allocator, error)) {
     return false;
   }
@@ -723,7 +793,7 @@ bool runBuild(
     systemExecute(
       "cd build-husk/build-install;"
       " cmake -G \"Ninja\""
-      " -DCMAKE_BUILD_TYPE=Debug" // TODO make this configurable
+      " -DCMAKE_BUILD_TYPE=RelWithDebInfo" // TODO make this configurable
       " -DCMAKE_INSTALL_PREFIX=../install"
       " -DCMAKE_c++_COMPILER=/usr/bin/clang++"
       " -DCMAKE_c_COMPILER=/usr/bin/clang"
@@ -731,7 +801,7 @@ bool runBuild(
       false
     )
   );
-  //printf("-----cmake:\n%s\n----", cmakeResult.c_str());
+  puleLog("-----cmake:\n%s\n----", cmakeResult.c_str());
   for (
     auto const & failStr :
     std::vector<std::string> { "FAIL", "failed", "CMake Error" }

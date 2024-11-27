@@ -4,7 +4,7 @@ target_include_directories(pulchritude-time PUBLIC "../include/")
 target_sources(
   pulchritude-time
   PRIVATE
-    src/time.c
+    src/time.cpp
 )
 
 set_target_properties(

@@ -3,7 +3,7 @@
 #include "core.hpp"
 
 #include "imgui-engine.h"
-#include "ecs.hpp"
+#include "pecs.hpp"
 #include "platform.hpp"
 
 namespace pule {

@@ -24,3 +24,5 @@ using Microsecond = PuleMicrosecond;
 namespace pule {
 using Millisecond = PuleMillisecond;
 }
+PuleMillisecond operator"" _pms(unsigned long long const ms);
+

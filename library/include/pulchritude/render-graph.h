@@ -157,7 +157,7 @@ PULE_exportFn void puleRenderGraph_node_resourceAssign(PuleRenderGraphNode node,
 PULE_exportFn PuleGpuCommandList puleRenderGraph_commandList(PuleRenderGraphNode node);
 PULE_exportFn PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(PuleRenderGraphNode node);
 PULE_exportFn void puleRenderGraphNode_renderPassSet(PuleRenderGraphNode node, PuleRenderGraphNode_RenderPass renderPass);
-PULE_exportFn void puleRenderGraphNode_renderPassBegin(PuleRenderGraphNode node, PuleGpuCommandListRecorder recorder);
+PULE_exportFn void puleRenderGraphNode_renderPassBegin(PuleRenderGraphNode node, PuleGpuCommandListRecorder recorder, PuleF32v4 clearColor, float clearDepth);
 PULE_exportFn void puleRenderGraphNode_renderPassEnd(PuleRenderGraphNode node, PuleGpuCommandListRecorder recorder);
 PULE_exportFn void puleRenderGraphNodeRelationSet(PuleRenderGraphNode nodePri, PuleRenderGraphNodeRelation relation, PuleRenderGraphNode nodeSec);
 /* 

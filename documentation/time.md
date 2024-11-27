@@ -17,7 +17,7 @@ struct {
 ### PuleMicrosecond
 ```c
 struct {
-  valueMicro : int64_t;
+  us : int64_t;
 };
 ```
 ### PuleMillisecond
@@ -43,4 +43,10 @@ puleSleepMicrosecond(
 ### puleTimestampNow
 ```c
 puleTimestampNow() PuleTimestamp;
+```
+### puleTimeMicroToMilli
+```c
+puleTimeMicroToMilli(
+  us : PuleMicrosecond
+) PuleMillisecond;
 ```

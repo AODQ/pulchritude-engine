@@ -119,31 +119,37 @@ void pulePhysx2DBodyAttachShape(
   PulePhysx2DShape const shape,
   PulePhysx2DBodyAttachShapeCreateInfo const createInfo
 ) {
-//  b2FixtureDef fixtureDefinition; // userData cons prevents struct aggregate init
-//  b2PolygonShape allocPolygon;
-//  switch (shape.type) {
-//    case PulePhysx2DShapeType_convexPolygon:
-//      fixtureDefinition.shape = &allocPolygon;
-//      b2Vec2 vertices[8];
-//      for (size_t i = 0; i < shape.convexPolygon.vertexCount; ++ i) {
-//        vertices[i] = in::vec2(shape.convexPolygon.origins[i]);
-//      }
-//      allocPolygon.Set(vertices, shape.convexPolygon.vertexCount);
-//    break;
-//  }
-//  fixtureDefinition.friction = createInfo.friction;
-//  fixtureDefinition.density = createInfo.density;
-//  fixtureDefinition.restitution = createInfo.restitution;
-//  fixtureDefinition.restitutionThreshold = createInfo.restitutionThreshold;
-//  fixtureDefinition.isSensor = createInfo.isSensor;
-//  fixtureDefinition.userData.pointer = (
-//    reinterpret_cast<uintptr_t>(createInfo.userData)
-//  );
-//  fixtureDefinition.filter.categoryBits = createInfo.collisionCategoryBits;
-//  fixtureDefinition.filter.maskBits = createInfo.collisionMaskBits;
-//  fixtureDefinition.filter.groupIndex = createInfo.collisionGroup;
-//
-//  reinterpret_cast<b2Body *>(body.id)->CreateFixture(&fixtureDefinition);
+  b2FixtureDef fixtureDefinition; // userData cons prevents struct aggregate init
+  b2PolygonShape allocPolygon;
+  b2CircleShape allocCircle;
+  switch (shape.type) {
+    case PulePhysx2DShapeType_convexPolygon: {
+      fixtureDefinition.shape = &allocPolygon;
+      b2Vec2 vertices[8];
+      for (size_t i = 0; i < shape.shape.convexPolygon.vertexCount; ++ i) {
+        vertices[i] = in::vec2(shape.shape.convexPolygon.origins[i]);
+      }
+      allocPolygon.Set(vertices, shape.shape.convexPolygon.vertexCount);
+    } break;
+    case PulePhysx2DShapeType_circle:
+      fixtureDefinition.shape = &allocCircle;
+      allocCircle.m_p = in::vec2(shape.shape.circle.origin);
+      allocCircle.m_radius = shape.shape.circle.radius;
+    break;
+  }
+  fixtureDefinition.friction = createInfo.friction;
+  fixtureDefinition.density = createInfo.density;
+  fixtureDefinition.restitution = createInfo.restitution;
+  fixtureDefinition.restitutionThreshold = createInfo.restitutionThreshold;
+  fixtureDefinition.isSensor = createInfo.isSensor;
+  fixtureDefinition.userData.pointer = (
+    reinterpret_cast<uintptr_t>(createInfo.userData)
+  );
+  fixtureDefinition.filter.categoryBits = createInfo.collisionCategoryBits;
+  fixtureDefinition.filter.maskBits = createInfo.collisionMaskBits;
+  fixtureDefinition.filter.groupIndex = createInfo.collisionGroup;
+
+  reinterpret_cast<b2Body *>(body.id)->CreateFixture(&fixtureDefinition);
 }
 
 PulePhysx2DShape pulePhysx2DShapeCreateConvexPolygonAsBox(

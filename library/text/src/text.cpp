@@ -356,6 +356,8 @@ void puleTextRender(
             .action = PuleGpuAction_dispatchRender,
             .vertexOffset = 0u,
             .numVertices = 6u,
+            .instanceOffset = 0u,
+            .numInstances = 1u,
           },
         }
       );

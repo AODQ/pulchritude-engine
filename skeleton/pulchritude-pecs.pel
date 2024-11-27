@@ -1,0 +1,171 @@
+@include `data-serializer`;
+@include `math`;
+@include `time`;
+
+@entity PulePecsScene;
+@entity PulePecsEntity;
+@entity PulePecsComponent;
+@entity PulePecsSystem;
+
+@fn pulePecsSceneCreate() PulePecsScene;
+@fn pulePecsSceneDestroy(scene : PulePecsScene);
+@fn pulePecsSceneAdvance(scene : PulePecsScene, deltaTime : PuleMicrosecond);
+
+@struct PulePecsComponentCreateInfo {
+  @field label : PuleStringView;
+  @field byteLength : size_t;
+  @field byteAlignment : size_t;
+  @field serializeComponentCallback : @fnptr(
+    void,
+    void const ptr,
+    PuleDsValue
+  );
+  @field deserializeComponentCallback : @fnptr(
+    void,
+    void ptr,
+    PuleDsValue
+  );
+  @field imguiOverviewCallbackOptional : @fnptr(void) = nullptr;
+  @field imguiEntityCallbackOptional : @fnptr(
+    void,
+    PulePecsScene,
+    PulePecsEntity,
+    PulePecsComponent,
+  ) = nullptr;
+};
+@fn pulePecsComponentCreate(
+  scene : PulePecsScene,
+  createInfo : PulePecsComponentCreateInfo,
+) PulePecsComponent;
+@fn pulePecsComponentFetch(
+  scene : PulePecsScene,
+  label : PuleStringView
+) PulePecsComponent;
+
+@enum PulePecsSystemCallbackFrequency {
+  vsync;
+  unlimited;
+  fixed;
+};
+@struct PulePecsSystemCreateInfo {
+  @field scene : PulePecsScene;
+  @field label : PuleStringView;
+  @field components : PulePecsComponent const ptr;
+  @field componentCount : size_t;
+  @field callbackFrequency : PulePecsSystemCallbackFrequency;
+  @field callbackFrequencyFixed : PuleMicrosecond #`if frequency is fixed`;
+  @field userdata : void ptr;
+
+  @field callback : @fnptr(
+    int32_t,
+    PulePecsScene,
+    PulePecsSystem,
+    PuleMicrosecond,
+    void ptr,
+  );
+};
+
+@fn pulePecsSystemCreate(
+  createInfo : PulePecsSystemCreateInfo,
+) PulePecsSystem;
+@fn pulePecsSystemDestroy(scene : PulePecsScene, system : PulePecsSystem,);
+@fn pulePecsSystemAdvance(
+  scene : PulePecsScene, system : PulePecsSystem, deltaTime : PuleMicrosecond
+);
+
+
+@entity PulePecsQueryEntity;
+@struct PulePecsQueryEntityCreateInfo {
+  @field scene : PulePecsScene;
+  @field components : PulePecsComponent const ptr;
+  @field componentCount : size_t;
+};
+@fn pulePecsQueryEntityCreate(
+  createInfo : PulePecsQueryEntityCreateInfo,
+) PulePecsQueryEntity;
+@fn pulePecsQueryEntityDestroy(
+  scene : PulePecsScene, query : PulePecsQueryEntity,
+);
+
+@entity PulePecsQueryEntityIterator;
+@fn pulePecsQueryEntityIteratorCreate(
+  scene : PulePecsScene,
+  query : PulePecsQueryEntity,
+) PulePecsQueryEntityIterator;
+@fn pulePecsQueryEntityIteratorDestroy(
+  scene : PulePecsScene,
+  iterator : PulePecsQueryEntityIterator,
+);
+@fn pulePecsQueryEntityIteratorFront(
+  scene : PulePecsScene,
+  iterator : PulePecsQueryEntityIterator,
+) PulePecsEntity;
+@fn pulePecsQueryEntityIteratorPop(
+  scene : PulePecsScene,
+  iterator : PulePecsQueryEntityIterator,
+);
+@fn pulePecsQueryEntityIteratorIsEmpty(
+  scene : PulePecsScene,
+  iterator : PulePecsQueryEntityIterator,
+) bool;
+
+@entity PulePecsEntityTemplate;
+
+@struct PulePecsEntityTemplateCreateInfo {
+  @field scene : PulePecsScene;
+  @field label : PuleStringView;
+  @field components : PulePecsComponent const ptr;
+  @field componentCount : size_t;
+};
+@fn pulePecsEntityTemplateCreate(
+  createInfo : PulePecsEntityTemplateCreateInfo,
+) PulePecsEntityTemplate;
+@fn pulePecsEntityTemplateDestroy(
+  scene : PulePecsScene,
+  entityTemplate : PulePecsEntityTemplate,
+);
+
+@struct PulePecsEntityCreateInfo {
+  @field scene : PulePecsScene;
+  @field label : PuleStringView;
+  @field entityTemplate : PulePecsEntityTemplate;
+};
+@fn pulePecsEntityCreate(
+  createInfo : PulePecsEntityCreateInfo
+) PulePecsEntity #`
+  Entities have a relatively large overhead, so it's best to not use them
+  for things that have a large number of instances, e.g. particles. A particle
+  system and all of its particles should be implemented as a single entity to
+  avoid overhead.
+
+`;
+@fn pulePecsEntityDestroy(scene : PulePecsScene, entity : PulePecsEntity,);
+@fn pulePecsEntityLabel(
+  scene : PulePecsScene, entity : PulePecsEntity
+) PuleStringView;
+@fn pulePecsEntityComponentData(
+  scene : PulePecsScene, entity : PulePecsEntity, component : PulePecsComponent
+) void ptr;
+
+@serialized_struct PulePecsComponent_Transform2D {
+  @field origin : PuleF32v2;
+  @field rotation : float;
+  @field scale : PuleF32v2;
+};
+@fn pulePecsComponentEngine_Transform2D(scene : PulePecsScene) PulePecsComponent;
+
+@serialized_struct PulePecsComponent_Camera {
+  @field fov : float;
+  @field near : float;
+  @field far : float;
+};
+@fn pulePecsComponentEngine_Camera(scene : PulePecsScene) PulePecsComponent;
+
+@include `asset-sprite`;
+
+@struct PulePecsComponent_2dSprite {
+  @field spriteInstance : PuleAssetSpriteInstance;
+};
+@fn pulePecsComponentEngine_2dSprite(scene : PulePecsScene) PulePecsComponent #`
+  2D sprite component
+`;

@@ -4,6 +4,7 @@
 
 #include "core.h"
 #include <utility>
+#include <cstdio>
 #ifndef puleScopeExit
 #define _puleScopeExitConcatImpl(x, y) x##y
 #define _puleScopeExitConcat(x, y) _puleScopeExitConcatImpl(x, y)
@@ -31,6 +32,9 @@ struct ScopeGuard {
 }
 
 #include <unordered_map>
+#ifdef __unix__
+#include <execinfo.h>
+#endif
 namespace pule {
 // TODO replace unordered_map with own implementation that uses allocator
 // though probably safe to use unordered_map if passed in default allocator
@@ -67,7 +71,7 @@ template <typename T, typename Handle=uint64_t> struct ResourceContainer {
   auto begin() { return this->data.begin(); }
   auto end() { return this->data.end(); }
 
-  TUnderlyingValue * at(Handle const handle) {
+  TUnderlyingValue * fetch(Handle const handle) {
     uint64_t uHandle;
     if constexpr (std::is_same<Handle, uint64_t>::value) {
       uHandle = handle;
@@ -80,6 +84,36 @@ template <typename T, typename Handle=uint64_t> struct ResourceContainer {
     } else {
       return ((ptr == this->data.end()) ? nullptr : &ptr->second);
     }
+  }
+
+  TUnderlyingValue * at(Handle const handle) {
+    TUnderlyingValue * ptr = this->fetch(handle);
+    if (ptr == nullptr) {
+      printf("failed to find resource with handle %p\n", handle);
+#if defined(__unix__) // TODO apple
+    void * callstack[128];
+    int32_t const numFrames = backtrace(callstack, 128);
+    char ** const symbols = backtrace_symbols(callstack, numFrames);
+    printf("\t");
+    if (symbols != NULL) {
+      for (int32_t i = 1; i < numFrames; ++ i) { // skip log function
+        char * const parenStr = strchr(symbols[i], '(');
+        char * const plusStr = strchr(symbols[i], '+');
+        if ((int32_t)(plusStr - parenStr) > 1) {
+          if (strncmp(parenStr+1, "main", 4) == 0) { break; }
+          printf(
+            " -> %.*s",
+            (int32_t)(plusStr - parenStr-1), parenStr+1
+          );
+        }
+      }
+      free(symbols);
+    }
+    printf("\n\n");
+#endif
+      abort();
+    }
+    return ptr;
   }
 
   TUnderlyingValue const * at(Handle const handle) const {

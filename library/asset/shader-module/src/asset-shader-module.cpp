@@ -49,7 +49,7 @@ void shaderWatchFileUpdatedCallback(
   [[maybe_unused]] PuleStringView const filename,
   void * const userdata
 ) {
-  puleSleepMicrosecond({.valueMicro=100,});
+  puleSleepMicrosecond({.us=100,});
   uint64_t const assetHandle = reinterpret_cast<uint64_t>(userdata);
   AssetShaderModule & assetShaderModule = ::shaderModules.at(assetHandle);
   // deallocate/destroy previous instance

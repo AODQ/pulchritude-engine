@@ -18,8 +18,8 @@ typedef enum {
 const uint32_t PuleErrorELSize = 2;
 
 // entities
-typedef struct PuleELModule { uint64_t id; } PuleELModule;
 typedef struct PuleELEngine { uint64_t id; } PuleELEngine;
+typedef struct PuleELModule { uint64_t id; } PuleELModule;
 typedef struct PuleELFence { uint64_t id; } PuleELFence;
 typedef struct PuleELQueue { uint64_t id; } PuleELQueue;
 
@@ -28,6 +28,7 @@ struct PuleELModuleCreateInfo;
 struct PuleELEngineCreateInfo;
 
 typedef struct PuleELModuleCreateInfo {
+  PuleELEngine engine;
   PuleStringView moduleIR;
   PuleStringView name;
   bool optimize PULE_defaultField(false);
@@ -43,7 +44,6 @@ PULE_exportFn PuleELModule puleELModuleCreate(PuleELModuleCreateInfo ci);
 PULE_exportFn void puleELModuleDestroy(PuleELModule module);
 PULE_exportFn PuleELEngine puleELEngineCreate(PuleELEngineCreateInfo ci);
 PULE_exportFn void puleELEngineDestroy(PuleELEngine engine);
-PULE_exportFn void puleELEngineAddModule(PuleELEngine engine, PuleELModule module);
 PULE_exportFn bool puleELFenceWait(PuleELFence fence, PuleMicrosecond timeout);
 PULE_exportFn void puleELFenceDestroy(PuleELFence fence);
 PULE_exportFn PuleELQueue puleELQueueCreate(PuleELEngine engine);

@@ -11,9 +11,23 @@
 @fn puleCameraView(camera : PuleCamera) PuleF32m44;
 @fn puleCameraProj(camera : PuleCamera) PuleF32m44;
 
+@fn puleCameraViewport(camera : PuleCamera, width : float, height : float);
+
 @fn puleCameraLookAt(
   camera : PuleCamera,
   origin : PuleF32v3, normalizedTarget : PuleF32v3, up : PuleF32v3
+) void;
+
+@struct PuleCameraOrthographic {
+  @field nearCutoff : float;
+  @field farCutoff : float;
+  @field topleft : PuleF32v2;
+  @field widthheight : PuleF32v2;
+};
+
+@fn puleCameraOrthographic(camera : PuleCamera) PuleCameraOrthographic;
+@fn puleCameraOrthographicSet(
+  camera : PuleCamera, orthographic : PuleCameraOrthographic
 ) void;
 
 @struct PuleCameraPerspective {

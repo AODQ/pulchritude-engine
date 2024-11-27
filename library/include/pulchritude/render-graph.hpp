@@ -84,8 +84,8 @@ struct RenderGraphNode {
   inline void _renderPassSet(PuleRenderGraphNode_RenderPass renderPass) {
     return puleRenderGraphNode_renderPassSet(this->_handle, renderPass);
   }
-  inline void _renderPassBegin(PuleGpuCommandListRecorder recorder) {
-    return puleRenderGraphNode_renderPassBegin(this->_handle, recorder);
+  inline void _renderPassBegin(PuleGpuCommandListRecorder recorder, PuleF32v4 clearColor, float clearDepth) {
+    return puleRenderGraphNode_renderPassBegin(this->_handle, recorder, clearColor, clearDepth);
   }
   inline void _renderPassEnd(PuleGpuCommandListRecorder recorder) {
     return puleRenderGraphNode_renderPassEnd(this->_handle, recorder);
@@ -113,8 +113,8 @@ struct RenderGraphNode {
   inline void _renderPassSet(pule::RenderGraphNode self, PuleRenderGraphNode_RenderPass renderPass) {
     return puleRenderGraphNode_renderPassSet(self._handle, renderPass);
   }
-  inline void _renderPassBegin(pule::RenderGraphNode self, PuleGpuCommandListRecorder recorder) {
-    return puleRenderGraphNode_renderPassBegin(self._handle, recorder);
+  inline void _renderPassBegin(pule::RenderGraphNode self, PuleGpuCommandListRecorder recorder, PuleF32v4 clearColor, float clearDepth) {
+    return puleRenderGraphNode_renderPassBegin(self._handle, recorder, clearColor, clearDepth);
   }
   inline void _renderPassEnd(pule::RenderGraphNode self, PuleGpuCommandListRecorder recorder) {
     return puleRenderGraphNode_renderPassEnd(self._handle, recorder);

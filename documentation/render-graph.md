@@ -266,7 +266,9 @@ puleRenderGraphNode_renderPassSet(
 ```c
 puleRenderGraphNode_renderPassBegin(
   node : PuleRenderGraphNode,
-  recorder : PuleGpuCommandListRecorder
+  recorder : PuleGpuCommandListRecorder,
+  clearColor : PuleF32v4,
+  clearDepth : float
 ) void;
 ```
 ### puleRenderGraphNode_renderPassEnd

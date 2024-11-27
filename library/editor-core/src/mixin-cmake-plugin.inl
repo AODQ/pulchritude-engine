@@ -1,17 +1,23 @@
 std::string cmakeContents = PULE_multilineString(
 add_library(%plugin-name SHARED)                                              \n
                                                                               \n
+set(CMAKE_CXX_FLAGS "-march=x86-64 -rdynamic -fPIC -std=c++20")               \n
+                                                                              \n
 target_include_directories(                                                   \n
   %plugin-name                                                                \n
   PRIVATE                                                                     \n
     "${CMAKE_SOURCE_DIR}/engine-include/"                                     \n
     "${CMAKE_SOURCE_DIR}/library/include/"                                    \n
+    %third-party-include-dirs                                                 \n
 )                                                                             \n
                                                                               \n
 target_link_directories(                                                      \n
   %plugin-name                                                                \n
   PUBLIC "${CMAKE_SOURCE_DIR}/engine-include/../plugins"                      \n
 )                                                                             \n
+                                                                              \n
+%add-third-party-subdirs                                                      \n
+                                                                              \n
                                                                               \n
 target_sources(                                                               \n
   %plugin-name                                                                \n

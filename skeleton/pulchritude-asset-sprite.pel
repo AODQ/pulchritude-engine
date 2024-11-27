@@ -1,0 +1,187 @@
+@include `array`;
+@include `asset-image`;
+@include `core`;
+@include `data-serializer`;
+@include `gpu`;
+@include `math`;
+@include `time`;
+
+@entity PuleAssetSpritesheet;
+@entity PuleAssetSprite;
+@entity PuleAssetSpriteLibrary;
+@entity PuleAssetSpriteTilemap;
+
+@struct PuleAssetSpriteTilemapCreateInfo {
+  @field label : PuleStringView;
+  @field spritesheet : PuleAssetSpritesheet;
+  @field tileTexelDimensions : PuleI32v2;
+  @field tileCount : PuleI32v2;
+};
+
+@fn puleAssetSpriteTilemapCreate(
+  ci : PuleAssetSpriteTilemapCreateInfo,
+) PuleAssetSpriteTilemap;
+@fn puleAssetSpriteTilemapDestroy(tm : PuleAssetSpriteTilemap);
+
+@fn puleAssetSpriteTilemapSetTile(
+  tilemap : PuleAssetSpriteTilemap,
+  origin : PuleI32v2,
+  tileIndex : int64_t,
+  flipX : bool,
+  flipY : bool,
+) #` tileIndex can be -1 to indicate no sprite `;
+
+@struct PuleAssetSpritesheetCreateInfo {
+  @field label : PuleStringView;
+  @field image : PuleAssetImage;
+  @field imageGpu : PuleGpuImage #`leave 0 to create this lazily, TODO {0}`;
+};
+
+@fn puleAssetSpritesheetCreate(
+  info : PuleAssetSpritesheetCreateInfo
+) PuleAssetSpritesheet;
+@fn puleAssetSpritesheetDestroy(
+  spritesheet : PuleAssetSpritesheet
+);
+
+@struct PuleAssetSpriteCreateInfo {
+  @field label : PuleStringView;
+  @field spritesheet : PuleAssetSpritesheet;
+  @field texcoordUpperLeft : PuleI32v2;
+  @field texelDims : PuleI32v2;
+};
+
+@fn puleAssetSpriteCreate(
+  info : PuleAssetSpriteCreateInfo
+) PuleAssetSprite;
+@fn puleAssetSpriteDestroy(sprite : PuleAssetSprite);
+
+@struct PuleAssetSpriteAnimationKeyframe {
+  @field sprite : PuleAssetSprite;
+  @field timestamp : PuleMillisecond;
+  @field originOffset : PuleI32v2;
+};
+
+@struct PuleAssetSpriteAnimation {
+  @field label : PuleStringView;
+  @field keyframes : PuleAssetSpriteAnimationKeyframe ptr;
+  @field keyframeCount : size_t;
+  @field loop : bool;
+};
+
+@struct PuleAssetSpriteLibraryAnimationLibrary {
+  @field animations : PuleAssetSpriteAnimation ptr;
+  @field animationCount : size_t;
+};
+
+@struct PuleAssetSpriteLibrarySkeletonBone {
+  @field name : PuleStringView;
+  @field parentIndex : size_t;
+  @field originOffset : PuleI32v2;
+  @field animationLibrary : PuleAssetSpriteLibraryAnimationLibrary;
+};
+
+@struct PuleAssetSpriteLibrarySkeleton {
+  @field bones : PuleAssetSpriteLibrarySkeletonBone ptr;
+  @field boneToSpriteLibrary : PuleAssetSpriteLibraryAnimationLibrary ptr;
+  @field boneCount : size_t;
+};
+
+@union PuleAssetSpriteLibraryData {
+  @field singleSprite : PuleAssetSprite;
+  @field animationLibrary : PuleAssetSpriteLibraryAnimationLibrary;
+  @field skeleton : PuleAssetSpriteLibrarySkeleton;
+};
+
+@enum PuleAssetSpriteLibraryDataType {
+  singleSprite; animationLibrary; skeleton;
+};
+
+@struct PuleAssetSpriteLibraryCreateInfo {
+  @field spritesheet : PuleAssetSpritesheet;
+  @field data : PuleAssetSpriteLibraryData;
+  @field dataType : PuleAssetSpriteLibraryDataType;
+};
+
+@fn puleAssetSpriteLibraryCreate(
+  info : PuleAssetSpriteLibraryCreateInfo
+) PuleAssetSpriteLibrary;
+@fn puleAssetSpriteLibraryDestroy(
+  spriteLibrary : PuleAssetSpriteLibrary
+);
+
+@fn puleAssetSpritesheetFetchSprite(
+  spritesheet : PuleAssetSpritesheet,
+  label : PuleStringView
+) PuleAssetSprite;
+
+@fn puleAssetSpriteLibraryFetchSpritesheet(
+  library : PuleAssetSpriteLibrary,
+  label : PuleStringView
+) PuleAssetSpritesheet;
+
+@entity PuleAssetSpriteInstance;
+
+@struct PuleAssetSpriteInstanceCreateInfo {
+  @field defaultAnimation : PuleStringView;
+  @field spriteLibrary : PuleAssetSpriteLibrary;
+};
+
+@fn puleAssetSpriteInstanceCreate(
+  info : PuleAssetSpriteInstanceCreateInfo
+) PuleAssetSpriteInstance;
+@fn puleAssetSpriteInstanceDestroy(
+  spriteInstance : PuleAssetSpriteInstance
+);
+
+@fn puleAssetSpriteInstanceAnimationSet(
+  spriteInstance : PuleAssetSpriteInstance,
+  animationLabel : PuleStringView
+);
+@fn puleAssetSpriteInstanceAnimationUpdate(
+  spriteInstance : PuleAssetSpriteInstance,
+  deltaTime : PuleMillisecond
+);
+
+@fn puleAssetSpriteInstanceSkeletonBoneAnimationSet(
+  spriteInstance : PuleAssetSpriteInstance,
+  boneIndex : size_t,
+  animationLabel : PuleStringView
+);
+@fn puleAssetSpriteInstanceSkeletonBoneAnimationUpdate(
+  spriteInstance : PuleAssetSpriteInstance,
+  boneIndex : size_t,
+  deltaTime : PuleMillisecond
+);
+
+@entity PuleAssetSpriteInstanceDrawRecorder;
+
+@fn puleAssetSpriteInstanceDrawRecorder(
+  commandListRecorder : PuleGpuCommandListRecorder,
+  viewportMin : PuleI32v2,
+  viewportMax : PuleI32v2,
+) PuleAssetSpriteInstanceDrawRecorder;
+@fn puleAssetSpriteInstanceDrawRecorderFinish(
+  drawRecorder : PuleAssetSpriteInstanceDrawRecorder
+) #`
+  for now can can only be called a second time after command list is finished,
+  otherwise the GPU memory from the first call will be overwritten while
+  the command list is in-flight
+`;
+
+@fn puleAssetSpriteInstanceDraw(
+  drawRecorder : PuleAssetSpriteInstanceDrawRecorder,
+  spriteInstance : PuleAssetSpriteInstance,
+  position : PuleF32v2,
+);
+
+@fn puleAssetSpriteTilemapRender(
+  drawRecorder : PuleAssetSpriteInstanceDrawRecorder,
+  tilemap : PuleAssetSpriteTilemap,
+  cameraOffset : PuleF32v2,
+  colorMultiply : PuleF32v4,
+);
+
+@fn puleAssetSpriteLibraryDeserialize(
+  assetPath : PuleDsValue
+) PuleAssetSpriteLibrary;

@@ -85,3 +85,14 @@ puleLogSectionBegin(
 ```c
 puleLogSectionEnd() void;
 ```
+### puleLogSectionDevBegin
+```c
+puleLogSectionDevBegin(
+  label : char const ptr,
+  args : __VA_ARGS__
+) void;
+```
+### puleLogSectionDevEnd
+```c
+puleLogSectionDevEnd() void;
+```

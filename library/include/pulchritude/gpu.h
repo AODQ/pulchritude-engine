@@ -218,6 +218,11 @@ typedef enum {
 } PuleGpuAttributeDataType;
 const uint32_t PuleGpuAttributeDataTypeSize = 4;
 typedef enum {
+  PuleGpuPipelineAttributeInputRate_perVertex = 0,
+  PuleGpuPipelineAttributeInputRate_perInstance = 1,
+} PuleGpuPipelineAttributeInputRate;
+const uint32_t PuleGpuPipelineAttributeInputRateSize = 2;
+typedef enum {
   PuleGpuPipelineDescriptorMax_uniform = 16,
   PuleGpuPipelineDescriptorMax_storage = 16,
   PuleGpuPipelineDescriptorMax_attribute = 16,
@@ -449,6 +454,7 @@ typedef struct PuleGpuPipelineAttributeDescriptorBinding {
 typedef struct PuleGpuPipelineAttributeBufferDescriptorBinding {
   /*  must be non-zeo  */
   size_t stridePerElement;
+  PuleGpuPipelineAttributeInputRate inputRate;
 } PuleGpuPipelineAttributeBufferDescriptorBinding;
 /* 
   here are some known & fixable limitations with the current model:
@@ -549,6 +555,8 @@ typedef struct PuleGpuActionDispatchRender {
   PuleGpuAction action PULE_defaultField(PuleGpuAction_dispatchRender);
   size_t vertexOffset;
   size_t numVertices;
+  size_t instanceOffset;
+  size_t numInstances;
 } PuleGpuActionDispatchRender;
 typedef struct PuleGpuActionDispatchRenderIndirect {
   PuleGpuAction action PULE_defaultField(PuleGpuAction_dispatchRenderIndirect);

@@ -24,3 +24,6 @@
 
 @fn puleLogSectionBegin(section : PuleLogSection, args : __VA_ARGS__) void;
 @fn puleLogSectionEnd();
+
+@fn puleLogSectionDevBegin(label : char const ptr, args : __VA_ARGS__) void;
+@fn puleLogSectionDevEnd();

@@ -46,6 +46,8 @@ bool editorBuildRunApplication(
     execute += "";
     bool const isDebug = puleDsMemberAsBool(input, "debug");
     bool const isGuiEditor = puleDsMemberAsBool(input, "gui-editor");
+    bool const isSceneEditor = puleDsMemberAsBool(input, "scene-editor");
+    bool const isUnitTest = puleDsMemberAsBool(input, "unit-test");
     bool const isErrorSegfaults = puleDsMemberAsBool(input, "error-segfaults");
     bool const isEarlyExit = puleDsMemberAsBool(input, "early-exit");
     bool const runWithGdb = puleDsMemberAsBool(input, "gdb");
@@ -71,6 +73,9 @@ bool editorBuildRunApplication(
       ( !runWithStrace || !runWithValgrind )
       && "Cannot run with strace and valgrind at the same time"
     );
+    if (isSceneEditor) {
+      PULE_assert(!isGuiEditor && !isUnitTest);
+    }
     if (clear) {
       execute += " clear ; ";
     }
@@ -109,6 +114,12 @@ bool editorBuildRunApplication(
     }
     if (isGuiEditor) {
       execute += "--gui-editor ";
+    }
+    if (isSceneEditor) {
+      execute += "--scene-editor ";
+    }
+    if (isUnitTest) {
+      execute += "--unit-test ";
     }
     if (isErrorSegfaults) {
       execute += "--error-segfaults ";
@@ -153,6 +164,25 @@ bool editorGui(
   puleDsObjectMemberAssign(
     input,
     puleCStr("gui-editor"),
+    puleDsCreateBool(true)
+  );
+  return editorBuildRunApplication(allocator, main, input, error);
+}
+
+bool sceneEditor(
+  PuleAllocator const allocator,
+  [[maybe_unused]] PuleDsValue const main,
+  PuleDsValue const input,
+  PuleError * const error
+) {
+  puleDsObjectMemberAssign(
+    input,
+    puleCStr("gui-editor"),
+    puleDsCreateBool(false)
+  );
+  puleDsObjectMemberAssign(
+    input,
+    puleCStr("scene-editor"),
     puleDsCreateBool(true)
   );
   return editorBuildRunApplication(allocator, main, input, error);
