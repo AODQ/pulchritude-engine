@@ -8,7 +8,7 @@
 };
 
 @struct PuleMicrosecond {
-  @field valueMicro : int64_t;
+  @field us : int64_t;
 };
 
 @struct PuleMillisecond {
@@ -19,3 +19,5 @@
 @fn puleSleepMicrosecond(us : PuleMicrosecond);
 
 @fn puleTimestampNow() PuleTimestamp;
+
+@fn puleTimeMicroToMilli(us : PuleMicrosecond) PuleMillisecond;

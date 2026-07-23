@@ -10,6 +10,7 @@
 struct Camera {
   PuleF32m44 projection;
   PuleCameraPerspective perspective;
+  PuleCameraOrthographic orthographic;
   // orthogonal
   bool isPerspective;
 
@@ -33,6 +34,8 @@ PuleCamera puleCameraCreate() {
   Camera defaultCamera;
   memset(&defaultCamera, 0, sizeof(Camera));
   defaultCamera.up = PuleF32v3{0.0f, 1.0f, 0.0f};
+  defaultCamera.view = puleF32m44(1.0f);
+  defaultCamera.projection = puleF32m44(1.0f);
   ::internalCameras.emplace(::internalCameraCount, defaultCamera);
   return PuleCamera { .id = ::internalCameraCount ++, };
 }
@@ -48,6 +51,13 @@ PuleF32m44 puleCameraView(PuleCamera const pCamera) {
 PuleF32m44 puleCameraProj(PuleCamera const pCamera) {
   auto & camera = ::internalCameras.at(pCamera.id);
   return camera.projection;
+}
+
+void puleCameraViewport(
+  PuleCamera const puCamera, float const width, float const height
+) {
+  auto & camera = ::internalCameras.at(puCamera.id);
+  camera.view = puleF32m44Viewport(width, height);
 }
 
 void puleCameraLookAt(
@@ -80,6 +90,29 @@ void puleCameraPerspectiveSet(
       camera.perspective.aspectRatio,
       camera.perspective.nearCutoff,
       camera.perspective.farCutoff
+    )
+  );
+}
+
+PuleCameraOrthographic puleCameraOrthographic(
+  PuleCamera const pCamera
+) {
+  auto & camera = ::internalCameras.at(pCamera.id);
+  return camera.orthographic;
+}
+void puleCameraOrthographicSet(
+  PuleCamera const pCamera,
+  PuleCameraOrthographic const orthographic
+) {
+  auto & camera = ::internalCameras.at(pCamera.id);
+  camera.orthographic = orthographic;
+  camera.isPerspective = false;
+  camera.projection = (
+    puleProjectionOrthographic(
+      camera.orthographic.topleft,
+      camera.orthographic.widthheight,
+      camera.orthographic.nearCutoff,
+      camera.orthographic.farCutoff
     )
   );
 }

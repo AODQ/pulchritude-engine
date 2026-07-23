@@ -441,6 +441,15 @@ puleProjectionPerspective(
   farCutoff : float
 ) PuleF32m44;
 ```
+### puleProjectionOrthographic
+```c
+puleProjectionOrthographic(
+  topleft : PuleF32v2,
+  widthheight : PuleF32v2,
+  nearCutoff : float,
+  farCutoff : float
+) PuleF32m44;
+```
 ### puleViewLookAt
 ```c
 puleViewLookAt(

@@ -8,7 +8,7 @@
 
 ```c
 struct {
-  world : PuleEcsWorld;
+  world : PulePecsScene;
   platform : PulePlatform;
 };
 ```

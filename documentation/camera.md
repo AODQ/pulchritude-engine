@@ -1,6 +1,15 @@
 # camera
 
 ## structs
+### PuleCameraOrthographic
+```c
+struct {
+  nearCutoff : float;
+  farCutoff : float;
+  topleft : PuleF32v2;
+  widthheight : PuleF32v2;
+};
+```
 ### PuleCameraPerspective
 ```c
 struct {
@@ -46,6 +55,14 @@ puleCameraProj(
   camera : PuleCamera
 ) PuleF32m44;
 ```
+### puleCameraViewport
+```c
+puleCameraViewport(
+  camera : PuleCamera,
+  width : float,
+  height : float
+) void;
+```
 ### puleCameraLookAt
 ```c
 puleCameraLookAt(
@@ -53,6 +70,19 @@ puleCameraLookAt(
   origin : PuleF32v3,
   normalizedTarget : PuleF32v3,
   up : PuleF32v3
+) void;
+```
+### puleCameraOrthographic
+```c
+puleCameraOrthographic(
+  camera : PuleCamera
+) PuleCameraOrthographic;
+```
+### puleCameraOrthographicSet
+```c
+puleCameraOrthographicSet(
+  camera : PuleCamera,
+  orthographic : PuleCameraOrthographic
 ) void;
 ```
 ### puleCameraPerspective

@@ -56,7 +56,11 @@ void createPipelineVertexInputState(
       .stride = (
         (uint32_t)binding.stridePerElement
       ),
-      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+      .inputRate = (
+          binding.inputRate == PuleGpuPipelineAttributeInputRate_perVertex
+        ? VK_VERTEX_INPUT_RATE_VERTEX
+        : VK_VERTEX_INPUT_RATE_INSTANCE
+      )
     });
   }
   puleLogSectionEnd();
@@ -284,7 +288,7 @@ PuleGpuPipeline puleGpuPipelineCreate(
     .depthClampEnable = VK_FALSE, // TODO do I want this?
     .rasterizerDiscardEnable = VK_FALSE,
     .polygonMode = VK_POLYGON_MODE_FILL,
-    .cullMode = VK_CULL_MODE_BACK_BIT,
+    .cullMode = VK_CULL_MODE_NONE,
     .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
     .depthBiasEnable = VK_FALSE,
     .depthBiasConstantFactor = 0.0f,

@@ -122,3 +122,15 @@ compileShader(
   "shaders/imgui.frag",
   "library/renderer-3d/src/autogen-material-default.frag.spv"
 )
+
+compileShader(
+  "assetSpriteVert",
+  "shaders/asset-sprite.vert",
+  "library/asset/sprite/src/autogen-asset-sprite.vert.spv"
+)
+
+compileShader(
+  "assetSpriteFrag",
+  "shaders/asset-sprite.frag",
+  "library/asset/sprite/src/autogen-asset-sprite.frag.spv"
+)

@@ -488,9 +488,15 @@
   `;
 };
 
+@enum PuleGpuPipelineAttributeInputRate {
+  perVertex;
+  perInstance;
+};
+
 @struct PuleGpuPipelineAttributeBufferDescriptorBinding {
   #` TODO input rate `
   @field stridePerElement : size_t #` must be non-zeo `;
+  @field inputRate : PuleGpuPipelineAttributeInputRate;
 };
 
 
@@ -732,6 +738,8 @@
   @field action : PuleGpuAction = PuleGpuAction_dispatchRender;
   @field vertexOffset : size_t;
   @field numVertices : size_t;
+  @field instanceOffset : size_t;
+  @field numInstances : size_t;
 };
 
 @struct PuleGpuActionDispatchRenderIndirect {

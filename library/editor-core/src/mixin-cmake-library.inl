@@ -14,6 +14,8 @@ target_link_directories(                                                      \n
   PUBLIC "${%project-path}/engine-include/../plugins"                         \n
 )                                                                             \n
                                                                               \n
+%add-third-party-subdirs                                                      \n
+                                                                              \n
 target_sources(                                                               \n
   %lib-name                                                                   \n
   PRIVATE                                                                     \n

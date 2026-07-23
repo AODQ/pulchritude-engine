@@ -1,0 +1,7 @@
+@include `error`;
+@include `string`;
+
+@struct PuleUnitTest {
+  @field label : PuleStringView;
+  @field test : function;
+};

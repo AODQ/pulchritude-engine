@@ -38,6 +38,8 @@ PULE_exportFn void puleLogLn(char const * formatCStr, ...);
 PULE_exportFn void puleLogRaw(char const * formatCStr, ...);
 PULE_exportFn void puleLogSectionBegin(PuleLogSection section, ...);
 PULE_exportFn void puleLogSectionEnd();
+PULE_exportFn void puleLogSectionDevBegin(char const * label, ...);
+PULE_exportFn void puleLogSectionDevEnd();
 
 #ifdef __cplusplus
 } // extern C

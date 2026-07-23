@@ -432,18 +432,6 @@ puleDsCreateF64v4(
 ```
 ### puleDsStructSerialize
 
-  can help serialize/deserialize POD structs, using a C-like format string, use
-  the following macros to generate the format string
-
-  example
-
-  #define structField(fieldtype, member) \
-    PULE_dsStructField(PuleSceneComponentModelData, fieldtype, member, 1)
-  static PuleDsStructField const componentModelFields[] = {
-    structField(i64, type),
-    PULE_dsStructTerminator,
-  };
-  #undef structField
 
 ```c
 puleDsStructSerialize(

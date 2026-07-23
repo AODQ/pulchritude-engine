@@ -192,6 +192,7 @@ struct {
 struct {
   /*  must be non-zeo  */
   stridePerElement : size_t;
+  inputRate : PuleGpuPipelineAttributeInputRate;
 };
 ```
 ### PuleGpuPipelineLayoutDescriptorSet
@@ -325,6 +326,8 @@ struct {
   action : PuleGpuAction = PuleGpuAction_dispatchRender;
   vertexOffset : size_t;
   numVertices : size_t;
+  instanceOffset : size_t;
+  numInstances : size_t;
 };
 ```
 ### PuleGpuActionDispatchRenderIndirect
@@ -702,6 +705,13 @@ enum {
   u8,
   u16,
   u32,
+}
+```
+### PuleGpuPipelineAttributeInputRate
+```c
+enum {
+  perVertex,
+  perInstance,
 }
 ```
 ### PuleGpuPipelineDescriptorMax

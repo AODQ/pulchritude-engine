@@ -89,7 +89,6 @@ PuleGpuCommandList puleGpuCommandListCreate(
     reinterpret_cast<uint64_t>(cmdBuffer),
     util::CommandList { .label = std::string(label.contents), }
   );
-  puleLogDev("Creating command buffer: %p", cmdBuffer);
   return { .id = reinterpret_cast<uint64_t>(cmdBuffer), };
 }
 
@@ -104,12 +103,12 @@ void puleGpuCommandListDestroy(PuleGpuCommandList const commandList) {
 }
 
 PuleStringView puleGpuCommandListName(
-  PuleGpuCommandList const commandListId
+  PuleGpuCommandList const puCommandList
 ) {
-  (void)commandListId;
-  //auto & commandList = ::commandLists.at(commandListId.id);
-  // TODO::CRITICAL return named object label
-  return puleCStr("UNKNOWN YET");
+  util::CommandList & commandList = (
+    util::ctx().commandLists.at(puCommandList.id)
+  );
+  return puleCStr(commandList.label.c_str());
 }
 
 PuleGpuCommandListRecorder puleGpuCommandListRecorder(
@@ -137,7 +136,7 @@ PuleGpuCommandListRecorder puleGpuCommandListRecorder(
     }
   );
   util::ctx().commandBufferRecorders.emplace(commandList.id, cbRecorder);
-  return { .id = reinterpret_cast<uint64_t>(commandBuffer), };
+  return { .id = commandList.id, };
 }
 
 void puleGpuCommandListRecorderFinish(
@@ -155,14 +154,10 @@ void puleGpuCommandListAppendAction(
     reinterpret_cast<VkCommandBuffer>(commandListRecorder.id)
   );
 
-  puleLogDev("recorder info in: %d", 
-    util::ctx().commandBufferRecorders.count(commandListRecorder.id)
-  );
   auto & recorderInfo = (
     util::ctx().commandBufferRecorders.at(commandListRecorder.id)
   );
 
-  puleLogDev("Action %s", pule::toStr(command.action).data.contents);
   switch (command.action) {
     default:
       puleLogError("Unknown command PuleGpuAction %d", command.action);
@@ -243,7 +238,9 @@ void puleGpuCommandListAppendAction(
         *reinterpret_cast<PuleGpuActionDispatchRender const *>(&command)
       );
       vkCmdDraw(
-        commandBuffer, action.numVertices, 1, action.vertexOffset, 0
+        commandBuffer,
+        action.numVertices, action.numInstances,
+        action.vertexOffset, action.instanceOffset
       );
     }
     break;
@@ -295,6 +292,10 @@ void puleGpuCommandListAppendAction(
     case PuleGpuAction_bindTexture: {
       auto const action = (
         *reinterpret_cast<PuleGpuActionBindTexture const *>(&command)
+      );
+      PULE_assert(
+        action.imageView.image.id != 0
+        && "attempting to bind a null image view"
       );
       // write descriptor set to command 'cache'
       auto const imageInfo = VkDescriptorImageInfo {
@@ -351,13 +352,9 @@ void puleGpuCommandListAppendAction(
         .pBufferInfo = &bufferInfo,
         .pTexelBufferView = nullptr,
       };
-      puleLogDev("Pushing descriptor set, buffer binding %d, buffer %d, offset %zu, range %zu",
-        action.bindingIndex, action.buffer.id, action.offset, action.byteLen
-      );
       auto & pipeline = (
         util::ctx().pipelines.at(recorderInfo.currentBoundPipeline.id)
       );
-      puleLogDev("Pipeline layout %p", pipeline.pipelineLayout);
       vkCmdPushDescriptorSetKHR(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS, // TODO support compute bindpoint
@@ -441,7 +438,6 @@ void puleGpuCommandListAppendAction(
         if (action.attachmentColor[it].imageView.image.id == 0) {
           continue;
         }
-        puleLogDev("color attachment %zu: %d", it, action.attachmentColor[it].imageView.image.id);
         colorAttachments[it] = (
           imageAttachmentToVk(action.attachmentColor[it], false)
         );
@@ -449,11 +445,9 @@ void puleGpuCommandListAppendAction(
       VkRenderingAttachmentInfo depthAttachment = {};
       bool hasDepthAttachment = false;
       if (action.attachmentDepth.imageView.image.id != 0) {
-        puleLogDev("depth attachment: %d", action.attachmentDepth.imageView.image.id);
         depthAttachment = imageAttachmentToVk(action.attachmentDepth, true);
         hasDepthAttachment = true;
       }
-      puleLogDev("attachment color count: %zu", action.attachmentColorCount);
       auto const renderingInfo = VkRenderingInfo {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
         .pNext = nullptr,
@@ -470,14 +464,12 @@ void puleGpuCommandListAppendAction(
         },
         .layerCount = 1,
         .viewMask = 0,
-        .colorAttachmentCount = 0,
+        .colorAttachmentCount = (uint32_t)action.attachmentColorCount,
         .pColorAttachments = colorAttachments,
         .pDepthAttachment = hasDepthAttachment ? &depthAttachment : nullptr,
         .pStencilAttachment = nullptr,
       };
-      puleLogDev("beginning render pass cb: %p", commandBuffer);
       vkCmdBeginRendering(commandBuffer, &renderingInfo);
-      puleLogDev("fin");
     }
     break;
     case PuleGpuAction_renderPassEnd: {

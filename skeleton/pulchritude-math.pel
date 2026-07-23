@@ -134,6 +134,13 @@ for example, the 'translation' part of a view matrix would be stored at
   farCutoff : float
 ) PuleF32m44;
 
+@fn puleProjectionOrthographic(
+  topleft : PuleF32v2,
+  widthheight : PuleF32v2,
+  nearCutoff : float,
+  farCutoff : float
+) PuleF32m44;
+
 @fn puleViewLookAt(
   origin : PuleF32v3,
   center : PuleF32v3,

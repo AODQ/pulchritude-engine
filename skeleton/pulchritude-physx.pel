@@ -106,6 +106,7 @@
 
 @enum PulePhysx2DShapeType {
   convexPolygon;
+  circle;
 };
 
 @struct PulePhysx2DShapeConvexPolygon {
@@ -115,8 +116,14 @@
   @field vertexCount : uint32_t;
 };
 
+@struct PulePhysx2DShapeCircle {
+  @field origin : PuleF32v2;
+  @field radius : float;
+};
+
 @union PulePhysx2DShapeUnion {
   @field convexPolygon : PulePhysx2DShapeConvexPolygon;
+  @field circle : PulePhysx2DShapeCircle;
 };
 
 @struct PulePhysx2DShape {

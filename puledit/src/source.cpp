@@ -1,5 +1,10 @@
 /* pulchritude editor | github.com/aodq/pulchritude-engine | aodq.net */
 
+// TODO this 'editor' ought to be removed, as more than likely this
+//      is a more 'framework' approach to game engine rather than
+//      a game editor.
+//      The way this build system works ought to just be CMake in nature
+
 #include <pulchritude/allocator.h>
 #include <pulchritude/asset-pds.h>
 #include <pulchritude/core.hpp>
@@ -464,55 +469,3 @@ int32_t main(
 
   return 0;
 }
-
-// ubj pna v erpbyyrpg fbzrbar jub fnlf nyy v unir fgbccrq yvfgravat bapr erireg
-// genfu guvf genfu gung nofgenpg njnl nyy nznytbhf jbeevrf juvpu rire unir orra
-// v nethr va snvgu ybat ybat fvtu jungrire vg gnxrf qevsg njnl qevsg qevsg fvtu
-
-// below is for TUI at some point
-  /* // if no input then request */
-  /* //PuleTuiWindow const window = puleTuiInitialize(); */
-  /* //auto const winDim = puleTuiWindowDim(window); */
-  /* bool const hadInputValue = inputValue != ""; */
-  /* while (!hadInputValue) { */
-  /*   // -- render */
-  /*   puleTuiClear(window); */
-  /*   puleTuiMoveCursor(window, PuleI32v2{10, winDim.y-1}); */
-  /*   puleTuiRenderString( */
-  /*     window, puleCStr("Command: "), PuleF32v3(0.9f, 0.2f, 0.2f) */
-  /*   ); */
-  /*   puleTuiRenderString( */
-  /*     window, puleCStr(inputValue.c_str()), PuleF32v3(0.9f, 0.2f, 0.2f) */
-  /*   ); */
-  /*   renderAutocompletion(window, inputValue); */
-
-  /*   // -- parse input */
-  /*   puleTuiRefresh(window); */
-  /*   int32_t c = puleTuiReadInputCharacterBlocking(window); */
-
-  /*   // exit on ctrl-c */
-  /*   if (c == ('c' & 0x1f)) { */
-  /*     exit(0); */
-  /*   } */
-  /*   // ignore on backspace, and remove previous input */
-  /*   if (c == 0407 || c == 127 || c == '\b') { */
-  /*     if (inputValue.size() > 0) { */
-  /*       inputValue.resize(inputValue.size()-1); */
-  /*     } */
-  /*     continue; */
-  /*   } */
-
-  /*   // on ctrl-u clear input */
-  /*   if (c == ('u' & 0x1f)) { */
-  /*     inputValue = ""; */
-  /*     continue; */
-  /*   } */
-
-  /*   // submit command on new line */
-  /*   if (c == '\n' || c == '\r') { */
-  /*     break; */
-  /*   } */
-
-  /*   // parse as valid input */
-  /*   inputValue += static_cast<char>(c); */
-  /* } */

@@ -117,6 +117,7 @@ static std::string mathCppHeader = (
 
 static std::string coreCppHeader = (
 "#include <utility>\n"
+"#include <cstdio>\n"
 "#ifndef puleScopeExit\n"
 "#define _puleScopeExitConcatImpl(x, y) x##y\n"
 "#define _puleScopeExitConcat(x, y) _puleScopeExitConcatImpl(x, y)\n"
@@ -144,6 +145,9 @@ static std::string coreCppHeader = (
 "}\n"
 "\n"
 "#include <unordered_map>\n"
+"#ifdef __unix__\n"
+"#include <execinfo.h>\n"
+"#endif\n"
 "namespace pule {\n"
 "// TODO replace unordered_map with own implementation that uses allocator\n"
 "// though probably safe to use unordered_map if passed in default allocator\n"
@@ -180,7 +184,7 @@ static std::string coreCppHeader = (
 "  auto begin() { return this->data.begin(); }\n"
 "  auto end() { return this->data.end(); }\n"
 "\n"
-"  TUnderlyingValue * at(Handle const handle) {\n"
+"  TUnderlyingValue * fetch(Handle const handle) {\n"
 "    uint64_t uHandle;\n"
 "    if constexpr (std::is_same<Handle, uint64_t>::value) {\n"
 "      uHandle = handle;\n"
@@ -193,6 +197,36 @@ static std::string coreCppHeader = (
 "    } else {\n"
 "      return ((ptr == this->data.end()) ? nullptr : &ptr->second);\n"
 "    }\n"
+"  }\n"
+"\n"
+"  TUnderlyingValue * at(Handle const handle) {\n"
+"    TUnderlyingValue * ptr = this->fetch(handle);\n"
+"    if (ptr == nullptr) {\n"
+"      printf(\"failed to find resource with handle %p\\n\", handle);\n"
+"#if defined(__unix__) // TODO apple\n"
+"    void * callstack[128];\n"
+"    int32_t const numFrames = backtrace(callstack, 128);\n"
+"    char ** const symbols = backtrace_symbols(callstack, numFrames);\n"
+"    printf(\"\\t\");\n"
+"    if (symbols != NULL) {\n"
+"      for (int32_t i = 1; i < numFrames; ++ i) { // skip log function\n"
+"        char * const parenStr = strchr(symbols[i], '(');\n"
+"        char * const plusStr = strchr(symbols[i], '+');\n"
+"        if ((int32_t)(plusStr - parenStr) > 1) {\n"
+"          if (strncmp(parenStr+1, \"main\", 4) == 0) { break; }\n"
+"          printf(\n"
+"            \" -> %.*s\",\n"
+"            (int32_t)(plusStr - parenStr-1), parenStr+1\n"
+"          );\n"
+"        }\n"
+"      }\n"
+"      free(symbols);\n"
+"    }\n"
+"    printf(\"\\n\\n\");\n"
+"#endif\n"
+"      abort();\n"
+"    }\n"
+"    return ptr;\n"
 "  }\n"
 "\n"
 "  TUnderlyingValue const * at(Handle const handle) const {\n"
@@ -217,7 +251,7 @@ static std::string coreCppHeader = (
 );
 
 static std::string stringCppHeader = (
-"PuleStringView operator \"\"_psv(char const * const cstr, size_t const len);\n"
+"PuleStringView operator\"\" _psv(char const * const cstr, size_t const len);\n"
 "#include <string>\n" // TODO remove this w/ custom string
 "namespace pule {\n"
 "  struct str {\n"
@@ -234,6 +268,10 @@ static std::string stringCppHeader = (
 "    ~str() { puleStringDestroy(this->data); }\n"
 "  };\n"
 "}\n"
+);
+
+static std::string timeCppHeader = (
+"PuleMillisecond operator\"\" _pms(unsigned long long const ms);\n"
 );
 
 static std::string formatModifier(BindingTypeModifier m) {
@@ -579,5 +617,9 @@ void generateBindingFileCpp(GenerateBindingInfo const & inforef) {
 
   if (puleStringViewEqCStr(info.path, "string")) {
     write(out, "%s\n", stringCppHeader.c_str());
+  }
+
+  if (puleStringViewEqCStr(info.path, "time")) {
+    write(out, "%s\n", timeCppHeader.c_str());
   }
 }

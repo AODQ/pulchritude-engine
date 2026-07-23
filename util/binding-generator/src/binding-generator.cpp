@@ -12,10 +12,11 @@
 
 std::string const expressionGrammar = R"(
 %globals := %global+;
-%global := (%struct_decl | %entity_decl | %enum_decl | %func_decl | %include | %alias |);
+%global := (%struct_decl | %serialized_struct_decl | %entity_decl | %enum_decl | %func_decl | %include | %alias |);
 %alias := '@alias' %identifier ':' %identifier %comment? ';';
 %func_decl := '@fn' %identifier '\(' %parameter* '\)' %type? %comment? ';';
 %struct_decl := %struct_union %identifier '\{' %comment? %field* '\}' ';';
+%serialized_struct_decl := '@serialized_struct' %identifier '\{' %comment? %field* '\}' ';';
 %struct_union := ('@struct' | '@union' |);
 %entity_decl := '@entity' %identifier %comment? ';';
 %enum_decl := %enum_bitfield %identifier '\{' %comment? %enum_field* '\}' ';';
@@ -43,11 +44,13 @@ std::string const expressionGrammar = R"(
 
 %fnptr_param := %type ','?;
 
-%type := (%identifier | %fnptr |) %typemodifier*;
+%type := (%identifier | %fnptr |) %template_params? %typemodifier*;
 %typemodifier := ('ptr' | 'ref' | 'const' | %array |);
 %array := '@arr' '\[' ( %int | %identifier | ) '\]';
 
-%identifier := '[a-zA-Z_][a-zA-Z0-9_]*';
+%template_params := '\<' %type* '\>';
+
+%identifier := '[a-zA-Z_][a-zA-Z0-9_\.]*';
 %fnptr := '@fnptr' '\(' %fnptr_param* '\)';
 
 %comment := '#\`[^\`]*\`';
@@ -71,7 +74,8 @@ PuleParser pelParser() {
   return parser;
 }
 
-// %type := (%identifier | %fnptr |) %typemodifier*;
+// %type := (%identifier | %fnptr |) %template_params? %typemodifier*;
+// %template_params := '\<' %type* '\>';
 // %typemodifier := ('ptr' | 'ref' | 'const' |);
 // %fnptr := '@fnptr' '\(' %fnptr_param* '\)';
 // %fnptr_param := %type ','?;
@@ -79,7 +83,17 @@ BindingType parseType(PuleParserAstNode const node) {
   PULE_assert(node.type == PuleParserNodeType_rule);
   PULE_assert(puleStringViewEqCStr(node.match, "type"));
   auto typeIdentifier = puleParserAstNodeChild(node, 0);
-  auto typeModifiers = puleParserAstNodeChild(node, 1);
+  auto typeTemplated = puleParserAstNodeChild(node, 1);
+  auto typeModifiers = puleParserAstNodeChild(node, 2);
+  // fetch template params
+  std::vector<BindingType> outTemplateParams;
+  if (typeTemplated.childCount > 0) {
+    auto typeTemplateParams = puleParserAstNodeChild(typeTemplated, 1);
+    for (size_t it = 0; it < typeTemplateParams.childCount; ++ it) {
+      auto param = puleParserAstNodeChild(typeTemplateParams, it);
+      outTemplateParams.push_back(parseType(param));
+    }
+  }
   // fetch modifiers
   std::vector<BindingTypeModifier> outMods;
   for (size_t it = 0; it < typeModifiers.childCount; ++ it) {
@@ -124,11 +138,13 @@ BindingType parseType(PuleParserAstNode const node) {
     return {
       .name = std::string(identifier.contents),
       .fnptrParams = {},
+      .templateParams = outTemplateParams,
       .modifiers = outMods,
       .type = BindingTypeType::identifier,
     };
   }
   if (puleStringViewEqCStr(typeIdentifier.match, "fnptr")) {
+    PULE_assert(outTemplateParams.size() == 0);
     auto fnptrParamSeq = puleParserAstNodeChild(typeIdentifier, 2);
     std::vector<BindingType> params;
     for (size_t it = 0; it < fnptrParamSeq.childCount; ++ it) {
@@ -140,6 +156,7 @@ BindingType parseType(PuleParserAstNode const node) {
     return {
       .name = "",
       .fnptrParams = params,
+      .templateParams = {},
       .modifiers = outMods,
       .type = BindingTypeType::fnPtr,
     };
@@ -251,6 +268,7 @@ BindingFunc parseFunc(PuleParserAstNode const node) {
   static auto const defaultReturnType = BindingType {
     .name = "void",
     .fnptrParams = {},
+    .templateParams = {},
     .modifiers = {},
     .type = BindingTypeType::identifier,
   };
@@ -350,14 +368,22 @@ BindingEnum parseEnum(PuleParserAstNode const node) {
 // %struct_union := ('@struct' | '@union');
 BindingStruct parseStruct(PuleParserAstNode const node) {
   PULE_assert(node.type == PuleParserNodeType_rule);
-  PULE_assert(puleStringViewEqCStr(node.match, "struct_decl"));
-  auto structUnion = (
-    puleParserAstNodeChild(puleParserAstNodeChild(node, 0), 0).match
-  );
   PULE_assert(
-       puleStringViewEqCStr(structUnion, "@struct")
-    || puleStringViewEqCStr(structUnion, "@union")
+       puleStringViewEqCStr(node.match, "struct_decl")
+    || puleStringViewEqCStr(node.match, "serialized_struct_decl")
   );
+  bool isUnion = false;
+  if (puleStringViewEqCStr(node.match, "struct_decl"))
+  {
+    auto structUnion = (
+      puleParserAstNodeChild(puleParserAstNodeChild(node, 0), 0).match
+    );
+    PULE_assert(
+         puleStringViewEqCStr(structUnion, "@struct")
+      || puleStringViewEqCStr(structUnion, "@union")
+    );
+    isUnion = puleStringViewEqCStr(structUnion, "@union");
+  }
   auto structIdentifier = (
     puleParserAstNodeChild(puleParserAstNodeChild(node, 1), 0).match
   );
@@ -405,7 +431,7 @@ BindingStruct parseStruct(PuleParserAstNode const node) {
     .name = std::string(structIdentifier.contents, structIdentifier.len),
     .comment = formatComment(structComment),
     .fields = fields,
-    .isUnion = puleStringViewEqCStr(structUnion, "@union"),
+    .isUnion = isUnion,
   };
 }
 
@@ -479,6 +505,10 @@ void applyPelParser(void *, PuleStringView path, bool isFile) {
       file.funcs.push_back(parseFunc(global));
     } else if (puleStringViewEq("alias"_psv, global.match)) {
       file.aliases.push_back(parseAlias(global));
+    } else if (puleStringViewEq("serialized_struct_decl"_psv, global.match)) {
+      auto parsedStruct = parseStruct(global);
+      file.serializedEntities.push_back(parsedStruct);
+      file.structs.push_back(parsedStruct);
     } else if (puleStringViewEq("struct_decl"_psv, global.match)) {
       file.structs.push_back(parseStruct(global));
     } else if (puleStringViewEq("enum_decl"_psv, global.match)) {
@@ -508,6 +538,7 @@ void applyPelParser(void *, PuleStringView path, bool isFile) {
   generateBindingFileC(info);
   generateBindingFileCpp(info);
   generateBindingFileMd(info);
+  generateBindingFileSerializer(info);
 }
 
 extern "C" {

@@ -329,6 +329,26 @@ PuleF32m44 puleProjectionPerspective(
   };
 }
 
+PuleF32m44 puleProjectionOrthographic(
+  PuleF32v2 const topleft,
+  PuleF32v2 const widthheight,
+  float const near,
+  float const far
+) {
+  return PuleF32m44 {
+    .elem = {
+      2.0f/widthheight.x, 0.0f, 0.0f, 0.0f,
+      0.0f, 2.0f/widthheight.y, 0.0f, 0.0f,
+      0.0f, 0.0f, -2.0f/(far-near), 0.0f,
+      -(topleft.x+widthheight.x),
+      -(topleft.y+widthheight.y),
+      -(far+near)/(far-near),
+      1.0f,
+    },
+  };
+}
+
+
 PuleF32v4 puleF32m44MulV4(PuleF32m44 const a, PuleF32v4 const b) {
   return PuleF32v4 {
     .x = a.elem[0]*b.x + a.elem[4]*b.y + a.elem[8]*b.z + a.elem[12]*b.w,

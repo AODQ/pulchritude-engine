@@ -96,6 +96,9 @@ namespace pule {
 using Physx2DShapeConvexPolygon = PulePhysx2DShapeConvexPolygon;
 }
 namespace pule {
+using Physx2DShapeCircle = PulePhysx2DShapeCircle;
+}
+namespace pule {
 using Physx2DShapeUnion = PulePhysx2DShapeUnion;
 }
 namespace pule {
@@ -138,6 +141,7 @@ inline pule::str toStr(PulePhysxMode const e) {
 inline pule::str toStr(PulePhysx2DShapeType const e) {
   switch (e) {
     case PulePhysx2DShapeType_convexPolygon: return puleString("convexPolygon");
+    case PulePhysx2DShapeType_circle: return puleString("circle");
     default: return puleString("N/A");
   }
 }

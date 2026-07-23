@@ -61,3 +61,6 @@ option(PMP_INSTALL        "" ON)
 option(PMP_STRICT_COMPILATION "" OFF)
 add_subdirectory(pmp-library)
 set_target_properties(pmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+option(LDTK_NO_THROW "" ON)
+add_subdirectory(ldtkloader)

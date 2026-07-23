@@ -902,12 +902,11 @@ PuleGpuCommandList puleRenderGraph_commandList(
 }
 
 PuleGpuCommandListRecorder puleRenderGraph_commandListRecorder(
-  PuleRenderGraphNode const node
+  PuleRenderGraphNode const puNode
 ) {
   // TODO consider if want to allow multiple calls for the same command list
-  return (
-    puleGpuCommandListRecorder(puleRenderGraph_commandList(node))
-  );
+  auto recorder = puleGpuCommandListRecorder(puleRenderGraph_commandList(puNode));
+  return recorder;
 }
 
 void puleRenderGraphNode_renderPassSet(
@@ -938,7 +937,9 @@ void puleRenderGraphNode_renderPassSet(
 
 void puleRenderGraphNode_renderPassBegin(
   PuleRenderGraphNode puNode,
-  PuleGpuCommandListRecorder recorder
+  PuleGpuCommandListRecorder recorder,
+  PuleF32v4 const clearColor,
+  float const clearDepth
 ) {
   RenderGraph & graph = (
     *::renderGraphs.at(renderGraphNodeToGraph.at(puNode.id))
@@ -972,7 +973,9 @@ void puleRenderGraphNode_renderPassBegin(
       .opLoad = node.renderPass.attachmentColor.info.opLoad,
       .opStore = node.renderPass.attachmentColor.info.opStore,
       .layout = PuleGpuImageLayout_attachmentColor,
-      .clear = node.renderPass.attachmentColor.info.clear,
+      .clear = {
+        .color = clearColor,
+      },
       .imageView = {
         .image = imgColor,
         .mipmapLevelStart = 0, .mipmapLevelCount = 1,
@@ -1008,7 +1011,9 @@ void puleRenderGraphNode_renderPassBegin(
       .opLoad = node.renderPass.attachmentDepth.info.opLoad,
       .opStore = node.renderPass.attachmentDepth.info.opStore,
       .layout = PuleGpuImageLayout_attachmentDepth,
-      .clear = node.renderPass.attachmentDepth.info.clear,
+      .clear = {
+        .depth = clearDepth,
+      },
       .imageView = {
         .image = imgDepth,
         .mipmapLevelStart = 0, .mipmapLevelCount = 1,
@@ -1024,9 +1029,6 @@ void puleRenderGraphNode_renderPassBegin(
       .scissorMax = { .x = 800, .y = 600, }, // TODO :/
     },
   });
-
-  puleLogDev("rendering with color? %d", hasColorAttachment);
-  puleLogDev("rendering with depth? %d", attachmentDepth.imageView.image.id != 0);
 
   puleGpuCommandListAppendAction(recorder, {
     .renderPassBegin = PuleGpuActionRenderPassBegin {
@@ -1067,6 +1069,9 @@ void puleRenderGraphNodeRelationSet(
 }
 
 void puleRenderGraphFrameStart(PuleRenderGraph const pGraph) {
+  puleLogSectionDevBegin("puleRenderGraphFrameStart");
+  puleScopeExit { puleLogSectionDevEnd(); };
+
   auto & graph = *::renderGraphs.at(pGraph.id);
   sortGraphNodes(graph);
 
@@ -1191,6 +1196,8 @@ void puleRenderGraphFrameSubmit(
   PuleGpuSemaphore const swapchainImageSemaphore,
   PuleRenderGraph const pGraph
 ) {
+  puleLogSectionDevBegin("puleRenderGraphFrameSubmit");
+  puleScopeExit { puleLogSectionDevEnd(); };
   auto & graph = *::renderGraphs.at(pGraph.id);
   if (!graph.wasFrameStarted) {
     puleLogError("Frame not started for graph %d", pGraph.id);
@@ -1203,6 +1210,8 @@ void puleRenderGraphFrameSubmit(
   bool frameEnded = false;
   for (uint64_t const nodeId : graph.nodesInRelationOrder) {
     auto const & node = graph.nodes.at(nodeId);
+    puleLogSectionDevBegin("frame-submit node %s", node.label.c_str());
+    puleScopeExit { puleLogSectionDevEnd(); };
     PuleGpuSemaphore entranceSignalEntranceSemaphore = { .id = 0, };
     { // submit entrance command list
       std::vector<PuleGpuSemaphore> waitSemaphores;

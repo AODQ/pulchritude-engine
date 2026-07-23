@@ -135,18 +135,6 @@ PULE_exportFn PuleDsValue puleDsCreateF64v2(PuleAllocator const allocator, PuleF
 PULE_exportFn PuleDsValue puleDsCreateF64v3(PuleAllocator const allocator, PuleF32v3 value);
 PULE_exportFn PuleDsValue puleDsCreateF64v4(PuleAllocator const allocator, PuleF32v4 value);
 /* 
-  can help serialize/deserialize POD structs, using a C-like format string, use
-  the following macros to generate the format string
-
-  example
-
-  #define structField(fieldtype, member) \
-    PULE_dsStructField(PuleSceneComponentModelData, fieldtype, member, 1)
-  static PuleDsStructField const componentModelFields[] = {
-    structField(i64, type),
-    PULE_dsStructTerminator,
-  };
-  #undef structField
  */
 PULE_exportFn void puleDsStructSerialize(PuleDsValue writeObjectPds, PuleAllocator allocator, PuleDsStructField const * fields, void const * structInstancePtr);
 PULE_exportFn void puleDsStructDeserialize(PuleDsValue serializedStruct, PuleDsStructField const * fields, void * structInstancePtr);

@@ -793,6 +793,13 @@ inline pule::str toStr(PuleGpuAttributeDataType const e) {
     default: return puleString("N/A");
   }
 }
+inline pule::str toStr(PuleGpuPipelineAttributeInputRate const e) {
+  switch (e) {
+    case PuleGpuPipelineAttributeInputRate_perVertex: return puleString("perVertex");
+    case PuleGpuPipelineAttributeInputRate_perInstance: return puleString("perInstance");
+    default: return puleString("N/A");
+  }
+}
 inline pule::str toStr(PuleGpuPipelineDescriptorMax const e) {
   switch (e) {
     case PuleGpuPipelineDescriptorMax_uniform: return puleString("uniform");

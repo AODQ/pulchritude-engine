@@ -143,6 +143,7 @@ PULE_exportFn PuleF32m44 puleF32m44Mul(PuleF32m44 a, PuleF32m44 b);
 PULE_exportFn PuleF32m44 puleF32m44Translate(PuleF32v3 translate);
 PULE_exportFn void puleF32m44DumpToStdout(PuleF32m44 a);
 PULE_exportFn PuleF32m44 puleProjectionPerspective(float fieldOfViewDegrees, float aspectRatio, float nearCutoff, float farCutoff);
+PULE_exportFn PuleF32m44 puleProjectionOrthographic(PuleF32v2 topleft, PuleF32v2 widthheight, float nearCutoff, float farCutoff);
 PULE_exportFn PuleF32m44 puleViewLookAt(PuleF32v3 origin, PuleF32v3 center, PuleF32v3 up);
 PULE_exportFn PuleF32m44 puleF32m44Viewport(float width, float height);
 PULE_exportFn PuleF32m44 puleF32m44Rotation(float radians, PuleF32v3 axis);

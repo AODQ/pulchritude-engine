@@ -13,6 +13,7 @@ build-info: {
         "src/generate-binding-c.cpp",
         "src/generate-binding-cpp.cpp",
         "src/generate-binding-markdown.cpp",
+        "src/generate-binding-serializer.cpp",
       ],
       generated-hidden-files: [],
       linked-libraries: [

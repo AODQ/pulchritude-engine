@@ -198,7 +198,7 @@ void generateBindingFileC(GenerateBindingInfo const & inforef) {
   auto const & file = info.file;
   auto const & out = info.output;
   auto const & write = puleStreamWriteStrFormat;
-  write(out, "/* auto generated file %s */\n", info.path);
+  write(out, "/* auto generated file %s */\n", info.path.contents);
   write(out, "#pragma once\n");
 
   if (puleStringViewEqCStr(info.path, "core")) {
@@ -363,6 +363,28 @@ void generateBindingFileC(GenerateBindingInfo const & inforef) {
     write(out, ");\n");
   }
   write(out, "\n");
+
+  // write out serialized struct interface
+  // (note that `data-serializer` must be included by file)
+  for (auto const & se : file.serializedEntities) {
+    PULE_assert(se.isUnion == false);
+    // e.g. @serialized_struct PulePecsEntity { ... }
+    //   write out:
+    //     PulePecsEntity pulePecsEntityDeserialize(PuleDsValue);
+    //     void pulePecsEntitySerialize(PulePecsEntity *, PuleDsValue);
+    std::string toLower = se.name;
+    toLower[0] = std::tolower(toLower[0]);
+    write(
+      out,
+      "PULE_exportFn void %sDeserialize(void *, PuleDsValue);\n",
+      toLower.c_str(), toLower.c_str()
+    );
+    write(
+      out,
+      "PULE_exportFn void %sSerialize(void const *, PuleDsValue);\n",
+      toLower.c_str(), se.name.c_str()
+    );
+  }
 
   write(out, "#ifdef __cplusplus\n");
   write(out, "} // extern C\n");

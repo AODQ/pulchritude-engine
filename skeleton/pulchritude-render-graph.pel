@@ -176,7 +176,9 @@
 
 @fn puleRenderGraphNode_renderPassBegin(
   node : PuleRenderGraphNode,
-  recorder : PuleGpuCommandListRecorder
+  recorder : PuleGpuCommandListRecorder,
+  clearColor : PuleF32v4,
+  clearDepth : float,
 );
 
 @fn puleRenderGraphNode_renderPassEnd(

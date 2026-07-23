@@ -24,19 +24,19 @@ void displayEcsComponent(
   PuleEcsComponent const component,
   void * const userdata
 ) {
-  auto const info = *reinterpret_cast<PuleImguiEngineDisplayInfo *>(userdata);
-  PuleEcsComponentInfo const componentInfo = (
-    puleEcsComponentInfo(info.world, component)
-  );
-  if (!puleImguiSectionBegin(componentInfo.label.contents)) {
-    return;
-  }
+  // auto const info = *reinterpret_cast<PuleImguiEngineDisplayInfo *>(userdata);
+  // PuleEcsComponentInfo const componentInfo = (
+  //   puleEcsComponentInfo(info.world, component)
+  // );
+  // if (!puleImguiSectionBegin(componentInfo.label.contents)) {
+  //   return;
+  // }
 
-  if (puleImguiButton("focus entities")) {
-    focusedComponent = component;
-  }
+  // if (puleImguiButton("focus entities")) {
+  //   focusedComponent = component;
+  // }
 
-  puleImguiSectionEnd();
+  // puleImguiSectionEnd();
 }
 
 struct FocusedEntityComponentCallbackInfo {
@@ -64,108 +64,108 @@ void displayEcsFocusedEntityComponentCallback(
 }
 
 void displayEcsFocusedEntity(PuleImguiEngineDisplayInfo const info) {
-  if (focusedEntity.id == 0) {
-    return;
-  }
-  bool opened = true;
-  puleImguiWindowBegin("entity", &opened);
-  if (!opened) {
-    puleImguiWindowEnd();
-    focusedEntity.id = 0;
-    return;
-  }
+  // if (focusedEntity.id == 0) {
+  //   return;
+  // }
+  // bool opened = true;
+  // puleImguiWindowBegin("entity", &opened);
+  // if (!opened) {
+  //   puleImguiWindowEnd();
+  //   focusedEntity.id = 0;
+  //   return;
+  // }
 
-  auto const callbackInfo = FocusedEntityComponentCallbackInfo {
-    .world = info.world,
-    .entity = focusedEntity,
-  };
+  // auto const callbackInfo = FocusedEntityComponentCallbackInfo {
+  //   .world = info.world,
+  //   .entity = focusedEntity,
+  // };
 
-  puleEcsEntityIterateComponents( PuleEcsEntityIterateComponentsInfo {
-    .world = info.world,
-    .entity = focusedEntity,
-    .userdata = &callbackInfo,
-    .callback = &displayEcsFocusedEntityComponentCallback,
-  });
+  // puleEcsEntityIterateComponents( PuleEcsEntityIterateComponentsInfo {
+  //   .world = info.world,
+  //   .entity = focusedEntity,
+  //   .userdata = &callbackInfo,
+  //   .callback = &displayEcsFocusedEntityComponentCallback,
+  // });
 
-  puleImguiWindowEnd();
+  // puleImguiWindowEnd();
 }
 
 void displayEcsEntityList(PuleImguiEngineDisplayInfo const info) {
-  if (focusedComponent.id == 0) {
-    return;
-  }
+  // if (focusedComponent.id == 0) {
+  //   return;
+  // }
 
-  PuleEcsComponentInfo const focusedComponentInfo = (
-    puleEcsComponentInfo(info.world, focusedComponent)
-  );
+  // PuleEcsComponentInfo const focusedComponentInfo = (
+  //   puleEcsComponentInfo(info.world, focusedComponent)
+  // );
 
-  bool opened = true;
-  { // open window
-    PuleString const windowBegin = (
-      puleStringFormat(
-        puleAllocateDefault(),
-        "entity list for '%s'", focusedComponentInfo.label.contents
-      )
-    );
-    puleImguiWindowBegin(windowBegin.contents, &opened);
-    puleStringDestroy(windowBegin);
-  }
+  // bool opened = true;
+  // { // open window
+  //   PuleString const windowBegin = (
+  //     puleStringFormat(
+  //       puleAllocateDefault(),
+  //       "entity list for '%s'", focusedComponentInfo.label.contents
+  //     )
+  //   );
+  //   puleImguiWindowBegin(windowBegin.contents, &opened);
+  //   puleStringDestroy(windowBegin);
+  // }
 
-  if (!opened) {
-    focusedComponent.id = 0;
-    puleImguiWindowEnd();
-    return;
-  }
+  // if (!opened) {
+  //   focusedComponent.id = 0;
+  //   puleImguiWindowEnd();
+  //   return;
+  // }
 
-  PuleError err = puleError();
+  // PuleError err = puleError();
 
-  PuleEcsQuery const query = (
-    puleEcsQueryByComponent(info.world, &focusedComponent, 1, &err)
-  );
-  if (puleErrorConsume(&err)) {
-    focusedComponent.id = 0;
-    puleImguiWindowEnd();
-    return;
-  }
+  // PuleEcsQuery const query = (
+  //   puleEcsQueryByComponent(info.world, &focusedComponent, 1, &err)
+  // );
+  // if (puleErrorConsume(&err)) {
+  //   focusedComponent.id = 0;
+  //   puleImguiWindowEnd();
+  //   return;
+  // }
 
-  PuleEcsQueryIterator const queryIter = (
-    puleEcsQueryIterator(info.world, query)
-  );
-  for (
-    PuleEcsIterator iter = puleEcsQueryIteratorNext(queryIter);
-    iter.id != 0;
-    iter = puleEcsQueryIteratorNext(queryIter)
-  ) {
-    size_t const entityCount = puleEcsIteratorEntityCount(iter);
-    PuleEcsEntity * const entities = puleEcsIteratorQueryEntities(iter);
-    for (size_t it = 0; it < entityCount; ++ it) {
-      if (puleImguiButton("o")) {
-        focusedEntity = entities[it];
-      }
-      puleImguiJoinNext();
-      puleImguiText(
-        "entity %zu name '%s'",
-        entities[it].id,
-        puleEcsEntityName(info.world, entities[it])
-      );
-    }
-  }
-  puleEcsQueryIteratorDestroy(queryIter);
-  puleEcsQueryDestroy(query);
-  puleImguiWindowEnd();
+  // PuleEcsQueryIterator const queryIter = (
+  //   puleEcsQueryIterator(info.world, query)
+  // );
+  // for (
+  //   PuleEcsIterator iter = puleEcsQueryIteratorNext(queryIter);
+  //   iter.id != 0;
+  //   iter = puleEcsQueryIteratorNext(queryIter)
+  // ) {
+  //   size_t const entityCount = puleEcsIteratorEntityCount(iter);
+  //   PuleEcsEntity * const entities = puleEcsIteratorQueryEntities(iter);
+  //   for (size_t it = 0; it < entityCount; ++ it) {
+  //     if (puleImguiButton("o")) {
+  //       focusedEntity = entities[it];
+  //     }
+  //     puleImguiJoinNext();
+  //     puleImguiText(
+  //       "entity %zu name '%s'",
+  //       entities[it].id,
+  //       puleEcsEntityName(info.world, entities[it])
+  //     );
+  //   }
+  // }
+  // puleEcsQueryIteratorDestroy(queryIter);
+  // puleEcsQueryDestroy(query);
+  // puleImguiWindowEnd();
 }
 
 void displayEcsComponentList(PuleImguiEngineDisplayInfo const info) {
-  puleImguiWindowBegin("ecs component list", nullptr);
-  puleEcsComponentIterateAll(
-    PuleEcsComponentIterateAllCallback {
-      .world = info.world,
-      .userdata = const_cast<void *>(reinterpret_cast<void const *>(&info)),
-      .fn = &displayEcsComponent,
-    }
-  );
+  // puleImguiWindowBegin("ecs component list", nullptr);
+  // puleEcsComponentIterateAll(
+  //   PuleEcsComponentIterateAllCallback {
+  //     .world = info.world,
+  //     .userdata = const_cast<void *>(reinterpret_cast<void const *>(&info)),
+  //     .fn = &displayEcsComponent,
+  //   }
+  // );
 
-  puleImguiWindowEnd();
+  // puleImguiWindowEnd();
 }
 
 } // namespace

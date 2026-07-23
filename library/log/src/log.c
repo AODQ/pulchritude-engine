@@ -182,14 +182,8 @@ void puleLogRaw(char const * const formatCStr, ...) {
   va_end(args);
 }
 
-void puleLogSectionBegin(PuleLogSection const section, ...) {
-
-  va_list args;
-  va_start(args, section);
-
+static void puliLogSectionBegin(PuleLogSection const section, va_list args) {
   logger(LogType_section, true, section.label, args);
-
-  va_end(args);
 
   PULE_assert(
     logSectionIndex < logSectionMax && "hit implementation log section limit"
@@ -202,6 +196,16 @@ void puleLogSectionBegin(PuleLogSection const section, ...) {
   }
 }
 
+void puleLogSectionBegin(PuleLogSection const section, ...) {
+
+  va_list args;
+  va_start(args, section);
+
+  puliLogSectionBegin(section, args);
+
+  va_end(args);
+}
+
 void puleLogSectionEnd() {
   PULE_assert(logSectionIndex > 0 && "log section end without begin");
   -- logSectionIndex;
@@ -209,4 +213,17 @@ void puleLogSectionEnd() {
     -- logSectionTabs;
   }
   memset(&logSections[logSectionIndex], 0, sizeof(PuleLogSection));
+}
+
+void puleLogSectionDevBegin(char const * label, ...) {
+  va_list args;
+  va_start(args, label);
+
+  PuleLogSection section = {label, false, true};
+  puliLogSectionBegin(section, args);
+  va_end(args);
+}
+
+void puleLogSectionDevEnd() {
+  puleLogSectionEnd();
 }

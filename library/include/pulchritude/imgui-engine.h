@@ -2,7 +2,7 @@
 #pragma once
 #include "core.h"
 
-#include "ecs.h"
+#include "pecs.h"
 #include "platform.h"
 
 #ifdef __cplusplus
@@ -21,7 +21,7 @@ struct PuleImguiEngineDisplayInfo;
   in conjunction with an editor and the real application
  */
 typedef struct PuleImguiEngineDisplayInfo {
-  PuleEcsWorld world;
+  PulePecsScene world;
   PulePlatform platform;
 } PuleImguiEngineDisplayInfo;
 

@@ -93,10 +93,18 @@ struct {
   vertexCount : uint32_t;
 };
 ```
+### PulePhysx2DShapeCircle
+```c
+struct {
+  origin : PuleF32v2;
+  radius : float;
+};
+```
 ### PulePhysx2DShapeUnion
 ```c
 union {
   convexPolygon : PulePhysx2DShapeConvexPolygon;
+  circle : PulePhysx2DShapeCircle;
 };
 ```
 ### PulePhysx2DShape
@@ -164,6 +172,7 @@ enum {
 ```c
 enum {
   convexPolygon,
+  circle,
 }
 ```
 ### PulePhysx2DBodyType

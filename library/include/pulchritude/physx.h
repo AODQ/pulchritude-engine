@@ -24,8 +24,9 @@ typedef enum {
 const uint32_t PulePhysxModeSize = 2;
 typedef enum {
   PulePhysx2DShapeType_convexPolygon = 0,
+  PulePhysx2DShapeType_circle = 1,
 } PulePhysx2DShapeType;
-const uint32_t PulePhysx2DShapeTypeSize = 1;
+const uint32_t PulePhysx2DShapeTypeSize = 2;
 typedef enum {
   PulePhysx2DBodyType_static = 0,
   PulePhysx2DBodyType_kinematic = 1,
@@ -52,6 +53,7 @@ union PulePhysxCollisionShapeUnion;
 struct PulePhysxCollisionShape;
 struct PulePhysxCollisionMesh;
 struct PulePhysx2DShapeConvexPolygon;
+struct PulePhysx2DShapeCircle;
 union PulePhysx2DShapeUnion;
 struct PulePhysx2DShape;
 struct PulePhysx2DBodyCreateInfo;
@@ -113,8 +115,13 @@ typedef struct PulePhysx2DShapeConvexPolygon {
   PuleF32v2 normals[8] ;
   uint32_t vertexCount;
 } PulePhysx2DShapeConvexPolygon;
+typedef struct PulePhysx2DShapeCircle {
+  PuleF32v2 origin;
+  float radius;
+} PulePhysx2DShapeCircle;
 typedef union PulePhysx2DShapeUnion {
   PulePhysx2DShapeConvexPolygon convexPolygon;
+  PulePhysx2DShapeCircle circle;
 } PulePhysx2DShapeUnion;
 typedef struct PulePhysx2DShape {
   PulePhysx2DShapeType type;

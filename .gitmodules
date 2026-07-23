@@ -40,3 +40,6 @@
 [submodule "third-party/pmp-library"]
 	path = third-party/pmp-library
 	url = https://github.com/pmp-library/pmp-library.git
+[submodule "third-party/ldtkloader"]
+	path = third-party/ldtkloader
+	url = https://github.com/madour/ldtkloader

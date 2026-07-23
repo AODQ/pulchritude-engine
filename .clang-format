@@ -1,0 +1,133 @@
+# NOTE
+# Clang-formatter is currently not viable
+
+# this is currently not possible in llvm:
+
+# void fooVeryLongFunctionName(
+#   int a
+# ) {
+
+# it always formats like this:
+# void fooVeryLongFunctionName(
+#   int a) {
+
+ColumnLimit: 80
+Language: Cpp
+LineEnding: LF
+
+UseTab: Never
+#UseTab: AlignWithSpaces
+
+IndentWidth: 2
+ContinuationIndentWidth: 2
+TabWidth: 2
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+
+
+PointerAlignment: Middle
+ReferenceAlignment: Middle
+
+#ReflowComments: Always
+#RemoveEmptyLinesInUnwrappedLines: true
+#RemoveParenthesis: Leave
+RemoveSemicolon: true
+
+SortIncludes: CaseSensitive
+
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Both
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInContainerLiterals: false
+#SpacesInLineCommentPrefix: 1
+SpacesInParens: Never
+
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveAssignments: false
+AlignTrailingComments: Never
+
+AllowAllArgumentsOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+
+FixNamespaceComments: true
+
+IncludeBlocks: Preserve
+
+IndentCaseBlocks: false
+IndentCaseLabels: true
+IndentExternBlock: NoIndent
+
+IndentGotoLabels: false
+IndentPPDirectives: BeforeHash
+
+IndentWrappedFunctionNames: true
+InsertBraces: false
+InsertNewlineAtEOF: true
+InsertTrailingCommas: Wrapped
+
+LambdaBodyIndentation: Signature
+
+
+AllowShortBlocksOnASingleLine: Empty
+#AllowShortCaseExpressionOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+#AllowShortCompoundRequirementsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+
+BinPackArguments: false
+BinPackParameters: false
+
+BreakBeforeBinaryOperators: All
+BreakBeforeTernaryOperators: true
+#BreakBinaryOperations: OnePerLine
+
+BreakConstructorInitializers: AfterColon
+#BreakFunctionDefinitionParameters: true
+BreakStringLiterals: true
+#BreakTemplateDeclarations: MultiLine
+
+#BreakAfterReturnType: Automatic
+
+#PenaltyBreakAssignment: 0
+#PenaltyBreakComment: 0
+#PenaltyBreakFirstLessLess: 0
+#PenaltyBreakOpenParenthesis: 0
+#PenaltyBreakScopeResolution: 0
+#PenaltyBreakString: 0
+#PenaltyBreakTemplateDeclaration: 0
+#PenaltyExcessCharacter: 0
+#PenaltyIndentedWhitespace: 0
+#PenaltyReturnTypeOnItsOwnLine: 0
+
+
+BitFieldColonSpacing: Both
+

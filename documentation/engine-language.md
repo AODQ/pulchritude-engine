@@ -4,6 +4,7 @@
 ### PuleELModuleCreateInfo
 ```c
 struct {
+  engine : PuleELEngine;
   moduleIR : PuleStringView;
   name : PuleStringView;
   optimize : bool = false;
@@ -28,8 +29,8 @@ enum {
 ```
 
 ## entities
-### PuleELModule
 ### PuleELEngine
+### PuleELModule
 ### PuleELFence
 ### PuleELQueue
 
@@ -56,13 +57,6 @@ puleELEngineCreate(
 ```c
 puleELEngineDestroy(
   engine : PuleELEngine
-) void;
-```
-### puleELEngineAddModule
-```c
-puleELEngineAddModule(
-  engine : PuleELEngine,
-  module : PuleELModule
 ) void;
 ```
 ### puleELFenceWait

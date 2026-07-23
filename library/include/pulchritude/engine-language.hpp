@@ -8,6 +8,23 @@
 #include "time.hpp"
 
 namespace pule {
+struct ELEngine {
+  PuleELEngine _handle;
+  inline operator PuleELEngine() const {
+    return _handle;
+  }
+  inline void destroy() {
+    return puleELEngineDestroy(this->_handle);
+  }
+  static inline ELEngine create(PuleELEngineCreateInfo ci) {
+    return { ._handle = puleELEngineCreate(ci),};
+  }
+};
+}
+  inline void destroy(pule::ELEngine self) {
+    return puleELEngineDestroy(self._handle);
+  }
+namespace pule {
 struct ELModule {
   PuleELModule _handle;
   inline operator PuleELModule() const {
@@ -23,29 +40,6 @@ struct ELModule {
 }
   inline void destroy(pule::ELModule self) {
     return puleELModuleDestroy(self._handle);
-  }
-namespace pule {
-struct ELEngine {
-  PuleELEngine _handle;
-  inline operator PuleELEngine() const {
-    return _handle;
-  }
-  inline void destroy() {
-    return puleELEngineDestroy(this->_handle);
-  }
-  inline void addModule(PuleELModule module) {
-    return puleELEngineAddModule(this->_handle, module);
-  }
-  static inline ELEngine create(PuleELEngineCreateInfo ci) {
-    return { ._handle = puleELEngineCreate(ci),};
-  }
-};
-}
-  inline void destroy(pule::ELEngine self) {
-    return puleELEngineDestroy(self._handle);
-  }
-  inline void addModule(pule::ELEngine self, PuleELModule module) {
-    return puleELEngineAddModule(self._handle, module);
   }
 namespace pule {
 struct ELFence {

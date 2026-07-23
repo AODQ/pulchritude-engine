@@ -41,6 +41,7 @@ PuleGpuPipelineLayoutDescriptorSet createPipelineDescriptorSetLayout() {
   auto descriptorSetLayout = puleGpuPipelineDescriptorSetLayout();
   descriptorSetLayout.attributeBufferBindings[0] = {
     .stridePerElement = sizeof(ImDrawVert),
+    .inputRate = PuleGpuPipelineAttributeInputRate_perVertex,
   };
   descriptorSetLayout.attributeBindings[0] = {
     .dataType = PuleGpuAttributeDataType_f32,

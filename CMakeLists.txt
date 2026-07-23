@@ -77,12 +77,6 @@ else()
   add_compile_definitions(NDEBUG)
 endif()
 
-project(
-  pulchritude-engine
-  VERSION 0.0
-  LANGUAGES C CXX
-  DESCRIPTION "pulchritude engine | github.com/aodq/pulchritude-engine"
-)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
@@ -137,7 +131,9 @@ if (NOT processFinished STREQUAL "0")
   message(FATAL_ERROR "could not compile shaders")
 endif()
 
-watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.frag)
-watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.vert)
-watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.frag)
-watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.vert)
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.frag")
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/text-bitmap.vert")
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.frag")
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/debug-gfx-line.vert")
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/asset-sprite.vert")
+watchfile("${CMAKE_CURRENT_SOURCE_DIR}/shaders/asset-sprite.frag")
